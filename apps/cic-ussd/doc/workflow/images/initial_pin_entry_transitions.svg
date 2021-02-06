@@ -1,0 +1,33 @@
+<svg version="1.1" baseProfile="full" width="330.5" height="371.5" viewbox="0 0 330.5 371.5" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; initial pin entry]-&gt; [&lt;input&gt; Please enter a PIN; to manage your account]
+[Please enter a PIN; to manage your account]-&gt; [&lt;choice&gt; is valid pin]
+[is valid pin]-&gt; yes [save pin]
+[save pin]-&gt; [&lt;reference&gt; initial pin confirmation]
+[is valid pin]-&gt; no [&lt;label&gt; exit invalid pin]</desc>
+  <rect x="0" y="0" height="371.5" width="330.5" style="stroke:none; fill:transparent;"></rect>
+  <path d="M180.5 44.5 L180.5 64.5 L180.5 84.5 L180.5 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M175.2 71.2 L180.5 77.8 L185.8 71.2 L180.5 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M180.5 130.5 L180.5 150.5 L180.5 170.5 L180.5 170.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M175.2 157.2 L180.5 163.8 L185.8 157.2 L180.5 170.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="71.5" y="249" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M141.3 217 L107.5 237 L107.5 257 L107.5 257 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M102.2 243.7 L107.5 250.3 L112.8 243.7 L107.5 257 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M107.5 288 L107.5 308 L107.5 328 L107.5 328 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M102.2 314.7 L107.5 321.3 L112.8 314.7 L107.5 328 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="261.5" y="249" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M219.7 217 L253.5 237 L253.5 257 L253.5 257 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M248.2 243.7 L253.5 250.3 L258.8 243.7 L253.5 257 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="115.5" y="13.5" height="31" width="131" data-name="initial pin entry" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="181" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="initial pin entry">initial pin entry</text>
+  <path d="M84.5 84.5 L284.5 84.5 L276.5 130.5 L76.5 130.5 Z" data-name="Please enter a PIN" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="180.5" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="Please enter a PIN">Please enter a PIN</text>
+  <text x="180.5" y="121" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="Please enter a PIN">to manage your account</text>
+  <path d="M180.5 170.5 L255.5 193.8 L180.5 217 L105.5 193.8 Z" data-name="is valid pin" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="180.5" y="199.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="is valid pin">is valid pin</text>
+  <rect x="66.5" y="257.5" height="31" width="83" data-name="save pin" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="108" y="279" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="save pin">save pin</text>
+  <rect x="13.5" y="328.5" height="31" width="188" data-name="initial pin confirmation" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="107.5" y="350" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="initial pin confirmation">initial pin confirmation</text>
+  <text x="197.5" y="279" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;" data-name="exit invalid pin">exit invalid pin</text>
+</svg>

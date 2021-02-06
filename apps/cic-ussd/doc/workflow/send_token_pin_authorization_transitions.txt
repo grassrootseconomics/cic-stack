@@ -1,0 +1,8 @@
+[<reference> send token pin authorization]-> [<input> Please enter your PIN to confirm]
+[Please enter your PIN to confirm]-> [<choice> is authorized pin]
+[is authorized pin]-> yes [process send token request (* celery tasks)]
+[process send token request (* celery tasks)] -> [<reference> exit successful send token]
+[is authorized pin]-> no [<choice> is blocked pin]
+[is blocked pin] -> yes [<label> exit pin blocked]
+[is blocked pin] -> no [increase failed attempts by one]
+[increase failed attempts by one]-> [Please enter your PIN to confirm]

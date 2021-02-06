@@ -1,0 +1,5 @@
+[<reference> exit invalid token agent]-> [<input> user input]
+[user input]-> [<choice> 00. Back]
+[00. Back]-> yes [<reference> exchange token agent number entry]
+[00. Back]-> no [<choice> 99. Exit]
+[99. Exit]-> [<label> exit]

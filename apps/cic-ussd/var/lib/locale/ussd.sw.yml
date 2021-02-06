@@ -1,0 +1,171 @@
+sw:
+  kenya:
+    initial_language_selection: |-
+      CON Welcome to Sarafu
+      1. English
+      2. Kiswahili
+      3. Help
+    initial_pin_entry: |-
+      CON Tafadhali weka PIN ili kudhibiti akaunti yako.
+      0. Nyuma
+    initial_pin_confirmation: |-
+      CON Weka PIN yako tena
+      0. Nyuma
+    start: |-
+      CON Salio %{account_balance} %{account_token_name}
+      1. Tuma
+      2. Akaunti yangu
+      3. Usaidizi
+    enter_transaction_recipient: |-
+      CON Weka nambari ya simu
+      0. Nyuma
+    enter_transaction_amount: |-
+      CON Weka kiwango
+      0. Nyuma
+    account_management: |-
+      CON Akaunti yangu
+      1. Wasifu wangu
+      2. Chagua lugha utakayotumia
+      3. Angalia salio
+      4. Badilisha nambari ya siri
+      0. Nyuma
+    profile_management: |-
+      CON Wasifu wangu
+      1. Weka jina
+      2. Weka jinsia
+      3. Weka eneo
+      4. Weka biashara
+      0. Nyuma
+    enter_first_name: |-
+      CON Weka jina lako la kwanza
+      0. Nyuma
+    enter_last_name: |-
+      CON Weka jina lako la mwisho
+      0. Nyuma
+    enter_gender: |-
+      CON Weka jinsia yako
+      1. Mwanaume
+      2. Mwanamke
+      0. Nyuma
+    enter_location: |-
+      CON Weka eneo lako
+      0. Nyuma
+    enter_business_profile: |-
+      CON Tafadhali weka bidhaa ama huduma unauza
+      0. Nyuma
+    display_user_profile_data: |-
+      END Wasifu wako una maelezo yafuatayo:
+        Jina: %{full_name}
+        Jinsia: %{gender}
+        Eneo: %{location}
+        Unauza: %{user_bio}
+      Iwapo hakuna, enda kwa wasifu wako uweke maelezo zaidi.
+      0. Nyuma
+    select_preferred_language: |-
+      CON Chagua lugha
+      1. Kingereza
+      2. Kiswahili
+      0. Nyuma
+    enter_current_pin:
+      first: |-
+        CON Weka nambari ya siri.
+        0. Nyuma
+      retry: |-
+        CON Weka nambari ya siri. Una majaribio %{remaining_attempts} yaliyobaki.
+        0. Back
+    enter_new_pin: |-
+      CON Weka nambari ya siri mpya
+      0. Nyuma
+    transaction_pin_authorization:
+      first: |-
+        CON %{recipient_information} atapokea %{transaction_amount} %{token_symbol} kutoka kwa %{sender_information}.
+        Tafadhali weka nambari yako ya siri kudhibitisha.
+        0. Nyuma
+      retry: |-
+        CON Weka nambari ya siri. Una majaribio %{remaining_attempts} yaliyobaki.
+        0. Nyuma
+    name_management_pin_authorization:
+      first: |-
+        CON Tafadhali weka PIN yako.
+        0. Nyuma
+      retry: |-
+        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
+        0. Nyuma
+    gender_management_pin_authorization:
+      first: |-
+        CON Tafadhali weka PIN yako.
+        0. Nyuma
+      retry: |-
+        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
+        0. Nyuma
+    location_management_pin_authorization:
+      first: |-
+        CON Tafadhali weka PIN yako.
+        0. Nyuma
+      retry: |-
+        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
+        0. Nyuma
+    business_profile_management_pin_authorization:
+      first: |-
+        CON Tafadhali weka PIN yako.
+        0. Nyuma
+      retry: |-
+        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
+        0. Nyuma
+    view_profile_pin_authorization:
+      first: |-
+        CON Tafadhali weka PIN yako.
+        0. Nyuma
+      retry: |-
+        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
+        0. Nyuma
+    mini_statement_pin_authorization:
+      first: |-
+        CON Tafadhali weka PIN yako.
+        0. Nyuma
+      retry: |-
+        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
+        0. Nyuma
+    exit: |-
+      END Asante kwa kutumia huduma.
+    exit_invalid_request: |-
+      END Chaguo si sahihi.
+    exit_invalid_menu_option: |-
+      CON Chaguo lako sio sahihi. Kwa usaidizi piga simu %{support_phone}
+      00. Nyuma
+      99. Ondoka
+    exit_invalid_input: |-
+      CON Chaguo lako halipatikani. Hakuna kilichochaguliwa.
+      00. Nyuma
+      99. Ondoka
+    exit_pin_blocked: |-
+      END PIN yako imefungwa. Kwa usaidizi tafadhali piga simu %{support_phone}.
+    exit_invalid_pin: |-
+      END PIN uliyobonyeza sio sahihi. PIN lazima iwe na nambari nne. Kwa usaidizi piga simu %{support_phone}.
+    exit_invalid_new_pin: |-
+      END PIN uliyobonyeza sio sahihi. PIN lazima iwe tofauti na pin yako ya sasa. Kwa usaidizi piga simu %{support_phone}.
+    exit_pin_mismatch: |-
+      END PIN mpya na udhibitisho wa pin mpya hazilingani. Tafadhali jaribu tena. Kwa usaidizi piga simu %{support_phone}.
+    exit_invalid_recipient: |-
+      CON Mpokeaji wa nambari hapatikani au sio sahihi.
+      00. Jaribu tena
+      99. Ondoka
+    exit_successful_transaction: |-
+      CON Ombi lako limetumwa. %{recipient_information} atapokea %{transaction_amount} %{token_symbol} kutoka kwa %{sender_information}.
+      00. Nyuma
+      99. Ondoka
+    exit_insufficient_balance: |-
+      CON Malipo ya %{amount} %{token_symbol} kwa %{recipient_information} halijakamilika kwa sababu salio lako haitoshi.
+      Akaunti yako ya Sarafu-Network ina salio ifuatayo: %{token_balance}
+      00. Nyuma
+      99. Ondoka
+    help: |-
+      CON Kwa usaidizi piga simu %{support_phone}
+      0. Nyuma
+      9. Ondoka
+    complete: |-
+      CON Ombi lako limetumwa. Utapokea uthibitishaji wa SMS kwa muda mfupi.
+      00. Nyuma
+      99. Ondoka
+    account_creation_prompt: |-
+      Akaunti yako ya Sarafu inatayarishwa. Utapokea ujumbe wa SMS akaunti yako ikiwa tayari.

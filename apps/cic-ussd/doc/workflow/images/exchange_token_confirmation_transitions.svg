@@ -1,0 +1,45 @@
+<svg version="1.1" baseProfile="full" width="700.375" height="372" viewbox="0 0 700.375 372" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; exchange token confirmation]-&gt; [&lt;input&gt; menu option]
+[menu option]-&gt; [&lt;choice&gt; 1.Confirm]
+[1.Confirm]-&gt; yes [Process exchange request *(celery tasks)]
+[Process exchange request *(celery tasks)]-&gt; [&lt;reference&gt; complete]
+[1.Confirm]-&gt; no [&lt;choice&gt; 2. Cancel]
+[2. Cancel]-&gt; yes [&lt;reference&gt; start menu]
+[2. Cancel]-&gt; no [&lt;reference&gt; exit invalid menu option]</desc>
+  <rect x="0" y="0" height="372" width="700.375" style="stroke:none; fill:transparent;"></rect>
+  <path d="M349.8 44.5 L349.8 64.5 L349.8 84.5 L349.8 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M344.4 71.2 L349.8 77.8 L355.1 71.2 L349.8 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M349.8 115.5 L349.8 135.5 L349.8 155.5 L349.8 155.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M344.4 142.2 L349.8 148.8 L355.1 142.2 L349.8 155.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="151" y="241.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M280.8 197.1 L187 222 L187 249.8 L187 249.8 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M181.7 236.4 L187 243.1 L192.3 236.4 L187 249.8 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M187 280.8 L187 308.5 L187 328.5 L187 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M181.7 315.2 L187 321.8 L192.3 315.2 L187 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="498.6" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M418.8 199.9 L490.6 222 L490.6 242 L490.6 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M485.3 228.7 L490.6 235.3 L496 228.7 L490.6 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="358.9" y="320.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M439.2 288.5 L394.9 308.5 L394.9 328.5 L394.9 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M389.5 315.2 L394.9 321.8 L400.2 315.2 L394.9 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="594.4" y="320.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M542.1 288.5 L586.4 308.5 L586.4 328.5 L586.4 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M581 315.2 L586.4 321.8 L591.7 315.2 L586.4 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="227.5" y="13.5" height="31" width="245" data-name="exchange token confirmation" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="350" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="exchange token confirmation">exchange token confirmation</text>
+  <path d="M300.5 84.5 L406.5 84.5 L398.5 115.5 L292.5 115.5 Z" data-name="menu option" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="349.5" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="menu option">menu option</text>
+  <path d="M349.8 155.5 L418.5 178.8 L349.8 202 L280.5 178.8 Z" data-name="1.Confirm" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="349.5" y="184.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="1.Confirm">1.Confirm</text>
+  <rect x="13.5" y="249.5" height="31" width="347" data-name="Process exchange request *(celery tasks)" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="187" y="271" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="Process exchange request *(celery tasks)">Process exchange request *(celery tasks)</text>
+  <rect x="143.5" y="328.5" height="31" width="88" data-name="complete" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="187.5" y="350" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="complete">complete</text>
+  <path d="M490.6 242.5 L559 265.3 L490.6 289 L422.5 265.3 Z" data-name="2. Cancel" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="490.8" y="271.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="2. Cancel">2. Cancel</text>
+  <rect x="344.5" y="328.5" height="31" width="100" data-name="start menu" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="394.5" y="350" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="start menu">start menu</text>
+  <rect x="484.5" y="328.5" height="31" width="203" data-name="exit invalid menu option" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="586" y="350" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="exit invalid menu option">exit invalid menu option</text>
+</svg>

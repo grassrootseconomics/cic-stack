@@ -1,0 +1,32 @@
+<svg version="1.1" baseProfile="full" width="278.5" height="372" viewbox="0 0 278.5 372" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; complete]-&gt; [&lt;input&gt; user input]
+[user input]-&gt; [&lt;choice&gt; 00. Back]
+[00. Back]-&gt; yes [&lt;reference&gt; start menu]
+[00. Back]-&gt; no [&lt;choice&gt; 99. Exit]
+[99. Exit]-&gt; [&lt;label&gt; exit]</desc>
+  <rect x="0" y="0" height="372" width="278.5" style="stroke:none; fill:transparent;"></rect>
+  <path d="M136.6 44.5 L136.6 64.5 L136.6 84.5 L136.6 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M131.3 71.2 L136.6 77.8 L142 71.2 L136.6 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M136.6 115.5 L136.6 135.5 L136.6 155.5 L136.6 155.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M131.3 142.2 L136.6 148.8 L142 142.2 L136.6 155.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="27.5" y="241.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M97.3 202 L63.5 222 L63.5 249.8 L63.5 249.8 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M58.2 236.4 L63.5 243.1 L68.8 236.4 L63.5 249.8 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="217.8" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M175.9 202 L209.8 222 L209.8 242 L209.8 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M204.4 228.7 L209.8 235.3 L215.1 228.7 L209.8 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M209.8 288.5 L209.8 308.5 L209.8 328.5 L209.8 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M204.4 315.2 L209.8 321.8 L215.1 315.2 L209.8 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="92.5" y="13.5" height="31" width="88" data-name="complete" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="136.5" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="complete">complete</text>
+  <path d="M97.5 84.5 L184.5 84.5 L176.5 115.5 L89.5 115.5 Z" data-name="user input" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="137" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="user input">user input</text>
+  <path d="M136.6 155.5 L200 178.8 L136.6 202 L72.5 178.8 Z" data-name="00. Back" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="136.3" y="184.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="00. Back">00. Back</text>
+  <rect x="13.5" y="249.5" height="31" width="100" data-name="start menu" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="63.5" y="271" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="start menu">start menu</text>
+  <path d="M209.8 242.5 L266 265.3 L209.8 289 L153.5 265.3 Z" data-name="99. Exit" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="209.8" y="271.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="99. Exit">99. Exit</text>
+  <text x="195.5" y="350" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;" data-name="exit">exit</text>
+</svg>

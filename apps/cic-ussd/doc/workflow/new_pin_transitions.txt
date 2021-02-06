@@ -1,0 +1,5 @@
+[<reference> new pin]-> [<input> Enter new pin]
+[Enter new pin]-> [<choice> is valid pin]
+[is valid pin]-> yes [save pin]
+[save pin]-> [<reference> new pin confirmation]
+[is valid pin]-> no [<label> exit invalid pin]

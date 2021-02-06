@@ -1,0 +1,11 @@
+You can run this application even on a file:/// url.
+
+However, the existing SEMPO USSD backend will not let you run this because of built-in browser security measures.
+
+Fortunately, you can get around that by invoking the browser from the command line like this using chromium:
+
+chromium --disable-web-security --user-data-dir=<some bogus empty dir>
+
+Note that you have to kill all active chromium processes first.
+
+Please don't do anything else with that instance of the browser. It's not safe. Really!

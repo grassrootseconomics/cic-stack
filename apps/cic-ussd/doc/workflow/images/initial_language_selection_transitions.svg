@@ -1,0 +1,61 @@
+<svg version="1.1" baseProfile="full" width="866" height="473.5" viewbox="0 0 866 473.5" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;state&gt; start]-&gt; [&lt;input&gt; Welcome to Sarafu; Select language]
+[Welcome to Sarafu; Select language]-&gt; [&lt;choice&gt; 1. English]
+[1. English]-&gt; yes [change language to english]
+[change language to english]-&gt; [&lt;reference&gt; initial pin entry]
+[1. English]-&gt;  no [&lt;choice&gt; 2. Kiswahili]
+[2. Kiswahili]-&gt; yes [change language to kiswahili]
+[change language to kiswahili]-&gt; [initial pin entry]
+[2. Kiswahili]-&gt; no [&lt;choice&gt; 3. Help]
+[3. Help]-&gt; yes [&lt;reference&gt; help]
+[3. Help]-&gt; no [&lt;reference&gt; exit invalid menu option]</desc>
+  <rect x="0" y="0" height="473.5" width="866" style="stroke:none; fill:transparent;"></rect>
+  <path d="M420.3 44.5 L420.3 64.5 L420.3 84.5 L420.3 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M414.9 71.2 L420.3 77.8 L425.6 71.2 L420.3 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M420.3 130.5 L420.3 150.5 L420.3 170.5 L420.3 170.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M414.9 157.2 L420.3 163.8 L425.6 157.2 L420.3 170.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="95.5" y="343.3" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M349.8 204.3 L131.5 237 L131.5 280.3 L131.5 280.3 L131.5 323.5 L131.5 323.5 L131.5 351.3 L131.5 351.3 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M126.2 337.9 L131.5 344.6 L136.8 337.9 L131.5 351.3 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M131.5 382.3 L131.5 410 L210.5 430 L210.5 430 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M196.3 431.9 L204.1 428.4 L198.9 421.6 L210.5 430 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="568.5" y="249" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M490.8 215.5 L560.5 237 L560.5 257 L560.5 257 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M555.2 243.7 L560.5 250.3 L565.8 243.7 L560.5 257 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="376" y="343.3" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M482.5 303 L412 323.5 L412 351.3 L412 351.3 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M406.7 337.9 L412 344.6 L417.3 337.9 L412 351.3 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M412 382.3 L412 410 L333 430 L333 430 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M344.6 421.6 L339.4 428.4 L347.2 431.9 L333 430 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="676.8" y="335.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M618.7 303.5 L668.8 323.5 L668.8 343.5 L668.8 343.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M663.4 330.2 L668.8 336.8 L674.1 330.2 L668.8 343.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="549.5" y="422" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M624 390 L585.5 410 L585.5 430 L585.5 430 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M580.2 416.7 L585.5 423.3 L590.8 416.7 L585.5 430 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="760" y="422" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M713.5 390 L752 410 L752 430 L752 430 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M746.7 416.7 L752 423.3 L757.3 416.7 L752 430 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="394.5" y="13.5" rx="15.5" ry="15.5" height="31" width="51" data-name="start" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="420" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="start">start</text>
+  <path d="M345.5 84.5 L503.5 84.5 L495.5 130.5 L337.5 130.5 Z" data-name="Welcome to Sarafu" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="420.5" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="Welcome to Sarafu">Welcome to Sarafu</text>
+  <text x="420.5" y="121" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="Welcome to Sarafu">Select language</text>
+  <path d="M420.3 170.5 L490.5 193.8 L420.3 217 L349.5 193.8 Z" data-name="1. English" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="420" y="199.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="1. English">1. English</text>
+  <rect x="13.5" y="351.5" height="31" width="236" data-name="change language to english" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="131.5" y="373" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="change language to english">change language to english</text>
+  <rect x="206.5" y="430.5" height="31" width="131" data-name="initial pin entry" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="272" y="452" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="initial pin entry">initial pin entry</text>
+  <path d="M560.5 257.5 L638.5 280.3 L560.5 304 L482.5 280.3 Z" data-name="2. Kiswahili" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="560.5" y="286.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="2. Kiswahili">2. Kiswahili</text>
+  <rect x="289.5" y="351.5" height="31" width="245" data-name="change language to kiswahili" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="412" y="373" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="change language to kiswahili">change language to kiswahili</text>
+  <path d="M668.8 343.5 L722.5 366.8 L668.8 390 L614.5 366.8 Z" data-name="3. Help" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="668.5" y="372.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="3. Help">3. Help</text>
+  <rect x="560.5" y="430.5" height="31" width="50" data-name="help" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="585.5" y="452" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="help">help</text>
+  <rect x="650.5" y="430.5" height="31" width="203" data-name="exit invalid menu option" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="752" y="452" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="exit invalid menu option">exit invalid menu option</text>
+</svg>

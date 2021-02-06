@@ -1,0 +1,59 @@
+<svg version="1.1" baseProfile="full" width="755.5" height="529.5" viewbox="0 0 755.5 529.5" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; directory listing other]-&gt; [&lt;input&gt; menu option]
+[menu option]-&gt; [&lt;choice&gt; 9. Show more]
+[9. Show more] yes -&gt;[Set usage menu number]
+[Set usage menu number]-&gt; [&lt;reference&gt; directory listing other]
+[9. Show more]-&gt; no [&lt;choice&gt; 10. Show previous]
+[10. Show previous]-&gt; yes [Set usage menu number]
+[10. Show previous]-&gt; no [&lt;choice&gt; is valid other menu option]
+[is valid other menu option]-&gt; yes [send directory listing]
+[send directory listing]-&gt; [&lt;reference&gt; complete]
+[is valid other menu option]-&gt; no [&lt;reference&gt;exit invalid menu option]
+</desc>
+  <rect x="0" y="0" height="529.5" width="755.5" style="stroke:none; fill:transparent;"></rect>
+  <path d="M152 44.5 L106.5 64.5 L106.5 84.5 L106.5 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M101.2 71.2 L106.5 77.8 L111.8 71.2 L106.5 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M106.5 115.5 L106.5 135.5 L106.5 155.5 L106.5 155.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M101.2 142.2 L106.5 148.8 L111.8 142.2 L106.5 155.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="70.5" y="222" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M106.5 202 L106.5 222 L106.5 265.3 L106.5 265.3 L106.5 308.5 L106.5 308.5 L210.1 336.3 L210.1 336.3 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M195.9 338 L203.7 334.5 L198.6 327.6 L210.1 336.3 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M325.9 336.3 L429.5 308.5 L429.5 265.3 L429.5 265.3 L429.5 222 L429.5 222 L429.5 178.8 L429.5 178.8 L429.5 135.5 L429.5 135.5 L429.5 100 L429.5 100 L429.5 64.5 L429.5 64.5 L278.3 42.3 L278.3 42.3 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M292.2 39 L284.8 43.3 L290.7 49.5 L278.3 42.3 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="276" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M193.3 202 L268 222 L268 242 L268 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M262.7 228.7 L268 235.3 L273.3 228.7 L268 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="232" y="328.3" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M268 288.5 L268 308.5 L268 336.3 L268 336.3 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M262.7 322.9 L268 329.6 L273.3 322.9 L268 336.3 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="586" y="320.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M389.5 282.2 L578 308.5 L578 328.5 L578 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M572.7 315.2 L578 321.8 L583.3 315.2 L578 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="372" y="407" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M486.6 375 L408 395 L408 415 L408 415 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M402.7 401.7 L408 408.3 L413.3 401.7 L408 415 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M408 446 L408 466 L408 486 L408 486 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M402.7 472.7 L408 479.3 L413.3 472.7 L408 486 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="647.5" y="407" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M611.1 375 L639.5 395 L639.5 415 L639.5 415 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M634.2 401.7 L639.5 408.3 L644.8 401.7 L639.5 415 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="96.5" y="13.5" height="31" width="182" data-name="directory listing other" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="187.5" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="directory listing other">directory listing other</text>
+  <path d="M57.5 84.5 L163.5 84.5 L155.5 115.5 L49.5 115.5 Z" data-name="menu option" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="106.5" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="menu option">menu option</text>
+  <path d="M106.5 155.5 L199.5 178.8 L106.5 202 L13.5 178.8 Z" data-name="9. Show more" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="106.5" y="184.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="9. Show more">9. Show more</text>
+  <rect x="163.5" y="336.5" height="31" width="210" data-name="Set usage menu number" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="268.5" y="358" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="Set usage menu number">Set usage menu number</text>
+  <path d="M268 242.5 L389.5 265.3 L268 289 L146.5 265.3 Z" data-name="10. Show previous" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="268" y="271.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="10. Show previous">10. Show previous</text>
+  <path d="M578 328.5 L743.5 351.8 L578 375 L413.5 351.8 Z" data-name="is valid other menu option" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="578.5" y="357.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="is valid other menu option">is valid other menu option</text>
+  <rect x="318.5" y="415.5" height="31" width="180" data-name="send directory listing" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="408.5" y="437" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="send directory listing">send directory listing</text>
+  <rect x="364.5" y="486.5" height="31" width="88" data-name="complete" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="408.5" y="508" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="complete">complete</text>
+  <rect x="538.5" y="415.5" height="31" width="203" data-name="exit invalid menu option" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="640" y="437" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="exit invalid menu option">exit invalid menu option</text>
+</svg>

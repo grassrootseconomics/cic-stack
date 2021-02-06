@@ -1,0 +1,5 @@
+[<reference> initial pin entry]-> [<input> Please enter a PIN; to manage your account]
+[Please enter a PIN; to manage your account]-> [<choice> is valid pin]
+[is valid pin]-> yes [save pin]
+[save pin]-> [<reference> initial pin confirmation]
+[is valid pin]-> no [<label> exit invalid pin]

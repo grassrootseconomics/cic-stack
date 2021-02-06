@@ -1,0 +1,15 @@
+[
+  "help",
+  "exit",
+  "exit_invalid_request",
+  "exit_invalid_menu_option",
+  "exit_invalid_recipient",
+  "exit_invalid_input",
+  "exit_invalid_pin",
+  "exit_pin_mismatch",
+  "exit_pin_blocked",
+  "account_creation_prompt",
+  "exit_successful_transaction",
+  "exit_insufficient_balance",
+  "complete"
+]

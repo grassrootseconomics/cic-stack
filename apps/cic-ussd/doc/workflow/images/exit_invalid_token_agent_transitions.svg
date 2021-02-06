@@ -1,0 +1,32 @@
+<svg version="1.1" baseProfile="full" width="481.5" height="372" viewbox="0 0 481.5 372" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; exit invalid token agent]-&gt; [&lt;input&gt; user input]
+[user input]-&gt; [&lt;choice&gt; 00. Back]
+[00. Back]-&gt; yes [&lt;reference&gt; exchange token agent number entry]
+[00. Back]-&gt; no [&lt;choice&gt; 99. Exit]
+[99. Exit]-&gt; [&lt;label&gt; exit]</desc>
+  <rect x="0" y="0" height="372" width="481.5" style="stroke:none; fill:transparent;"></rect>
+  <path d="M288.9 44.5 L288.9 64.5 L288.9 84.5 L288.9 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M283.5 71.2 L288.9 77.8 L294.2 71.2 L288.9 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M288.9 115.5 L288.9 135.5 L288.9 155.5 L288.9 155.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M283.5 142.2 L288.9 148.8 L294.2 142.2 L288.9 155.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="129" y="241.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M225.1 201 L165 222 L165 249.8 L165 249.8 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M159.7 236.4 L165 243.1 L170.3 236.4 L165 249.8 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="420.8" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M352.6 201 L412.8 222 L412.8 242 L412.8 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M407.4 228.7 L412.8 235.3 L418.1 228.7 L412.8 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M412.8 288.5 L412.8 308.5 L412.8 328.5 L412.8 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M407.4 315.2 L412.8 321.8 L418.1 315.2 L412.8 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="189.5" y="13.5" height="31" width="199" data-name="exit invalid token agent" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="289" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="exit invalid token agent">exit invalid token agent</text>
+  <path d="M249.5 84.5 L336.5 84.5 L328.5 115.5 L241.5 115.5 Z" data-name="user input" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="289" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="user input">user input</text>
+  <path d="M288.9 155.5 L353 178.8 L288.9 202 L225.5 178.8 Z" data-name="00. Back" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="289.3" y="184.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="00. Back">00. Back</text>
+  <rect x="13.5" y="249.5" height="31" width="303" data-name="exchange token agent number entry" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="165" y="271" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="exchange token agent number entry">exchange token agent number entry</text>
+  <path d="M412.8 242.5 L469 265.3 L412.8 289 L356.5 265.3 Z" data-name="99. Exit" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="412.8" y="271.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="99. Exit">99. Exit</text>
+  <text x="398.5" y="350" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;" data-name="exit">exit</text>
+</svg>

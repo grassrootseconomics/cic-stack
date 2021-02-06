@@ -1,0 +1,61 @@
+[
+  {
+    "trigger": "scan_data",
+    "source": "enter_transaction_recipient",
+    "dest": "enter_transaction_amount",
+    "after": "cic_ussd.state_machine.logic.transaction.save_recipient_phone_to_session_data",
+    "conditions": "cic_ussd.state_machine.logic.transaction.is_valid_recipient"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "enter_transaction_recipient",
+    "dest": "exit_invalid_recipient"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "enter_transaction_amount",
+    "dest": "transaction_pin_authorization",
+    "conditions": [
+      "cic_ussd.state_machine.logic.transaction.is_valid_transaction_amount",
+      "cic_ussd.state_machine.logic.transaction.has_sufficient_balance"
+    ],
+    "after": "cic_ussd.state_machine.logic.transaction.save_transaction_amount_to_session_data"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "enter_transaction_amount",
+    "unless": "cic_ussd.state_machine.logic.transaction.has_sufficient_balance",
+    "dest": "exit_insufficient_balance",
+    "after": "cic_ussd.state_machine.logic.transaction.save_transaction_amount_to_session_data"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "exit_insufficient_balance",
+    "dest": "start",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "exit_insufficient_balance",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_ninety_nine_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "enter_transaction_amount",
+    "dest": "exit_invalid_input"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "transaction_pin_authorization",
+    "dest": "exit_successful_transaction",
+    "conditions": "cic_ussd.state_machine.logic.pin.is_authorized_pin",
+    "after": "cic_ussd.state_machine.logic.transaction.process_transaction_request"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "transaction_pin_authorization",
+    "dest": "exit_pin_blocked",
+    "conditions": "cic_ussd.state_machine.logic.pin.is_locked_account"
+  }
+]

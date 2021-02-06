@@ -1,0 +1,51 @@
+<svg version="1.1" baseProfile="full" width="712.25" height="443" viewbox="0 0 712.25 443" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; directory listing]-&gt; [&lt;input&gt; menu option]
+[menu option]-&gt; [&lt;choice&gt; 9. Show more]
+[9. Show more]-&gt; yes [Set usage menu number]
+[Set usage menu number]-&gt; [&lt;reference&gt; directory listing other]
+[9. Show more]-&gt; no [&lt;choice&gt;is valid menu option]
+[is valid menu option]-&gt; yes [send directory listing]
+[send directory listing]-&gt; [&lt;reference&gt; complete]
+[is valid menu option]-&gt; no [&lt;reference&gt;exit invalid menu option]
+</desc>
+  <rect x="0" y="0" height="443" width="712.25" style="stroke:none; fill:transparent;"></rect>
+  <path d="M344.8 44.5 L344.8 64.5 L344.8 84.5 L344.8 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M339.4 71.2 L344.8 77.8 L350.1 71.2 L344.8 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M344.8 115.5 L344.8 135.5 L344.8 155.5 L344.8 155.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M339.4 142.2 L344.8 148.8 L350.1 142.2 L344.8 155.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="82.5" y="241.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M251.8 196.5 L118.5 222 L118.5 249.8 L118.5 249.8 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M113.2 236.4 L118.5 243.1 L123.8 236.4 L118.5 249.8 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M118.5 280.8 L118.5 308.5 L118.5 328.5 L118.5 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M113.2 315.2 L118.5 321.8 L123.8 315.2 L118.5 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="490.5" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M418.8 202 L482.5 222 L482.5 242 L482.5 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M477.2 228.7 L482.5 235.3 L487.8 228.7 L482.5 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="330.8" y="320.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M420.3 288.5 L366.8 308.5 L366.8 328.5 L366.8 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M361.4 315.2 L366.8 321.8 L372.1 315.2 L366.8 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M366.8 359.5 L366.8 379.5 L366.8 399.5 L366.8 399.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M361.4 386.2 L366.8 392.8 L372.1 386.2 L366.8 399.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="606.3" y="320.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M544.7 288.5 L598.3 308.5 L598.3 328.5 L598.3 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M592.9 315.2 L598.3 321.8 L603.6 315.2 L598.3 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="276.5" y="13.5" height="31" width="136" data-name="directory listing" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="344.5" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="directory listing">directory listing</text>
+  <path d="M295.5 84.5 L401.5 84.5 L393.5 115.5 L287.5 115.5 Z" data-name="menu option" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="344.5" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="menu option">menu option</text>
+  <path d="M344.8 155.5 L437.5 178.8 L344.8 202 L251.5 178.8 Z" data-name="9. Show more" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="344.5" y="184.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="9. Show more">9. Show more</text>
+  <rect x="13.5" y="249.5" height="31" width="210" data-name="Set usage menu number" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="118.5" y="271" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="Set usage menu number">Set usage menu number</text>
+  <rect x="27.5" y="328.5" height="31" width="182" data-name="directory listing other" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="118.5" y="350" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="directory listing other">directory listing other</text>
+  <path d="M482.5 242.5 L613.5 265.3 L482.5 289 L352.5 265.3 Z" data-name="is valid menu option" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="483" y="271.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="is valid menu option">is valid menu option</text>
+  <rect x="276.5" y="328.5" height="31" width="180" data-name="send directory listing" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="366.5" y="350" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="send directory listing">send directory listing</text>
+  <rect x="322.5" y="399.5" height="31" width="88" data-name="complete" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="366.5" y="421" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="complete">complete</text>
+  <rect x="496.5" y="328.5" height="31" width="203" data-name="exit invalid menu option" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="598" y="350" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="exit invalid menu option">exit invalid menu option</text>
+</svg>

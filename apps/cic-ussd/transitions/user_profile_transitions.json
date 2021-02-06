@@ -1,0 +1,49 @@
+[
+  {
+    "trigger": "scan_data",
+    "source": "profile_management",
+    "dest": "enter_first_name",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_one_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "profile_management",
+    "dest": "enter_gender",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_two_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "profile_management",
+    "dest": "enter_location",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_three_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "profile_management",
+    "dest": "edit_business_profile",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_four_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "profile_management",
+    "dest": "view_profile_pin_authorization",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_five_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "view_profile_pin_authorization",
+    "dest": "display_user_profile_data",
+    "conditions": "cic_ussd.state_machine.logic.pin.is_authorized_pin"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "view_profile_pin_authorization",
+    "dest": "exit_pin_blocked",
+    "conditions": "cic_ussd.state_machine.logic.pin.is_locked_account"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "profile_management",
+    "dest": "exit_invalid_menu_option"
+  }
+]

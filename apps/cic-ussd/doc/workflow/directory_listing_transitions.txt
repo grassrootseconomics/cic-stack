@@ -1,0 +1,8 @@
+[<reference> directory listing]-> [<input> menu option]
+[menu option]-> [<choice> 9. Show more]
+[9. Show more]-> yes [Set usage menu number]
+[Set usage menu number]-> [<reference> directory listing other]
+[9. Show more]-> no [<choice>is valid menu option]
+[is valid menu option]-> yes [send directory listing]
+[send directory listing]-> [<reference> complete]
+[is valid menu option]-> no [<reference>exit invalid menu option]

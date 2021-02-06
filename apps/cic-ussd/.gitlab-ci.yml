@@ -1,0 +1,42 @@
+image: docker:19.03.13
+
+variables:
+  # docker host
+  DOCKER_HOST: tcp://docker:2376
+  # container, thanks to volume mount from config.toml
+  DOCKER_TLS_CERTDIR: "/certs"
+  # These are usually specified by the entrypoint, however the
+  # Kubernetes executor doesn't run entrypoints
+  # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/4125
+  DOCKER_TLS_VERIFY: 1
+  DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
+
+services:
+  - docker:19.03.13-dind
+
+before_script:
+  - docker info
+
+build_merge_request:
+  stage: build
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+  script:
+    - docker build -t $CI_PROJECT_PATH_SLUG:$CI_COMMIT_SHORT_SHA -f docker/Dockerfile .
+
+build_image:
+  stage: build
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
+    LATEST_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-latest
+  script:
+    # - docker build -t $IMAGE_TAG .
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" $CI_REGISTRY --password-stdin
+    - docker build -t $IMAGE_TAG -f docker/Dockerfile .
+    - docker push $IMAGE_TAG
+    - docker tag $IMAGE_TAG $LATEST_TAG
+    - docker push $LATEST_TAG
+  only:
+    - master
+

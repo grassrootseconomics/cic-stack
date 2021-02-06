@@ -1,0 +1,54 @@
+[
+  {
+    "trigger": "scan_data",
+    "source": "enter_first_name",
+    "dest": "enter_last_name",
+    "conditions": "cic_ussd.state_machine.logic.is_valid_name",
+    "after": "cic_ussd.state_machine.logic.user.save_profile_attribute_to_session_data"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "enter_last_name",
+    "dest": "enter_gender",
+    "conditions": "cic_ussd.state_machine.validator.has_empty_gender_data",
+    "after": "cic_ussd.state_machine.logic.user.save_profile_attribute_to_session_data"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "enter_last_name",
+    "dest": "enter_location",
+    "conditions": "cic_ussd.state_machine.validator.has_empty_location_data",
+    "after": "cic_ussd.state_machine.logic.user.save_profile_attribute_to_session_data"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "enter_last_name",
+    "dest": "enter_business_profile",
+    "conditions": "cic_ussd.state_machine.validator.has_empty_business_profile_data",
+    "after": "cic_ussd.state_machine.logic.user.save_profile_attribute_to_session_data"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "enter_last_name",
+    "dest": "name_management_pin_authorization",
+    "conditions": "cic_ussd.state_machine.logic.validator.has_complete_profile_data"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "name_management_pin_authorization",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.pin.is_authorized_pin",
+    "after": "cic_ussd.state_machine.logic.user.persist_profile_data"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "name_management_pin_authorization",
+    "dest": "exit_pin_blocked",
+    "conditions": "cic_ussd.state_machine.logic.pin.is_locked_account"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "enter_last_name",
+    "dest": "exit_invalid_input"
+  }
+]

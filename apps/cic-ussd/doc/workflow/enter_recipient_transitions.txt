@@ -1,0 +1,7 @@
+[<reference> send enter recipient]-> [<input> Enter phone number]
+[Enter phone number]-> [<choice> is user]
+[is user]-> yes [save recipient phone number]
+[save recipient phone number]-> [<reference> send token amount]
+[is user]-> no [<choice> is token agent]
+[is token agent]-> yes [<reference> exit use exchange menu]
+[is token agent]-> no [<reference> exit invalid recipient]

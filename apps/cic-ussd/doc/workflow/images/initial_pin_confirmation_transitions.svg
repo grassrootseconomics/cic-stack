@@ -1,0 +1,65 @@
+<svg version="1.1" baseProfile="full" width="497.75" height="686.5" viewbox="0 0 497.75 686.5" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; initial pin confirmation]-&gt; [&lt;input&gt; Enter your pin again]
+[Enter your pin again]-&gt; [&lt;choice&gt; new pins match]
+[new pins match]-&gt; yes [complete initial pin change]
+[complete initial pin change]-&gt; [&lt;choice&gt; is admin pin reset]
+[is admin pin reset] yes -&gt;[&lt;reference&gt; start menu]
+[is admin pin reset]-&gt; no [i) set phone as verified; ii)send terms to user if required]
+[i) set phone as verified; ii) send terms to user if required]-&gt; [&lt;choice&gt; is ussd signup]
+[is ussd signup]-&gt; yes [process account creation request]
+[process account creation request]-&gt; [&lt;label&gt; exit account creation prompt]
+[is ussd signup] no -&gt;[start menu]
+[new pins match]-&gt; no [&lt;reference&gt; exit pin mismatch]</desc>
+  <rect x="0" y="0" height="686.5" width="497.75" style="stroke:none; fill:transparent;"></rect>
+  <path d="M293.8 44.5 L293.8 64.5 L293.8 84.5 L293.8 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M288.4 71.2 L293.8 77.8 L299.1 71.2 L293.8 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M293.8 115.5 L293.8 135.5 L293.8 155.5 L293.8 155.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M288.4 142.2 L293.8 148.8 L299.1 142.2 L293.8 155.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="142.8" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M231.9 202 L178.8 222 L178.8 242 L178.8 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M173.4 228.7 L178.8 235.3 L184.1 228.7 L178.8 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M178.8 273 L178.8 293 L178.8 313 L178.8 313 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M173.4 299.7 L178.8 306.3 L184.1 299.7 L178.8 313 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="114" y="379.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M106 359.5 L43.5 379.5 L43.5 422.5 L43.5 422.5 L43.5 465.5 L43.5 465.5 L43.5 508.8 L43.5 508.8 L43.5 552 L43.5 552 L54.8 572 L54.8 572 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M43.6 563 L51.5 566.2 L52.9 557.8 L54.8 572 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="282" y="391.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M230 359.5 L274 379.5 L274 399.5 L274 399.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M268.7 386.2 L274 392.8 L279.3 386.2 L274 399.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M274 445.5 L274 465.5 L274 485.5 L274 485.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M268.7 472.2 L274 478.8 L279.3 472.2 L274 485.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="302" y="564" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M284.8 532 L294 552 L294 572 L294 572 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M288.7 558.7 L294 565.3 L299.3 558.7 L294 572 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M294 603 L294 623 L294 643 L294 643 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M288.7 629.7 L294 636.3 L299.3 629.7 L294 643 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="220" y="552" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M212 532 L158.8 552 L105.1 572 L105.1 572 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M115.7 562.3 L111.3 569.7 L119.4 572.3 L105.1 572 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="416.8" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M355.6 202 L408.8 222 L408.8 242 L408.8 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M403.4 228.7 L408.8 235.3 L414.1 228.7 L408.8 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="199.5" y="13.5" height="31" width="188" data-name="initial pin confirmation" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="293.5" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="initial pin confirmation">initial pin confirmation</text>
+  <path d="M213.5 84.5 L381.5 84.5 L373.5 115.5 L205.5 115.5 Z" data-name="Enter your pin again" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="293.5" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="Enter your pin again">Enter your pin again</text>
+  <path d="M293.8 155.5 L398 178.8 L293.8 202 L189.5 178.8 Z" data-name="new pins match" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="293.8" y="184.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="new pins match">new pins match</text>
+  <rect x="65.5" y="242.5" height="31" width="227" data-name="complete initial pin change" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="179" y="264" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="complete initial pin change">complete initial pin change</text>
+  <path d="M178.8 313.5 L295.5 336.3 L178.8 360 L61.5 336.3 Z" data-name="is admin pin reset" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="178.5" y="342.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="is admin pin reset">is admin pin reset</text>
+  <rect x="13.5" y="572.5" height="31" width="100" data-name="start menu" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="63.5" y="594" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="start menu">start menu</text>
+  <rect x="142.5" y="399.5" height="46" width="263" data-name="i) set phone as verified" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="274" y="421" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="i) set phone as verified">i) set phone as verified</text>
+  <text x="274" y="436" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="i) set phone as verified">ii)send terms to user if required</text>
+  <path d="M274 485.5 L371.5 508.8 L274 532 L176.5 508.8 Z" data-name="is ussd signup" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="274" y="514.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="is ussd signup">is ussd signup</text>
+  <rect x="153.5" y="572.5" height="31" width="281" data-name="process account creation request" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="294" y="594" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="process account creation request">process account creation request</text>
+  <text x="181.5" y="665" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;" data-name="exit account creation prompt">exit account creation prompt</text>
+  <rect x="332.5" y="242.5" height="31" width="153" data-name="exit pin mismatch" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="409" y="264" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="exit pin mismatch">exit pin mismatch</text>
+</svg>

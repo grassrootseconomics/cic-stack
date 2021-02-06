@@ -1,0 +1,5 @@
+[<reference> new pin confirmation]-> [<input> Enter new PIN again]
+[Enter new PIN again]-> [<choice> new pins match]
+[new pins match]-> yes [complete pin change]
+[complete pin change]-> [<reference> complete]
+[new pins match]-> no [<label> exit pin mismatch]

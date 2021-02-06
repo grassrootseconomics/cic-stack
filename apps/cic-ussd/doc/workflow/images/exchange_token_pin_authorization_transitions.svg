@@ -1,0 +1,42 @@
+<svg version="1.1" baseProfile="full" width="656" height="372" viewbox="0 0 656 372" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; exchange token pin authorization]-&gt; [&lt;input&gt; Please enter your PIN]
+[Please enter your PIN]-&gt; [&lt;choice&gt; is authorized]
+[is authorized]-&gt; yes [&lt;reference&gt; exchange token confirmation]
+[is authorized]-&gt; no [&lt;choice&gt; is blocked]
+[is blocked]-&gt; yes [&lt;label&gt; exit pin blocked]
+[is blocked]-&gt; no [increase failed attempts]
+[increase failed attempts]-&gt; [Please enter your PIN]</desc>
+  <rect x="0" y="0" height="372" width="656" style="stroke:none; fill:transparent;"></rect>
+  <path d="M317.5 44.5 L317.5 64.5 L317.5 84.5 L317.5 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M312.2 71.2 L317.5 77.8 L322.8 71.2 L317.5 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M289.4 115.5 L253.3 135.5 L253.3 155.5 L253.3 155.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M247.9 142.2 L253.3 148.8 L258.6 142.2 L253.3 155.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="100" y="241.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M190.2 202 L136 222 L136 249.8 L136 249.8 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M130.7 236.4 L136 243.1 L141.3 236.4 L136 249.8 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="378.5" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M316.3 202 L370.5 222 L370.5 242 L370.5 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M365.2 228.7 L370.5 235.3 L375.8 228.7 L370.5 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="292.5" y="320.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M347.9 288.5 L328.5 308.5 L328.5 328.5 L328.5 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M323.2 315.2 L328.5 321.8 L333.8 315.2 L328.5 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="520.9" y="320.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M427.6 288.5 L476.8 308.5 L512.9 328.5 L512.9 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M498.7 326.7 L507.1 325.3 L503.9 317.4 L512.9 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M549.7 328.5 L561 308.5 L561 265.3 L561 265.3 L561 222 L561 222 L561 178.8 L561 178.8 L561 135.5 L561 135.5 L412 113.8 L412 113.8 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M426 110.4 L418.6 114.7 L424.4 121 L412 113.8 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="177.5" y="13.5" height="31" width="280" data-name="exchange token pin authorization" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="317.5" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="exchange token pin authorization">exchange token pin authorization</text>
+  <path d="M231.5 84.5 L412.5 84.5 L404.5 115.5 L223.5 115.5 Z" data-name="Please enter your PIN" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="318" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="Please enter your PIN">Please enter your PIN</text>
+  <path d="M253.3 155.5 L341.5 178.8 L253.3 202 L164.5 178.8 Z" data-name="is authorized" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="253" y="184.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="is authorized">is authorized</text>
+  <rect x="13.5" y="249.5" height="31" width="245" data-name="exchange token confirmation" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="136" y="271" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="exchange token confirmation">exchange token confirmation</text>
+  <path d="M370.5 242.5 L442.5 265.3 L370.5 289 L298.5 265.3 Z" data-name="is blocked" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="370.5" y="271.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="is blocked">is blocked</text>
+  <text x="266.5" y="350" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;" data-name="exit pin blocked">exit pin blocked</text>
+  <rect x="438.5" y="328.5" height="31" width="205" data-name="increase failed attempts" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="541" y="350" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="increase failed attempts">increase failed attempts</text>
+</svg>

@@ -1,0 +1,214 @@
+{
+    "ussd_menu": {
+        "1": {
+            "description": "The self signup process has been initiated and the account is being created",
+            "display_key": "ussd.kenya.account_creation_prompt",
+            "name": "account_creation_prompt",
+            "parent": null
+        },
+        "2": {
+            "description": "Start menu. This is the entry point for users to select their preferred language",
+            "display_key": "ussd.kenya.initial_language_selection",
+            "name": "initial_language_selection",
+            "parent": null
+        },
+        "3": {
+            "description": "PIN setup entry menu",
+            "display_key": "ussd.kenya.initial_pin_entry",
+            "name": "initial_pin_entry",
+            "parent": "initial_language_selection"
+        },
+        "4": {
+            "description": "Confirm new PIN menu",
+            "display_key": "ussd.kenya.initial_pin_confirmation",
+            "name": "initial_pin_confirmation",
+            "parent": "initial_pin_entry"
+        },
+        "5": {
+            "description": "Start menu. This is the entry point for activated users",
+            "display_key": "ussd.kenya.start",
+            "name": "start",
+            "parent": null
+        },
+        "6": {
+            "description": "Send Token recipient entry",
+            "display_key": "ussd.kenya.enter_transaction_recipient",
+            "name": "enter_transaction_recipient",
+            "parent": "start"
+        },
+        "7": {
+            "description": "Send Token amount prompt menu",
+            "display_key": "ussd.kenya.enter_transaction_amount",
+            "name": "enter_transaction_amount",
+            "parent": "start"
+        },
+        "8": {
+            "description": "PIN entry for authorization to send token",
+            "display_key": "ussd.kenya.transaction_pin_authorization",
+            "name": "transaction_pin_authorization",
+            "parent": "start"
+        },
+        "9": {
+            "description": "Terminal of a menu flow where an SMS is expected after.",
+            "display_key": "ussd.kenya.complete",
+            "name": "complete",
+            "parent": null
+        },
+        "10": {
+            "description": "Help menu",
+            "display_key": "ussd.kenya.help",
+            "name": "help",
+            "parent": "start"
+        },
+        "11": {
+            "description": "Manage account menu",
+            "display_key": "ussd.kenya.profile_management",
+            "name": "profile_management",
+            "parent": "start"
+        },
+        "12": {
+            "description": "Manage business directory info",
+            "display_key": "ussd.kenya.select_preferred_language",
+            "name": "select_preferred_language",
+            "parent": "account_management"
+        },
+        "13": {
+            "description": "About business directory info",
+            "display_key": "ussd.kenya.mini_statement_pin_authorization",
+            "name": "mini_statement_pin_authorization",
+            "parent": "account_management"
+        },
+        "14": {
+            "description": "Change business directory info",
+            "display_key": "ussd.kenya.enter_current_pin",
+            "name": "enter_current_pin",
+            "parent": "account_management"
+        },
+        "15": {
+            "description": "New PIN entry menu",
+            "display_key": "ussd.kenya.enter_new_pin",
+            "name": "enter_new_pin",
+            "parent": "account_management"
+        },
+        "16": {
+            "description": "First name entry menu",
+            "display_key": "ussd.kenya.enter_first_name",
+            "name": "enter_first_name",
+            "parent": "profile_management"
+        },
+        "17": {
+            "description": "Last name entry menu",
+            "display_key": "ussd.kenya.enter_last_name",
+            "name": "enter_last_name",
+            "parent": "profile_management"
+        },
+        "18": {
+            "description": "Gender entry menu",
+            "display_key": "ussd.kenya.enter_gender",
+            "name": "enter_gender",
+            "parent": "profile_management"
+        },
+        "19": {
+            "description": "Location entry menu",
+            "display_key": "ussd.kenya.enter_location",
+            "name": "enter_location",
+            "parent": "profile_management"
+        },
+        "20": {
+            "description": "Business profile entry menu",
+            "display_key": "ussd.kenya.enter_business_profile",
+            "name": "enter_business_profile",
+            "parent": "profile_management"
+        },
+        "21": {
+            "description": "Menu to display a user's entire profile",
+            "display_key": "ussd.kenya.display_user_profile_data",
+            "name": "display_user_profile_data",
+            "parent": "profile_management"
+        },
+        "22": {
+            "description": "Pin authorization to change name",
+            "display_key": "ussd.kenya.name_management_pin_authorization",
+            "name": "name_management_pin_authorization",
+            "parent": "profile_management"
+        },
+        "23": {
+            "description": "Pin authorization to change gender",
+            "display_key": "ussd.kenya.gender_management_pin_authorization",
+            "name": "gender_management_pin_authorization",
+            "parent": "profile_management"
+        },
+        "24": {
+            "description": "Pin authorization to change location",
+            "display_key": "ussd.kenya.location_management_pin_authorization",
+            "name": "location_management_pin_authorization",
+            "parent": "profile_management"
+        },
+        "26": {
+            "description": "Pin authorization to display user's profile",
+            "display_key": "ussd.kenya.view_profile_pin_authorization",
+            "name": "view_profile_pin_authorization",
+            "parent": "profile_management"
+        },
+        "27": {
+            "description": "Exit menu",
+            "display_key": "ussd.kenya.exit",
+            "name": "exit",
+            "parent": null
+        },
+        "28": {
+            "description": "Invalid menu option",
+            "display_key": "ussd.kenya.exit_invalid_menu_option",
+            "name": "exit_invalid_menu_option",
+            "parent": null
+        },
+        "29": {
+            "description": "PIN policy violation",
+            "display_key": "ussd.kenya.exit_invalid_pin",
+            "name": "exit_invalid_pin",
+            "parent": null
+        },
+        "30": {
+            "description": "PIN mismatch. New PIN and the new PIN confirmation do not match",
+            "display_key": "ussd.kenya.exit_pin_mismatch",
+            "name": "exit_pin_mismatch",
+            "parent": null
+        },
+        "31": {
+            "description": "Ussd PIN Blocked Menu",
+            "display_key": "ussd.kenya.exit_pin_blocked",
+            "name": "exit_pin_blocked",
+            "parent": null
+        },
+        "32": {
+            "description": "Key params missing in request",
+            "display_key": "ussd.kenya.exit_invalid_request",
+            "name": "exit_invalid_request",
+            "parent": null
+        },
+        "33": {
+            "description": "The user did not select a choice",
+            "display_key": "ussd.kenya.exit_invalid_input",
+            "name": "exit_invalid_input",
+            "parent": null
+        },
+        "34": {
+            "description": "Exit following a successful transaction.",
+            "display_key": "ussd.kenya.exit_successful_transaction",
+            "name": "exit_successful_transaction",
+            "parent": null
+        },
+        "35": {
+            "description": "Manage account menu",
+            "display_key": "ussd.kenya.account_management",
+            "name": "account_management",
+            "parent": "start"
+        },
+        "36": {
+            "description": "Exit following insufficient balance to perform a transaction.",
+            "display_key": "ussd.kenya.exit_insufficient_balance",
+            "name": "exit_insufficient_balance",
+            "parent": null
+        }
+    }
+}

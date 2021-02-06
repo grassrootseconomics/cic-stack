@@ -1,0 +1,43 @@
+<svg version="1.1" baseProfile="full" width="577" height="372" viewbox="0 0 577 372" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; view profile pin authorization]-&gt; [&lt;input&gt; Please enter your PIN]
+[Please enter your PIN]-&gt; [&lt;choice&gt; is authorized]
+[is authorized]-&gt; yes [&lt;frame&gt;display user profile]
+[is authorized]-&gt; no [&lt;choice&gt; is blocked]
+[is blocked]-&gt; yes [&lt;label&gt; exit pin blocked]
+[is blocked]-&gt; no [increase failed attempts]
+[increase failed attempts]-&gt; [Please enter your PIN]</desc>
+  <rect x="0" y="0" height="372" width="577" style="stroke:none; fill:transparent;"></rect>
+  <path d="M258.3 44.5 L258.3 64.5 L258.3 84.5 L258.3 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M252.9 71.2 L258.3 77.8 L263.6 71.2 L258.3 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M230.2 115.5 L194 135.5 L194 155.5 L194 155.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M188.7 142.2 L194 148.8 L199.3 142.2 L194 155.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="60.5" y="241.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M141.6 202 L96.5 222 L96.5 249.8 L96.5 249.8 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M91.2 236.4 L96.5 243.1 L101.8 236.4 L96.5 249.8 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="299.5" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M246.4 202 L291.5 222 L291.5 242 L291.5 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M286.2 228.7 L291.5 235.3 L296.8 228.7 L291.5 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="213.5" y="320.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M268.9 288.5 L249.5 308.5 L249.5 328.5 L249.5 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M244.2 315.2 L249.5 321.8 L254.8 315.2 L249.5 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="441.9" y="320.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M348.6 288.5 L397.8 308.5 L433.9 328.5 L433.9 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M419.7 326.7 L428.1 325.3 L424.9 317.4 L433.9 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M470.7 328.5 L482 308.5 L482 265.3 L482 265.3 L482 222 L482 222 L482 178.8 L482 178.8 L482 135.5 L482 135.5 L352.8 115 L352.8 115 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M366.8 111.8 L359.3 116 L365.1 122.4 L352.8 115 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="137.5" y="13.5" height="31" width="242" data-name="view profile pin authorization" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="258.5" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="view profile pin authorization">view profile pin authorization</text>
+  <path d="M171.5 84.5 L352.5 84.5 L344.5 115.5 L163.5 115.5 Z" data-name="Please enter your PIN" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="258" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="Please enter your PIN">Please enter your PIN</text>
+  <path d="M194 155.5 L282.5 178.8 L194 202 L105.5 178.8 Z" data-name="is authorized" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="194" y="184.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="is authorized">is authorized</text>
+  <rect x="13.5" y="249.5" height="31" width="166" data-name="display user profile" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="21.5" y="271" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;" data-name="display user profile">display user profile</text>
+  <path d="M13.5 280.5 L171.8 280.5 L187.3 265 L187.3 249.5" data-name="display user profile" style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M291.5 242.5 L363.5 265.3 L291.5 289 L219.5 265.3 Z" data-name="is blocked" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="291.5" y="271.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="is blocked">is blocked</text>
+  <text x="187.5" y="350" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;" data-name="exit pin blocked">exit pin blocked</text>
+  <rect x="359.5" y="328.5" height="31" width="205" data-name="increase failed attempts" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="462" y="350" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="increase failed attempts">increase failed attempts</text>
+</svg>

@@ -1,0 +1,172 @@
+en:
+  kenya:
+    initial_language_selection: |-
+      CON Welcome to Sarafu
+      1. English
+      2. Kiswahili
+      3. Help
+    initial_pin_entry: |-
+      CON Please enter a PIN to manage your account.
+      0. Back
+    initial_pin_confirmation: |-
+      CON Enter your PIN again
+      0. Back
+    start: |-
+      CON Balance %{account_balance} %{account_token_name}
+      1. Send
+      2. My Account
+      3. Help
+    enter_transaction_recipient: |-
+      CON Enter phone number
+      0. Back
+    enter_transaction_amount: |-
+      CON Enter amount
+      0. Back
+    account_management: |-
+      CON My account
+      1. My profile
+      2. Change language
+      3. Check balance
+      4. Change PIN
+      0. Back
+    profile_management: |-
+      CON My profile
+      1. Edit name
+      2. Edit gender
+      3. Edit location
+      4. Edit business
+      5. View my profile
+      0. Back
+    enter_first_name: |-
+      CON Enter first name
+      0. Back
+    enter_last_name: |-
+      CON Enter last name
+      0. Back
+    enter_gender: |-
+      CON Enter gender
+      1. Male
+      2. Female
+      0. Back
+    enter_location: |-
+      CON Enter location
+      0. Back
+    enter_business_profile: |-
+      CON Please enter a product or service you offer
+      0. Back
+    display_user_profile_data: |-
+      END Your details are:
+        Name: %{full_name}
+        Gender: %{gender}
+        Location: %{location}
+        You sell: %{business_profile}
+      If any details are missing, please use my profile to add your details.
+      0. Back
+    select_preferred_language: |-
+      CON Choose language
+      1. English
+      2. Kiswahili
+      0. Back
+    enter_current_pin:
+      first: |-
+        CON Enter current PIN.
+        0. Back
+      retry: |-
+        CON Enter current PIN. You have %{remaining_attempts} attempts remaining.
+        0. Back
+    enter_new_pin: |-
+      CON Enter new PIN again
+      0. Back
+    transaction_pin_authorization:
+      first: |-
+        CON %{recipient_information} will receive %{transaction_amount} %{token_symbol} from %{sender_information}.
+        Please enter your PIN to confirm.
+        0. Back
+      retry: |-
+        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
+        0. Back
+    name_management_pin_authorization:
+      first: |-
+        CON Please enter your PIN.
+        0. Back
+      retry: |-
+        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
+        0. Back
+    gender_management_pin_authorization:
+      first: |-
+        CON Please enter your PIN.
+        0. Back
+      retry: |-
+        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
+        0. Back
+    location_management_pin_authorization:
+      first: |-
+        CON Please enter your PIN.
+        0. Back
+      retry: |-
+        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
+        0. Back
+    business_profile_management_pin_authorization:
+      first: |-
+        CON Please enter your PIN.
+        0. Back
+      retry: |-
+        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
+        0. Back
+    view_profile_pin_authorization:
+      first: |-
+        CON Please enter your PIN.
+        0. Back
+      retry: |-
+        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
+        0. Back
+    mini_statement_pin_authorization:
+      first: |-
+        CON Please enter your PIN.
+        0. Back
+      retry: |-
+        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
+        0. Back
+    exit: |-
+      END Thank you for using the service.
+    exit_invalid_request: |-
+      END Invalid request.
+    exit_invalid_menu_option: |-
+      CON Invalid menu option. For help, call %{support_phone}.
+      00. Back
+      99. Exit
+    exit_invalid_input: |-
+      CON Invalid input. Nothing selected
+      00. Back
+      99. Exit
+    exit_pin_blocked: |-
+      END Your PIN has been blocked. For help, please call %{support_phone}.
+    exit_invalid_pin: |-
+      END The PIN you have entered is Invalid. PIN must consist of 4 digits. For help, call %{support_phone}.
+    exit_invalid_new_pin: |-
+      END The PIN you have entered is Invalid. PIN must be different from your current PIN. For help, call %{support_phone}.
+    exit_pin_mismatch: |-
+      END The new PIN does not match the one you entered. Please try again. For help, call %{support_phone}.
+    exit_invalid_recipient: |-
+      CON Recipient phone number is incorrect.
+        00. Retry
+        99. Exit
+    exit_successful_transaction: |-
+      CON Your request has been sent. %{recipient_information} will receive %{transaction_amount} %{token_symbol} from %{sender_information}.
+      00. Back
+      99. Exit
+    exit_insufficient_balance: |-
+      CON Payment of %{amount} %{token_symbol} to %{recipient_information} has failed due to insufficent balance.
+      Your Sarafu-Network balances is: %{token_balance}
+      00. Back
+      99. Exit
+    help: |-
+      CON For assistance call %{support_phone}
+      00. Back
+      99. Exit
+    complete: |-
+      CON Your request has been sent. You will receive an SMS shortly.
+      00. Back
+      99. Exit
+    account_creation_prompt: >
+      Your account is being created. You will receive an SMS when your account is ready.

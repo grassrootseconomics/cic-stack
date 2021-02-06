@@ -1,0 +1,7 @@
+[<reference> view profile pin authorization]-> [<input> Please enter your PIN]
+[Please enter your PIN]-> [<choice> is authorized]
+[is authorized]-> yes [<frame>display user profile]
+[is authorized]-> no [<choice> is blocked]
+[is blocked]-> yes [<label> exit pin blocked]
+[is blocked]-> no [increase failed attempts]
+[increase failed attempts]-> [Please enter your PIN]

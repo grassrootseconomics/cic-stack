@@ -1,0 +1,33 @@
+<svg version="1.1" baseProfile="full" width="606" height="356.5" viewbox="0 0 606 356.5" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; exchange token amount entry]-&gt; [&lt;input&gt; Enter amount]
+[Enter amount]-&gt; [&lt;choice&gt; is valid token amount]
+[is valid token amount]-&gt; yes [save token amount to session data]
+[save token amount to session data] -&gt; [&lt;reference&gt; exchange token pin authorization]
+[is valid token amount]-&gt; no [&lt;label&gt; exit invalid exchange amount]
+</desc>
+  <rect x="0" y="0" height="356.5" width="606" style="stroke:none; fill:transparent;"></rect>
+  <path d="M315 44.5 L315 64.5 L315 84.5 L315 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M309.7 71.2 L315 77.8 L320.3 71.2 L315 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M315 115.5 L315 135.5 L315 155.5 L315 155.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M309.7 142.2 L315 148.8 L320.3 142.2 L315 155.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="124" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M231.7 202 L160 222 L160 242 L160 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M154.7 228.7 L160 235.3 L165.3 228.7 L160 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M160 273 L160 293 L160 313 L160 313 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M154.7 299.7 L160 306.3 L165.3 299.7 L160 313 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="478" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M398.3 202 L470 222 L470 242 L470 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M464.7 228.7 L470 235.3 L475.3 228.7 L470 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="189.5" y="13.5" height="31" width="252" data-name="exchange token amount entry" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="315.5" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="exchange token amount entry">exchange token amount entry</text>
+  <path d="M262.5 84.5 L376.5 84.5 L368.5 115.5 L254.5 115.5 Z" data-name="Enter amount" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="315.5" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="Enter amount">Enter amount</text>
+  <path d="M315 155.5 L453.5 178.8 L315 202 L177.5 178.8 Z" data-name="is valid token amount" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="315.5" y="184.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="is valid token amount">is valid token amount</text>
+  <rect x="13.5" y="242.5" height="31" width="293" data-name="save token amount to session data" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="160" y="264" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="save token amount to session data">save token amount to session data</text>
+  <rect x="20.5" y="313.5" height="31" width="280" data-name="exchange token pin authorization" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="160.5" y="335" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="exchange token pin authorization">exchange token pin authorization</text>
+  <text x="354.5" y="264" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;" data-name="exit invalid exchange amount">exit invalid exchange amount</text>
+</svg>

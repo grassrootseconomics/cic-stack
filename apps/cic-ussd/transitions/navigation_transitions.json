@@ -1,0 +1,26 @@
+[
+  {
+    "trigger": "scan_data",
+    "source": "complete",
+    "dest": "start",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "complete",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_ninety_nine_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "help",
+    "dest": "start",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "help",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_ninety_nine_selected"
+  }
+]

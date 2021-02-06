@@ -1,0 +1,37 @@
+<svg version="1.1" baseProfile="full" width="416.75" height="443" viewbox="0 0 416.75 443" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; exit invalid recipient]-&gt; [&lt;input&gt; user input]
+[user input]-&gt; [&lt;choice&gt; 00. Back]
+[00. Back]-&gt; yes [&lt;reference&gt; send enter recipient]
+[00. Back]-&gt; no [&lt;choice&gt; 99. Exit]
+[99. Exit]-&gt; [upsell unregistered recipient]
+[upsell unregistered recipient]-&gt; [&lt;label&gt; exit]</desc>
+  <rect x="0" y="0" height="443" width="416.75" style="stroke:none; fill:transparent;"></rect>
+  <path d="M192.1 44.5 L192.1 64.5 L192.1 84.5 L192.1 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M186.8 71.2 L192.1 77.8 L197.5 71.2 L192.1 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M192.1 115.5 L192.1 135.5 L192.1 155.5 L192.1 155.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M186.8 142.2 L192.1 148.8 L197.5 142.2 L192.1 155.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="64.5" y="241.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M142.9 202 L100.5 222 L100.5 249.8 L100.5 249.8 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M95.2 236.4 L100.5 243.1 L105.8 236.4 L100.5 249.8 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="291.8" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M241.4 202 L283.8 222 L283.8 242 L283.8 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M278.4 228.7 L283.8 235.3 L289.1 228.7 L283.8 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M283.8 288.5 L283.8 308.5 L283.8 328.5 L283.8 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M278.4 315.2 L283.8 321.8 L289.1 315.2 L283.8 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M283.8 359.5 L283.8 379.5 L283.8 399.5 L283.8 399.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M278.4 386.2 L283.8 392.8 L289.1 386.2 L283.8 399.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="105.5" y="13.5" height="31" width="173" data-name="exit invalid recipient" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="192" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="exit invalid recipient">exit invalid recipient</text>
+  <path d="M152.5 84.5 L239.5 84.5 L231.5 115.5 L144.5 115.5 Z" data-name="user input" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="192" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="user input">user input</text>
+  <path d="M192.1 155.5 L256 178.8 L192.1 202 L128.5 178.8 Z" data-name="00. Back" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="192.3" y="184.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="00. Back">00. Back</text>
+  <rect x="13.5" y="249.5" height="31" width="174" data-name="send enter recipient" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="100.5" y="271" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="send enter recipient">send enter recipient</text>
+  <path d="M283.8 242.5 L340 265.3 L283.8 289 L227.5 265.3 Z" data-name="99. Exit" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="283.8" y="271.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="99. Exit">99. Exit</text>
+  <rect x="163.5" y="328.5" height="31" width="241" data-name="upsell unregistered recipient" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="284" y="350" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="upsell unregistered recipient">upsell unregistered recipient</text>
+  <text x="269.5" y="421" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;" data-name="exit">exit</text>
+</svg>

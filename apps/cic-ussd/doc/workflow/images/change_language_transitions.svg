@@ -1,0 +1,49 @@
+<svg version="1.1" baseProfile="full" width="780" height="443" viewbox="0 0 780 443" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; choose language]-&gt; [&lt;input&gt; Choose language]
+[Choose language]-&gt; [&lt;choice&gt; 1. English]
+[1. English]-&gt; yes [change language to English]
+[change language to English]-&gt; [&lt;reference&gt; complete]
+[1. English]-&gt; no [&lt;choice&gt; 2. Kiswahili]
+[2. Kiswahili]-&gt; yes [change language to Swahili]
+[change language to Swahili]-&gt; [&lt;label&gt; complete]
+[2. Kiswahili]-&gt; no [&lt;reference&gt; exit invalid menu option]
+</desc>
+  <rect x="0" y="0" height="443" width="780" style="stroke:none; fill:transparent;"></rect>
+  <path d="M399 44.5 L399 64.5 L399 84.5 L399 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M393.7 71.2 L399 77.8 L404.3 71.2 L399 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M399 115.5 L399 135.5 L399 155.5 L399 155.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M393.7 142.2 L399 148.8 L404.3 142.2 L399 155.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="96" y="320.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M328.5 190.2 L132 222 L132 265.3 L132 265.3 L132 308.5 L132 308.5 L132 328.5 L132 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M126.7 315.2 L132 321.8 L137.3 315.2 L132 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M132 359.5 L132 379.5 L225.8 403.7 L225.8 403.7 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M211.5 405.5 L219.3 402 L214.2 395.2 L225.8 403.7 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="544.8" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M469.5 200.9 L536.8 222 L536.8 242 L536.8 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M531.4 228.7 L536.8 235.3 L542.1 228.7 L536.8 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="371.5" y="320.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M467.3 288.5 L407.5 308.5 L407.5 328.5 L407.5 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M402.2 315.2 L407.5 321.8 L412.8 315.2 L407.5 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M407.5 359.5 L407.5 379.5 L313.8 403.7 L313.8 403.7 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M325.3 395.2 L320.2 402 L328 405.5 L313.8 403.7 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="674" y="320.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M606.2 288.5 L666 308.5 L666 328.5 L666 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M660.7 315.2 L666 321.8 L671.3 315.2 L666 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="322.5" y="13.5" height="31" width="153" data-name="choose language" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="399" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="choose language">choose language</text>
+  <path d="M329.5 84.5 L477.5 84.5 L469.5 115.5 L321.5 115.5 Z" data-name="Choose language" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="399.5" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="Choose language">Choose language</text>
+  <path d="M399 155.5 L469.5 178.8 L399 202 L328.5 178.8 Z" data-name="1. English" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="399" y="184.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="1. English">1. English</text>
+  <rect x="13.5" y="328.5" height="31" width="237" data-name="change language to English" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="132" y="350" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="change language to English">change language to English</text>
+  <rect x="225.5" y="399.5" height="31" width="88" data-name="complete" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="269.5" y="421" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="complete">complete</text>
+  <path d="M536.8 242.5 L614.5 265.3 L536.8 289 L458.5 265.3 Z" data-name="2. Kiswahili" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="536.5" y="271.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="2. Kiswahili">2. Kiswahili</text>
+  <rect x="290.5" y="328.5" height="31" width="234" data-name="change language to Swahili" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="407.5" y="350" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="change language to Swahili">change language to Swahili</text>
+  <rect x="564.5" y="328.5" height="31" width="203" data-name="exit invalid menu option" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="666" y="350" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="exit invalid menu option">exit invalid menu option</text>
+</svg>

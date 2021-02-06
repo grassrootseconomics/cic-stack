@@ -1,0 +1,7 @@
+[<reference> exchange token]-> [<input> menu option]
+[menu option]-> [<choice> 1.Check exchange rate]
+[1.Check exchange rate]-> yes [Fetch user exchange rate *(celery tasks)]
+[Fetch user exchange rate *(celery tasks)]-> [<reference> complete]
+[1.Check exchange rate]-> no [<choice> 2. Exchange]
+[2. Exchange]-> yes [<reference> exchange token agent number entry]
+[2. Exchange]-> no [<reference> exit invalid menu option]

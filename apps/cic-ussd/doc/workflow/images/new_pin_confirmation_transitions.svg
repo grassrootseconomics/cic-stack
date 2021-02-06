@@ -1,0 +1,33 @@
+<svg version="1.1" baseProfile="full" width="400" height="356.5" viewbox="0 0 400 356.5" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; new pin confirmation]-&gt; [&lt;input&gt; Enter new PIN again]
+[Enter new PIN again]-&gt; [&lt;choice&gt; new pins match]
+[new pins match]-&gt; yes [complete pin change]
+[complete pin change]-&gt; [&lt;reference&gt; complete]
+[new pins match]-&gt; no [&lt;label&gt; exit pin mismatch]
+</desc>
+  <rect x="0" y="0" height="356.5" width="400" style="stroke:none; fill:transparent;"></rect>
+  <path d="M207.5 44.5 L207.5 64.5 L207.5 84.5 L207.5 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M202.2 71.2 L207.5 77.8 L212.8 71.2 L207.5 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M207.5 115.5 L207.5 135.5 L207.5 155.5 L207.5 155.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M202.2 142.2 L207.5 148.8 L212.8 142.2 L207.5 155.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="68" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M151.9 202 L104 222 L104 242 L104 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M98.7 228.7 L104 235.3 L109.3 228.7 L104 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M104 273 L104 293 L104 313 L104 313 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M98.7 299.7 L104 306.3 L109.3 299.7 L104 313 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="319" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M263.1 202 L311 222 L311 242 L311 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M305.7 228.7 L311 235.3 L316.3 228.7 L311 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="118.5" y="13.5" height="31" width="179" data-name="new pin confirmation" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="208" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="new pin confirmation">new pin confirmation</text>
+  <path d="M127.5 84.5 L296.5 84.5 L288.5 115.5 L119.5 115.5 Z" data-name="Enter new PIN again" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="208" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="Enter new PIN again">Enter new PIN again</text>
+  <path d="M207.5 155.5 L312 178.8 L207.5 202 L103.5 178.8 Z" data-name="new pins match" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="207.8" y="184.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="new pins match">new pins match</text>
+  <rect x="13.5" y="242.5" height="31" width="181" data-name="complete pin change" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="104" y="264" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="complete pin change">complete pin change</text>
+  <rect x="60.5" y="313.5" height="31" width="88" data-name="complete" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="104.5" y="335" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="complete">complete</text>
+  <text x="242.5" y="264" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;" data-name="exit pin mismatch">exit pin mismatch</text>
+</svg>

@@ -1,0 +1,5 @@
+[<reference> exchange token amount entry]-> [<input> Enter amount]
+[Enter amount]-> [<choice> is valid token amount]
+[is valid token amount]-> yes [save token amount to session data]
+[save token amount to session data] -> [<reference> exchange token pin authorization]
+[is valid token amount]-> no [<label> exit invalid exchange amount]

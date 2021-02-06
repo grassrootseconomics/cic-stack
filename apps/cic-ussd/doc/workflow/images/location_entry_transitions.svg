@@ -1,0 +1,57 @@
+<svg version="1.1" baseProfile="full" width="703.125" height="529.5" viewbox="0 0 703.125 529.5" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; location entry]-&gt; [&lt;input&gt; Enter your location]
+[Enter your location]-&gt; [add location to session data]
+[add location to session data]-&gt; [&lt;choice&gt;has empty name]
+[has empty name]-&gt; yes [&lt;reference&gt; first name entry]
+[has empty name]-&gt; no [&lt;choice&gt;has empty gender]
+[has empty gender]-&gt; yes [&lt;reference&gt; gender entry]
+[has empty gender]-&gt; no [&lt;choice&gt; has empty bio]
+[has empty bio]-&gt; yes [&lt;reference&gt; change business prompt]
+[has empty bio]-&gt; no [&lt;reference&gt; location change pin authorization]</desc>
+  <rect x="0" y="0" height="529.5" width="703.125" style="stroke:none; fill:transparent;"></rect>
+  <path d="M197.4 44.5 L197.4 64.5 L197.4 84.5 L197.4 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M192 71.2 L197.4 77.8 L202.7 71.2 L197.4 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M197.4 115.5 L197.4 135.5 L197.4 155.5 L197.4 155.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M192 142.2 L197.4 148.8 L202.7 142.2 L197.4 155.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M197.4 186.5 L197.4 206.5 L197.4 226.5 L197.4 226.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M192 213.2 L197.4 219.8 L202.7 213.2 L197.4 226.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="47" y="312.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M135.9 273 L83 293 L83 320.8 L83 320.8 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M77.7 307.4 L83 314.1 L88.3 307.4 L83 320.8 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="319.8" y="305" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M258.9 273 L311.8 293 L311.8 313 L311.8 313 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M306.4 299.7 L311.8 306.3 L317.1 299.7 L311.8 313 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="178.9" y="399.3" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M259.7 359.5 L214.9 379.5 L214.9 407.3 L214.9 407.3 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M209.5 393.9 L214.9 400.6 L220.2 393.9 L214.9 407.3 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="416.6" y="391.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M363.8 359.5 L408.6 379.5 L408.6 399.5 L408.6 399.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M403.3 386.2 L408.6 392.8 L414 386.2 L408.6 399.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="230.1" y="478" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M332 446 L266.1 466 L266.1 486 L266.1 486 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M260.8 472.7 L266.1 479.3 L271.5 472.7 L266.1 486 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="559.1" y="478" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M485.2 446 L551.1 466 L551.1 486 L551.1 486 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M545.8 472.7 L551.1 479.3 L556.5 472.7 L551.1 486 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="135.5" y="13.5" height="31" width="123" data-name="location entry" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="197" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="location entry">location entry</text>
+  <path d="M122.5 84.5 L279.5 84.5 L271.5 115.5 L114.5 115.5 Z" data-name="Enter your location" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="197" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="Enter your location">Enter your location</text>
+  <rect x="77.5" y="155.5" height="31" width="239" data-name="add location to session data" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="197" y="177" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="add location to session data">add location to session data</text>
+  <path d="M197.4 226.5 L308 249.8 L197.4 273 L87.5 249.8 Z" data-name="has empty name" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="197.8" y="255.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="has empty name">has empty name</text>
+  <rect x="13.5" y="320.5" height="31" width="139" data-name="first name entry" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="83" y="342" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="first name entry">first name entry</text>
+  <path d="M311.8 313.5 L431 336.3 L311.8 360 L192.5 336.3 Z" data-name="has empty gender" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="311.8" y="342.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="has empty gender">has empty gender</text>
+  <rect x="156.5" y="407.5" height="31" width="117" data-name="gender entry" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="215" y="429" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="gender entry">gender entry</text>
+  <path d="M408.6 399.5 L504 422.8 L408.6 446 L313.5 422.8 Z" data-name="has empty bio" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="408.8" y="428.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="has empty bio">has empty bio</text>
+  <rect x="160.5" y="486.5" height="31" width="211" data-name="change business prompt" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="266" y="508" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="change business prompt">change business prompt</text>
+  <rect x="411.5" y="486.5" height="31" width="279" data-name="location change pin authorization" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="551" y="508" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="location change pin authorization">location change pin authorization</text>
+</svg>

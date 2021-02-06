@@ -1,0 +1,7 @@
+en:
+  account_successfully_created: |-
+    Hello %{first_name} you have been registered on Sarafu Network! Your balance is %{balance} %{token_symbol}. To use dial *483*46#. For help 0757628885.
+  received_tokens: |-
+    Successfully received %{amount} %{token_symbol} from %{tx_sender_information} %{timestamp}. New balance is %{balance} %{token_symbol}.
+  terms: |-
+    By using the service, you agree to the terms and conditions at https://www.grassrootseconomics.org/terms-and-conditions.

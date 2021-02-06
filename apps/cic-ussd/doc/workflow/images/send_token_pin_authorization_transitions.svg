@@ -1,0 +1,47 @@
+<svg version="1.1" baseProfile="full" width="849.125" height="372" viewbox="0 0 849.125 372" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; send token pin authorization]-&gt; [&lt;input&gt; Please enter your PIN to confirm]
+[Please enter your PIN to confirm]-&gt; [&lt;choice&gt; is authorized pin]
+[is authorized pin]-&gt; yes [process send token request (* celery tasks)]
+[process send token request (* celery tasks)] -&gt; [&lt;reference&gt; exit successful send token]
+[is authorized pin]-&gt; no [&lt;choice&gt; is blocked pin]
+[is blocked pin] -&gt; yes [&lt;label&gt; exit pin blocked]
+[is blocked pin] -&gt; no [increase failed attempts by one]
+[increase failed attempts by one]-&gt; [Please enter your PIN to confirm]</desc>
+  <rect x="0" y="0" height="372" width="849.125" style="stroke:none; fill:transparent;"></rect>
+  <path d="M426.5 44.5 L426.5 64.5 L426.5 84.5 L426.5 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M421.2 71.2 L426.5 77.8 L431.8 71.2 L426.5 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M393.6 115.5 L351.1 135.5 L351.1 155.5 L351.1 155.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M345.8 142.2 L351.1 148.8 L356.5 142.2 L351.1 155.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="158" y="241.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M266.7 202 L194 222 L194 249.8 L194 249.8 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M188.7 236.4 L194 243.1 L199.3 236.4 L194 249.8 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M194 280.8 L194 308.5 L194 328.5 L194 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M188.7 315.2 L194 321.8 L199.3 315.2 L194 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="516.3" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M435.6 202 L508.3 222 L508.3 242 L508.3 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M502.9 228.7 L508.3 235.3 L513.6 228.7 L508.3 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="426.6" y="320.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M483.7 288.5 L462.6 308.5 L462.6 328.5 L462.6 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M457.3 315.2 L462.6 321.8 L468 315.2 L462.6 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="679.7" y="320.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M573.3 288.5 L629.3 308.5 L671.7 328.5 L671.7 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M657.4 327.6 L665.7 325.7 L661.9 318 L671.7 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M713.4 328.5 L724.6 308.5 L724.6 265.3 L724.6 265.3 L724.6 222 L724.6 222 L724.6 178.8 L724.6 178.8 L724.6 135.5 L724.6 135.5 L556.7 115.5 L556.7 115.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M570.5 111.8 L563.3 116.3 L569.3 122.4 L556.7 115.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="306.5" y="13.5" height="31" width="241" data-name="send token pin authorization" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="427" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="send token pin authorization">send token pin authorization</text>
+  <path d="M298.5 84.5 L562.5 84.5 L554.5 115.5 L290.5 115.5 Z" data-name="Please enter your PIN to confirm" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="426.5" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="Please enter your PIN to confirm">Please enter your PIN to confirm</text>
+  <path d="M351.1 155.5 L461 178.8 L351.1 202 L240.5 178.8 Z" data-name="is authorized pin" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="350.8" y="184.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="is authorized pin">is authorized pin</text>
+  <rect x="13.5" y="249.5" height="31" width="361" data-name="process send token request (* celery tasks)" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="194" y="271" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="process send token request (* celery tasks)">process send token request (* celery tasks)</text>
+  <rect x="81.5" y="328.5" height="31" width="226" data-name="exit successful send token" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="194.5" y="350" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="exit successful send token">exit successful send token</text>
+  <path d="M508.3 242.5 L602 265.3 L508.3 289 L414.5 265.3 Z" data-name="is blocked pin" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="508.3" y="271.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="is blocked pin">is blocked pin</text>
+  <text x="400.5" y="350" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;" data-name="exit pin blocked">exit pin blocked</text>
+  <rect x="572.5" y="328.5" height="31" width="264" data-name="increase failed attempts by one" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="704.5" y="350" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="increase failed attempts by one">increase failed attempts by one</text>
+</svg>

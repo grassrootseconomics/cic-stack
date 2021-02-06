@@ -1,0 +1,88 @@
+<svg version="1.1" baseProfile="full" width="1027.625" height="718" viewbox="0 0 1027.625 718" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; account management]-&gt; [&lt;input&gt; user input]
+[user input]-&gt; [&lt;choice&gt; 1. My profile]
+[1. My profile]-&gt; yes [&lt;reference&gt; user profile]
+[1. My profile]-&gt; no [&lt;choice&gt; 2. Change language]
+[2. Change language]-&gt; yes [&lt;reference&gt; choose language]
+[2. Change language]-&gt; no [&lt;choice&gt; 3. Check balance]
+[3. Check balance]-&gt; yes [&lt;reference&gt; mini statement inquiry pin authorization]
+[3. Check balance]-&gt; no [&lt;choice&gt; 4. Change PIN]
+[4. Change PIN]-&gt; yes [&lt;reference&gt; current pin]
+[4. Change PIN]-&gt; no [&lt;choice&gt; 5. Opt out of market place]
+[5. Opt out of market place]-&gt; yes [&lt;reference&gt; opt out of market place pin authorization]
+[5. Opt out of market place]-&gt; no [&lt;choice&gt; 0. Back]
+[0. Back]-&gt; yes [&lt;reference&gt; start menu]
+[0. Back]-&gt; no [&lt;reference&gt; exit invalid menu option]</desc>
+  <rect x="0" y="0" height="718" width="1027.625" style="stroke:none; fill:transparent;"></rect>
+  <path d="M178.6 44.5 L178.6 64.5 L178.6 84.5 L178.6 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M173.3 71.2 L178.6 77.8 L184 71.2 L178.6 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M178.6 115.5 L178.6 135.5 L178.6 155.5 L178.6 155.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M173.3 142.2 L178.6 148.8 L184 142.2 L178.6 155.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="30" y="241.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M118.1 202 L66 222 L66 249.8 L66 249.8 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M60.7 236.4 L66 243.1 L71.3 236.4 L66 249.8 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="299.3" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M239.2 202 L291.3 222 L291.3 242 L291.3 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M285.9 228.7 L291.3 235.3 L296.6 228.7 L291.3 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="139.3" y="328.3" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M228.9 288.5 L175.3 308.5 L175.3 336.3 L175.3 336.3 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M169.9 322.9 L175.3 329.6 L180.6 322.9 L175.3 336.3 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="415.3" y="320.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M353.6 288.5 L407.3 308.5 L407.3 328.5 L407.3 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M401.9 315.2 L407.3 321.8 L412.6 315.2 L407.3 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="220.6" y="414.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M326.3 375 L256.6 395 L256.6 422.8 L256.6 422.8 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M251.3 409.4 L256.6 416.1 L262 409.4 L256.6 422.8 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="565.9" y="407" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M488.2 375 L557.9 395 L557.9 415 L557.9 415 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M552.5 401.7 L557.9 408.3 L563.2 401.7 L557.9 415 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="393.8" y="501.3" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M489 461.5 L429.8 481.5 L429.8 509.3 L429.8 509.3 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M424.4 495.9 L429.8 502.6 L435.1 495.9 L429.8 509.3 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="694" y="493.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M626.8 461.5 L686 481.5 L686 501.5 L686 501.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M680.7 488.2 L686 494.8 L691.3 488.2 L686 501.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="518.1" y="587.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M615.1 548 L554.1 568 L554.1 595.8 L554.1 595.8 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M548.8 582.4 L554.1 589.1 L559.5 582.4 L554.1 595.8 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="825.9" y="580" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M756.9 548 L817.9 568 L817.9 588 L817.9 588 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M812.5 574.7 L817.9 581.3 L823.2 574.7 L817.9 588 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="686.1" y="666.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M766.4 634.5 L722.1 654.5 L722.1 674.5 L722.1 674.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M716.8 661.2 L722.1 667.8 L727.5 661.2 L722.1 674.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="921.6" y="666.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M869.3 634.5 L913.6 654.5 L913.6 674.5 L913.6 674.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M908.3 661.2 L913.6 667.8 L919 661.2 L913.6 674.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="85.5" y="13.5" height="31" width="187" data-name="account management" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="179" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="account management">account management</text>
+  <path d="M139.5 84.5 L226.5 84.5 L218.5 115.5 L131.5 115.5 Z" data-name="user input" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="179" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="user input">user input</text>
+  <path d="M178.6 155.5 L263 178.8 L178.6 202 L93.5 178.8 Z" data-name="1. My profile" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="178.3" y="184.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="1. My profile">1. My profile</text>
+  <rect x="13.5" y="249.5" height="31" width="105" data-name="user profile" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="66" y="271" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="user profile">user profile</text>
+  <path d="M291.3 242.5 L424 265.3 L291.3 289 L158.5 265.3 Z" data-name="2. Change language" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="291.3" y="271.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="2. Change language">2. Change language</text>
+  <rect x="98.5" y="336.5" height="31" width="153" data-name="choose language" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="175" y="358" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="choose language">choose language</text>
+  <path d="M407.3 328.5 L522.5 351.8 L407.3 375 L291.5 351.8 Z" data-name="3. Check balance" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="407" y="357.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="3. Check balance">3. Check balance</text>
+  <rect x="93.5" y="422.5" height="31" width="326" data-name="mini statement inquiry pin authorization" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="256.5" y="444" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="mini statement inquiry pin authorization">mini statement inquiry pin authorization</text>
+  <path d="M557.9 415.5 L656 438.3 L557.9 462 L459.5 438.3 Z" data-name="4. Change PIN" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="557.8" y="444.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="4. Change PIN">4. Change PIN</text>
+  <rect x="379.5" y="509.5" height="31" width="101" data-name="current pin" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="430" y="531" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="current pin">current pin</text>
+  <path d="M686 501.5 L852 524.8 L686 548 L520.5 524.8 Z" data-name="5. Opt out of market place" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="686.3" y="530.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="5. Opt out of market place">5. Opt out of market place</text>
+  <rect x="386.5" y="595.5" height="31" width="335" data-name="opt out of market place pin authorization" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="554" y="617" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="opt out of market place pin authorization">opt out of market place pin authorization</text>
+  <path d="M817.9 588.5 L874 611.3 L817.9 635 L761.5 611.3 Z" data-name="0. Back" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="817.8" y="617.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="0. Back">0. Back</text>
+  <rect x="672.5" y="674.5" height="31" width="100" data-name="start menu" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="722.5" y="696" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="start menu">start menu</text>
+  <rect x="812.5" y="674.5" height="31" width="203" data-name="exit invalid menu option" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="914" y="696" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="exit invalid menu option">exit invalid menu option</text>
+</svg>

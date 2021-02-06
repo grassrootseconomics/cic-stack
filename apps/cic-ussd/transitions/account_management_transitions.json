@@ -1,0 +1,38 @@
+[
+   {
+    "trigger": "scan_data",
+    "source": "account_management",
+    "dest": "profile_management",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_one_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "account_management",
+    "dest": "select_preferred_language",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_two_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "account_management",
+    "dest": "mini_statement_pin_authorization",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_three_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "mini_statement_pin_authorization",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.pin.is_authorized_pin",
+    "after": "cic_ussd.state_machine.logic.sms.process_mini_statement_request"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "account_management",
+    "dest": "enter_current_pin",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_four_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "account_management",
+    "dest": "exit_invalid_menu_option"
+  }
+]

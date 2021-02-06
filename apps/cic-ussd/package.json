@@ -1,0 +1,26 @@
+{
+  "name": "cic-ussd",
+  "version": "1.0.0",
+  "description": "A ussd application that provides an interface between users and the sarafu cic ecosystem.",
+  "main": "index.js",
+  "directories": {
+    "doc": "doc",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/grassrootseconomics/cic-ussd.git"
+  },
+  "author": "SpencerOfwiti",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/grassrootseconomics/cic-ussd/issues"
+  },
+  "homepage": "https://gitlab.com/grassrootseconomics/cic-ussd#readme",
+  "dependencies": {
+    "nomnoml": "^1.1.0"
+  }
+}

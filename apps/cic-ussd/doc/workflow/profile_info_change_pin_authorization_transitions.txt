@@ -1,0 +1,8 @@
+[<reference> profile info change pin authorization]-> [<input> Please enter your PIN]
+[Please enter your PIN]-> [<choice> is authorized]
+[is authorized]-> yes [save profile information]
+[save profile information]-> [<reference> complete]
+[is authorized]-> no [<choice> is blocked]
+[is blocked]-> yes [<label> exit pin blocked]
+[is blocked]-> no [increase failed attempts]
+[increase failed attempts]-> [Please enter your PIN]

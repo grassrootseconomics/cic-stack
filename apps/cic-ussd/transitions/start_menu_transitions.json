@@ -1,0 +1,25 @@
+[
+  {
+    "trigger": "scan_data",
+    "source": "start",
+    "dest": "enter_transaction_recipient",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_one_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "start",
+    "dest": "account_management",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_two_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "start",
+    "dest": "help",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_three_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "start",
+    "dest": "exit_invalid_menu_option"
+  }
+]

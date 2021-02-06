@@ -1,0 +1,33 @@
+<svg version="1.1" baseProfile="full" width="326" height="356.5" viewbox="0 0 326 356.5" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; new pin]-&gt; [&lt;input&gt; Enter new pin]
+[Enter new pin]-&gt; [&lt;choice&gt; is valid pin]
+[is valid pin]-&gt; yes [save pin]
+[save pin]-&gt; [&lt;reference&gt; new pin confirmation]
+[is valid pin]-&gt; no [&lt;label&gt; exit invalid pin]
+</desc>
+  <rect x="0" y="0" height="356.5" width="326" style="stroke:none; fill:transparent;"></rect>
+  <path d="M176 44.5 L176 64.5 L176 84.5 L176 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M170.7 71.2 L176 77.8 L181.3 71.2 L176 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M176 115.5 L176 135.5 L176 155.5 L176 155.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M170.7 142.2 L176 148.8 L181.3 142.2 L176 155.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="67" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M136.8 202 L103 222 L103 242 L103 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M97.7 228.7 L103 235.3 L108.3 228.7 L103 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M103 273 L103 293 L103 313 L103 313 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M97.7 299.7 L103 306.3 L108.3 299.7 L103 313 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="257" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M215.2 202 L249 222 L249 242 L249 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M243.7 228.7 L249 235.3 L254.3 228.7 L249 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="137.5" y="13.5" height="31" width="77" data-name="new pin" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="176" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="new pin">new pin</text>
+  <path d="M122.5 84.5 L238.5 84.5 L230.5 115.5 L114.5 115.5 Z" data-name="Enter new pin" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="176.5" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="Enter new pin">Enter new pin</text>
+  <path d="M176 155.5 L251.5 178.8 L176 202 L101.5 178.8 Z" data-name="is valid pin" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="176.5" y="184.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="is valid pin">is valid pin</text>
+  <rect x="61.5" y="242.5" height="31" width="83" data-name="save pin" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="103" y="264" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="save pin">save pin</text>
+  <rect x="13.5" y="313.5" height="31" width="179" data-name="new pin confirmation" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="103" y="335" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="new pin confirmation">new pin confirmation</text>
+  <text x="192.5" y="264" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;" data-name="exit invalid pin">exit invalid pin</text>
+</svg>

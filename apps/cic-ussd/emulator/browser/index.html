@@ -1,0 +1,30 @@
+<html>
+	<head>
+		<title>USSD Session emulator</title>
+		<script src='./ussd.js' language='javascript'></script>
+<style type="text/css">
+#monitor {
+	width: 100%;
+	height: 90%;
+}
+div#session {
+	display: none;
+}
+</style>
+	</head>
+	<body>
+		<textarea id="monitor" disabled="1"></textarea>
+		<div id="login">
+			<label for="user">API username</label>
+			<input type="text" id="user" name="user" type="text" /><br/>
+			<label for="user">API password</label>
+			<input type="text" id="pass" name="pass" type="text" /><br/>
+			<hr/>
+			<input type="text" id="phone" /> <button onclick="setPhone(document.getElementById('phone').value);" id="send_phone">set phone number</button> 
+		</div>
+		<div id="session">
+			<input type="text" id="input" /> <button onclick="send(document.getElementById('input').value);" id="send_input">send as </button> <button onclick='abort();'>abort</button>
+		</div>
+	</body>
+</html>
+

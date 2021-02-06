@@ -1,0 +1,46 @@
+<svg version="1.1" baseProfile="full" width="711.75" height="372" viewbox="0 0 711.75 372" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; send enter recipient]-&gt; [&lt;input&gt; Enter phone number]
+[Enter phone number]-&gt; [&lt;choice&gt; is user]
+[is user]-&gt; yes [save recipient phone number]
+[save recipient phone number]-&gt; [&lt;reference&gt; send token amount]
+[is user]-&gt; no [&lt;choice&gt; is token agent]
+[is token agent]-&gt; yes [&lt;reference&gt; exit use exchange menu]
+[is token agent]-&gt; no [&lt;reference&gt; exit invalid recipient]
+</desc>
+  <rect x="0" y="0" height="372" width="711.75" style="stroke:none; fill:transparent;"></rect>
+  <path d="M367.3 44.5 L367.3 64.5 L367.3 84.5 L367.3 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M361.9 71.2 L367.3 77.8 L372.6 71.2 L367.3 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M367.3 115.5 L367.3 135.5 L367.3 155.5 L367.3 155.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M361.9 142.2 L367.3 148.8 L372.6 142.2 L367.3 155.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="101" y="241.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M315.5 188.5 L137 222 L137 249.8 L137 249.8 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M131.7 236.4 L137 243.1 L142.3 236.4 L137 249.8 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M137 280.8 L137 308.5 L137 328.5 L137 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M131.7 315.2 L137 321.8 L142.3 315.2 L137 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="505" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M419 196 L497 222 L497 242 L497 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M491.7 228.7 L497 235.3 L502.3 228.7 L497 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="345.3" y="320.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M434.8 288.5 L381.3 308.5 L381.3 328.5 L381.3 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M375.9 315.2 L381.3 321.8 L386.6 315.2 L381.3 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="620.8" y="320.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M559.2 288.5 L612.8 308.5 L612.8 328.5 L612.8 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M607.4 315.2 L612.8 321.8 L618.1 315.2 L612.8 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="280.5" y="13.5" height="31" width="174" data-name="send enter recipient" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="367.5" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="send enter recipient">send enter recipient</text>
+  <path d="M286.5 84.5 L456.5 84.5 L448.5 115.5 L278.5 115.5 Z" data-name="Enter phone number" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="367.5" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="Enter phone number">Enter phone number</text>
+  <path d="M367.3 155.5 L419 178.8 L367.3 202 L315.5 178.8 Z" data-name="is user" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="367.3" y="184.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="is user">is user</text>
+  <rect x="13.5" y="249.5" height="31" width="247" data-name="save recipient phone number" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="137" y="271" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="save recipient phone number">save recipient phone number</text>
+  <rect x="53.5" y="328.5" height="31" width="168" data-name="send token amount" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="137.5" y="350" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="send token amount">send token amount</text>
+  <path d="M497 242.5 L593.5 265.3 L497 289 L401.5 265.3 Z" data-name="is token agent" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="497.5" y="271.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="is token agent">is token agent</text>
+  <rect x="276.5" y="328.5" height="31" width="210" data-name="exit use exchange menu" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="381.5" y="350" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="exit use exchange menu">exit use exchange menu</text>
+  <rect x="526.5" y="328.5" height="31" width="173" data-name="exit invalid recipient" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="613" y="350" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="exit invalid recipient">exit invalid recipient</text>
+</svg>

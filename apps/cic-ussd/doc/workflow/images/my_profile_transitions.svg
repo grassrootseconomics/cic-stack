@@ -1,0 +1,76 @@
+<svg version="1.1" baseProfile="full" width="864.75" height="631.5" viewbox="0 0 864.75 631.5" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; user profile]-&gt; [&lt;input&gt; user input]
+[user input]-&gt; [&lt;choice&gt; 1. Edit name]
+[1. Edit name]-&gt; yes [&lt;reference&gt; first name entry]
+[1. Edit name]-&gt; no [&lt;choice&gt; 2. Edit gender]
+[2. Edit gender]-&gt; yes [&lt;reference&gt; gender entry]
+[2. Edit gender]-&gt; no [&lt;choice&gt; 3. Edit location]
+[3. Edit location]-&gt; yes [&lt;reference&gt; location entry]
+[3. Edit location]-&gt; no [&lt;choice&gt; 4. Edit business]
+[4. Edit business]-&gt; yes [&lt;reference&gt; change business prompt]
+[4. Edit business]-&gt; no [&lt;choice&gt; 5. See my profile]
+[5. See my profile]-&gt; yes [&lt;reference&gt; view profile pin authorization]
+[5. See my profile]-&gt; no [&lt;reference&gt; exit invalid menu option]</desc>
+  <rect x="0" y="0" height="631.5" width="864.75" style="stroke:none; fill:transparent;"></rect>
+  <path d="M185.4 44.5 L185.4 64.5 L185.4 84.5 L185.4 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M180 71.2 L185.4 77.8 L190.7 71.2 L185.4 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M185.4 115.5 L185.4 135.5 L185.4 155.5 L185.4 155.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M180 142.2 L185.4 148.8 L190.7 142.2 L185.4 155.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="47" y="241.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M130.3 202 L83 222 L83 249.8 L83 249.8 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M77.7 236.4 L83 243.1 L88.3 236.4 L83 249.8 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="295.8" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M240.4 202 L287.8 222 L287.8 242 L287.8 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M282.4 228.7 L287.8 235.3 L293.1 228.7 L287.8 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="152.6" y="328.3" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M234.5 288.5 L188.6 308.5 L188.6 336.3 L188.6 336.3 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M183.3 322.9 L188.6 329.6 L194 322.9 L188.6 336.3 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="394.9" y="320.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M341 288.5 L386.9 308.5 L386.9 328.5 L386.9 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M381.5 315.2 L386.9 321.8 L392.2 315.2 L386.9 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="246.9" y="414.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M331 375 L282.9 395 L282.9 422.8 L282.9 422.8 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M277.5 409.4 L282.9 416.1 L288.2 409.4 L282.9 422.8 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="498.9" y="407" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M442.8 375 L490.9 395 L490.9 415 L490.9 415 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M485.5 401.7 L490.9 408.3 L496.2 401.7 L490.9 415 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="326.3" y="501.3" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M421.7 461.5 L362.3 481.5 L362.3 509.3 L362.3 509.3 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M356.9 495.9 L362.3 502.6 L367.6 495.9 L362.3 509.3 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="627.5" y="493.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M560 461.5 L619.5 481.5 L619.5 501.5 L619.5 501.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M614.2 488.2 L619.5 494.8 L624.8 488.2 L619.5 501.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="452.3" y="580" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M548.9 548 L488.3 568 L488.3 588 L488.3 588 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M482.9 574.7 L488.3 581.3 L493.6 574.7 L488.3 588 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="758.8" y="580" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M690.1 548 L750.8 568 L750.8 588 L750.8 588 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M745.4 574.7 L750.8 581.3 L756.1 574.7 L750.8 588 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="132.5" y="13.5" height="31" width="105" data-name="user profile" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="185" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="user profile">user profile</text>
+  <path d="M145.5 84.5 L232.5 84.5 L224.5 115.5 L137.5 115.5 Z" data-name="user input" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="185" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="user input">user input</text>
+  <path d="M185.4 155.5 L272 178.8 L185.4 202 L99.5 178.8 Z" data-name="1. Edit name" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="185.8" y="184.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="1. Edit name">1. Edit name</text>
+  <rect x="13.5" y="249.5" height="31" width="139" data-name="first name entry" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="83" y="271" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="first name entry">first name entry</text>
+  <path d="M287.8 242.5 L383 265.3 L287.8 289 L192.5 265.3 Z" data-name="2. Edit gender" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="287.8" y="271.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="2. Edit gender">2. Edit gender</text>
+  <rect x="130.5" y="336.5" height="31" width="117" data-name="gender entry" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="189" y="358" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="gender entry">gender entry</text>
+  <path d="M386.9 328.5 L487 351.8 L386.9 375 L287.5 351.8 Z" data-name="3. Edit location" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="387.3" y="357.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="3. Edit location">3. Edit location</text>
+  <rect x="221.5" y="422.5" height="31" width="123" data-name="location entry" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="283" y="444" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="location entry">location entry</text>
+  <path d="M490.9 415.5 L597.5 438.3 L490.9 462 L384.5 438.3 Z" data-name="4. Edit business" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="491" y="444.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="4. Edit business">4. Edit business</text>
+  <rect x="256.5" y="509.5" height="31" width="211" data-name="change business prompt" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="362" y="531" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="change business prompt">change business prompt</text>
+  <path d="M619.5 501.5 L731 524.8 L619.5 548 L507.5 524.8 Z" data-name="5. See my profile" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="619.3" y="530.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="5. See my profile">5. See my profile</text>
+  <rect x="367.5" y="588.5" height="31" width="242" data-name="view profile pin authorization" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="488.5" y="610" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="view profile pin authorization">view profile pin authorization</text>
+  <rect x="649.5" y="588.5" height="31" width="203" data-name="exit invalid menu option" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="751" y="610" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="exit invalid menu option">exit invalid menu option</text>
+</svg>

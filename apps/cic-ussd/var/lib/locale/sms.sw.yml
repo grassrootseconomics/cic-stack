@@ -1,0 +1,7 @@
+sw:
+  account_successfully_created: |-
+    Habari %{first_name}, umesajiliwa kwa huduma ya sarafu! Salio lako ni %{token_symbol} %{balance}. Kutumia bonyeza *483*46#. Kwa Usaidizi 0757628885.
+  received_tokens: |-
+    Umepokea %{amount} %{token_symbol} kutoka kwa %{tx_sender_information} %{timestamp}. Salio la %{token_symbol} ni %{balance}.
+  terms: |-
+    Kwa kutumia hii huduma, umekubali sheria na masharti yafuatayo https://www.grassrootseconomics.org/terms-and-conditions.

@@ -1,0 +1,21 @@
+<svg version="1.1" baseProfile="full" width="138.5" height="285.5" viewbox="0 0 138.5 285.5" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; help]-&gt; [&lt;frame&gt; help menu]
+[help menu]-&gt; [&lt;choice&gt; 99. Exit]
+[99. Exit]-&gt; [&lt;label&gt; exit]</desc>
+  <rect x="0" y="0" height="285.5" width="138.5" style="stroke:none; fill:transparent;"></rect>
+  <path d="M69.8 44.5 L69.8 64.5 L69.8 84.5 L69.8 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M64.4 71.2 L69.8 77.8 L75.1 71.2 L69.8 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M69.8 115.5 L69.8 135.5 L69.8 155.5 L69.8 155.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M64.4 142.2 L69.8 148.8 L75.1 142.2 L69.8 155.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M69.8 202 L69.8 222 L69.8 242 L69.8 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M64.4 228.7 L69.8 235.3 L75.1 228.7 L69.8 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="44.5" y="13.5" height="31" width="50" data-name="help" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="69.5" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="help">help</text>
+  <rect x="20.5" y="84.5" height="31" width="99" data-name="help menu" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="28.5" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;" data-name="help menu">help menu</text>
+  <path d="M20.5 115.5 L111.8 115.5 L127.3 100 L127.3 84.5" data-name="help menu" style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M69.8 155.5 L126 178.8 L69.8 202 L13.5 178.8 Z" data-name="99. Exit" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="69.8" y="184.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="99. Exit">99. Exit</text>
+  <text x="55.5" y="264" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;" data-name="exit">exit</text>
+</svg>

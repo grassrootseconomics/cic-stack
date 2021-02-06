@@ -1,0 +1,10 @@
+[
+  "account_management",
+  "profile_management",
+  "select_preferred_language",
+  "enter_current_pin",
+  "mini_statement_inquiry_pin_authorization",
+  "enter_new_pin",
+  "new_pin_confirmation",
+  "display_user_profile_data"
+]

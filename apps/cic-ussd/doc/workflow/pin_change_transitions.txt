@@ -1,0 +1,7 @@
+[<reference> current pin]-> [<input> Enter current PIN]
+[Enter current PIN]-> [<choice> is authorized]
+[is authorized]-> yes [<reference> new pin]
+[is authorized]-> no [<choice> is blocked]
+[is blocked]-> yes [<label> exit pin blocked]
+[is blocked]-> no [increase failed attempts]
+[increase failed attempts]-> [Enter current PIN]

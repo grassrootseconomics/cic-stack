@@ -1,0 +1,8 @@
+[<reference> choose language]-> [<input> Choose language]
+[Choose language]-> [<choice> 1. English]
+[1. English]-> yes [change language to English]
+[change language to English]-> [<reference> complete]
+[1. English]-> no [<choice> 2. Kiswahili]
+[2. Kiswahili]-> yes [change language to Swahili]
+[change language to Swahili]-> [<label> complete]
+[2. Kiswahili]-> no [<reference> exit invalid menu option]

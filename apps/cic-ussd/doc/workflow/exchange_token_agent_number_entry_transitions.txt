@@ -1,0 +1,5 @@
+[<reference> exchange token agent number entry]-> [<input> Enter agent phone number]
+[Enter agent phone number]-> [<choice> is valid token agent]
+[is valid token agent]-> yes [save token agent phone number to session data]
+[save token agent phone number to session data]-> [<reference> exchange token amount entry]
+[is valid token agent]-> no [<reference> exit invalid token agent]

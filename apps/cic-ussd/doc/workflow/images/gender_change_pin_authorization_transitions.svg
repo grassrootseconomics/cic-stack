@@ -1,0 +1,47 @@
+<svg version="1.1" baseProfile="full" width="614.25" height="372" viewbox="0 0 614.25 372" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events" style="font:bold normal 12pt Helvetica, Helvetica, sans-serif;;stroke-linejoin:round;stroke-linecap:round">
+  <title >nomnoml</title>
+  <desc >[&lt;reference&gt; gender change pin authorization]-&gt; [&lt;input&gt; Please enter your PIN]
+[Please enter your PIN]-&gt; [&lt;choice&gt; is authorized]
+[is authorized]-&gt; yes [save user information]
+[save user information]-&gt; [&lt;reference&gt; complete]
+[is authorized]-&gt; no [&lt;choice&gt; is blocked]
+[is blocked]-&gt; yes [&lt;label&gt; exit pin blocked]
+[is blocked]-&gt; no [increase failed attempts]
+[increase failed attempts]-&gt; [Please enter your PIN]</desc>
+  <rect x="0" y="0" height="372" width="614.25" style="stroke:none; fill:transparent;"></rect>
+  <path d="M290.3 44.5 L290.3 64.5 L290.3 84.5 L290.3 84.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M284.9 71.2 L290.3 77.8 L295.6 71.2 L290.3 84.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M255.1 115.5 L209.8 135.5 L209.8 155.5 L209.8 155.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M204.4 142.2 L209.8 148.8 L215.1 142.2 L209.8 155.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="71" y="241.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M154.5 202 L107 222 L107 249.8 L107 249.8 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M101.7 236.4 L107 243.1 L112.3 236.4 L107 249.8 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M107 280.8 L107 308.5 L107 328.5 L107 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M101.7 315.2 L107 321.8 L112.3 315.2 L107 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="320.5" y="234" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M265 202 L312.5 222 L312.5 242 L312.5 242 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M307.2 228.7 L312.5 235.3 L317.8 228.7 L312.5 242 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="250.8" y="320.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">yes</text>
+  <path d="M298.7 288.5 L286.8 308.5 L286.8 328.5 L286.8 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M281.4 315.2 L286.8 321.8 L292.1 315.2 L286.8 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="472.1" y="320.5" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;">no</text>
+  <path d="M369.6 288.5 L418.8 308.5 L464.1 328.5 L464.1 328.5 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M449.8 328 L458 325.8 L454.1 318.2 L464.1 328.5 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M508 328.5 L519.3 308.5 L519.3 265.3 L519.3 265.3 L519.3 222 L519.3 222 L519.3 178.8 L519.3 178.8 L519.3 135.5 L519.3 135.5 L384.8 114.6 L384.8 114.6 " style="stroke:#33322E;fill:none;stroke-dasharray:none;stroke-width:3;"></path>
+  <path d="M398.7 111.4 L391.3 115.7 L397.1 122 L384.8 114.6 Z" style="stroke:#33322E;fill:#33322E;stroke-dasharray:none;stroke-width:3;"></path>
+  <rect x="153.5" y="13.5" height="31" width="273" data-name="gender change pin authorization" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="290" y="35" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="gender change pin authorization">gender change pin authorization</text>
+  <path d="M203.5 84.5 L384.5 84.5 L376.5 115.5 L195.5 115.5 Z" data-name="Please enter your PIN" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="290" y="106" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="Please enter your PIN">Please enter your PIN</text>
+  <path d="M209.8 155.5 L298.5 178.8 L209.8 202 L121.5 178.8 Z" data-name="is authorized" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="210" y="184.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="is authorized">is authorized</text>
+  <rect x="13.5" y="249.5" height="31" width="187" data-name="save user information" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="107" y="271" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="save user information">save user information</text>
+  <rect x="63.5" y="328.5" height="31" width="88" data-name="complete" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:6 6;stroke-width:3;"></rect>
+  <text x="107.5" y="350" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="complete">complete</text>
+  <path d="M312.5 242.5 L384.5 265.3 L312.5 289 L240.5 265.3 Z" data-name="is blocked" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></path>
+  <text x="312.5" y="271.8" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="is blocked">is blocked</text>
+  <text x="224.5" y="350" style="fill: #33322E;font:normal  12pt Helvetica, Helvetica, sans-serif;" data-name="exit pin blocked">exit pin blocked</text>
+  <rect x="396.5" y="328.5" height="31" width="205" data-name="increase failed attempts" style="stroke:#33322E;fill:#eee8d5;stroke-dasharray:none;stroke-width:3;"></rect>
+  <text x="499" y="350" style="fill: #33322E;font:bold  12pt Helvetica, Helvetica, sans-serif;text-anchor: middle;" data-name="increase failed attempts">increase failed attempts</text>
+</svg>

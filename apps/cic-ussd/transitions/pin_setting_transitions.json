@@ -1,0 +1,38 @@
+[
+  {
+    "trigger": "scan_data",
+    "source": "enter_current_pin",
+    "dest": "enter_new_pin",
+    "conditions": "cic_ussd.state_machine.logic.pin.is_authorized_pin"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "enter_current_pin",
+    "dest": "exit_pin_blocked",
+    "conditions": "cic_ussd.state_machine.logic.menu.is_blocked_pin"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "enter_new_pin",
+    "dest": "new_pin_confirmation",
+    "after": "cic_ussd.state_machine.logic.pin.save_initial_pin_to_session_data",
+    "conditions": "cic_ussd.state_machine.logic.menu.is_valid_new_pin"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "enter_new_pin",
+    "dest": "exit_invalid_new_pin"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "new_pin_confirmation",
+    "dest": "complete",
+    "conditions": "cic_ussd.state_machine.logic.pin.pins_match",
+    "after": "cic_ussd.state_machine.logic.menu.complete_pin_change"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "new_pin_confirmation",
+    "dest": "exit_pin_mismatch"
+  }
+]
