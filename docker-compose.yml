@@ -466,9 +466,9 @@ services:
       DATABASE_NAME: cic_ussd
       DATABASE_ENGINE: postgresql
       DATABASE_DRIVER: psycopg2
-      SERVER_PORT: 80
+      SERVER_PORT: 9000
     ports:
-      - 80:8082
+      - 9000:8082
     depends_on:
       - postgres
       - redis

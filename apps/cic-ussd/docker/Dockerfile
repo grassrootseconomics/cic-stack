@@ -39,6 +39,8 @@ COPY cic-ussd/docker/db.sh \
      /root/
 
 RUN chmod +x /root/*.sh
+RUN cd cic-ussd && \
+    pip install $pip_extra_index_url_flag .
 
 
 # copy config and migration files to definitive file so they can be referenced in path definitions for running scripts
