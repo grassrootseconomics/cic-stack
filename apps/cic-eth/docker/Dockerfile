@@ -1,23 +1,12 @@
-# FROM grassrootseconomics:cic
-
-#FROM python:3.8.6-alpine
 FROM python:3.8.6-slim-buster
 
-#COPY --from=0 /usr/local/share/cic/solidity/ /usr/local/share/cic/solidity/
+RUN apt-get update && \
+	apt install -y gcc gnupg libpq-dev wget make g++ gnupg bash procps
 
 WORKDIR /usr/src/cic-eth
 
 ARG pip_extra_index_url_flag='--index https://pypi.org/simple --extra-index-url https://pip.grassrootseconomics.net:8433'
 ARG root_requirement_file='requirements.txt'
-
-#RUN apk update && \
-#	apk add gcc musl-dev gnupg libpq
-#RUN apk add postgresql-dev
-#RUN apk add linux-headers
-#RUN apk add libffi-dev
-RUN apt-get update && \
-	apt install -y gcc gnupg libpq-dev wget make g++ gnupg bash procps
-
 # Copy shared requirements from top of mono-repo
 RUN echo "copying root req file ${root_requirement_file}"
 COPY $root_requirement_file .
