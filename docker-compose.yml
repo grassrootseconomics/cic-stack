@@ -406,6 +406,8 @@ services:
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
+      SERVER_HOST: ${SERVER_HOST:-localhost}
+      SERVER_PORT: ${SERVER_HOST:-80}
       DATABASE_SCHEMA_SQL_PATH: ""
       PGP_EXPORTS_DIR: /tmp/src/cic-meta/tests/
       PGP_PRIVATEKEY_FILE: privatekeys.asc
@@ -413,10 +415,8 @@ services:
       PGP_PUBLICKEY_TRUSTED_FILE: publickeys.asc
       PGP_PUBLICKEY_ACTIVE_FILE: publickeys.asc
       PGP_PUBLICKEY_ENCRYPT_FILE: publickeys.asc
-      SERVER_ADDRESS: 0.0.0.0
-      SERVER_PORT: 7777
     ports:
-      - ${HTTP_PORT_CIC_META:-80}
+      - ${HTTP_PORT_CIC_META:-63380}:${SERVER_PORT:-80}
     depends_on:
       - postgres
     deploy:
