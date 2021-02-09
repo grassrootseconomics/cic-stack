@@ -16,7 +16,7 @@ COPY cic-meta/scripts/ scripts/
 RUN alias tsc=node_modules/typescript/bin/tsc 
 
 COPY cic-meta/.config/ /usr/local/etc/cic-meta/
-COPY cic-meta/scripts/server/initdb/server.postgres.sql /usr/local/share/cic-meta/sql/server.sql
+# COPY cic-meta/scripts/server/initdb/server.postgres.sql /usr/local/share/cic-meta/sql/server.sql
 
 COPY cic-meta/docker/db.sh ./db.sh
 RUN chmod 755 ./db.sh
