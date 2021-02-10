@@ -37,7 +37,7 @@ services:
     ports:
       - ${DEV_ETH_PORT_HTTP:-8545}:8545
       - ${DEV_ETH_PORT_WS-8546}:8546
-      - 30303
+        #- 30303:30303
     volumes:
       #- ./keys:/root/keys # stores the signing key locally
       - bloxberg-data:/root/.local/share/io.parity.ethereum/
@@ -373,7 +373,7 @@ services:
       CIC_CHAIN_SPEC: $CIC_CHAIN_SPEC
       CELERY_BROKER_URL: $CELERY_BROKER_URL
       CELERY_RESULT_URL: $CELERY_RESULT_URL
-      SERVER_PORT: 80
+      SERVER_PORT: 8000
     depends_on:
       - eth
       - postgres
@@ -383,6 +383,8 @@ services:
         condition: on-failure
     volumes:
         - contract-config:/tmp/cic/config/:ro
+    ports: 
+      - ${HTTP_PORT_CIC_ETH:-63314}:8000
     command:
       - /bin/bash
       - -c
@@ -471,9 +473,9 @@ services:
       DATABASE_NAME: cic_ussd
       DATABASE_ENGINE: postgresql
       DATABASE_DRIVER: psycopg2
-      SERVER_PORT: 9000
+      SERVER_PORT: 8000
     ports:
-      - 9000:8082
+      - ${HTTP_PORT_CIC_USSD:-63315}:8000
     depends_on:
       - postgres
       - redis
