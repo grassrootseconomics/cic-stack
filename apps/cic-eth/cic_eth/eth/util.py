@@ -35,6 +35,10 @@ def unpack_signed_raw_tx(tx_raw_bytes, chain_id):
     if chain_id != 0:
         v = int.from_bytes(d[6], 'big')
         vb = v - (chain_id * 2) - 35
+    while len(d[7]) < 32:
+        d[7] = b'\x00' + d[7]
+    while len(d[8]) < 32:
+        d[8] = b'\x00' + d[8]
     s = b''.join([d[7], d[8], bytes([vb])])
     so = KeyAPI.Signature(signature_bytes=s)
 

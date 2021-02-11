@@ -354,6 +354,7 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
       TASKS_TRANSFER_CALLBACKS: $TASKS_TRANSFER_CALLBACKS
+      CIC_TX_RETRY_DELAY: 15
     depends_on:
       - eth
       - postgres
