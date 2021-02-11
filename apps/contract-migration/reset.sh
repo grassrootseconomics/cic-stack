@@ -19,7 +19,7 @@ echo \n
 # pushd /usr/src
 
 init_level_file=${CIC_DATA_DIR}/.init
-echo -n 0 > $init_level_file
+echo -n 1 > $init_level_file
 
 # Abort on any error (including if wait-for-it fails).
 set -e
@@ -68,6 +68,6 @@ cat $CIC_DATA_DIR/envlist | bash from_env.sh > $CIC_DATA_DIR/.env_all
 set +a
 set +e
 
-echo -n 1 > $init_level_file
+echo -n 2 > $init_level_file
 
 exec "$@"

@@ -117,8 +117,14 @@ services:
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis:6379}
       DEV_PIP_EXTRA_INDEX_URL: ${DEV_PIP_EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     command: ["./seed_cic_eth.sh"]
+    deploy:
+      restart_policy:
+        condition: on-failure
     depends_on:
       - eth
+      - postgres
+      - redis
+      - cic-eth-tasker
     volumes:
       - contract-config:/tmp/cic/config
 

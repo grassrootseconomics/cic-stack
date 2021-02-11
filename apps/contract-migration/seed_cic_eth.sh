@@ -1,6 +1,12 @@
 #!/bin/bash
 
 # defaults
+initlevel=`cat ${CIC_DATA_DIR}/.init`
+echo $inilevel
+if [ $initlevel -lt 2 ]; then
+	>&2 echo "initlevel too low $initlevel"
+	exit 1 
+fi
 source ${CIC_DATA_DIR}/.env
 source ${CIC_DATA_DIR}/.env_all
 DEV_PIP_EXTRA_INDEX_URL=${DEV_PIP_EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
@@ -136,7 +142,7 @@ token_description_two=0x54686973206973207468652053617261667520746f6b656e00000000
 >&2 echo "add keystore account $keystore_file to accounts index writers"
 >&2 eth-accounts-index-add -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -r $CIC_ACCOUNTS_INDEX_ADDRESS --writer $DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER -w $debug
 
-echo -n 2 > $init_level_file
+echo -n 0 > $init_level_file
 
 set +a
 set +e
