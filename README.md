@@ -2,6 +2,13 @@
 
 ## Getting started 
 
+## Make some keys
+
+```
+docker build -t bloxie . && docker run -v "$(pwd)/keys:/root/keys" --rm -it -t bloxie account new --chain /root/bloxberg.json --keys-path /root/keys
+```
+
+
 ### Prepare the repo
 
 This is stuff we need to put in  makefile but for now...

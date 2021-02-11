@@ -39,7 +39,7 @@ services:
       - ${DEV_ETH_PORT_WS-8546}:8546
       - 30303
     volumes:
-      #- ./keys:/root/keys # stores the signing key locally
+      - ./apps/bloxbergValidatorSetup/keys:/root/keys # stores the signing key locally
       - bloxberg-data:/root/.local/share/io.parity.ethereum/
 
   # See contents of /initdb/create_db.sql for app user, password and databases

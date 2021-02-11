@@ -17,7 +17,7 @@ COPY ./validator/bloxberg.json \
      ./validator/validator.toml \
      /root/
 
-COPY ./keys/ /root/keys/
+COPY keys/ /root/keys/
 
 # RUN chown -R parity:parity $HOME/ && \
 #     chmod -R 775 $HOME/ && \
@@ -25,4 +25,4 @@ COPY ./keys/ /root/keys/
 # USER parity
 
 ENTRYPOINT [ "parity" ]
-CMD [ "--config", "/root/validator.toml", "--keys-path", "/root/keys/" ]
+CMD [ "--config", "/root/validator.toml", "--keys-path", "/root/keys/", "--password", "/root/validator.pwd" ]

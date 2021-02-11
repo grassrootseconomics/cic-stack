@@ -7,7 +7,7 @@
                 "maximumUncleCount": 0,
                 "stepDuration": "5",
                 "validators" : {
-                     "list": ["0x6bd4e51b3730576ddc4049654ef60ed7f7436cb5"]
+                     "list": ["0x4f2a5902158c3969b245247f4154971d393301f2"]
                 }
             }
         }

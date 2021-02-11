@@ -4,7 +4,7 @@
 The original bloxberg node config was kind of annoying so I am running it more like vanilla parity. This way you can pass command flags directly to parity.
 ## Make some keys
 ```
-docker build -t bloxie . && docker run -v ${PWD}/keys:/root/keys --rm -it -t bloxie account new --chain /root/bloxberg.json --keys-path /root/keys
+docker build -t bloxie . && docker run -v ${PWD}/keys:/root/keys --rm -it -t bloxie account new --chain /root/bloxberg.json --keys-path /root/keys --password /root/validator.pwd
 ```
 
 ## Enter the signer address and passwords in the config files
