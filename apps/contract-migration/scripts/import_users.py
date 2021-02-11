@@ -11,10 +11,10 @@ from glob import glob
 import redis
 import confini
 import celery
+from chainlib.eth.address import to_checksum
 from cic_types.models.person import Person
 from cic_eth.api.api_task import Api
 from cic_registry.chain import ChainSpec
-from cic_tools.eth.address import to_checksum
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()

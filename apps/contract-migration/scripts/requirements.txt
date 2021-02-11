@@ -1,1 +1,2 @@
 cic-types==0.1.0
+chainlib==0.0.1a4
