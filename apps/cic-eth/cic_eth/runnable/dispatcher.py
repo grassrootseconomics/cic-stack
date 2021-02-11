@@ -68,7 +68,7 @@ app = celery.Celery(backend=config.get('CELERY_RESULT_URL'),  broker=config.get(
 queue = args.q
 
 dsn = dsn_from_config(config)
-SessionBase.connect(dsn)
+SessionBase.connect(dsn, debug=config.true('DATABASE_DEBUG'))
 
 
 re_websocket = re.compile('^wss?://')

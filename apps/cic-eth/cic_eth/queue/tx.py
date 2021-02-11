@@ -557,27 +557,26 @@ def get_upcoming_tx(status=StatusEnum.READYSEND, recipient=None, before=None, ch
     :rtype: dict, with transaction hash as key, signed raw transaction as value
     """
     session = SessionBase.create_session()
-    q = session.query(
+    q_outer = session.query(
             TxCache.sender,
             func.min(Otx.nonce).label('nonce'),
             )
-    q = q.join(TxCache)
-    q = q.join(Lock, isouter=True)
-    q = q.filter(or_(Lock.flags==None, Lock.flags.op('&')(LockEnum.SEND.value)==0))
+    q_outer = q_outer.join(TxCache)
+    q_outer = q_outer.join(Lock, isouter=True)
+    q_outer = q_outer.filter(or_(Lock.flags==None, Lock.flags.op('&')(LockEnum.SEND.value)==0))
 
     if status >= StatusEnum.SENT:
         raise ValueError('not a valid non-final tx value: {}'.format(s))
-    q = q.filter(Otx.status==status)
+    q_outer = q_outer.filter(Otx.status==status.value)
 
     if recipient != None:
-        q = q.filter(TxCache.recipient==recipient)
+        q_outer = q_outer.filter(TxCache.recipient==recipient)
 
-    q = q.group_by(TxCache.sender)
+    q_outer = q_outer.group_by(TxCache.sender)
 
     txs = {}
 
-    results = q.all()
-    for r in results:
+    for r in q_outer.all():
         q = session.query(Otx)
         q = q.join(TxCache)
         q = q.filter(TxCache.sender==r.sender)
@@ -587,7 +586,6 @@ def get_upcoming_tx(status=StatusEnum.READYSEND, recipient=None, before=None, ch
             q = q.filter(TxCache.date_checked<before)
        
         q = q.order_by(TxCache.date_created.desc())
-
         o = q.first()
 
         # TODO: audit; should this be possible if a row is found in the initial query? If not, at a minimum log error.
@@ -602,7 +600,6 @@ def get_upcoming_tx(status=StatusEnum.READYSEND, recipient=None, before=None, ch
         q = q.filter(TxCache.otx_id==o.id)
         o = q.first()
 
-        logg.debug('oooo {}'.format(o))
         o.date_checked = datetime.datetime.now()
         session.add(o)
         session.commit()
