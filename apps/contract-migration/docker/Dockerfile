@@ -53,7 +53,7 @@ RUN apt-get update && \
 
 RUN echo installing nodejs tooling
 
-COPY contract-migration/dev/nvm.sh /root/
+COPY contract-migration/nvm.sh /root/
 
 # Install nvm with node and npm
 # https://stackoverflow.com/questions/25899912/how-to-install-nvm-in-docker

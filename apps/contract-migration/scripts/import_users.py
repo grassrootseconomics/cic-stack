@@ -100,7 +100,6 @@ def register_eth(u):
    
 
 def register_ussd(u):
-    #logg.warning('missing ussd register')
     pass
 
 
@@ -129,13 +128,6 @@ if __name__ == '__main__':
 
             register_ussd(u)
 
-#            part = []
-#            for j in range(3):
-#                (head, tail) = os.path.split(filepath)
-#                part.append(tail)
-#                filepath = head
-#            part.reverse()
-#            filepath = os.path.join(user_out_dir, '/'.join(part))
             new_address_clean = strip_0x(new_address)
             filepath = os.path.join(
                     user_out_dir,
