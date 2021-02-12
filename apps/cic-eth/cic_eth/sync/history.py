@@ -21,7 +21,7 @@ class HistorySyncer(MinedSyncer):
     :param mx: Maximum number of blocks to return in one call
     :type mx: int
     """
-    def __init__(self, bc_cache, mx=20):
+    def __init__(self, bc_cache, mx=500):
         super(HistorySyncer, self).__init__(bc_cache)
         self.max = mx
 
