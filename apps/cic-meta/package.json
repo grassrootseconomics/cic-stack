@@ -1,18 +1,15 @@
 {
 	"name": "cic-client-meta",
-	"version": "0.0.6",
+	"version": "0.0.7-alpha.1",
 	"description": "Signed CRDT metadata graphs for the CIC network",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"scripts": {
 		"test": "mocha -r node_modules/node-localstorage/register -r ts-node/register tests/*.ts",
-		"build": "node_modules/typescript/bin/tsc -d --outDir dist",
+		"build": "node_modules/typescript/bin/tsc -d --outDir dist && npm run build-server",
 		"build-server": "tsc -d --outDir dist-server scripts/server/*.ts",
 		"pack": "node_modules/typescript/bin/tsc -d --outDir dist && webpack",
 		"clean": "rm -rf dist"
-	},
-	"bin": {
-		"cic-meta-server": "./dist-server/scripts/server/server.js"
 	},
 	"dependencies": {
 		"@ethereumjs/tx": "^3.0.0-beta.1",
