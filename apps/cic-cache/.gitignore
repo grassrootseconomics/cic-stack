@@ -1,0 +1,8 @@
+.envrc
+.envrc_dev
+.venv
+__pycache__
+*.pyc
+_build
+doc/**/*.png
+doc/**/html

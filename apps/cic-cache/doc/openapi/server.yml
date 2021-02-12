@@ -1,0 +1,102 @@
+openapi: "3.0.3"
+info:
+  title: Grassroots Economics CIC Cache
+  description: Cache of processed transaction data from Ethereum blockchain and worker queues
+  termsOfService: bzz://grassrootseconomics.eth/terms
+  contact:
+    name: Grassroots Economics
+    url: https://www.grassrootseconomics.org
+    email: will@grassecon.org
+  license:
+    name: GPLv3
+  version: 0.1.0
+
+paths:
+  /tx/{offset}/{limit}:
+    description: Bloom filter for batch of latest transactions
+    get:
+      tags:
+        - transactions
+      description:
+        Retrieve transactions
+      operationId: tx.get
+      responses:
+        200:
+          description: Transaction query successful.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlocksBloom"
+
+
+    parameters:
+    - name: offset
+      in: path
+      schema:
+        type: integer
+        format: int32
+    - name: limit
+      in: path
+      schema:
+        type: integer
+        format: int32
+
+
+  /tx/{address}/{offset}/{limit}:
+    description: Bloom filter for batch of latest transactions by account
+    get:
+      tags:
+        - transactions
+      description:
+        Retrieve transactions
+      operationId: tx.get
+      responses:
+        200:
+          description: Transaction query successful. 
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlocksBloom"
+
+
+    parameters:
+    - name: address
+      in: path
+      required: true
+      schema:
+        type: string
+    - name: offset
+      in: path
+      schema:
+        type: integer
+        format: int32
+    - name: limit
+      in: path
+      schema:
+        type: integer
+        format: int32
+
+components:
+  schemas:
+    BlocksBloom:
+      type: object
+      properties:
+        low:
+          type: int
+          format: int32
+          description: The lowest block number included in the filter
+        block_filter:
+          type: string
+          format: byte
+          description: Block number filter
+        blocktx_filter:
+          type: string
+          format: byte
+          description: Block and tx index filter
+        alg:
+          type: string
+          description: Hashing algorithm (currently only using sha256)
+        filter_rounds:
+          type: int
+          format: int32
+          description: Number of hash rounds used to create the filter
