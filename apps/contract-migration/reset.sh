@@ -29,7 +29,7 @@ if [[ -n "${ETH_PROVIDER}" ]]; then
 	echo "waiting for ${ETH_PROVIDER}..."
   	./wait-for-it.sh "${ETH_PROVIDER_HOST}:${ETH_PROVIDER_PORT}"
 
-	DEV_ETH_RESERVE_ADDRESS=`giftable-token-deploy -p $ETH_PROVIDER -y $keystore_file -i $CIC_CHAIN_SPEC --account $DEV_ETH_ACCOUNT_RESERVE_MINTER --minter $DEV_ETH_ACCOUNT_RESERVE_MINTER -v -w --name "Sarafu" --symbol "SRF" $DEV_ETH_RESERVE_AMOUNT`
+	DEV_ETH_RESERVE_ADDRESS=`giftable-token-deploy -p $ETH_PROVIDER -y $keystore_file -i $CIC_CHAIN_SPEC --account $DEV_ETH_ACCOUNT_RESERVE_MINTER --minter $DEV_ETH_ACCOUNT_RESERVE_MINTER -v -w --name "Sarafu" --symbol "SRF" --decimals 6 $DEV_ETH_RESERVE_AMOUNT`
 
 	#BANCOR_REGISTRY_ADDRESS=`cic-bancor-deploy --bancor-dir /usr/local/share/cic/bancor -z $DEV_ETH_RESERVE_ADDRESS -p $ETH_PROVIDER -o $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER`
 

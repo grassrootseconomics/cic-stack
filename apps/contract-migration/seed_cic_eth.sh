@@ -14,7 +14,6 @@ DEV_DATABASE_NAME_CIC_ETH=${DEV_DATABASE_NAME_CIC_ETH:-"cic-eth"}
 CIC_DATA_DIR=${CIC_DATA_DIR:-/tmp/cic} 
 
 # Debug flag
-#debug='-v'
 DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER=0xEb3907eCad74a0013c259D5874AE7f22DcBcC95C
 keystore_file=./keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c
 debug='-vv'
@@ -53,7 +52,7 @@ DEV_ETH_ACCOUNT_FAUCET_OWNER=`cic-eth-create $debug --redis-host-callback=$REDIS
 echo DEV_ETH_ACCOUNT_GAS_GIFTER=$DEV_ETH_ACCOUNT_FAUCET_OWNER >> $env_out_file
 cic-eth-tag FAUCET_GIFTER $DEV_ETH_ACCOUNT_FAUCET_OWNER
 
->&2 echo "create account for accounts index owner"
+>&2 echo "create account for accounts index writer"
 DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER=`cic-eth-create $debug --redis-host-callback=$REDIS_HOST --redis-port-callback=$REDIS_PORT --no-register`
 echo DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER=$DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER >> $env_out_file
 cic-eth-tag ACCOUNTS_INDEX_WRITER $DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER

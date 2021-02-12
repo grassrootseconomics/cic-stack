@@ -98,6 +98,19 @@ class AdminApi:
         session.close()
 
 
+    def have_account(self, address_hex, chain_str):
+        s_have = celery.signature(
+            'cic_eth.eth.account.have',
+            [
+                address_hex,
+                chain_str,
+                ],
+            queue=self.queue,
+            )
+        t = s_have.apply_async()
+        return t.get()
+
+
     def resend(self, tx_hash_hex, chain_str, in_place=True, unlock=False):
         logg.debug('resend {}'.format(tx_hash_hex))
         s_get_tx_cache = celery.signature(
