@@ -129,8 +129,9 @@ services:
       - contract-config:/tmp/cic/config
 
   cic-cache-tracker:
-      # image: registry.gitlab.com/grassrootseconomics/cic-cache:master-latest
-      build: apps/cic-cache
+      build: 
+        context: apps/
+        dockerfile: cic-cache/docker/Dockerfile
       environment:
         CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS # supplied at contract-config after contract provisioning
         ETH_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
@@ -161,7 +162,9 @@ services:
       # command: "/usr/local/bin/cic-cache-tracker -vv"
 
   cic-cache-server:
-      image: grassrootseconomics:cic-cache-uwsgi
+      build:
+        context: apps/
+        dockerfile: cic-cache/docker/Dockerfile
       environment:
         DATABASE_USER: $DATABASE_USER
         DATABASE_HOST: $DATABASE_HOST
