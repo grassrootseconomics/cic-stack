@@ -1,0 +1,9 @@
+psycopg2==2.8.6
+cic-types==0.1.0a2
+chainlib==0.0.1a7
+chainsyncer==0.0.1a5
+cic-eth==0.10.0a26
+confini==0.3.6b1
+celery==4.4.7
+redis==3.5.3
+hexathon==0.0.1a2
