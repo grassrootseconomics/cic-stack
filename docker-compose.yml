@@ -128,57 +128,56 @@ services:
     volumes:
       - contract-config:/tmp/cic/config
 
+  cic-cache-tracker:
+      # image: registry.gitlab.com/grassrootseconomics/cic-cache:master-latest
+      build: apps/cic-cache
+      environment:
+        CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS # supplied at contract-config after contract provisioning
+        ETH_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
+        BANCOR_DIR: ${BANCOR_DIR:-/usr/local/share/cic/bancor}
+        DATABASE_USER: ${DATABASE_USER:-grassroots}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala} # this is is set at initdb see: postgres/initdb/create_db.sql
+        DATABASE_HOST: ${DATABASE_HOST:-postgres}
+        DATABASE_PORT: ${DATABASE_PORT:-5432}
+        DATABASE_NAME: ${DATABASE_NAME_CIC_CACHE:-cic_cache}
+        DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+        DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+        ETH_ABI_DIR: ${ETH_ABI_DIR:-/usr/local/share/cic/solidity/abi}
+      deploy: 
+        restart_policy:
+          condition: on-failure
+      depends_on:
+        - postgres
+        - eth
+      command:
+        - /bin/sh
+        - -c
+        - |
+          if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi
+          /usr/local/bin/cic-cache-tracker -vv
+      volumes:
+        - contract-config:/tmp/cic/config/:ro
+      entrypoint: ["/usr/local/bin/cic-cache-tracker", "-vv"]
+      # command: "/usr/local/bin/cic-cache-tracker -vv"
 
-  # cic-cache-tracker:
-  #   # image: registry.gitlab.com/grassrootseconomics/cic-cache:master-latest
-  #   build: apps/cic-cache
-  #   environment:
-  #     CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS # supplied at contract-config after contract provisioning
-  #     ETH_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
-  #     BANCOR_DIR: ${BANCOR_DIR:-/usr/local/share/cic/bancor}
-  #     DATABASE_USER: ${DATABASE_USER:-grassroots}
-  #     DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala} # this is is set at initdb see: postgres/initdb/create_db.sql
-  #     DATABASE_HOST: ${DATABASE_HOST:-postgres}
-  #     DATABASE_PORT: ${DATABASE_PORT:-5432}
-  #     DATABASE_NAME: ${DATABASE_NAME_CIC_CACHE:-cic_cache}
-  #     DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
-  #     DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
-  #     ETH_ABI_DIR: ${ETH_ABI_DIR:-/usr/local/share/cic/solidity/abi}
-  #   deploy: 
-  #     restart_policy:
-  #       condition: on-failure
-  #   depends_on:
-  #     - postgres
-  #     - eth
-  #   command:
-  #      - /bin/sh
-  #      - -c
-  #      - |
-  #       if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi
-  #       /usr/local/bin/cic-cache-tracker -vv
-  #   volumes:
-  #     - contract-config:/tmp/cic/config/:ro
-    # entrypoint: ["/usr/local/bin/cic-cache-tracker", "-vv"]
-    # command: "/usr/local/bin/cic-cache-tracker -vv"
-
-#   cic-cache-server:
-#     image: grassrootseconomics:cic-cache-uwsgi
-#     environment:
-#       DATABASE_USER: $DATABASE_USER
-#       DATABASE_HOST: $DATABASE_HOST
-#       DATABASE_PORT: $DATABASE_PORT
-#       DATABASE_PASSWORD: $DATABASE_PASSWORD
-#       DATABASE_NAME: $DATABASE_NAME_CIC_CACHE
-#       PGPASSWORD: $DATABASE_PASSWORD
-#       SERVER_PORT: 80
-#     ports:
-#       - ${HTTP_PORT_CIC_CACHE}:80
-#     depends_on:
-#       - postgres
-#     deploy:
-#       restart_policy:
-#         condition: on-failure
-#     command: "/root/start_uwsgi.sh"
+  cic-cache-server:
+      image: grassrootseconomics:cic-cache-uwsgi
+      environment:
+        DATABASE_USER: $DATABASE_USER
+        DATABASE_HOST: $DATABASE_HOST
+        DATABASE_PORT: $DATABASE_PORT
+        DATABASE_PASSWORD: $DATABASE_PASSWORD
+        DATABASE_NAME: $DATABASE_NAME_CIC_CACHE
+        PGPASSWORD: $DATABASE_PASSWORD
+        SERVER_PORT: 80
+      ports:
+        - ${HTTP_PORT_CIC_CACHE}:80
+      depends_on:
+        - postgres
+      deploy:
+        restart_policy:
+          condition: on-failure
+      command: "/root/start_uwsgi.sh"
 
   cic-eth-tasker:
     # image: grassrootseconomics:cic-eth-service
@@ -224,7 +223,7 @@ services:
         ./start_tasker.sh -q cic-eth -vv
     # command: [/bin/sh, "./start_tasker.sh", -q, cic-eth, -vv ]
 
-  cic-eth-manager-head:
+  cic-eth-manager-head: 
     build:
         context: apps/
         dockerfile: cic-eth/docker/Dockerfile
