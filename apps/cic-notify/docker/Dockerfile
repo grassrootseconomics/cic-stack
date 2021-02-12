@@ -14,7 +14,9 @@ RUN pip install -r $root_requirement_file $pip_extra_index_url_flag
 COPY cic-notify/setup.cfg \
 	 cic-notify/setup.py \
      ./
+
 COPY cic-notify/cic_notify/ ./cic_notify/
+
 COPY cic-notify/requirements.txt \
 	 cic-notify/test_requirements.txt \
      ./
