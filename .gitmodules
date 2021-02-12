@@ -1,3 +1,0 @@
-[submodule "apps/cic-cache"]
-	path = apps/cic-cache
-	url = git@gitlab.com:grassrootseconomics/cic-cache.git
