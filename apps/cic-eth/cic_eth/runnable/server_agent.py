@@ -55,62 +55,25 @@ SessionBase.connect(dsn)
 celery_app = celery.Celery(backend=config.get('CELERY_RESULT_URL'),  broker=config.get('CELERY_BROKER_URL'))
 queue = args.q
 
-re_transfer_approval_request = r'^/transferrequest/?'
+re_something = r'^/something/?'
 
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 
 
-def process_transfer_approval_request(session, env):
-    r = re.match(re_transfer_approval_request, env.get('PATH_INFO'))
+def process_something(session, env):
+    r = re.match(re_something, env.get('PATH_INFO'))
     if not r:
         return None
 
-    if env.get('CONTENT_TYPE') != 'application/json':
-        raise AttributeError('content type')
+    #if env.get('CONTENT_TYPE') != 'application/json':
+    #    raise AttributeError('content type')
 
-    if env.get('REQUEST_METHOD') != 'POST':
-        raise AttributeError('method')
+    #if env.get('REQUEST_METHOD') != 'POST':
+    #    raise AttributeError('method')
 
-    post_data = json.load(env.get('wsgi.input'))
-    token_address = web3.Web3.toChecksumAddress(post_data['token_address'])
-    holder_address = web3.Web3.toChecksumAddress(post_data['holder_address'])
-    beneficiary_address = web3.Web3.toChecksumAddress(post_data['beneficiary_address'])
-    value = int(post_data['value'])
-
-    logg.debug('transfer approval request token {} to {} from {} value {}'.format(
-        token_address,
-        beneficiary_address,
-        holder_address,
-        value,
-        )
-        )
-
-    s = celery.signature(
-        'cic_eth.eth.request.transfer_approval_request',
-        [
-            [
-                {
-                    'address': token_address,
-                    },
-                ],
-            holder_address,
-            beneficiary_address,
-            value,
-            config.get('CIC_CHAIN_SPEC'),
-            ],
-        queue=queue,
-     )
-    t = s.apply_async()
-    r = t.get()
-    tx_raw_bytes = bytes.fromhex(r[0][2:])
-    tx = unpack_signed_raw_tx(tx_raw_bytes, chain_spec.chain_id())
-    for r in t.collect():
-        logg.debug('result {}'.format(r))
-
-    if not t.successful():
-        raise RuntimeError(tx['hash'])
-
-    return ('text/plain', tx['hash'].encode('utf-8'),)
+    #post_data = json.load(env.get('wsgi.input'))
+    
+    #return ('text/plain', 'foo'.encode('utf-8'),)
 
 
 # uwsgi application
@@ -125,7 +88,7 @@ def application(env, start_response):
 
     session = SessionBase.create_session()
     for handler in [
-            process_transfer_approval_request,
+            process_something,
             ]:
         try:
             r = handler(session, env)

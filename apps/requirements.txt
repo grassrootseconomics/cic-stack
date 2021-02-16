@@ -9,7 +9,7 @@ ecuth==0.4.5a1
 eth-accounts-index==0.0.10a7
 eth-address-index==0.1.0a7
 eth-tester==0.5.0b3
-erc20-approval-escrow==0.3.0a5
+erc20-transfer-authorization==0.3.0a7
 erc20-single-shot-faucet==0.2.0a6
 faker==4.17.1
 http-hoba-auth==0.2.0

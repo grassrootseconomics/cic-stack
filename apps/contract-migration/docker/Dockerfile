@@ -22,7 +22,7 @@ RUN echo Install confini schema files && \
 ENV CONFINI_DIR /usr/local/etc/cic
 
 
-ARG cic_contracts_commit=698ef3a30fde8d7f2c498f1208fb0ff45d665501
+ARG cic_contracts_commit=9933979e14484e826523df23a0b11480799f6380
 ARG cic_contracts_url=https://gitlab.com/grassrootseconomics/cic-contracts.git/
 RUN echo Install ABI collection for solidity interfaces used across all components && \
 	git clone --depth 1 $cic_contracts_url cic-contracts && \
@@ -106,7 +106,7 @@ RUN cd cic-bancor/python && \
 	pip install --extra-index-url $pip_extra_index_url .
 
 RUN echo installing common python tooling
-ARG cic_python_commit=beecee783ceac2ea0fa711f888ce4c82f1a81490
+ARG cic_python_commit=4573afb7ad4d635c2f3330b8b9b25806523b7e14
 ARG cic_python_url=https://gitlab.com/grassrootseconomics/cic-python.git/
 RUN echo Install sum of python dependencies across all components && \
 	git clone --depth 1 $cic_python_url cic-python && \
@@ -126,8 +126,8 @@ RUN pip install --extra-index-url $pip_extra_index_url giftable-erc20-token==$gi
 ARG eth_accounts_index_version=0.0.10a6
 RUN pip install --extra-index-url $pip_extra_index_url eth-accounts-index==$eth_accounts_index_version
 
-ARG erc20_approval_escrow_version=0.3.0a4
-RUN pip install --extra-index-url $pip_extra_index_url erc20-approval-escrow==$erc20_approval_escrow_version 
+ARG erc20_transfer_authorization_version=0.3.0a8
+RUN pip install --extra-index-url $pip_extra_index_url erc20-transfer-authorization==$erc20_transfer_authorization_version 
 
 ARG erc20_single_shot_faucet_version=0.2.0a5
 RUN pip install --extra-index-url $pip_extra_index_url erc20-single-shot-faucet==$erc20_single_shot_faucet_version 
