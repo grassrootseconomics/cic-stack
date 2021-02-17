@@ -91,6 +91,8 @@ run = True
 
 class DispatchSyncer:
 
+    yield_delay = 0.005
+
     def __init__(self, chain_spec):
         self.chain_spec = chain_spec
         self.chain_id = chain_spec.chain_id()
@@ -138,7 +140,10 @@ class DispatchSyncer:
                 txs[k] = utxs[k]
             self.process(w3, txs)
 
-            time.sleep(interval)
+            if len(utxs) > 0:
+                time.sleep(self.yield_delay)
+            else:
+                time.sleep(interval)
 
 
 def main(): 

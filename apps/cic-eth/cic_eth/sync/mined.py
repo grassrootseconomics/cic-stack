@@ -23,6 +23,8 @@ class MinedSyncer(Syncer):
     :type bc_cache: Object implementing methods from cic_eth.sync.SyncerBackend 
     """
 
+    yield_delay = 0.005
+
     def __init__(self, bc_cache):
         super(MinedSyncer, self).__init__(bc_cache)
         self.block_offset = 0
@@ -99,5 +101,8 @@ class MinedSyncer(Syncer):
                 block_number = self.process(c.w3, block.hex())
                 logg.info('processed block {} {}'.format(block_number, block.hex()))
             self.bc_cache.disconnect()
-            time.sleep(interval)
+            if len(e) > 0:
+                time.sleep(self.yield_delay)
+            else:
+                time.sleep(interval)
         logg.info("Syncer no longer set to run, gracefully exiting")

@@ -39,6 +39,7 @@ from chainlib.eth.error import EthException
 from crypto_dev_signer.eth.signer import ReferenceSigner as EIP155Signer
 from crypto_dev_signer.keystore import DictKeystore
 from cic_eth.api.api_admin import AdminApi
+from cic_types.models.person import Person
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -160,6 +161,7 @@ def main():
     o['params'].append(txf.normalize(tx))
     o['params'].append('latest')
     r = conn.do(o)
+    print('r {}'.format(r))
     token_index_address = to_checksum(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     logg.info('found token index address {}'.format(token_index_address))
 
@@ -193,21 +195,21 @@ def main():
     sarafu_token_address = to_checksum(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     logg.info('found token address {}'.format(sarafu_token_address))
 
-    addresses = {}
-    f = open('{}/addresses.csv'.format(user_dir, 'r'))
-    while True:
-        l = f.readline()
-        if l == None:
-            break
-        r = l.split(',')
-        try:
-            k = r[0]
-            v = r[1].rstrip()
-            addresses[k] = v
-            sys.stdout.write('loading address mapping {} -> {}'.format(k, v).ljust(200) + "\r")
-        except IndexError as e:
-            break
-    f.close()
+#    addresses = {}
+#    f = open('{}/addresses.csv'.format(user_dir, 'r'))
+#    while True:
+#        l = f.readline()
+#        if l == None:
+#            break
+#        r = l.split(',')
+#        try:
+#            k = r[0]
+#            v = r[1].rstrip()
+#            addresses[k] = v
+#            sys.stdout.write('loading address mapping {} -> {}'.format(k, v).ljust(200) + "\r")
+#        except IndexError as e:
+#            break
+#    f.close()
 
     balances = {}
     f = open('{}/balances.csv'.format(user_dir, 'r'))
@@ -232,8 +234,29 @@ def main():
     api = AdminApi(MockClient())
 
     verifier = Verifier(conn, api, gas_oracle, chain_spec, account_index_address, sarafu_token_address)
-    for k in addresses.keys():
-        verifier.verify(k, balances[addresses[k]])
+
+    user_new_dir = os.path.join(user_dir, 'new')
+    for x in os.walk(user_new_dir):
+        for y in x[2]:
+            if y[len(y)-5:] != '.json':
+                continue
+            filepath = os.path.join(x[0], y)
+            f = open(filepath, 'r')
+            try:
+                o = json.load(f)
+            except json.decoder.JSONDecodeError as e:
+                f.close()
+                logg.error('load error for {}: {}'.format(y, e))
+                continue
+            f.close()
+            u = Person(o)
+
+            new_address = u.identities['evm'][chain_str][0]
+            old_address = u.identities['evm']['xdai:1'][0]
+            balance = balances[old_address]
+            logg.debug('checking {} -> {} = {}'.format(old_address, new_address, balance))
+
+            verifier.verify(new_address, balance)
 
 
 if __name__ == '__main__':

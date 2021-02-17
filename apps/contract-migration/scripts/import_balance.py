@@ -17,7 +17,6 @@ from hexathon import (
         strip_0x,
         add_0x,
         )
-from cic_registry.chain import ChainSpec
 from chainsyncer.backend import MemBackend
 from chainsyncer.driver import HeadSyncer
 from chainlib.eth.connection import HTTPConnection
@@ -34,6 +33,7 @@ from chainlib.eth.nonce import DefaultNonceOracle
 from chainlib.eth.tx import TxFactory
 from chainlib.eth.rpc import jsonrpc_template
 from chainlib.eth.error import EthException
+from chainlib.chain import ChainSpec
 from crypto_dev_signer.eth.signer import ReferenceSigner as EIP155Signer
 from crypto_dev_signer.keystore import DictKeystore
 from cic_types.models.person import Person
@@ -49,7 +49,6 @@ argparser.add_argument('-p', '--provider', dest='p', type=str, help='chain rpc p
 argparser.add_argument('-y', '--key-file', dest='y', type=str, help='Ethereum keystore file to use for signing')
 argparser.add_argument('-c', type=str, default=config_dir, help='config root to use')
 argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
-argparser.add_argument('-a', '--index-address', type=str, dest='a', help='account index contract address')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
 argparser.add_argument('--head', action='store_true', help='start at current block height (overrides --offset)')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
@@ -97,9 +96,8 @@ if args.head:
     block_offset = -1
 else:
     block_offset = args.offset
-account_index_address = args.a
 
-chain_spec = ChainSpec.from_chain_str(chain_str)
+chain_spec = ChainSpec.from_chain_str('evm:' + chain_str)
 
 user_dir = args.user_dir # user_out_dir from import_users.py
 
@@ -108,45 +106,51 @@ class Handler:
 
     account_index_add_signature = keccak256_string_to_hex('add(address)')[:8]
 
-    def __init__(self, conn, user_dir, addresses, balances, token_address):
-        self.conn = conn
+    def __init__(self, conn, chain_spec, user_dir, balances, token_address, signer, gas_oracle, nonce_oracle):
         self.token_address = token_address
         self.user_dir = user_dir
-        self.addresses = addresses
         self.balances = balances
+        self.chain_spec = chain_spec
+        self.tx_factory = ERC20TxFactory(signer, gas_oracle, nonce_oracle, chain_spec.network_id())
 
 
     def name(self):
         return 'balance_handler'
 
 
-    def handle(self, getter, block, tx):
-        try:
-            if tx.payload[:8] == self.account_index_add_signature:
-                recipient = eth_abi.decode_single('address', bytes.fromhex(tx.payload[-64:]))
-                original_address = to_checksum(self.addresses[to_checksum(recipient)])
-                user_file = '{}/{}/{}.json'.format(
-                        recipient[2:4].upper(),
-                        recipient[4:6].upper(),
-                        recipient[2:].upper(),
-                        )
-                filepath = os.path.join(self.user_dir, user_file)
-                f = open(filepath, 'r')
-                o = json.load(f)
-                f.close()
-                u = Person(o)
-                balance = self.balances[original_address]
-                logg.info('registered {} originally {} ({}) tx hash {} balance {}'.format(recipient, original_address, u, tx.hash, balance))
+    def filter(self, conn, block, tx):
+        if tx.payload == None or len(tx.payload) == 0:
+            logg.debug('no payload, skipping {}'.format(tx))
+            return
 
-                (tx_hash_hex, o) = getter.tx_factory.erc20_transfer(self.token_address, signer_address, recipient, balance)
-                logg.info('submitting erc20 transfer tx {} for recipient {}'.format(tx_hash_hex, recipient))
-                r = self.conn.do(o)
-        except TypeError:
-            pass
-        except IndexError:
-            pass
-        except EthException as e:
-            logg.error('send error {}'.format(e).ljust(200))
+        if tx.payload[:8] == self.account_index_add_signature:
+            recipient = eth_abi.decode_single('address', bytes.fromhex(tx.payload[-64:]))
+            #original_address = to_checksum(self.addresses[to_checksum(recipient)])
+            user_file = 'new/{}/{}/{}.json'.format(
+                    recipient[2:4].upper(),
+                    recipient[4:6].upper(),
+                    recipient[2:].upper(),
+                    )
+            filepath = os.path.join(self.user_dir, user_file)
+            f = open(filepath, 'r')
+            o = json.load(f)
+            f.close()
+            u = Person(o)
+            original_address = u.identities['evm']['xdai:1'][0]
+            balance = self.balances[original_address]
+            logg.info('registered {} originally {} ({}) tx hash {} balance {}'.format(recipient, original_address, u, tx.hash, balance))
+
+            (tx_hash_hex, o) = self.tx_factory.erc20_transfer(self.token_address, signer_address, recipient, balance)
+            logg.info('submitting erc20 transfer tx {} for recipient {}'.format(tx_hash_hex, recipient))
+            r = conn.do(o)
+#        except TypeError as e:
+#            logg.warning('typerror {}'.format(e))
+#            pass
+#        except IndexError as e:
+#            logg.warning('indexerror {}'.format(e))
+#            pass
+#        except EthException as e:
+#            logg.error('send error {}'.format(e).ljust(200))
         #except KeyError as e:
         #    logg.error('key error {}'.format(e).ljust(200))
 
@@ -173,7 +177,7 @@ class BlockGetter:
 
 
 def progress_callback(s, block_number, tx_index):
-    sys.stdout.write(s.ljust(200) + "\r")
+    sys.stdout.write(s.ljust(200) + "\n")
 
 
 
@@ -185,7 +189,7 @@ def main():
     nonce_oracle = DefaultNonceOracle(signer_address, conn)
 
     # Get Token registry address
-    txf = TxFactory(signer=signer, gas_oracle=gas_oracle, nonce_oracle=None, chain_id=chain_spec.chain_id())
+    txf = TxFactory(signer=signer, gas_oracle=gas_oracle, nonce_oracle=None, chain_id=chain_spec.network_id())
     tx = txf.template(signer_address, config.get('CIC_REGISTRY_ADDRESS'))
 
     registry_addressof_method = keccak256_string_to_hex('addressOf(bytes32)')[:8]
@@ -220,29 +224,28 @@ def main():
     logg.info('found token address {}'.format(sarafu_token_address))
 
 
-    getter = BlockGetter(conn, gas_oracle, nonce_oracle, chain_spec.chain_id())
     syncer_backend = MemBackend(chain_str, 0)
 
     if block_offset == -1:
         o = block_latest()
         r = conn.do(o)
         block_offset = int(strip_0x(r), 16) + 1
-
-    addresses = {}
-    f = open('{}/addresses.csv'.format(user_dir, 'r'))
-    while True:
-        l = f.readline()
-        if l == None:
-            break
-        r = l.split(',')
-        try:
-            k = r[0]
-            v = r[1].rstrip()
-            addresses[k] = v
-            sys.stdout.write('loading address mapping {} -> {}'.format(k, v).ljust(200) + "\r")
-        except IndexError as e:
-            break
-    f.close()
+#
+#    addresses = {}
+#    f = open('{}/addresses.csv'.format(user_dir, 'r'))
+#    while True:
+#        l = f.readline()
+#        if l == None:
+#            break
+#        r = l.split(',')
+#        try:
+#            k = r[0]
+#            v = r[1].rstrip()
+#            addresses[k] = v
+#            sys.stdout.write('loading address mapping {} -> {}'.format(k, v).ljust(200) + "\r")
+#        except IndexError as e:
+#            break
+#    f.close()
 
     balances = {}
     f = open('{}/balances.csv'.format(user_dir, 'r'))
@@ -266,9 +269,9 @@ def main():
 
     syncer_backend.set(block_offset, 0)
     syncer = HeadSyncer(syncer_backend, progress_callback=progress_callback)
-    handler = Handler(conn, user_dir, addresses, balances, sarafu_token_address)
+    handler = Handler(conn, chain_spec, user_dir, balances, sarafu_token_address, signer, gas_oracle, nonce_oracle)
     syncer.add_filter(handler)
-    syncer.loop(1, getter)
+    syncer.loop(1, conn)
     
 
 if __name__ == '__main__':

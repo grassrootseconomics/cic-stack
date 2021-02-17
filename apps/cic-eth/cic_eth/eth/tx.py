@@ -405,7 +405,7 @@ def refill_gas(self, recipient_address, chain_str):
     q = session.query(Otx.tx_hash)
     q = q.join(TxCache)
     q = q.filter(Otx.status.op('&')(StatusBits.FINAL.value)==0)
-    q = q.filter(TxCache.from_value!='0x00')
+    q = q.filter(TxCache.from_value!=0)
     q = q.filter(TxCache.recipient==recipient_address)
     c = q.count()
     session.close()

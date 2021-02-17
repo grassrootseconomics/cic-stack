@@ -25,7 +25,7 @@ class TxFilter(SyncFilter):
             logg.debug('tx {} not found locally, skipping'.format(tx_hash_hex))
             return None
         logg.info('otx found {}'.format(otx.tx_hash))
-        s = celery.siignature(
+        s = celery.signature(
                 'cic_eth.queue.tx.set_final_status',
                 [
                     tx_hash_hex,

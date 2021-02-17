@@ -6,7 +6,7 @@ import logging
 import argparse
 import uuid
 import datetime
-import shutil
+import time
 from glob import glob
 
 # third-party imports
@@ -35,6 +35,8 @@ argparser.add_argument('--redis-port', dest='redis_port', type=int, help='redis 
 argparser.add_argument('--redis-db', dest='redis_db', type=int, help='redis db to use for task submission and callback')
 argparser.add_argument('--redis-host-callback', dest='redis_host_callback', default='localhost', type=str, help='redis host to use for callback')
 argparser.add_argument('--redis-port-callback', dest='redis_port_callback', default=6379, type=int, help='redis port to use for callback')
+argparser.add_argument('--batch-size', dest='batch_size', default=50, type=int, help='burst size of sending transactions to node')
+argparser.add_argument('--batch-delay', dest='batch_delay', default=2, type=int, help='seconds delay between batches')
 argparser.add_argument('--timeout', default=20.0, type=float, help='Callback timeout')
 argparser.add_argument('-q', type=str, default='cic-eth', help='Task queue')
 argparser.add_argument('-v', action='store_true', help='Be verbose')
@@ -67,18 +69,16 @@ r = redis.Redis(redis_host, redis_port, redis_db)
 ps = r.pubsub()
 
 user_dir = args.user_dir
-user_out_dir = '{}_cic_eth'.format(user_dir)
-os.makedirs(user_out_dir)
-shutil.copy(
-        os.path.join(user_dir, 'balances.csv'),
-        os.path.join(user_out_dir, 'balances.csv'),
-        )
+os.makedirs(os.path.join(user_dir, 'new'))
 
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 chain_str = str(chain_spec)
 
+batch_size = args.batch_size
+batch_delay = args.batch_delay
 
-def register_eth(u):
+
+def register_eth(i, u):
     redis_channel = str(uuid.uuid4())
     ps.subscribe(redis_channel)
     ps.get_message()
@@ -94,7 +94,7 @@ def register_eth(u):
     ps.get_message()
     m = ps.get_message(timeout=args.timeout)
     address = json.loads(m['data'])
-    logg.debug('register eth {} {}'.format(u, address))
+    logg.debug('[{}] register eth {} {}'.format(i, u, address))
 
     return address
    
@@ -105,10 +105,13 @@ def register_ussd(u):
 
 if __name__ == '__main__':
 
-    fi = open(os.path.join(user_out_dir, 'addresses.csv'), 'a')
+    #fi = open(os.path.join(user_out_dir, 'addresses.csv'), 'a')
 
     i = 0
-    for x in os.walk(user_dir):
+    j = 0
+    user_new_dir = os.path.join(user_dir, 'new')
+    user_old_dir = os.path.join(user_dir, 'old')
+    for x in os.walk(user_old_dir):
         for y in x[2]:
             if y[len(y)-5:] != '.json':
                 continue
@@ -123,19 +126,18 @@ if __name__ == '__main__':
             f.close()
             u = Person(o)
 
-            new_address = register_eth(u)
+            new_address = register_eth(i, u)
             u.identities['evm'][chain_str] = [new_address]
 
             register_ussd(u)
 
             new_address_clean = strip_0x(new_address)
             filepath = os.path.join(
-                    user_out_dir,
+                    user_new_dir,
                     new_address_clean[:2].upper(),
                     new_address_clean[2:4].upper(),
                     new_address_clean.upper() + '.json',
                     )
-            logg.debug('outpath {}'.format(filepath))
             os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
             o = u.serialize()
@@ -143,10 +145,15 @@ if __name__ == '__main__':
             f.write(json.dumps(o))
             f.close()
 
-            old_address = to_checksum(add_0x(y[:len(y)-5]))
-            fi.write('{},{}\n'.format(new_address, old_address))
+            #old_address = to_checksum(add_0x(y[:len(y)-5]))
+            #fi.write('{},{}\n'.format(new_address, old_address))
 
             i += 1
             sys.stdout.write('imported {} {}'.format(i, u).ljust(200) + "\r")
+        
+            j += 1
+            if j == batch_size:
+                time.sleep(batch_delay)
+                j = 0
 
-    fi.close()
+    #fi.close()

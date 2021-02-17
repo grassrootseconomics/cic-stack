@@ -178,9 +178,9 @@ def main():
 
     tx_filter = TxFilter(queue)
 
-    registration_filter = RegistrationFilter()
+    registration_filter = RegistrationFilter(queue)
 
-    gas_filter = GasFilter(c.gas_provider())
+    gas_filter = GasFilter(queue, c.gas_provider())
 
     i = 0
     for syncer in syncers:
