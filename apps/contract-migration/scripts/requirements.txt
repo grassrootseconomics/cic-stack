@@ -1,5 +1,5 @@
 psycopg2==2.8.6
-cic-types==0.1.0a2
+cic-types==0.1.0a4
 chainlib==0.0.1a7
 chainsyncer==0.0.1a5
 cic-eth==0.10.0a26
