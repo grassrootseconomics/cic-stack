@@ -1,9 +1,9 @@
 psycopg2==2.8.6
 cic-types==0.1.0a4
-chainlib==0.0.1a7
-chainsyncer==0.0.1a5
-cic-eth==0.10.0a26
+chainlib~=0.0.1a13
+chainsyncer==0.0.1a7
+cic-eth==0.10.0a27
 confini==0.3.6b2
 celery==4.4.7
 redis==3.5.3
-hexathon==0.0.1a2
+hexathon==0.0.1a3
