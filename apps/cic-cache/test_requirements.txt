@@ -1,5 +1,0 @@
-pytest==6.0.1
-pytest-cov==2.10.1
-pytest-mock==3.3.1
-pysqlite3==0.4.3
-sqlparse==0.4.1

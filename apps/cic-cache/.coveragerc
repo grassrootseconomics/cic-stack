@@ -1,5 +1,0 @@
-[report]
-omit = 
-	.venv/*
-	scripts/*
-	cic_cache/db/postgres/*
