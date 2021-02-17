@@ -2,7 +2,7 @@ web3==5.12.2
 celery==4.4.7
 crypto-dev-signer~=0.4.13rc2
 confini~=0.3.6b1
-cic-registry~=0.5.3a10
+cic-registry~=0.5.3a18
 cic-bancor~=0.0.6
 redis==3.5.3
 alembic==1.4.2
@@ -16,3 +16,7 @@ uWSGI==2.0.19.1
 semver==2.13.0
 eth-gas-proxy==0.0.1a4
 websocket-client==0.57.0
+moolb~=0.1.1b2
+eth-address-index~=0.1.0a8
+chainlib~=0.0.1a12
+hexathon~=0.0.1a3

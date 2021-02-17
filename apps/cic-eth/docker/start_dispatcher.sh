@@ -2,4 +2,4 @@
 
 . ./db.sh
 
-/usr/local/bin/cic-eth-dispatcher $@
+/usr/local/bin/cic-eth-dispatcherd $@

@@ -30,7 +30,7 @@ class Api:
     :param queue: Name of worker queue to submit tasks to
     :type queue: str
     """
-    def __init__(self, chain_str, queue='cic-eth', callback_param=None, callback_task='cic_eth.callbacks.noop', callback_queue=None):
+    def __init__(self, chain_str, queue='cic-eth', callback_param=None, callback_task='cic_eth.callbacks.noop.noop', callback_queue=None):
         self.chain_str = chain_str
         self.chain_spec = ChainSpec.from_chain_str(chain_str)
         self.callback_param = callback_param
@@ -301,13 +301,15 @@ class Api:
         return t
 
 
-    def balance(self, address, token_symbol):
+    def balance(self, address, token_symbol, include_pending=True):
         """Calls the provided callback with the current token balance of the given address.
 
         :param address: Ethereum address of holder
         :type address: str, 0x-hex
         :param token_symbol: ERC20 token symbol of token to send
         :type token_symbol: str
+        :param include_pending: If set, will include transactions that have not yet been fully processed
+        :type include_pending: bool
         :returns: uuid of root task
         :rtype: celery.Task
         """
@@ -330,14 +332,45 @@ class Api:
                     ],
                 queue=self.queue,
                 )
-        
-        if self.callback_param != None:
-            s_balance.link(self.callback_success)
-            s_tokens.link(s_balance).on_error(self.callback_error)
-        else:
-            s_tokens.link(s_balance)
+        s_result = celery.signature(
+                'cic_eth.queue.balance.assemble_balances',
+                [],
+                queue=self.queue,
+                )
 
-        t = s_tokens.apply_async(queue=self.queue)
+        last_in_chain = s_balance
+        if include_pending:
+            s_balance_incoming = celery.signature(
+                    'cic_eth.queue.balance.balance_incoming',
+                    [
+                        address,
+                        self.chain_str,
+                        ],
+                    queue=self.queue,
+                    )
+            s_balance_outgoing = celery.signature(
+                    'cic_eth.queue.balance.balance_outgoing',
+                    [
+                        address,
+                        self.chain_str,
+                        ],
+                    queue=self.queue,
+                    )
+            s_balance.link(s_balance_incoming)
+            s_balance_incoming.link(s_balance_outgoing)
+            last_in_chain = s_balance_outgoing
+
+        one = celery.chain(s_tokens, s_balance)
+        two = celery.chain(s_tokens, s_balance_incoming)
+        three = celery.chain(s_tokens, s_balance_outgoing)
+
+        t = None
+        if self.callback_param != None:
+            s_result.link(self.callback_success).on_error(self.callback_error)
+            t = celery.chord([one, two, three])(s_result)
+        else:
+            t = celery.chord([one, two, three])(s_result)
+    
         return t
 
 
@@ -414,6 +447,73 @@ class Api:
             s_refill.link(self.callback_success)
 
         t = s_check.apply_async(queue=self.queue)
+        return t
+
+
+    def list(self, address, limit=10, external_task=None, external_queue=None):
+        """Retrieve an aggregate list of latest transactions of internal and (optionally) external origin in reverse chronological order.
+
+        The array of transactions returned have the same dict layout as those passed by the callback filter in cic_eth/runnable/manager
+
+        If the external task is defined, this task will be used to query external transactions. If this is not defined, no external transactions will be included. The task must accept (offset, limit, address) as input parameters, and return a bloom filter that will be used to retrieve transaction data for the matching transactions. See cic_eth.ext.tx.list_tx_by_bloom for details on the bloom filter dat format.
+
+        :param address: Ethereum address to list transactions for
+        :type address: str, 0x-hex
+        :param limit: Amount of results to return
+        :type limit: number
+        :param external_task: Celery task providing external transactions
+        :type external_task: str
+        :param external_queue: Celery task queue providing exernal transactions task
+        :type external_queue: str
+        :returns: List of transactions
+        :rtype: list of dict
+        """
+        offset = 0
+        s_local = celery.signature(
+            'cic_eth.queue.tx.get_account_tx',
+            [
+                address,
+                ],
+            queue=self.queue,
+            )
+
+        s_brief = celery.signature(
+            'cic_eth.ext.tx.tx_collate',
+            [
+                self.chain_str,
+                offset,
+                limit
+                ],
+            queue=self.queue,
+            )
+        if self.callback_param != None:
+            s_assemble.link(self.callback_success).on_error(self.callback_error)
+
+        t = None
+        if external_task != None:
+            s_external_get = celery.signature(
+                external_task,
+                [
+                    address,
+                    offset,
+                    limit,
+                    ],
+                queue=external_queue,
+                )
+
+            s_external_process = celery.signature(
+                'cic_eth.ext.tx.list_tx_by_bloom',
+                [
+                    address,
+                    self.chain_str,
+                    ],
+                queue=self.queue,
+                    )
+            c = celery.chain(s_external_get, s_external_process)
+            t = celery.chord([s_local, c])(s_brief)
+        else:
+            t = s_local.apply_sync()
+
         return t
 
 

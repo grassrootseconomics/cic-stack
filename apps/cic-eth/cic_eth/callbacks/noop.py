@@ -18,4 +18,4 @@ def noop(self, result, param, status_code):
     :rtype: bool
     """
     logg.info('noop callback {} {} {}'.format(result, param, status_code))
-    return True
+    return result

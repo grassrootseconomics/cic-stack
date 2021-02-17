@@ -10,7 +10,10 @@ from cic_registry import zero_address
 # local imports
 from cic_eth.db.models.otx import Otx
 from cic_eth.db.models.tx import TxCache
-from cic_eth.db.enum import StatusEnum
+from cic_eth.db.enum import (
+        StatusEnum,
+        StatusBits,
+        )
 
 logg = logging.getLogger()
 
@@ -169,6 +172,9 @@ def test_status_fubar(
             )
     t = s.apply_async()
     t.get()
+    for n in t.collect():
+        pass
     assert t.successful()
-    init_database.refresh(otx)
-    assert otx.status == StatusEnum.FUBAR
+
+    otx = Otx.load(tx_hash)
+    assert otx.status & StatusBits.UNKNOWN_ERROR

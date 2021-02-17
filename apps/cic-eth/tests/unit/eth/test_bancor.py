@@ -126,4 +126,5 @@ def test_queue_cache_convert(
     assert txc.recipient == init_w3.eth.accounts[0]
     assert txc.source_token_address == bancor_tokens[0]
     assert txc.destination_token_address == bancor_tokens[1]
-    assert txc.values() == (amount, amount)
+    assert txc.from_value == amount
+    assert txc.to_value == amount

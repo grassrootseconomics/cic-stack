@@ -85,4 +85,5 @@ def test_queue_cache_transfer(
     assert txc.recipient == init_w3.eth.accounts[1]
     assert txc.source_token_address == bancor_tokens[0]
     assert txc.destination_token_address == bancor_tokens[0]
-    assert txc.values() == (value, value)
+    assert txc.from_value == value
+    assert txc.to_value == value

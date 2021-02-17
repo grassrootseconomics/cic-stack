@@ -2,4 +2,4 @@
 
 . ./db.sh
 
-/usr/local/bin/cic-eth-retrier $@
+/usr/local/bin/cic-eth-retrierd $@

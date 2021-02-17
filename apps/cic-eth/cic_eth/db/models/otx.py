@@ -8,7 +8,12 @@ from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 
 # local imports
 from .base import SessionBase
-from cic_eth.db.enum import StatusEnum
+from cic_eth.db.enum import (
+        StatusEnum,
+        StatusBits,
+        status_str,
+        is_error_status,
+        )
 from cic_eth.db.error import TxStateChangeError
 #from cic_eth.eth.util import address_hex_from_signed_tx
 
@@ -54,21 +59,24 @@ class Otx(SessionBase):
     block = Column(Integer)
 
 
-    def __set_status(self, status, session=None):
-        localsession = session
-        if localsession == None:
-            localsession = SessionBase.create_session()
+    def __set_status(self, status, session):
+        self.status |= status
+        session.add(self)
+        session.flush()
 
-        self.status = status
-        localsession.add(self)
-        localsession.flush()
 
-        if self.tracing:
-            self.__state_log(session=localsession)
+    def __reset_status(self, status, session):
+        status_edit = ~status & self.status
+        self.status &= status_edit
+        session.add(self)
+        session.flush()
+   
 
-        if session==None:
-            localsession.commit()
-            localsession.close()
+    def __status_already_set(self, status):
+        r = bool(self.status & status)
+        if r:
+            logg.warning('status bit {} already set on {}'.format(status.name, self.tx_hash))
+        return r
 
 
     def set_block(self, block, session=None):
@@ -102,9 +110,23 @@ class Otx(SessionBase):
 
         :raises cic_eth.db.error.TxStateChangeError: State change represents a sequence of events that should not exist.
         """
-        if self.status >= StatusEnum.SENT.value:
-            raise TxStateChangeError('WAITFORGAS cannot succeed final state, had {}'.format(StatusEnum(self.status).name))
-        self.__set_status(StatusEnum.WAITFORGAS, session)
+        if self.__status_already_set(StatusBits.GAS_ISSUES):
+            return
+
+        session = SessionBase.bind_session(session)
+
+        if self.status & StatusBits.FINAL:
+            raise TxStateChangeError('GAS_ISSUES cannot be set on an entry with FINAL state set ({})'.format(status_str(self.status)))
+        if self.status & StatusBits.IN_NETWORK:
+            raise TxStateChangeError('GAS_ISSUES cannot be set on an entry with IN_NETWORK state set ({})'.format(status_str(self.status)))
+
+        self.__set_status(StatusBits.GAS_ISSUES, session)
+        self.__reset_status(StatusBits.QUEUED | StatusBits.DEFERRED, session)
+
+        if self.tracing:
+            self.__state_log(session=session)
+
+        SessionBase.release_session(session)
 
 
     def fubar(self, session=None):
@@ -112,28 +134,89 @@ class Otx(SessionBase):
 
         Only manipulates object, does not transaction or commit to backend.
         """
-        self.__set_status(StatusEnum.FUBAR, session)
+        if self.__status_already_set(StatusBits.UNKNOWN_ERROR):
+            return
+
+        session = SessionBase.bind_session(session)
+
+        if self.status & StatusBits.FINAL:
+            raise TxStateChangeError('FUBAR cannot be set on an entry with FINAL state set ({})'.format(status_str(self.status)))
+        if is_error_status(self.status):
+            raise TxStateChangeError('FUBAR cannot be set on an entry with an error state already set ({})'.format(status_str(self.status)))
+
+        self.__set_status(StatusBits.UNKNOWN_ERROR | StatusBits.FINAL, session)
        
+        if self.tracing:
+            self.__state_log(session=session)
+
+        SessionBase.release_session(session)
+
 
     def reject(self, session=None):
         """Marks transaction as "rejected," which means the node rejected sending the transaction to the network. The nonce has not been spent, and the transaction should be replaced.
 
         Only manipulates object, does not transaction or commit to backend.
         """
-        if self.status >= StatusEnum.SENT.value:
-            raise TxStateChangeError('REJECTED cannot succeed SENT or final state, had {}'.format(StatusEnum(self.status).name))
-        self.__set_status(StatusEnum.REJECTED, session)
-            
+        if self.__status_already_set(StatusBits.NODE_ERROR):
+            return
 
-    def override(self, session=None):
+        session = SessionBase.bind_session(session)
+
+        if self.status & StatusBits.FINAL:
+            raise TxStateChangeError('REJECTED cannot be set on an entry with FINAL state set ({})'.format(status_str(self.status)))
+        if self.status & StatusBits.IN_NETWORK:
+            raise TxStateChangeError('REJECTED cannot be set on an entry already IN_NETWORK ({})'.format(status_str(self.status)))
+        if is_error_status(self.status):
+            raise TxStateChangeError('REJECTED cannot be set on an entry with an error state already set ({})'.format(status_str(self.status)))
+
+        self.__set_status(StatusBits.NODE_ERROR | StatusBits.FINAL, session)
+            
+        if self.tracing:
+            self.__state_log(session=session)
+
+        SessionBase.release_session(session)
+
+
+    def override(self, manual=False, session=None):
         """Marks transaction as manually overridden.
 
         Only manipulates object, does not transaction or commit to backend.
         """
-        if self.status >= StatusEnum.SENT.value:
-            raise TxStateChangeError('OVERRIDDEN cannot succeed SENT or final state, had {}'.format(StatusEnum(self.status).name))
-        self.__set_status(StatusEnum.OVERRIDDEN, session)
 
+        session = SessionBase.bind_session(session)
+
+        if self.status & StatusBits.FINAL:
+            raise TxStateChangeError('OVERRIDDEN/OBSOLETED cannot be set on an entry with FINAL state set ({})'.format(status_str(self.status)))
+        if self.status & StatusBits.IN_NETWORK:
+            raise TxStateChangeError('OVERRIDDEN/OBSOLETED cannot be set on an entry already IN_NETWORK ({})'.format(status_str(self.status)))
+        if self.status & StatusBits.OBSOLETE:
+            raise TxStateChangeError('OVERRIDDEN/OBSOLETED cannot be set on an entry already OBSOLETE ({})'.format(status_str(self.status)))
+
+        self.__set_status(StatusBits.OBSOLETE, session)
+        #if manual:
+        #    self.__set_status(StatusBits.MANUAL, session)
+        self.__reset_status(StatusBits.QUEUED | StatusBits.IN_NETWORK, session)
+
+        if self.tracing:
+            self.__state_log(session=session)
+
+        SessionBase.release_session(session)
+
+
+    def manual(self, session=None):
+
+        session = SessionBase.bind_session(session)
+
+
+        if self.status & StatusBits.FINAL:
+            raise TxStateChangeError('OVERRIDDEN/OBSOLETED cannot be set on an entry with FINAL state set ({})'.format(status_str(self.status)))
+
+        self.__set_status(StatusBits.MANUAL, session)
+
+        if self.tracing:
+            self.__state_log(session=session)
+
+        SessionBase.release_session(session)
 
     def retry(self, session=None):
         """Marks transaction as ready to retry after a timeout following a sendfail or a completed gas funding.
@@ -142,9 +225,23 @@ class Otx(SessionBase):
 
         :raises cic_eth.db.error.TxStateChangeError: State change represents a sequence of events that should not exist.
         """
-        if self.status != StatusEnum.SENT.value and self.status != StatusEnum.SENDFAIL.value:
-            raise TxStateChangeError('RETRY must follow SENT or SENDFAIL, but had {}'.format(StatusEnum(self.status).name))
-        self.__set_status(StatusEnum.RETRY, session)
+        if self.__status_already_set(StatusBits.QUEUED):
+            return
+
+        session = SessionBase.bind_session(session)
+
+        if self.status & StatusBits.FINAL:
+            raise TxStateChangeError('RETRY cannot be set on an entry with FINAL state set ({})'.format(status_str(self.status)))
+        if not is_error_status(self.status) and not StatusBits.IN_NETWORK & self.status > 0:
+            raise TxStateChangeError('RETRY cannot be set on an entry that has no error ({})'.format(status_str(self.status)))
+
+        self.__set_status(StatusBits.QUEUED, session)
+        self.__reset_status(StatusBits.GAS_ISSUES, session)
+
+        if self.tracing:
+            self.__state_log(session=session)
+
+        SessionBase.release_session(session)
 
 
     def readysend(self, session=None):
@@ -154,9 +251,23 @@ class Otx(SessionBase):
 
         :raises cic_eth.db.error.TxStateChangeError: State change represents a sequence of events that should not exist.
         """
-        if self.status != StatusEnum.PENDING.value and self.status != StatusEnum.WAITFORGAS.value:
-            raise TxStateChangeError('READYSEND must follow PENDING or WAITFORGAS, but had {}'.format(StatusEnum(self.status).name))
-        self.__set_status(StatusEnum.READYSEND, session)
+        if self.__status_already_set(StatusBits.QUEUED):
+            return
+
+        session = SessionBase.bind_session(session)
+
+        if self.status & StatusBits.FINAL:
+            raise TxStateChangeError('READYSEND cannot be set on an entry with FINAL state set ({})'.format(status_str(self.status)))
+        if is_error_status(self.status):
+            raise TxStateChangeError('READYSEND cannot be set on an errored state ({})'.format(status_str(self.status)))
+
+        self.__set_status(StatusBits.QUEUED, session)
+        self.__reset_status(StatusBits.GAS_ISSUES, session)
+
+        if self.tracing:
+            self.__state_log(session=session)
+
+        SessionBase.release_session(session)
 
 
     def sent(self, session=None):
@@ -166,9 +277,21 @@ class Otx(SessionBase):
 
         :raises cic_eth.db.error.TxStateChangeError: State change represents a sequence of events that should not exist.
         """
-        if self.status > StatusEnum.SENT:
-            raise TxStateChangeError('SENT after {}'.format(StatusEnum(self.status).name))
-        self.__set_status(StatusEnum.SENT, session)
+        if self.__status_already_set(StatusBits.IN_NETWORK):
+            return
+
+        session = SessionBase.bind_session(session)
+
+        if self.status & StatusBits.FINAL:
+            raise TxStateChangeError('SENT cannot be set on an entry with FINAL state set ({})'.format(status_str(self.status)))
+
+        self.__set_status(StatusBits.IN_NETWORK, session)
+        self.__reset_status(StatusBits.DEFERRED | StatusBits.QUEUED | StatusBits.LOCAL_ERROR | StatusBits.NODE_ERROR, session)
+
+        if self.tracing:
+            self.__state_log(session=session)
+
+        SessionBase.release_session(session)
 
 
     def sendfail(self, session=None):
@@ -178,9 +301,23 @@ class Otx(SessionBase):
 
         :raises cic_eth.db.error.TxStateChangeError: State change represents a sequence of events that should not exist.
         """
-        if self.status not in [StatusEnum.PENDING, StatusEnum.SENT, StatusEnum.WAITFORGAS]:
-            raise TxStateChangeError('SENDFAIL must follow SENT or PENDING, but had {}'.format(StatusEnum(self.status).name))
-        self.__set_status(StatusEnum.SENDFAIL, session)
+        if self.__status_already_set(StatusBits.NODE_ERROR):
+            return
+
+        session = SessionBase.bind_session(session)
+
+        if self.status & StatusBits.FINAL:
+            raise TxStateChangeError('SENDFAIL cannot be set on an entry with FINAL state set ({})'.format(status_str(self.status)))
+        if self.status & StatusBits.IN_NETWORK:
+            raise TxStateChangeError('SENDFAIL cannot be set on an entry with IN_NETWORK state set ({})'.format(status_str(self.status)))
+
+        self.__set_status(StatusBits.LOCAL_ERROR | StatusBits.DEFERRED, session)
+        self.__reset_status(StatusBits.QUEUED | StatusBits.GAS_ISSUES, session)
+
+        if self.tracing:
+            self.__state_log(session=session)
+
+        SessionBase.release_session(session)
 
 
     def minefail(self, block, session=None):
@@ -192,14 +329,25 @@ class Otx(SessionBase):
         :type block: number
         :raises cic_eth.db.error.TxStateChangeError: State change represents a sequence of events that should not exist.
         """
+        if self.__status_already_set(StatusBits.NETWORK_ERROR):
+            return
+
+        session = SessionBase.bind_session(session)
+
+        if self.status & StatusBits.FINAL:
+            raise TxStateChangeError('REVERTED cannot be set on an entry with FINAL state set ({})'.format(status_str(self.status)))
+        if not self.status & StatusBits.IN_NETWORK:
+            raise TxStateChangeError('REVERTED cannot be set on an entry without IN_NETWORK state set ({})'.format(status_str(self.status)))
+
         if block != None:
             self.block = block
-        if self.status != StatusEnum.SENT:
-            logg.warning('REVERTED should follow SENT, but had {}'.format(StatusEnum(self.status).name))
-        #if self.status != StatusEnum.PENDING and self.status != StatusEnum.OBSOLETED and self.status != StatusEnum.SENT:
-        #if self.status > StatusEnum.SENT:
-        #    raise TxStateChangeError('REVERTED must follow OBSOLETED, PENDING or SENT, but had {}'.format(StatusEnum(self.status).name))
-        self.__set_status(StatusEnum.REVERTED, session)
+
+        self.__set_status(StatusBits.NETWORK_ERROR | StatusBits.FINAL, session)
+
+        if self.tracing:
+            self.__state_log(session=session)
+
+        SessionBase.release_session(session)
 
 
     def cancel(self, confirmed=False, session=None):
@@ -213,16 +361,34 @@ class Otx(SessionBase):
         :type confirmed: bool
         :raises cic_eth.db.error.TxStateChangeError: State change represents a sequence of events that should not exist.
         """
+        session = SessionBase.bind_session(session)
+
+        if self.status & StatusBits.FINAL:
+            raise TxStateChangeError('CANCEL cannot be set on an entry with FINAL state set ({})'.format(status_str(self.status)))
+
         if confirmed:
-            if self.status != StatusEnum.OBSOLETED:
-                logg.warning('CANCELLED must follow OBSOLETED, but had {}'.format(StatusEnum(self.status).name))
-                #raise TxStateChangeError('CANCELLED must follow OBSOLETED, but had {}'.format(StatusEnum(self.status).name))
+            if not self.status & StatusBits.OBSOLETE:
+                raise TxStateChangeError('CANCEL can only be set on an entry marked OBSOLETE ({})'.format(status_str(self.status)))
             self.__set_status(StatusEnum.CANCELLED, session)
-        elif self.status != StatusEnum.OBSOLETED:
-            if self.status > StatusEnum.SENT:
-                logg.warning('OBSOLETED must follow PENDING, SENDFAIL or SENT, but had {}'.format(StatusEnum(self.status).name))
-                #raise TxStateChangeError('OBSOLETED must follow PENDING, SENDFAIL or SENT, but had {}'.format(StatusEnum(self.status).name))
+        else:
             self.__set_status(StatusEnum.OBSOLETED, session)
+
+
+#        if confirmed:
+#            if self.status != StatusEnum.OBSOLETED:
+#                logg.warning('CANCELLED must follow OBSOLETED, but had {}'.format(StatusEnum(self.status).name))
+#                #raise TxStateChangeError('CANCELLED must follow OBSOLETED, but had {}'.format(StatusEnum(self.status).name))
+#            self.__set_status(StatusEnum.CANCELLED, session)
+#        elif self.status != StatusEnum.OBSOLETED:
+#            if self.status > StatusEnum.SENT:
+#                logg.warning('OBSOLETED must follow PENDING, SENDFAIL or SENT, but had {}'.format(StatusEnum(self.status).name))
+#                #raise TxStateChangeError('OBSOLETED must follow PENDING, SENDFAIL or SENT, but had {}'.format(StatusEnum(self.status).name))
+        #    self.__set_status(StatusEnum.OBSOLETED, session)
+
+        if self.tracing:
+            self.__state_log(session=session)
+
+        SessionBase.release_session(session)
 
 
     def success(self, block, session=None):
@@ -235,16 +401,27 @@ class Otx(SessionBase):
         :raises cic_eth.db.error.TxStateChangeError: State change represents a sequence of events that should not exist.
         """
 
+        session = SessionBase.bind_session(session)
+
+        if self.status & StatusBits.FINAL:
+            raise TxStateChangeError('SUCCESS cannot be set on an entry with FINAL state set ({})'.format(status_str(self.status)))
+        if not self.status & StatusBits.IN_NETWORK:
+            raise TxStateChangeError('SUCCESS cannot be set on an entry without IN_NETWORK state set ({})'.format(status_str(self.status)))
+        if is_error_status(self.status):
+            raise TxStateChangeError('SUCCESS cannot be set on an entry with error state set ({})'.format(status_str(self.status)))
+
         if block != None:
             self.block = block
-        if self.status != StatusEnum.SENT:
-            logg.error('SUCCESS should follow SENT, but had {}'.format(StatusEnum(self.status).name))
-            #raise TxStateChangeError('SUCCESS must follow SENT, but had {}'.format(StatusEnum(self.status).name))
         self.__set_status(StatusEnum.SUCCESS, session)
+
+        if self.tracing:
+            self.__state_log(session=session)
+
+        SessionBase.release_session(session)
 
 
     @staticmethod
-    def get(status=0, limit=4096, status_exact=True):
+    def get(status=0, limit=4096, status_exact=True, session=None):
         """Returns outgoing transaction lists by status.
 
         Status may either be matched exactly, or be an upper bound of the integer value of the status enum.
@@ -259,26 +436,32 @@ class Otx(SessionBase):
         :rtype: tuple, where first element is transaction hash
         """
         e = None
-        session = Otx.create_session()
+
+        session = SessionBase.bind_session(session)
+
         if status_exact:
             e = session.query(Otx.tx_hash).filter(Otx.status==status).order_by(Otx.date_created.asc()).limit(limit).all()
         else:
             e = session.query(Otx.tx_hash).filter(Otx.status<=status).order_by(Otx.date_created.asc()).limit(limit).all()
-        session.close()
+        
+        SessionBase.release_session(session)
         return e
 
 
     @staticmethod
-    def load(tx_hash):
+    def load(tx_hash, session=None):
         """Retrieves the outgoing transaction record by transaction hash.
 
         :param tx_hash: Transaction hash
         :type tx_hash: str, 0x-hex
         """
-        session = Otx.create_session()
+        session = SessionBase.bind_session(session)
+        
         q = session.query(Otx)
         q = q.filter(Otx.tx_hash==tx_hash)
-        session.close()
+
+        SessionBase.release_session(session)
+
         return q.first()
 
 
@@ -450,6 +633,3 @@ class OtxSync(SessionBase):
         self.tx_height_session = 0
         self.block_height_backlog = 0
         self.tx_height_backlog = 0
-
-
-

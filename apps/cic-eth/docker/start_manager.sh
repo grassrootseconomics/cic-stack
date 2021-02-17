@@ -2,4 +2,4 @@
 
 . ./db.sh
 
-/usr/local/bin/cic-eth-manager $@
+/usr/local/bin/cic-eth-managerd $@

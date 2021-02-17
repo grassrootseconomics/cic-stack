@@ -2,7 +2,7 @@
 import datetime
 
 # third-party imports
-from sqlalchemy import Column, String, Integer, DateTime, Enum, ForeignKey, Boolean
+from sqlalchemy import Column, String, Integer, DateTime, Enum, ForeignKey, Boolean, NUMERIC
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 #from sqlalchemy.orm import relationship, backref
 #from sqlalchemy.ext.declarative import declarative_base
@@ -55,23 +55,13 @@ class TxCache(SessionBase):
     destination_token_address = Column(String(42))
     sender = Column(String(42))
     recipient = Column(String(42))
-    from_value = Column(String())
-    to_value = Column(String())
+    from_value = Column(NUMERIC())
+    to_value = Column(NUMERIC())
     block_number = Column(Integer())
     tx_index = Column(Integer())
     date_created = Column(DateTime, default=datetime.datetime.utcnow)
     date_updated = Column(DateTime, default=datetime.datetime.utcnow)
     date_checked = Column(DateTime, default=datetime.datetime.utcnow)
-
-
-    def values(self):
-        from_value_hex = bytes.fromhex(self.from_value)
-        from_value = int.from_bytes(from_value_hex, 'big')
-
-        to_value_hex = bytes.fromhex(self.to_value)
-        to_value = int.from_bytes(to_value_hex, 'big')
-
-        return (from_value, to_value)
 
 
     def check(self):
@@ -116,15 +106,14 @@ class TxCache(SessionBase):
         if otx == None:
             raise NotLocalTxError('new {}'.format(tx_hash_new))
 
-        values = txc.values()
         txc_new = TxCache(
                 otx.tx_hash,
                 txc.sender,
                 txc.recipient,
                 txc.source_token_address,
                 txc.destination_token_address,
-                values[0],
-                values[1],
+                int(txc.from_value),
+                int(txc.to_value),
                 )
         localsession.add(txc_new)
         localsession.commit()
@@ -141,17 +130,12 @@ class TxCache(SessionBase):
             raise FileNotFoundError('outgoing transaction record unknown {} (add a Tx first)'.format(tx_hash))
         self.otx_id = tx.id
 
-#        if tx == None:
-#            session.close()
-#            raise ValueError('tx hash {} (outgoing: {}) not found'.format(tx_hash, outgoing))
-#        session.close()
-
         self.sender = sender
         self.recipient = recipient
         self.source_token_address = source_token_address
         self.destination_token_address = destination_token_address
-        self.from_value = num_serialize(from_value).hex()
-        self.to_value = num_serialize(to_value).hex()
+        self.from_value = from_value
+        self.to_value = to_value
         self.block_number = block_number
         self.tx_index = tx_index
         # not automatically set in sqlite, it seems:

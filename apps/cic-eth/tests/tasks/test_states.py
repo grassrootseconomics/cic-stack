@@ -8,7 +8,11 @@ import celery
 # local imports
 from cic_eth.db.models.base import SessionBase
 from cic_eth.db.models.otx import Otx
-from cic_eth.db.enum import StatusEnum
+from cic_eth.db.enum import (
+        StatusEnum,
+        StatusBits,
+        is_error_status,
+        )
 from cic_eth.eth.task import sign_and_register_tx
 
 logg = logging.getLogger()
@@ -101,7 +105,7 @@ def test_states_failed(
 
     otx = init_database.query(Otx).filter(Otx.tx_hash==tx_hash_hex).first()
     otx.sendfail(session=init_database)
-    init_database.add(otx)
+
     init_database.commit()
 
     s = celery.signature(
@@ -121,5 +125,9 @@ def test_states_failed(
         pass
     assert t.successful()
 
+    init_database.commit()
+
     otx = init_database.query(Otx).filter(Otx.tx_hash==tx_hash_hex).first()
-    assert otx.status == StatusEnum.RETRY.value
+    assert otx.status & StatusEnum.RETRY == StatusEnum.RETRY
+    #assert otx.status & StatusBits.QUEUED
+    assert is_error_status(otx.status)

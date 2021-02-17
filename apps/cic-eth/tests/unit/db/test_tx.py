@@ -59,9 +59,8 @@ def test_set(
         assert (tx_stored.recipient == tx_def['to'])
         assert (tx_stored.source_token_address == bogus_from_token)
         assert (tx_stored.destination_token_address == zero_address)
-        assert (tx_stored.from_value == '1b1ae4d6e2ef500000')
-        assert (tx_stored.to_value == '0d8d726b7177a80000')
-        assert (tx_stored.values() == (tx_def['value'], to_value))
+        assert (tx_stored.from_value == tx_def['value'])
+        assert (tx_stored.to_value == to_value)
         assert (tx_stored.block_number == 666)
         assert (tx_stored.tx_index == 13)
 

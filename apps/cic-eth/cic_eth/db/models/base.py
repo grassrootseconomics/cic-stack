@@ -1,8 +1,13 @@
+# stanard imports
+import logging
+
 # third-party imports
 from sqlalchemy import Column, Integer
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+logg = logging.getLogger()
 
 Model = declarative_base(name='Model')
 
@@ -21,7 +26,11 @@ class SessionBase(Model):
     transactional = True
     """Whether the database backend supports query transactions. Should be explicitly set by initialization code"""
     poolable = True
-    """Whether the database backend supports query transactions. Should be explicitly set by initialization code"""
+    """Whether the database backend supports connection pools. Should be explicitly set by initialization code"""
+    procedural = True
+    """Whether the database backend supports stored procedures"""
+    localsessions = {}
+    """Contains dictionary of sessions initiated by db model components"""
 
 
     @staticmethod
@@ -71,3 +80,23 @@ class SessionBase(Model):
         """
         SessionBase.engine.dispose()
         SessionBase.engine = None
+
+
+    @staticmethod
+    def bind_session(session=None):
+        localsession = session
+        if localsession == None:
+            localsession = SessionBase.create_session()
+            localsession_key = str(id(localsession))
+            logg.debug('creating new session {}'.format(localsession_key))
+            SessionBase.localsessions[localsession_key] = localsession
+        return localsession
+
+
+    @staticmethod
+    def release_session(session=None):
+        session_key = str(id(session))
+        if SessionBase.localsessions.get(session_key) != None:
+            logg.debug('destroying session {}'.format(session_key))
+            session.commit()
+            session.close()

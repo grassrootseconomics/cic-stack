@@ -6,6 +6,7 @@ import celery
 import requests
 import web3
 from cic_registry import CICRegistry
+from cic_registry import zero_address
 from cic_registry.chain import ChainSpec
 
 # platform imports
@@ -17,6 +18,7 @@ from cic_eth.eth.task import sign_and_register_tx
 from cic_eth.eth.task import create_check_gas_and_send_task
 from cic_eth.eth.factory import TxFactory
 from cic_eth.eth.util import unpack_signed_raw_tx
+from cic_eth.ext.address import translate_address
 
 celery_app = celery.current_app
 logg = logging.getLogger()
@@ -185,7 +187,6 @@ def balance(tokens, holder_address, chain_str):
     """
     #abi = ContractRegistry.abi('ERC20Token')
     chain_spec = ChainSpec.from_chain_str(chain_str)
-    balances = []
     c = RpcClient(chain_spec)
     for t in tokens:
         #token = CICRegistry.get_address(t['address'])
@@ -193,9 +194,9 @@ def balance(tokens, holder_address, chain_str):
         #o = c.w3.eth.contract(abi=abi, address=t['address'])
         o = CICRegistry.get_address(chain_spec, t['address']).contract
         b = o.functions.balanceOf(holder_address).call()
-        logg.debug('balance {} for {}: {}'.format(t['address'], holder_address, b))
-        balances.append(b)
-    return b
+        t['balance_network'] = b
+
+    return tokens
 
 
 @celery_app.task(bind=True)
@@ -324,7 +325,7 @@ def resolve_tokens_by_symbol(token_symbols, chain_str):
         token = CICRegistry.get_token(chain_spec, token_symbol)
         tokens.append({
             'address': token.address(),
-            #'converters': [],
+            'converters': [],
             })
     return tokens
 
@@ -445,3 +446,59 @@ def cache_approve_data(
     cache_id = tx_cache.id
     session.close()
     return (tx_hash_hex, cache_id)
+
+
+class ExtendedTx:
+
+    _default_decimals = 6
+
+    def __init__(self, tx_hash, chain_spec):
+        self._chain_spec = chain_spec
+        self.chain = str(chain_spec)
+        self.hash = tx_hash
+        self.sender = None
+        self.sender_label = None
+        self.recipient = None
+        self.recipient_label = None
+        self.source_token_value = 0
+        self.destination_token_value = 0
+        self.source_token = zero_address
+        self.destination_token = zero_address
+        self.source_token_symbol = ''
+        self.destination_token_symbol = ''
+        self.source_token_decimals = ExtendedTx._default_decimals
+        self.destination_token_decimals = ExtendedTx._default_decimals
+
+
+    def set_actors(self, sender, recipient, trusted_declarator_addresses=None):
+        self.sender = sender
+        self.recipient = recipient
+        if trusted_declarator_addresses != None:
+            self.sender_label = translate_address(sender, trusted_declarator_addresses, self.chain)
+            self.recipient_label = translate_address(recipient, trusted_declarator_addresses, self.chain)
+
+
+    def set_tokens(self, source, source_value, destination=None, destination_value=None):
+        if destination == None:
+            destination = source
+        if destination_value == None:
+            destination_value = source_value
+        st = CICRegistry.get_address(self._chain_spec, source)
+        dt = CICRegistry.get_address(self._chain_spec, destination)
+        self.source_token = source
+        self.source_token_symbol = st.symbol()
+        self.source_token_decimals = st.decimals()
+        self.source_token_value = source_value
+        self.destination_token = destination
+        self.destination_token_symbol = dt.symbol()
+        self.destination_token_decimals = dt.decimals()
+        self.destination_token_value = destination_value
+
+
+    def to_dict(self):
+        o = {}
+        for attr in dir(self):
+            if attr[0] == '_' or attr in ['set_actors', 'set_tokens', 'to_dict']:
+                continue
+            o[attr] = getattr(self, attr)
+        return o 

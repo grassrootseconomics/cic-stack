@@ -24,7 +24,6 @@ class Response:
 
     status = 200
 
-@pytest.mark.skip()
 def test_callback_http(
     celery_session_worker,
     mocker,
@@ -43,7 +42,6 @@ def test_callback_http(
     t.get()
 
 
-@pytest.mark.skip()
 def test_callback_tcp(
     celery_session_worker,
     ):

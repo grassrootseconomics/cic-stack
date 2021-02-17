@@ -15,12 +15,15 @@ def celery_includes():
         'cic_eth.eth.token',
         'cic_eth.eth.request',
         'cic_eth.eth.tx',
+        'cic_eth.ext.tx',
         'cic_eth.queue.tx',
+        'cic_eth.queue.balance',
         'cic_eth.admin.ctrl',
         'cic_eth.admin.nonce',
         'cic_eth.eth.account',
         'cic_eth.callbacks.noop',
         'cic_eth.callbacks.http',
+        'tests.mock.filter',
     ]
 
 

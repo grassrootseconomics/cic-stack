@@ -5,19 +5,27 @@ import datetime
 
 # third-party imports
 import celery
+from hexathon import strip_0x
 from sqlalchemy import or_
+from sqlalchemy import not_
 from sqlalchemy import tuple_
 from sqlalchemy import func
 
 # local imports
 from cic_registry import CICRegistry
+from cic_registry.chain import ChainSpec
 from cic_eth.db.models.otx import Otx
 from cic_eth.db.models.otx import OtxStateLog
 from cic_eth.db.models.tx import TxCache
 from cic_eth.db.models.lock import Lock
 from cic_eth.db import SessionBase
-from cic_eth.db.enum import StatusEnum
-from cic_eth.db.enum import LockEnum
+from cic_eth.db.enum import (
+        StatusEnum,
+        LockEnum,
+        StatusBits,
+        is_alive,
+        dead,
+        )
 from cic_eth.eth.util import unpack_signed_raw_tx # TODO: should not be in same sub-path as package that imports queue.tx
 from cic_eth.error import NotLocalTxError
 from cic_eth.error import LockedError
@@ -70,10 +78,7 @@ def create(nonce, holder_address, tx_hash, signed_tx, chain_str, obsolete_predec
 
         for otx in q.all():
             logg.info('otx {} obsoleted by {}'.format(otx.tx_hash, tx_hash))
-            if otx.status == StatusEnum.SENT:
-                otx.cancel(False, session=session)
-            elif otx.status != StatusEnum.OBSOLETED:
-                otx.override(session=session)
+            otx.cancel(confirmed=False, session=session)
 
     session.commit()
     session.close()
@@ -167,6 +172,7 @@ def set_final_status(tx_hash, block=None, fail=False):
 
     return tx_hash
 
+
 @celery_app.task()
 def set_cancel(tx_hash, manual=False):
     """Used to set the status when a transaction is cancelled.
@@ -250,6 +256,33 @@ def set_fubar(tx_hash):
 
     return tx_hash
 
+
+@celery_app.task()
+def set_manual(tx_hash):
+    """Used to set the status when queue is manually changed
+
+    Will set the state to MANUAL
+
+    :param tx_hash: Transaction hash of record to modify
+    :type tx_hash: str, 0x-hex
+    :raises NotLocalTxError: If transaction not found in queue.
+    """
+
+    session = SessionBase.create_session()
+    o = session.query(Otx).filter(Otx.tx_hash==tx_hash).first()
+    if o == None:
+        session.close()
+        raise NotLocalTxError('queue does not contain tx hash {}'.format(tx_hash))
+
+    session.flush()
+
+    o.manual(session=session)
+    session.commit()
+    session.close()
+
+    return tx_hash
+
+
 @celery_app.task()
 def set_ready(tx_hash):
     """Used to mark a transaction as ready to be sent to network
@@ -265,14 +298,11 @@ def set_ready(tx_hash):
         raise NotLocalTxError('queue does not contain tx hash {}'.format(tx_hash))
     session.flush()
 
-    if o.status == StatusEnum.WAITFORGAS or o.status == StatusEnum.PENDING:
+    if o.status & StatusBits.GAS_ISSUES or o.status == StatusEnum.PENDING:
         o.readysend(session=session)
     else:
         o.retry(session=session)
 
-    logg.debug('ot otx otx {} {}'.format(tx_hash, o))
-
-    session.add(o)
     session.commit()
     session.close()
 
@@ -303,6 +333,7 @@ def set_waitforgas(tx_hash):
     session.close()
 
     return tx_hash
+
 
 @celery_app.task()
 def get_state_log(tx_hash):
@@ -350,7 +381,6 @@ def get_tx_cache(tx_hash):
 
     session.close()
 
-    values = txc.values()
     tx = {
         'tx_hash': otx.tx_hash,
         'signed_tx': otx.signed_tx,
@@ -359,10 +389,12 @@ def get_tx_cache(tx_hash):
         'status_code': otx.status,
         'source_token': txc.source_token_address,
         'destination_token': txc.destination_token_address,
+        'block_number': txc.block_number,
+        'tx_index': txc.tx_index,
         'sender': txc.sender,
         'recipient': txc.recipient,
-        'from_value': values[0],
-        'to_value': values[1],
+        'from_value': int(txc.from_value),
+        'to_value': int(txc.to_value),
         'date_created': txc.date_created,
         'date_updated': txc.date_updated,
         'date_checked': txc.date_checked,
@@ -483,13 +515,14 @@ def get_paused_txs(status=None, sender=None, chain_id=0):
     q = session.query(Otx)
 
     if status != None:
-        if status == StatusEnum.PENDING or status >= StatusEnum.SENT:
+        #if status == StatusEnum.PENDING or status >= StatusEnum.SENT:
+        if status == StatusEnum.PENDING or status & StatusBits.IN_NETWORK or not is_alive(status):
             raise ValueError('not a valid paused tx value: {}'.format(status))
-        q = q.filter(Otx.status==status)
+        q = q.filter(Otx.status.op('&')(status.value)==status.value)
         q = q.join(TxCache)
     else:
-        q = q.filter(Otx.status>StatusEnum.PENDING)
-        q = q.filter(Otx.status<StatusEnum.SENT)
+        q = q.filter(Otx.status>StatusEnum.PENDING.value)
+        q = q.filter(not_(Otx.status.op('&')(StatusBits.IN_NETWORK.value)>0))
 
     if sender != None:
         q = q.filter(TxCache.sender==sender)
@@ -508,7 +541,7 @@ def get_paused_txs(status=None, sender=None, chain_id=0):
     return txs
 
 
-def get_status_tx(status, before=None, limit=0):
+def get_status_tx(status, before=None, exact=False, limit=0):
     """Retrieve transaction with a specific queue status.
 
     :param status: Status to match transactions with
@@ -525,7 +558,10 @@ def get_status_tx(status, before=None, limit=0):
     q = session.query(Otx)
     q = q.join(TxCache)
     q = q.filter(TxCache.date_updated<before)
-    q = q.filter(Otx.status==status)
+    if exact:
+        q = q.filter(Otx.status==status.value)
+    else:
+        q = q.filter(Otx.status.op('&')(status.value)==status.value)
     i = 0
     for o in q.all():
         if limit > 0 and i == limit:
@@ -565,9 +601,12 @@ def get_upcoming_tx(status=StatusEnum.READYSEND, recipient=None, before=None, ch
     q_outer = q_outer.join(Lock, isouter=True)
     q_outer = q_outer.filter(or_(Lock.flags==None, Lock.flags.op('&')(LockEnum.SEND.value)==0))
 
-    if status >= StatusEnum.SENT:
-        raise ValueError('not a valid non-final tx value: {}'.format(s))
-    q_outer = q_outer.filter(Otx.status==status.value)
+    if not is_alive(status):
+        raise ValueError('not a valid non-final tx value: {}'.format(status))
+    if status == StatusEnum.PENDING:
+        q_outer = q_outer.filter(Otx.status==status.value)
+    else:
+        q_outer = q_outer.filter(Otx.status.op('&')(status.value)==status.value)
 
     if recipient != None:
         q_outer = q_outer.filter(TxCache.recipient==recipient)
@@ -627,6 +666,7 @@ def get_account_tx(address, as_sender=True, as_recipient=True, counterpart=None)
     """
     if not as_sender and not as_recipient:
         raise ValueError('at least one of as_sender and as_recipient must be True')
+
     txs = {}
 
     session = SessionBase.create_session()
@@ -642,10 +682,11 @@ def get_account_tx(address, as_sender=True, as_recipient=True, counterpart=None)
 
     results = q.all()
     for r in results:
+        if txs.get(r.tx_hash) != None:
+            logg.debug('tx {} already recorded'.format(r.tx_hash))
+            continue
         txs[r.tx_hash] = r.signed_tx
     session.close()
 
     return txs
-
-
 

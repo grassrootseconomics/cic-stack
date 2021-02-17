@@ -41,3 +41,5 @@ yaml-acl==0.0.1
 rlp==2.0.1
 cryptocurrency-cli-tools==0.0.4
 giftable-erc20-token==0.0.7b7
+hexathon==0.0.1a3
+chainlib==0.0.1a12

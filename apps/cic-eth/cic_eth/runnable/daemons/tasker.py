@@ -220,15 +220,16 @@ def main():
     if config.get('ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER') != None:
         CICRegistry.add_role(chain_spec, config.get('ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER'), 'AccountRegistry', True)
 
-    if config.get('CIC_DECLARATOR_ADDRESS') != None:
-        abi_path = os.path.join(config.get('ETH_ABI_DIR'), '{}.json'.format(interface))
-        f = open(abi_path)
-        abi = json.load(abi_path)
-        f.close()
-        c = w3.eth.contract(abi=abi, address=address)
-        trusted_addresses = config.get('CIC_TRUSTED_ADDRESSES', []).split(',')
-        oracle = DeclaratorOracleAdapter(contract, trusted_addresses)
-        chain_registry.add_oracle(oracle)
+    declarator = CICRegistry.get_contract(chain_spec, 'AddressDeclarator', interface='Declarator')
+    trusted_addresses_src = config.get('CIC_TRUST_ADDRESS')
+    if trusted_addresses_src == None:
+        logg.critical('At least one trusted address must be declared in CIC_TRUST_ADDRESS')
+        sys.exit(1)
+    trusted_addresses = trusted_addresses_src.split(',')
+    for address in trusted_addresses:
+        logg.info('using trusted address {}'.format(address))
+    oracle = DeclaratorOracleAdapter(declarator.contract, trusted_addresses)
+    chain_registry.add_oracle('naive_erc20_oracle', oracle)
 
 
     #chain_spec = CICRegistry.default_chain_spec

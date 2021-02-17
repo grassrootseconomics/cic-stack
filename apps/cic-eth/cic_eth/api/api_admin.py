@@ -16,7 +16,10 @@ from cic_eth.db.models.role import AccountRole
 from cic_eth.db.models.otx import Otx
 from cic_eth.db.models.tx import TxCache
 from cic_eth.db.models.nonce import Nonce
-from cic_eth.db.enum import StatusEnum
+from cic_eth.db.enum import (
+        StatusEnum,
+        is_alive,
+    )
 from cic_eth.error import InitializationError
 from cic_eth.db.error import TxStateChangeError
 from cic_eth.eth.rpc import RpcClient
@@ -98,6 +101,19 @@ class AdminApi:
         session.close()
 
 
+    def have_account(self, address_hex, chain_str):
+        s_have = celery.signature(
+            'cic_eth.eth.account.have',
+            [
+                address_hex,
+                chain_str,
+                ],
+            queue=self.queue,
+            )
+        t = s_have.apply_async()
+        return t.get()
+
+
     def resend(self, tx_hash_hex, chain_str, in_place=True, unlock=False):
         logg.debug('resend {}'.format(tx_hash_hex))
         s_get_tx_cache = celery.signature(
@@ -110,23 +126,31 @@ class AdminApi:
 
         # TODO: This check should most likely be in resend task itself
         tx_dict = s_get_tx_cache.apply_async().get()
-        if tx_dict['status'] in [StatusEnum.REVERTED, StatusEnum.SUCCESS, StatusEnum.CANCELLED, StatusEnum.OBSOLETED]: 
+        #if tx_dict['status'] in [StatusEnum.REVERTED, StatusEnum.SUCCESS, StatusEnum.CANCELLED, StatusEnum.OBSOLETED]: 
+        if not is_alive(getattr(StatusEnum, tx_dict['status']).value):
             raise TxStateChangeError('Cannot resend mined or obsoleted transaction'.format(txold_hash_hex))
-
-        s = None
-        if in_place:
-            s = celery.signature(
-                'cic_eth.eth.tx.resend_with_higher_gas',
-                [
-                    tx_hash_hex,
-                    chain_str,
-                    None,
-                    1.01,
-                    ],
-                queue=self.queue,
-                )
-        else:
+        
+        if not in_place:
             raise NotImplementedError('resend as new not yet implemented')
+
+        s = celery.signature(
+            'cic_eth.eth.tx.resend_with_higher_gas',
+            [
+                chain_str,
+                None,
+                1.01,
+                ],
+            queue=self.queue,
+            )
+
+        s_manual = celery.signature(
+            'cic_eth.queue.tx.set_manual',
+            [
+                tx_hash_hex,
+                ],
+            queue=self.queue,
+            )
+        s_manual.link(s)
 
         if unlock:
             s_gas = celery.signature(
@@ -139,7 +163,7 @@ class AdminApi:
                 )
             s.link(s_gas)
 
-        return s.apply_async()
+        return s_manual.apply_async()
                         
     def check_nonce(self, address):
         s = celery.signature(
@@ -243,7 +267,9 @@ class AdminApi:
         """
         s = celery.signature(
                 'cic_eth.queue.tx.get_account_tx',
-                [address],
+                [
+                    address,
+                    ],
                 queue=self.queue,
                 )
         txs = s.apply_async().get()

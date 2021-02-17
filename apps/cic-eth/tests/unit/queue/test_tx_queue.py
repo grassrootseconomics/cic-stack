@@ -16,8 +16,14 @@ from cic_eth.db.models.otx import OtxSync
 from cic_eth.db.models.tx import TxCache
 from cic_eth.db.models.lock import Lock
 from cic_eth.db.models.base import SessionBase
-from cic_eth.db.enum import StatusEnum
-from cic_eth.db.enum import LockEnum
+from cic_eth.db.enum import (
+        StatusEnum,
+        LockEnum,
+        StatusBits,
+        is_alive,
+        is_error_status,
+        status_str,
+        )
 from cic_eth.queue.tx import create as queue_create
 from cic_eth.queue.tx import set_final_status
 from cic_eth.queue.tx import set_sent_status
@@ -63,13 +69,14 @@ def test_finalize(
             set_sent_status(tx_hash.hex())
 
     otx = init_database.query(Otx).filter(Otx.tx_hash==tx_hashes[0]).first()
-    assert otx.status == StatusEnum.OBSOLETED
+    assert otx.status & StatusBits.OBSOLETE
+    assert not is_alive(otx.status)
 
     otx = init_database.query(Otx).filter(Otx.tx_hash==tx_hashes[1]).first()
-    assert otx.status == StatusEnum.OBSOLETED
+    assert otx.status & StatusBits.OBSOLETE
 
     otx = init_database.query(Otx).filter(Otx.tx_hash==tx_hashes[2]).first()
-    assert otx.status == StatusEnum.OBSOLETED
+    assert otx.status & StatusBits.OBSOLETE
 
     otx = init_database.query(Otx).filter(Otx.tx_hash==tx_hashes[3]).first()
     assert otx.status == StatusEnum.PENDING
@@ -82,19 +89,22 @@ def test_finalize(
     set_final_status(tx_hashes[3], 1024)
 
     otx = init_database.query(Otx).filter(Otx.tx_hash==tx_hashes[0]).first()
-    assert otx.status == StatusEnum.CANCELLED
+    assert otx.status & (StatusBits.OBSOLETE | StatusBits.FINAL)
+    assert not is_alive(otx.status)
 
     otx = init_database.query(Otx).filter(Otx.tx_hash==tx_hashes[1]).first()
-    assert otx.status == StatusEnum.CANCELLED
+    assert otx.status & (StatusBits.OBSOLETE | StatusBits.FINAL)
 
     otx = init_database.query(Otx).filter(Otx.tx_hash==tx_hashes[2]).first()
-    assert otx.status == StatusEnum.CANCELLED
+    assert otx.status & (StatusBits.OBSOLETE | StatusBits.FINAL)
 
     otx = init_database.query(Otx).filter(Otx.tx_hash==tx_hashes[3]).first()
-    assert otx.status == StatusEnum.SUCCESS
+    assert otx.status & (StatusBits.IN_NETWORK | StatusBits.FINAL)
+    assert not is_error_status(otx.status)
 
     otx = init_database.query(Otx).filter(Otx.tx_hash==tx_hashes[4]).first()
-    assert otx.status == StatusEnum.SENT
+    assert otx.status & (StatusBits.IN_NETWORK | StatusBits.FINAL)
+    assert not is_error_status(otx.status)
 
 
 def test_expired(
@@ -404,7 +414,7 @@ def test_obsoletion(
 
     session = SessionBase.create_session()
     q = session.query(Otx)
-    q = q.filter(Otx.status==StatusEnum.OBSOLETED)
+    q = q.filter(Otx.status.op('&')(StatusEnum.OBSOLETED.value)==StatusEnum.OBSOLETED.value)
     z = 0
     for o in q.all():
         z += o.nonce
@@ -416,13 +426,13 @@ def test_obsoletion(
 
     session = SessionBase.create_session()
     q = session.query(Otx)
-    q = q.filter(Otx.status==StatusEnum.OBSOLETED)
+    q = q.filter(Otx.status.op('&')(StatusEnum.CANCELLED.value)==StatusEnum.OBSOLETED.value)
     zo = 0
     for o in q.all():
         zo += o.nonce
 
     q = session.query(Otx)
-    q = q.filter(Otx.status==StatusEnum.CANCELLED)
+    q = q.filter(Otx.status.op('&')(StatusEnum.CANCELLED.value)==StatusEnum.CANCELLED.value)
     zc = 0
     for o in q.all():
         zc += o.nonce
@@ -450,16 +460,20 @@ def test_retry(
     q = q.filter(Otx.tx_hash==tx_hash)
     otx = q.first()
 
-    assert otx.status == StatusEnum.RETRY
+    assert (otx.status & StatusEnum.RETRY.value) == StatusEnum.RETRY.value
+    assert is_error_status(otx.status)
 
     set_sent_status(tx_hash, False)
     set_ready(tx_hash)
+    
+    init_database.commit()
 
     q = init_database.query(Otx)
     q = q.filter(Otx.tx_hash==tx_hash)
     otx = q.first()
 
-    assert otx.status == StatusEnum.RETRY
+    assert (otx.status & StatusEnum.RETRY.value) == StatusBits.QUEUED.value
+    assert not is_error_status(otx.status)
 
 
 def test_get_account_tx(

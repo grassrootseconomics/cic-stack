@@ -9,7 +9,11 @@ import pytest
 from cic_eth.db.models.base import SessionBase
 from cic_eth.db.models.otx import OtxStateLog
 from cic_eth.db.models.otx import Otx
-from cic_eth.db.enum import StatusEnum
+from cic_eth.db.enum import (
+        StatusEnum,
+        StatusBits,
+        is_alive,
+        )
 
 logg = logging.getLogger()
 
@@ -70,15 +74,24 @@ def test_state_log(
     otx = Otx.add(0, address, tx_hash, signed_tx, session=init_database)
 
     otx.waitforgas(session=init_database)
+    init_database.commit()
+
+    otx.readysend(session=init_database)
+    init_database.commit()
+
     otx.sent(session=init_database)
+    init_database.commit()
+
     otx.success(1024, session=init_database)
+    init_database.commit()
 
     q = init_database.query(OtxStateLog)
     q = q.filter(OtxStateLog.otx_id==otx.id)
     q = q.order_by(OtxStateLog.date.asc())
     logs = q.all()
-
+    
     assert logs[0].status == StatusEnum.PENDING
     assert logs[1].status == StatusEnum.WAITFORGAS
-    assert logs[2].status == StatusEnum.SENT
-    assert logs[3].status == StatusEnum.SUCCESS
+    assert logs[2].status & StatusBits.QUEUED
+    assert logs[3].status & StatusBits.IN_NETWORK
+    assert not is_alive(logs[4].status)

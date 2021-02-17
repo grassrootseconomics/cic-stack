@@ -29,27 +29,6 @@ def test_account_api(
     assert t.successful()
 
 
-def test_balance_api(
-        default_chain_spec,
-        default_chain_registry,
-        init_w3,
-        cic_registry,
-        init_database,
-        bancor_tokens,
-        bancor_registry,
-        celery_session_worker,
-        ):
-
-    token = CICRegistry.get_address(default_chain_spec, bancor_tokens[0])
-
-    api = Api(str(default_chain_spec), callback_param='balance', callback_task='cic_eth.callbacks.noop.noop', queue=None)
-    t = api.balance(init_w3.eth.accounts[2], token.symbol())
-    t.get()
-    for r in t.collect():
-        print(r)
-    assert t.successful()
-
-
 def test_transfer_api(
         default_chain_spec,
         init_w3,

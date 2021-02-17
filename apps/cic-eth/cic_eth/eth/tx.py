@@ -13,7 +13,10 @@ from .rpc import RpcClient
 from cic_eth.db import Otx, SessionBase
 from cic_eth.db.models.tx import TxCache
 from cic_eth.db.models.lock import Lock
-from cic_eth.db.enum import LockEnum
+from cic_eth.db.enum import (
+        LockEnum,
+        StatusBits,
+        )
 from cic_eth.error import PermanentTxError
 from cic_eth.error import TemporaryTxError
 from cic_eth.error import NotLocalTxError
@@ -341,7 +344,6 @@ def send(self, txs, chain_str):
 
     chain_spec = ChainSpec.from_chain_str(chain_str)
 
-
     tx_hex = txs[0]
     logg.debug('send transaction {}'.format(tx_hex))
 
@@ -399,9 +401,10 @@ def refill_gas(self, recipient_address, chain_str):
     chain_spec = ChainSpec.from_chain_str(chain_str)
 
     session = SessionBase.create_session()
+    status_filter = StatusBits.FINAL | StatusBits.NODE_ERROR | StatusBits.NETWORK_ERROR | StatusBits.UNKNOWN_ERROR
     q = session.query(Otx.tx_hash)
     q = q.join(TxCache)
-    q = q.filter(Otx.status<=0)
+    q = q.filter(Otx.status.op('&')(StatusBits.FINAL.value)==0)
     q = q.filter(TxCache.from_value!='0x00')
     q = q.filter(TxCache.recipient==recipient_address)
     c = q.count()
@@ -495,7 +498,7 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_str, gas=None, default_fa
 
     tx_signed_raw_bytes = bytes.fromhex(otx.signed_tx[2:])
     tx = unpack_signed_raw_tx(tx_signed_raw_bytes, chain_spec.chain_id())
-    logg.debug('otx {} {}'.format(tx, otx.signed_tx))
+    logg.debug('resend otx {} {}'.format(tx, otx.signed_tx))
 
     queue = self.request.delivery_info['routing_key']
 
