@@ -74,7 +74,7 @@ new cic.PGPKeyStore(
 	importMeta,
 );
 
-const batchSize = 4;
+const batchSize = 50;
 const batchDelay = 1000;
 const total = parseInt(process.argv[3]);
 const workDir = path.join(process.argv[2], 'meta');
@@ -103,7 +103,6 @@ function importMeta(keystore) {
 			console.debug('skipping file', file);	
 		}
 		const filePath = path.join(workDir, file);
-		//console.log('file', count, filePath);
 		doOne(keystore, filePath);
 		count++;
 		batchCount++;
