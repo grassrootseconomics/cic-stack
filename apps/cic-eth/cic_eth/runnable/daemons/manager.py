@@ -180,7 +180,7 @@ def main():
 
     registration_filter = RegistrationFilter()
 
-    gas_filter = GasFilter(c.gas_provider())
+    gas_filter = GasFilter(c.gas_provider(), queue)
 
     i = 0
     for syncer in syncers:

@@ -17,29 +17,31 @@ logg = logging.getLogger()
 
 class GasFilter(SyncFilter):
 
-    def __init__(self, gas_provider):
+    def __init__(self, gas_provider, queue=None):
+        self.queue = queue
         self.gas_provider = gas_provider
 
 
-    def filter(self, w3, tx, rcpt, chain_str):
+    def filter(self, w3, tx, rcpt, chain_str, session=None):
         logg.debug('applying gas filter')
         tx_hash_hex = tx.hash.hex()
         if tx['value'] > 0:
             logg.debug('gas refill tx {}'.format(tx_hash_hex))
-            session = SessionBase.create_session()
+            session = SessionBase.bind_session(session)
             q = session.query(TxCache.recipient)
             q = q.join(Otx)
             q = q.filter(Otx.tx_hash==tx_hash_hex)
             r = q.first()
 
-            session.close()
-
             if r == None:
                 logg.warning('unsolicited gas refill tx {}'.format(tx_hash_hex))
+                SessionBase.release_session(session)
                 return
 
             chain_spec = ChainSpec.from_chain_str(chain_str)
-            txs = get_paused_txs(StatusEnum.WAITFORGAS, r[0], chain_spec.chain_id())
+            txs = get_paused_txs(StatusEnum.WAITFORGAS, r[0], chain_spec.chain_id(), session=session)
+
+            SessionBase.release_session(session)
 
             if len(txs) > 0:
                 logg.info('resuming gas-in-waiting txs for {}: {}'.format(r[0], txs.keys()))
@@ -49,6 +51,6 @@ class GasFilter(SyncFilter):
                         r[0],
                         0,
                         tx_hashes_hex=list(txs.keys()),
-                        queue=queue,
+                        queue=self.queue,
                 )
                 s.apply_async()

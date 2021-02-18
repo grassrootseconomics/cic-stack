@@ -15,7 +15,7 @@ account_registry_add_log_hash = '0x5ed3bdd47b9af629827a8d129aa39c870b10c03f0153f
 
 class RegistrationFilter(SyncFilter):
 
-    def filter(self, w3, tx, rcpt, chain_spec):
+    def filter(self, w3, tx, rcpt, chain_spec, session=None):
         logg.debug('applying registration filter')
         registered_address = None
         for l in rcpt['logs']:
