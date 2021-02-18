@@ -137,6 +137,7 @@ async function processRequest(req, res) {
 		console.debug('mode', mod);
 		let content = '';
 		let contentType = 'application/json';
+		console.debug('handling data', data);
 		let r:any = undefined;
 		try {
 			switch (mod) {

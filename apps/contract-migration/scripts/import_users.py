@@ -154,7 +154,7 @@ if __name__ == '__main__':
             #fi.write('{},{}\n'.format(new_address, old_address))
             meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), 'cic.person')
             meta_filepath = os.path.join(meta_dir, '{}.json'.format(new_address_clean.upper()))
-            os.symlink(filepath, meta_filepath)
+            os.symlink(os.path.realpath(filepath), meta_filepath)
 
             i += 1
             sys.stdout.write('imported {} {}'.format(i, u).ljust(200) + "\r")

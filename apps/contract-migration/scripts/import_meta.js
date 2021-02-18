@@ -14,25 +14,29 @@ console.log(config);
 function sendit(uid, envelope) {
 	const d = envelope.toJSON();
 
+	const contentLength = (new TextEncoder().encode(d)).length;
 	const opts = {
 		method: 'PUT',
 		headers: {
 			'Content-Type': 'application/json',
-			'Content-Length': d.length,
+			'Content-Length': contentLength,
 			'X-CIC-AUTOMERGE': 'client',
 
 		},
 	};
 	let url = config.get('META_URL');
 	url = url.replace(new RegExp('^(.+://[^/]+)/*$'), '$1/');
-	console.debug('url: ' + url + uid);
+	//console.debug('url: ' + url + uid);
 	const req = http.request(url + uid, opts, (res) => {
 		res.on('data', process.stdout.write);
 		res.on('end', () => {
 			console.log('result', res.statusCode, res.headers);
 		});
 	});
-	req.write(d);
+	if (!req.write(d)) {
+		console.error('foo', d);
+		process.exit(1);
+	}
 	req.end();
 }
 
@@ -44,7 +48,7 @@ function doOne(keystore, filePath) {
 	cic.User.toKey('0x' + ethereum_address).then((uid) => {
 		const d = fs.readFileSync(filePath, 'utf-8');
 		const o = JSON.parse(d);
-		console.log(o);
+		//console.log(o);
 		fs.unlinkSync(filePath);
 
 		const s = new cic.Syncable(uid, o);
@@ -99,7 +103,7 @@ function importMeta(keystore) {
 			console.debug('skipping file', file);	
 		}
 		const filePath = path.join(workDir, file);
-		console.log('file', count, filePath);
+		//console.log('file', count, filePath);
 		doOne(keystore, filePath);
 		count++;
 		batchCount++;

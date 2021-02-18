@@ -48,6 +48,7 @@ argparser = argparse.ArgumentParser(description='daemon that monitors transactio
 argparser.add_argument('-p', '--provider', dest='p', type=str, help='chain rpc provider address')
 argparser.add_argument('-y', '--key-file', dest='y', type=str, help='Ethereum keystore file to use for signing')
 argparser.add_argument('-c', type=str, default=config_dir, help='config root to use')
+argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='oldchain:1', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
 argparser.add_argument('--head', action='store_true', help='start at current block height (overrides --offset)')
@@ -98,6 +99,7 @@ else:
     block_offset = args.offset
 
 chain_spec = ChainSpec.from_chain_str('evm:' + chain_str)
+old_chain_spec_str = args.old_chain_spec
 
 user_dir = args.user_dir # user_out_dir from import_users.py
 
@@ -141,7 +143,7 @@ class Handler:
                 logg.error('no import record of address {}'.format(recipient))
                 return
             u = Person(o)
-            original_address = u.identities['evm']['xdai:1'][0]
+            original_address = u.identities['evm'][old_chain_spec_str][0]
             balance = self.balances[original_address]
             logg.info('registered {} originally {} ({}) tx hash {} balance {}'.format(recipient, original_address, u, tx.hash, balance))
 
