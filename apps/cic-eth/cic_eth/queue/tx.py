@@ -52,10 +52,12 @@ def create(nonce, holder_address, tx_hash, signed_tx, chain_str, obsolete_predec
     :returns: transaction hash
     :rtype: str, 0x-hash
     """
-    session = SessionBase.create_session()
+    #session = SessionBase.create_session()
+    #sqlalchemy.exc.TimeoutError
+    session = SessionBase.bind_session()
     lock = Lock.check_aggregate(chain_str, LockEnum.QUEUE, holder_address, session=session) 
     if lock > 0:
-        session.close()
+        SessionBase.release_session(session)
         raise LockedError(lock)
 
     o = Otx.add(
@@ -81,7 +83,9 @@ def create(nonce, holder_address, tx_hash, signed_tx, chain_str, obsolete_predec
             otx.cancel(confirmed=False, session=session)
 
     session.commit()
-    session.close()
+
+
+    SessionBase.release_session(session)
     logg.debug('queue created nonce {} from {} hash {}'.format(nonce, holder_address, tx_hash))
     return tx_hash
 
@@ -99,7 +103,8 @@ def set_sent_status(tx_hash, fail=False):
     :returns: True if tx is known, False otherwise
     :rtype: boolean
     """
-    session = SessionBase.create_session()
+    session = SessionBase.bind_session()
+
     o = session.query(Otx).filter(Otx.tx_hash==tx_hash).first()
     if o == None:
         logg.warning('not local tx, skipping {}'.format(tx_hash))
@@ -112,7 +117,8 @@ def set_sent_status(tx_hash, fail=False):
         o.sent(session=session)
 
     session.commit()
-    session.close()
+
+    SessionBase.release_session(session)
 
     return tx_hash
 
@@ -129,7 +135,8 @@ def set_final_status(tx_hash, block=None, fail=False):
     :type fail: boolean
     :raises NotLocalTxError: If transaction not found in queue.
     """
-    session = SessionBase.create_session()
+    session = SessionBase.bind_session()
+
     q = session.query(
             Otx.nonce.label('nonce'),
             TxCache.sender.label('sender'),
@@ -140,7 +147,7 @@ def set_final_status(tx_hash, block=None, fail=False):
     o = q.first()
 
     if o == None:
-        session.close()
+        SessionBase.release_session(session)
         raise NotLocalTxError('queue does not contain tx hash {}'.format(tx_hash))
 
     session.flush()
@@ -168,7 +175,8 @@ def set_final_status(tx_hash, block=None, fail=False):
         otwo.cancel(True, session=session)
 
     session.commit()
-    session.close()
+
+    SessionBase.release_session(session)
 
     return tx_hash
 
@@ -187,9 +195,10 @@ def set_cancel(tx_hash, manual=False):
     """
 
     session = SessionBase.create_session()
+
     o = session.query(Otx).filter(Otx.tx_hash==tx_hash).first()
     if o == None:
-        session.close()
+        session.release_session(session)
         raise NotLocalTxError('queue does not contain tx hash {}'.format(tx_hash))
 
     session.flush()
@@ -200,7 +209,8 @@ def set_cancel(tx_hash, manual=False):
         o.cancel(session=session)
 
     session.commit()
-    session.close()
+
+    session.release_session(session)
 
     return tx_hash
 
@@ -216,17 +226,19 @@ def set_rejected(tx_hash):
     :raises NotLocalTxError: If transaction not found in queue.
     """
 
-    session = SessionBase.create_session()
+    session = SessionBase.bind_session()
+
     o = session.query(Otx).filter(Otx.tx_hash==tx_hash).first()
     if o == None:
-        session.close()
+        SessionBase.release_session(session)
         raise NotLocalTxError('queue does not contain tx hash {}'.format(tx_hash))
 
     session.flush()
 
     o.reject(session=session)
     session.commit()
-    session.close()
+    
+    SessionBase.release_session(session)
 
     return tx_hash
 
@@ -242,17 +254,19 @@ def set_fubar(tx_hash):
     :raises NotLocalTxError: If transaction not found in queue.
     """
 
-    session = SessionBase.create_session()
+    session = SessionBase.bind_session()
+
     o = session.query(Otx).filter(Otx.tx_hash==tx_hash).first()
     if o == None:
-        session.close()
+        SessionBase.release_session(session)
         raise NotLocalTxError('queue does not contain tx hash {}'.format(tx_hash))
 
     session.flush()
 
     o.fubar(session=session)
     session.commit()
-    session.close()
+
+    SessionBase.release_session(session)
 
     return tx_hash
 
@@ -268,17 +282,19 @@ def set_manual(tx_hash):
     :raises NotLocalTxError: If transaction not found in queue.
     """
 
-    session = SessionBase.create_session()
+    session = SessionBase.bind_session()
+
     o = session.query(Otx).filter(Otx.tx_hash==tx_hash).first()
     if o == None:
-        session.close()
+        SessionBase.release_session(session)
         raise NotLocalTxError('queue does not contain tx hash {}'.format(tx_hash))
 
     session.flush()
 
     o.manual(session=session)
     session.commit()
-    session.close()
+
+    SessionBase.release_session(session)
 
     return tx_hash
 
@@ -291,11 +307,13 @@ def set_ready(tx_hash):
     :type tx_hash: str, 0x-hex
     :raises NotLocalTxError: If transaction not found in queue.
     """
-    session = SessionBase.create_session()
+    session = SessionBase.bind_session()
+
     o = session.query(Otx).filter(Otx.tx_hash==tx_hash).first()
     if o == None:
-        session.close()
+        SessionBase.release_session(session)
         raise NotLocalTxError('queue does not contain tx hash {}'.format(tx_hash))
+
     session.flush()
 
     if o.status & StatusBits.GAS_ISSUES or o.status == StatusEnum.PENDING:
@@ -304,7 +322,8 @@ def set_ready(tx_hash):
         o.retry(session=session)
 
     session.commit()
-    session.close()
+
+    SessionBase.release_session(session)
 
     return tx_hash
 
@@ -319,18 +338,19 @@ def set_waitforgas(tx_hash):
     :type tx_hash: str, 0x-hex
     :raises NotLocalTxError: If transaction not found in queue.
     """
+    session = SessionBase.bind_session()
 
-    session = SessionBase.create_session()
     o = session.query(Otx).filter(Otx.tx_hash==tx_hash).first()
     if o == None:
-        session.close()
+        SessionBase.release_session(session)
         raise NotLocalTxError('queue does not contain tx hash {}'.format(tx_hash))
 
     session.flush()
 
     o.waitforgas(session=session)
     session.commit()
-    session.close()
+    
+    SessionBase.release_session(session)
 
     return tx_hash
 
@@ -340,16 +360,17 @@ def get_state_log(tx_hash):
 
     logs = []
     
-    session = SessionBase.create_session()
+    session = SessionBase.bind_session()
 
     q = session.query(OtxStateLog)
     q = q.join(Otx)
     q = q.filter(Otx.tx_hash==tx_hash)
     q = q.order_by(OtxStateLog.date.asc())
+
     for l in q.all():
         logs.append((l.date, l.status,))
 
-    session.close()
+    SessionBase.release_session(session)
 
     return logs
 
@@ -364,13 +385,14 @@ def get_tx_cache(tx_hash):
     :returns: Transaction data
     :rtype: dict
     """
-    session = SessionBase.create_session()
+    session = SessionBase.bind_session()
+
     q = session.query(Otx)
     q = q.filter(Otx.tx_hash==tx_hash)
     otx = q.first()
 
     if otx == None:
-        session.close()
+        SessionBase.release_session(session)
         raise NotLocalTxError(tx_hash)
 
     session.flush()
@@ -379,7 +401,7 @@ def get_tx_cache(tx_hash):
     q = q.filter(TxCache.otx_id==otx.id)
     txc = q.first()
 
-    session.close()
+    SessionBase.release_session(session)
 
     tx = {
         'tx_hash': otx.tx_hash,
@@ -414,7 +436,8 @@ def get_lock(address=None):
     :returns: List of locks
     :rtype: list of dicts
     """
-    session = SessionBase.create_session()
+    session = SessionBase.bind_session()
+
     q = session.query(
             Lock.date_created,
             Lock.address,
@@ -436,7 +459,8 @@ def get_lock(address=None):
             'flags': lock[2],
             }
         locks.append(o)
-    session.close()
+
+    SessionBase.release_session(session)
 
     return locks
 
@@ -451,8 +475,14 @@ def get_tx(tx_hash):
     :returns: nonce, address and signed_tx (raw signed transaction)
     :rtype: dict
     """
-    session = SessionBase.create_session()
-    tx = session.query(Otx).filter(Otx.tx_hash==tx_hash).first()
+    session = SessionBase.bind_session()
+
+    q = session.query(Otx)
+    q = q.filter(Otx.tx_hash==tx_hash)
+    tx = q.first()
+
+    SessionBase.release_session(session)
+
     if tx == None:
         raise NotLocalTxError('queue does not contain tx hash {}'.format(tx_hash))
 
@@ -463,7 +493,7 @@ def get_tx(tx_hash):
         'status': tx.status,
             }
     logg.debug('get tx {}'.format(o))
-    session.close()
+
     return o
 
 
@@ -478,7 +508,8 @@ def get_nonce_tx(nonce, sender, chain_id):
     :returns: Transactions
     :rtype: dict, with transaction hash as key, signed raw transaction as value
     """
-    session = SessionBase.create_session()
+    session = SessionBase.bind_session()
+    
     q = session.query(Otx)
     q = q.join(TxCache)
     q = q.filter(TxCache.sender==sender)
@@ -491,7 +522,7 @@ def get_nonce_tx(nonce, sender, chain_id):
         if sender == None or tx['from'] == sender:
             txs[r.tx_hash] = r.signed_tx
 
-    session.close()
+    SessionBase.release_session(session)
 
     return txs
 
@@ -511,12 +542,14 @@ def get_paused_txs(status=None, sender=None, chain_id=0):
     :returns: Transactions
     :rtype: dict, with transaction hash as key, signed raw transaction as value
     """
-    session = SessionBase.create_session()
+    session = SessionBase.bind_session()
+
     q = session.query(Otx)
 
     if status != None:
         #if status == StatusEnum.PENDING or status >= StatusEnum.SENT:
         if status == StatusEnum.PENDING or status & StatusBits.IN_NETWORK or not is_alive(status):
+            SessionBase.release_session(session)
             raise ValueError('not a valid paused tx value: {}'.format(status))
         q = q.filter(Otx.status.op('&')(status.value)==status.value)
         q = q.join(TxCache)
@@ -536,7 +569,7 @@ def get_paused_txs(status=None, sender=None, chain_id=0):
             #gas += tx['gas'] * tx['gasPrice']
             txs[r.tx_hash] = r.signed_tx
 
-    session.close()
+    SessionBase.release_session(session)
 
     return txs
 
@@ -554,7 +587,9 @@ def get_status_tx(status, before=None, exact=False, limit=0):
     :rtype: list of cic_eth.db.models.otx.Otx
     """
     txs = {}
-    session = SessionBase.create_session()
+
+    session = SessionBase.bind_session()
+    
     q = session.query(Otx)
     q = q.join(TxCache)
     q = q.filter(TxCache.date_updated<before)
@@ -568,7 +603,9 @@ def get_status_tx(status, before=None, exact=False, limit=0):
             break
         txs[o.tx_hash] = o.signed_tx
         i += 1
-    session.close()
+
+    SessionBase.release_session(session)
+    
     return txs
 
 
@@ -592,7 +629,8 @@ def get_upcoming_tx(status=StatusEnum.READYSEND, recipient=None, before=None, ch
     :returns: Transactions
     :rtype: dict, with transaction hash as key, signed raw transaction as value
     """
-    session = SessionBase.create_session()
+    session = SessionBase.bind_session()
+    
     q_outer = session.query(
             TxCache.sender,
             func.min(Otx.nonce).label('nonce'),
@@ -602,6 +640,7 @@ def get_upcoming_tx(status=StatusEnum.READYSEND, recipient=None, before=None, ch
     q_outer = q_outer.filter(or_(Lock.flags==None, Lock.flags.op('&')(LockEnum.SEND.value)==0))
 
     if not is_alive(status):
+        SessionBase.release_session(session)
         raise ValueError('not a valid non-final tx value: {}'.format(status))
     if status == StatusEnum.PENDING:
         q_outer = q_outer.filter(Otx.status==status.value)
@@ -643,7 +682,7 @@ def get_upcoming_tx(status=StatusEnum.READYSEND, recipient=None, before=None, ch
         session.add(o)
         session.commit()
 
-    session.close()
+    SessionBase.release_session(session)
 
     return txs
 
@@ -669,7 +708,8 @@ def get_account_tx(address, as_sender=True, as_recipient=True, counterpart=None)
 
     txs = {}
 
-    session = SessionBase.create_session()
+    session = SessionBase.bind_session()
+    
     q = session.query(Otx)
     q = q.join(TxCache)
     if as_sender and as_recipient:
@@ -686,7 +726,8 @@ def get_account_tx(address, as_sender=True, as_recipient=True, counterpart=None)
             logg.debug('tx {} already recorded'.format(r.tx_hash))
             continue
         txs[r.tx_hash] = r.signed_tx
-    session.close()
+
+    SessionBase.release_session(session)
 
     return txs
 

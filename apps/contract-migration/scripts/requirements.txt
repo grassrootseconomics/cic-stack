@@ -1,5 +1,4 @@
 psycopg2==2.8.6
-cic-types==0.1.0a7
 chainlib~=0.0.1a15
 chainsyncer==0.0.1a7
 cic-eth==0.10.0a27
@@ -8,3 +7,4 @@ celery==4.4.7
 redis==3.5.3
 hexathon==0.0.1a3
 faker==4.17.1
+cic-types==cic_types-0.1.0a7+build.1c254367
