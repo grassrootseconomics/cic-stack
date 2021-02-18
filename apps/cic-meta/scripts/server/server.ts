@@ -199,9 +199,10 @@ async function processRequest(req, res) {
 			return;
 		}
 
+		const responseContentLength = (new TextEncoder().encode(content)).length;
 		res.writeHead(200, {
 			"Content-Type": contentType,
-			"Content-Length": content.length,
+			"Content-Length": responseContentLength,
 		});
 		res.write(content);
 		res.end();

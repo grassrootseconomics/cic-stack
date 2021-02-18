@@ -9,8 +9,9 @@ import re
 import hashlib
 import csv
 import json
+from urllib.request import urlopen
 
-# third-party impotts
+# external impotts
 import celery
 import eth_abi
 import confini
@@ -39,7 +40,10 @@ from chainlib.eth.error import EthException
 from crypto_dev_signer.eth.signer import ReferenceSigner as EIP155Signer
 from crypto_dev_signer.keystore import DictKeystore
 from cic_eth.api.api_admin import AdminApi
-from cic_types.models.person import Person
+from cic_types.models.person import (
+        Person,
+        generate_metadata_pointer,
+        )
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -49,7 +53,9 @@ config_dir = '/usr/local/etc/cic-syncer'
 argparser = argparse.ArgumentParser(description='daemon that monitors transactions in new blocks')
 argparser.add_argument('-p', '--provider', dest='p', type=str, help='chain rpc provider address')
 argparser.add_argument('-c', type=str, default=config_dir, help='config root to use')
+argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='oldchain:1', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
+argparser.add_argument('--meta-provider', type=str, dest='meta_provider', default='http://localhost:63380', help='cic-meta url')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-v', help='be verbose', action='store_true')
@@ -79,14 +85,17 @@ logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
 
 celery_app = celery.Celery(backend=config.get('CELERY_RESULT_URL'),  broker=config.get('CELERY_BROKER_URL'))
 
-chain_str = config.get('CIC_CHAIN_SPEC')
-chain_spec = ChainSpec.from_chain_str(chain_str)
+chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
+chain_str = str(chain_spec)
+old_chain_spec = ChainSpec.from_chain_str(args.old_chain_spec)
+old_chain_str = str(old_chain_spec)
 user_dir = args.user_dir # user_out_dir from import_users.py
+meta_url = args.meta_provider
 
 
 class Verifier:
 
-    def __init__(self, conn, cic_eth_api, gas_oracle, chain_spec, index_address, token_address):
+    def __init__(self, conn, cic_eth_api, gas_oracle, chain_spec, index_address, token_address, data_dir):
         self.conn = conn
         self.gas_oracle = gas_oracle
         self.chain_spec = chain_spec
@@ -95,6 +104,7 @@ class Verifier:
         self.erc20_tx_factory = ERC20TxFactory(chain_id=chain_spec.chain_id(), gas_oracle=gas_oracle)
         self.tx_factory = TxFactory(chain_id=chain_spec.chain_id(), gas_oracle=gas_oracle)
         self.api = cic_eth_api
+        self.data_dir = data_dir
 
 
     def verify_accounts_index(self, address):
@@ -129,12 +139,37 @@ class Verifier:
             raise ValueError(address, r)
 
 
+    def verify_metadata(self, address):
+        k = generate_metadata_pointer(bytes.fromhex(strip_0x(address)), ':cic.person')
+        url = os.path.join(meta_url, k)
+        logg.debug('verify metadata url {}'.format(url))
+        res = urlopen(url)
+        b = res.read()
+        o_retrieved = json.loads(b.decode('utf-8'))
+
+        upper_address = strip_0x(address).upper()
+        f = open(os.path.join(
+            self.data_dir,
+            'new',
+            upper_address[:2],
+            upper_address[2:4],
+            upper_address + '.json',
+            ), 'r'
+            )
+        o_original = json.load(f)
+        f.close()
+
+        if o_original != o_retrieved:
+            raise ValueError(o_retrieved)
+
+
     def verify(self, address, balance):
         logg.debug('verify {} {}'.format(address, balance))
     
         self.verify_local_key(address)
         self.verify_accounts_index(address)
         self.verify_balance(address, balance)
+        self.verify_metadata(address)
 
 
 class MockClient:
@@ -195,22 +230,6 @@ def main():
     sarafu_token_address = to_checksum(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     logg.info('found token address {}'.format(sarafu_token_address))
 
-#    addresses = {}
-#    f = open('{}/addresses.csv'.format(user_dir, 'r'))
-#    while True:
-#        l = f.readline()
-#        if l == None:
-#            break
-#        r = l.split(',')
-#        try:
-#            k = r[0]
-#            v = r[1].rstrip()
-#            addresses[k] = v
-#            sys.stdout.write('loading address mapping {} -> {}'.format(k, v).ljust(200) + "\r")
-#        except IndexError as e:
-#            break
-#    f.close()
-
     balances = {}
     f = open('{}/balances.csv'.format(user_dir, 'r'))
     remove_zeros = 10**12
@@ -233,7 +252,7 @@ def main():
 
     api = AdminApi(MockClient())
 
-    verifier = Verifier(conn, api, gas_oracle, chain_spec, account_index_address, sarafu_token_address)
+    verifier = Verifier(conn, api, gas_oracle, chain_spec, account_index_address, sarafu_token_address, user_dir)
 
     user_new_dir = os.path.join(user_dir, 'new')
     for x in os.walk(user_new_dir):
@@ -252,7 +271,7 @@ def main():
             u = Person(o)
 
             new_address = u.identities['evm'][chain_str][0]
-            old_address = u.identities['evm']['xdai:1'][0]
+            old_address = u.identities['evm'][old_chain_str][0]
             balance = balances[old_address]
             logg.debug('checking {} -> {} = {}'.format(old_address, new_address, balance))
 
