@@ -118,7 +118,7 @@ declarator = CICRegistry.get_contract(chain_spec, 'AddressDeclarator', interface
 
 
 dsn = dsn_from_config(config)
-SessionBase.connect(dsn)
+SessionBase.connect(dsn, pool_size=1, debug=config.true('DATABASE_DEBUG'))
 
 
 def main():

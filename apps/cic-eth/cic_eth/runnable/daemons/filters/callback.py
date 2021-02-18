@@ -37,7 +37,7 @@ class CallbackFilter(SyncFilter):
                 transfer_type,
                 int(rcpt.status == 0),
             ],
-            queue=tc.queue,
+            queue=self.queue,
             )
 #        s_translate = celery.signature(
 #            'cic_eth.ext.address.translate',

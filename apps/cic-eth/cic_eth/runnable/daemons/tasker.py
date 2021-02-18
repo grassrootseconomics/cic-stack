@@ -78,7 +78,7 @@ logg.debug('config loaded from {}:\n{}'.format(args.c, config))
 
 # connect to database
 dsn = dsn_from_config(config)
-SessionBase.connect(dsn)
+SessionBase.connect(dsn, pool)
 
 # verify database connection with minimal sanity query
 session = SessionBase.create_session()
@@ -179,7 +179,6 @@ def web3ext_constructor():
     return (blockchain_provider, w3)
 RpcClient.set_constructor(web3ext_constructor) 
 
-logg.info('ccc {}'.format(config.store['TASKS_TRACE_QUEUE_STATUS']))
 Otx.tracing = config.true('TASKS_TRACE_QUEUE_STATUS')
 
 

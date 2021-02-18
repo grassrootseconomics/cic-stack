@@ -6,6 +6,11 @@ from sqlalchemy import Column, Integer
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import (
+        StaticPool,
+        QueuePool,
+        AssertionPool,
+        )
 
 logg = logging.getLogger()
 
@@ -49,7 +54,7 @@ class SessionBase(Model):
 
 
     @staticmethod
-    def connect(dsn, debug=False):
+    def connect(dsn, pool_size=8, debug=False):
         """Create new database connection engine and connect to database backend.
 
         :param dsn: DSN string defining connection.
@@ -57,14 +62,28 @@ class SessionBase(Model):
         """
         e = None
         if SessionBase.poolable:
-            e = create_engine(
-                    dsn,
-                    max_overflow=50,
-                    pool_pre_ping=True,
-                    pool_size=20,
-                    pool_recycle=10,
-                    echo=debug,
-                )
+            poolclass = QueuePool
+            if pool_size > 1:
+                e = create_engine(
+                        dsn,
+                        max_overflow=pool_size*3,
+                        pool_pre_ping=True,
+                        pool_size=pool_size,
+                        pool_recycle=60,
+                        poolclass=poolclass,
+                        echo=debug,
+                    )
+            else:
+                if debug:
+                    poolclass = AssertionPool
+                else:
+                    poolclass = StaticPool
+
+                e = create_engine(
+                        dsn,
+                        poolclass=poolclass,
+                        echo=debug,
+                    )
         else:
             e = create_engine(
                     dsn,

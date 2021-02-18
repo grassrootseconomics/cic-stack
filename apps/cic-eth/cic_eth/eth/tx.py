@@ -78,7 +78,6 @@ def check_gas(self, tx_hashes, chain_str, txs=[], address=None, gas_required=Non
 
     # TODO: it should not be necessary to pass address explicitly, if not passed should be derived from the tx
     balance = c.w3.eth.getBalance(address) 
-    logg.debug('check gas txs {}'.format(tx_hashes))
     logg.debug('address {} has gas {} needs {}'.format(address, balance, gas_required))
 
     if gas_required > balance:
@@ -126,7 +125,6 @@ def check_gas(self, tx_hashes, chain_str, txs=[], address=None, gas_required=Non
             queue=queue,
             )
         ready_tasks.append(s)
-    logg.debug('tasks {}'.format(ready_tasks))
     celery.group(ready_tasks)()
 
     return txs
@@ -143,7 +141,6 @@ def hashes_to_txs(self, tx_hashes):
     :returns: Signed raw transactions
     :rtype: list of str, 0x-hex
     """
-    #logg = celery_app.log.get_default_logger()
     if len(tx_hashes) == 0:
         raise ValueError('no transaction to send')
 
@@ -351,15 +348,12 @@ def send(self, txs, chain_str):
     tx_hash_hex = tx_hash.hex()
 
     queue = self.request.delivery_info.get('routing_key', None)
-    if queue == None:
-        logg.debug('send tx {} has no queue', tx_hash)
 
     c = RpcClient(chain_spec)
     r = None
     try:
         r = c.w3.eth.send_raw_transaction(tx_hex)
     except Exception as e:
-        logg.debug('e {}'.format(e))
         raiser = ParityNodeHandler(chain_spec, queue)
         (t, e, m) = raiser.handle(e, tx_hash_hex, tx_hex)
         raise e(m)
@@ -423,7 +417,7 @@ def refill_gas(self, recipient_address, chain_str):
     gas_price = c.gas_price()
     gas_limit = c.default_gas_limit
     refill_amount = c.refill_amount()
-    logg.debug('gas price {} nonce {}'.format(gas_price, nonce))
+    logg.debug('tx send gas price {} nonce {}'.format(gas_price, nonce))
 
     # create and sign transaction
     tx_send_gas = {
@@ -436,7 +430,6 @@ def refill_gas(self, recipient_address, chain_str):
                 'value': refill_amount,
                 'data': '',
             }
-    logg.debug('txsend_gas {}'.format(tx_send_gas))
     tx_send_gas_signed = c.w3.eth.sign_transaction(tx_send_gas)
     tx_hash = web3.Web3.keccak(hexstr=tx_send_gas_signed['raw'])
     tx_hash_hex = tx_hash.hex()
@@ -487,11 +480,14 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_str, gas=None, default_fa
     :rtype: str, 0x-hex
     """
     session = SessionBase.create_session()
-    otx = session.query(Otx).filter(Otx.tx_hash==txold_hash_hex).first()
-    if otx == None:
-        session.close()
-        raise NotLocalTxError(txold_hash_hex)
+
+    
+    q = session.query(Otx)
+    q = q.filter(Otx.tx_hash==txold_hash_hex)
+    otx = q.first()
     session.close()
+    if otx == None:
+        raise NotLocalTxError(txold_hash_hex)
 
     chain_spec = ChainSpec.from_chain_str(chain_str)
     c = RpcClient(chain_spec)
@@ -508,7 +504,7 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_str, gas=None, default_fa
     else:
         gas_price = c.gas_price()
         if tx['gasPrice'] > gas_price:
-            logg.warning('Network gas price {} is lower than overdue tx gas price {}'.format(gas_price, tx['gasPrice']))
+            logg.info('Network gas price {} is lower than overdue tx gas price {}'.format(gas_price, tx['gasPrice']))
             #tx['gasPrice'] = int(tx['gasPrice'] * default_factor)
             tx['gasPrice'] += 1
         else:
@@ -518,9 +514,6 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_str, gas=None, default_fa
             else:
                 tx['gasPrice'] = new_gas_price
 
-    logg.debug('after {}'.format(tx))
-
-    #(tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx, chain_str, queue)
     (tx_hash_hex, tx_signed_raw_hex) = sign_tx(tx, chain_str)
     queue_create(
         tx['nonce'],
@@ -540,6 +533,7 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_str, gas=None, default_fa
             queue=queue,
             )
     s.apply_async()
+
     return tx_hash_hex
 
 
@@ -602,7 +596,9 @@ def resume_tx(self, txpending_hash_hex, chain_str):
     chain_spec = ChainSpec.from_chain_str(chain_str)
 
     session = SessionBase.create_session()
-    r = session.query(Otx.signed_tx).filter(Otx.tx_hash==txpending_hash_hex).first()
+    q = session.query(Otx.signed_tx)
+    q = q.filter(Otx.tx_hash==txpending_hash_hex)
+    r = q.first()
     session.close()
     if r == None:
         raise NotLocalTxError(txpending_hash_hex)

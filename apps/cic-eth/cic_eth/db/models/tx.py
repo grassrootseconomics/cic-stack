@@ -85,18 +85,18 @@ class TxCache(SessionBase):
         :param tx_hash_new: tx hash to associate the copied entry with
         :type tx_hash_new: str, 0x-hex
         """
-        localsession = session
-        if localsession == None:
-            localsession = SessionBase.create_session()
-
+        localsession = SessionBase.bind_session(session)
+        
         q = localsession.query(TxCache)
         q = q.join(Otx)
         q = q.filter(Otx.tx_hash==tx_hash_original)
         txc = q.first()
 
         if txc == None:
+            SessionBase.release_session(localsession)
             raise NotLocalTxError('original {}'.format(tx_hash_original))
         if txc.block_number != None:
+            SessionBase.release_session(localsession)
             raise TxStateChangeError('cannot clone tx cache of confirmed tx {}'.format(tx_hash_original))
 
         q = localsession.query(Otx)
@@ -104,6 +104,7 @@ class TxCache(SessionBase):
         otx = q.first()
 
         if otx == None:
+            SessionBase.release_session(localsession)
             raise NotLocalTxError('new {}'.format(tx_hash_new))
 
         txc_new = TxCache(
@@ -118,15 +119,14 @@ class TxCache(SessionBase):
         localsession.add(txc_new)
         localsession.commit()
 
-        if session == None:
-            localsession.close()
+        SessionBase.release_session(localsession)
 
 
-    def __init__(self, tx_hash, sender, recipient, source_token_address, destination_token_address, from_value, to_value, block_number=None, tx_index=None):
-        session = SessionBase.create_session()
-        tx = session.query(Otx).filter(Otx.tx_hash==tx_hash).first()
+    def __init__(self, tx_hash, sender, recipient, source_token_address, destination_token_address, from_value, to_value, block_number=None, tx_index=None, session=None):
+        localsession = SessionBase.bind_session(session)
+        tx = localsession.query(Otx).filter(Otx.tx_hash==tx_hash).first()
         if tx == None:
-            session.close()
+            SessionBase.release_session(localsession)
             raise FileNotFoundError('outgoing transaction record unknown {} (add a Tx first)'.format(tx_hash))
         self.otx_id = tx.id
 
@@ -143,4 +143,5 @@ class TxCache(SessionBase):
         self.date_updated = self.date_created
         self.date_checked = self.date_created
 
+        SessionBase.release_session(localsession)
 
