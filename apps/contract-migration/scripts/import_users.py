@@ -129,9 +129,11 @@ if __name__ == '__main__':
                 logg.error('load error for {}: {}'.format(y, e))
                 continue
             f.close()
-            u = Person(o)
+            u = Person.deserialize(o)
 
             new_address = register_eth(i, u)
+            if u.identities.get('evm') == None:
+                u.identities['evm'] = {}
             u.identities['evm'][chain_str] = [new_address]
 
             register_ussd(u)

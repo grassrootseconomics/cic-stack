@@ -142,7 +142,7 @@ class Handler:
             except FileNotFoundError:
                 logg.error('no import record of address {}'.format(recipient))
                 return
-            u = Person(o)
+            u = Person.deserialize(o)
             original_address = u.identities['evm'][old_chain_spec_str][0]
             balance = self.balances[original_address]
             logg.info('registered {} originally {} ({}) tx hash {} balance {}'.format(recipient, original_address, u, tx.hash, balance))

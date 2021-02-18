@@ -268,7 +268,9 @@ def main():
                 logg.error('load error for {}: {}'.format(y, e))
                 continue
             f.close()
-            u = Person(o)
+
+            u = Person.deserialize(o)
+            logg.debug('data {}'.format(u.identities['evm']))
 
             new_address = u.identities['evm'][chain_str][0]
             old_address = u.identities['evm'][old_chain_str][0]
