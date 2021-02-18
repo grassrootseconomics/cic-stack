@@ -1,7 +1,8 @@
 const fs = require('fs');
 const path = require('path');
-const cic = require('cic-client-meta');
 const http = require('http');
+
+const cic = require('cic-client-meta');
 
 //const conf = JSON.parse(fs.readFileSync('./cic.conf'));
 
@@ -9,25 +10,8 @@ const config = new cic.Config('./config');
 config.process();
 console.log(config);
 
-// Stolen from https://coderrocketfuel.com/article/recursively-list-all-the-files-in-a-directory-using-node-js
-// Thanks!
-const getAllFiles = function(dirPath, arrayOfFiles) {
-  files = fs.readdirSync(dirPath)
 
-  arrayOfFiles = arrayOfFiles || []
-
-  files.forEach(function(file) {
-        if (fs.statSync(dirPath + "/" + file).isDirectory()) {
-      arrayOfFiles = getAllFiles(dirPath + "/" + file, arrayOfFiles)
-    } else if (file.substr(-5) == '.json') {
-      arrayOfFiles.push(path.join(dirPath, "/", file))
-    }
-  })
-
-  return arrayOfFiles
-}
-
-async function sendit(uid, envelope) {
+function sendit(uid, envelope) {
 	const d = envelope.toJSON();
 
 	const opts = {
@@ -41,27 +25,27 @@ async function sendit(uid, envelope) {
 	};
 	let url = config.get('META_URL');
 	url = url.replace(new RegExp('^(.+://[^/]+)/*$'), '$1/');
-	console.debug('url: ' + url);
+	console.debug('url: ' + url + uid);
 	const req = http.request(url + uid, opts, (res) => {
 		res.on('data', process.stdout.write);
 		res.on('end', () => {
 			console.log('result', res.statusCode, res.headers);
 		});
 	});
-
 	req.write(d);
 	req.end();
 }
 
-function doit(keystore) {
-	getAllFiles(process.argv[2]).forEach((filename) => {
-		const signer = new cic.PGPSigner(keystore);
-		const parts = filename.split('.');
-		const uid = path.basename(parts[0]);
-		
-		const d = fs.readFileSync(filename, 'utf-8');
+function doOne(keystore, filePath) {
+	const signer = new cic.PGPSigner(keystore);
+	const parts = path.basename(filePath).split('.');
+	const ethereum_address = path.basename(parts[0]);
+
+	cic.User.toKey('0x' + ethereum_address).then((uid) => {
+		const d = fs.readFileSync(filePath, 'utf-8');
 		const o = JSON.parse(d);
 		console.log(o);
+		fs.unlinkSync(filePath);
 
 		const s = new cic.Syncable(uid, o);
 		s.setSigner(signer);
@@ -83,6 +67,51 @@ new cic.PGPKeyStore(
 	pubk,
 	undefined,
 	undefined,
-	doit,
+	importMeta,
 );
 
+const batchSize = 4;
+const batchDelay = 1000;
+const total = parseInt(process.argv[3]);
+const workDir = path.join(process.argv[2], 'meta');
+let count = 0;
+let batchCount = 0;
+
+
+function importMeta(keystore) {
+	let err;
+	let files;
+
+	try {
+		err, files = fs.readdirSync(workDir);
+	} catch {
+		console.error('source directory not yet ready', workDir);
+		setTimeout(importMeta, batchDelay, keystore);
+		return;
+	}
+	let limit = batchSize;
+	if (files.length < limit) {
+		limit = files.length;
+	}
+	for (let i = 0; i < limit; i++) {
+		const file = files[i];
+		if (file.substr(-5) != '.json') {
+			console.debug('skipping file', file);	
+		}
+		const filePath = path.join(workDir, file);
+		console.log('file', count, filePath);
+		doOne(keystore, filePath);
+		count++;
+		batchCount++;
+		if (batchCount == batchSize) {
+			console.debug('reached batch size, breathing');
+			batchCount=0;
+			setTimeout(importMeta, batchDelay, keystore);
+			return;
+		}
+	}
+	if (count == total) {
+		return;
+	}
+	setTimeout(importMeta, 100, keystore);
+}

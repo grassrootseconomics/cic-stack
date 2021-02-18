@@ -21,6 +21,7 @@ from chainlib.eth.address import to_checksum
 from cic_types.models.person import Person
 from cic_eth.api.api_task import Api
 from cic_registry.chain import ChainSpec
+from cic_types.processor import generate_metadata_pointer
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -68,8 +69,14 @@ r = redis.Redis(redis_host, redis_port, redis_db)
 
 ps = r.pubsub()
 
-user_dir = args.user_dir
-os.makedirs(os.path.join(user_dir, 'new'))
+user_new_dir = os.path.join(args.user_dir, 'new')
+os.makedirs(user_new_dir)
+
+meta_dir = os.path.join(args.user_dir, 'meta')
+os.makedirs(meta_dir)
+
+user_old_dir = os.path.join(args.user_dir, 'old')
+os.stat(user_old_dir)
 
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 chain_str = str(chain_spec)
@@ -109,8 +116,6 @@ if __name__ == '__main__':
 
     i = 0
     j = 0
-    user_new_dir = os.path.join(user_dir, 'new')
-    user_old_dir = os.path.join(user_dir, 'old')
     for x in os.walk(user_old_dir):
         for y in x[2]:
             if y[len(y)-5:] != '.json':
@@ -147,6 +152,9 @@ if __name__ == '__main__':
 
             #old_address = to_checksum(add_0x(y[:len(y)-5]))
             #fi.write('{},{}\n'.format(new_address, old_address))
+            meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), 'cic.person')
+            meta_filepath = os.path.join(meta_dir, '{}.json'.format(new_address_clean.upper()))
+            os.symlink(filepath, meta_filepath)
 
             i += 1
             sys.stdout.write('imported {} {}'.format(i, u).ljust(200) + "\r")

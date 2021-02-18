@@ -236,7 +236,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_tasker.sh -q cic-eth -vv
+        ./start_tasker.sh -q cic-eth -v
     # command: [/bin/sh, "./start_tasker.sh", -q, cic-eth, -vv ]
 
   cic-eth-manager-head:
@@ -272,7 +272,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_manager.sh head -vv
+        ./start_manager.sh head -v
     # command: "/root/start_manager.sh head -vv"
 
   cic-eth-manager-history:
@@ -308,7 +308,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_manager.sh history -vv
+        ./start_manager.sh history -v
     # command: "/root/start_manager.sh history -vv"
 
   cic-eth-dispatcher:
@@ -346,7 +346,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_dispatcher.sh -q cic-eth -vv
+        ./start_dispatcher.sh -q cic-eth -v
     # command: "/root/start_dispatcher.sh -q cic-eth -vv"
 
 
@@ -384,7 +384,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_retry.sh -vv
+        ./start_retry.sh -v
     # command: "/root/start_retry.sh -q cic-eth -vv"
 
 

@@ -132,9 +132,14 @@ class Handler:
                     recipient[2:].upper(),
                     )
             filepath = os.path.join(self.user_dir, user_file)
-            f = open(filepath, 'r')
-            o = json.load(f)
-            f.close()
+            o = None
+            try:
+                f = open(filepath, 'r')
+                o = json.load(f)
+                f.close()
+            except FileNotFoundError:
+                logg.error('no import record of address {}'.format(recipient))
+                return
             u = Person(o)
             original_address = u.identities['evm']['xdai:1'][0]
             balance = self.balances[original_address]
@@ -152,7 +157,7 @@ class Handler:
 #        except EthException as e:
 #            logg.error('send error {}'.format(e).ljust(200))
         #except KeyError as e:
-        #    logg.error('key error {}'.format(e).ljust(200))
+        #    logg.error('key record not found in imports: {}'.format(e).ljust(200))
 
 
 class BlockGetter:

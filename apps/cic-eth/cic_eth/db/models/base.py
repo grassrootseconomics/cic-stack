@@ -49,7 +49,7 @@ class SessionBase(Model):
 
 
     @staticmethod
-    def connect(dsn, debug=False):
+    def connect(dsn, pool_size=5, debug=False):
         """Create new database connection engine and connect to database backend.
 
         :param dsn: DSN string defining connection.
@@ -59,9 +59,9 @@ class SessionBase(Model):
         if SessionBase.poolable:
             e = create_engine(
                     dsn,
-                    max_overflow=50,
+                    max_overflow=pool_size*3,
                     pool_pre_ping=True,
-                    pool_size=20,
+                    pool_size=pool_size,
                     pool_recycle=10,
                     echo=debug,
                 )
