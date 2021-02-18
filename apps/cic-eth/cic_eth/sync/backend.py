@@ -36,6 +36,7 @@ class SyncerBackend:
         if self.db_object == None:
             self.disconnect()
             raise ValueError('sync entry with id {} not found'.format(self.object_id))
+        return self.db_session
 
 
     def disconnect(self):

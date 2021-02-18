@@ -56,7 +56,8 @@ class MinedSyncer(Syncer):
             # TODO: ensure filter loop can complete on graceful shutdown
             for f in self.filter:
                 #try:
-                task_uuid = f(w3, tx, rcpt, self.chain(), self.db_session)
+                session = self.bc_cache.connect()
+                task_uuid = f(w3, tx, rcpt, self.chain(), session)
                 #except Exception as e:
                 #    logg.error('error in filter {} tx {}: {}'.format(f, tx_hash_hex, e))
                 #    continue
