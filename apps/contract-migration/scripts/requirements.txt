@@ -7,4 +7,4 @@ celery==4.4.7
 redis==3.5.3
 hexathon==0.0.1a3
 faker==4.17.1
-cic-types==cic_types-0.1.0a7+build.1c254367
+cic-types==0.1.0a7+build.1c254367
