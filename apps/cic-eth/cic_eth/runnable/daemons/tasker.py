@@ -228,7 +228,7 @@ def main():
     for address in trusted_addresses:
         logg.info('using trusted address {}'.format(address))
     oracle = DeclaratorOracleAdapter(declarator.contract, trusted_addresses)
-    chain_registry.add_oracle('naive_erc20_oracle', oracle)
+    chain_registry.add_oracle(oracle, 'naive_erc20_oracle')
 
 
     #chain_spec = CICRegistry.default_chain_spec

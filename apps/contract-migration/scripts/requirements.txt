@@ -1,6 +1,6 @@
 psycopg2==2.8.6
 chainlib~=0.0.1a15
-chainsyncer==0.0.1a8
+chainsyncer==0.0.1a9
 cic-eth==0.10.0a28
 cic-registry==0.5.3a19
 confini==0.3.6rc1
@@ -9,3 +9,4 @@ redis==3.5.3
 hexathon==0.0.1a3
 faker==4.17.1
 cic-types==0.1.0a7+build.1c254367
+eth-accounts-index==0.0.10a10
