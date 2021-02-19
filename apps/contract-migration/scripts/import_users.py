@@ -101,7 +101,8 @@ def register_eth(i, u):
     ps.get_message()
     m = ps.get_message(timeout=args.timeout)
     try:
-        address = json.loads(m['data'])
+        r = json.loads(m['data'])
+        address = r['result']
     except TypeError as e:
         if m == None:
             logg.critical('empty response from redis callback (did the service crash?)')
