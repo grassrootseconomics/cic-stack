@@ -106,7 +106,7 @@ RUN cd cic-bancor/python && \
 	pip install --extra-index-url $pip_extra_index_url .
 
 RUN echo installing common python tooling
-ARG cic_python_commit=beecee783ceac2ea0fa711f888ce4c82f1a81490
+ARG cic_python_commit=9bd1d5319aad8791ebf353707eabbb7b3e7ab5d0
 ARG cic_python_url=https://gitlab.com/grassrootseconomics/cic-python.git/
 RUN echo Install sum of python dependencies across all components && \
 	git clone --depth 1 $cic_python_url cic-python && \
@@ -123,7 +123,7 @@ RUN echo Install smart contract interface implementations, least frequently chan
 ARG giftable_erc20_token_version=0.0.7b11
 RUN pip install --extra-index-url $pip_extra_index_url giftable-erc20-token==$giftable_erc20_token_version 
 
-ARG eth_accounts_index_version=0.0.10a8
+ARG eth_accounts_index_version=0.0.10a9
 RUN pip install --extra-index-url $pip_extra_index_url eth-accounts-index==$eth_accounts_index_version
 
 #ARG erc20_approval_escrow_version=0.3.0a4
@@ -141,8 +141,8 @@ ARG eth_address_index_version=0.1.0a9
 RUN pip install --extra-index-url $pip_extra_index_url eth-address-index==$eth_address_index_version
 
 RUN echo Install cic specific python packages
-ARG cic_registry_version=0.5.3a19
-RUN pip install  --extra-index-url  $pip_extra_index_url  cic-registry==$cic_registry_version
+ARG cic_registry_version=0.5.3a10+build.ecc50917
+RUN pip install  --extra-index-url $pip_extra_index_url  cic-registry==$cic_registry_version
 
 RUN echo Install misc helpers
 
