@@ -2,7 +2,7 @@ web3==5.12.2
 celery==4.4.7
 crypto-dev-signer~=0.4.13rc2
 confini~=0.3.6b1
-cic-registry~=0.5.3a18
+cic-registry~=0.5.3a19
 cic-bancor~=0.0.6
 redis==3.5.3
 alembic==1.4.2

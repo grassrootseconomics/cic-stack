@@ -9,7 +9,7 @@ import re
 import hashlib
 import csv
 import json
-from urllib.request import urlopen
+import urllib
 
 # external impotts
 import celery
@@ -93,6 +93,18 @@ user_dir = args.user_dir # user_out_dir from import_users.py
 meta_url = args.meta_provider
 
 
+class VerifierError(Exception):
+
+    def __init__(self, e, c):
+        super(VerifierError, self).__init__(e)
+        self.c = c
+
+
+    def __str__(self):
+        super_error = super(VerifierError, self).__str__()
+        return '[{}] {}'.format(self.c, super_error)
+
+
 class Verifier:
 
     def __init__(self, conn, cic_eth_api, gas_oracle, chain_spec, index_address, token_address, data_dir):
@@ -120,7 +132,7 @@ class Verifier:
         logg.debug('index check for {}: {}'.format(address, r))
         n = eth_abi.decode_single('uint256', bytes.fromhex(strip_0x(r)))
         if n != 1:
-            raise ValueError(n)
+            raise VerifierError(n, 'accounts index')
 
 
     def verify_balance(self, address, balance):
@@ -129,21 +141,27 @@ class Verifier:
         actual_balance = int(strip_0x(r), 16)
         logg.debug('balance for {}: {}'.format(address, balance))
         if balance != actual_balance:
-            raise ValueError((actual_balance, balance))
+            raise VerifierError((actual_balance, balance), 'balance')
 
 
     def verify_local_key(self, address):
         r = self.api.have_account(address, str(self.chain_spec))
         logg.debug('verify local key result {}'.format(r))
         if r != address:
-            raise ValueError(address, r)
+            raise VerifierError((address, r), 'local key')
 
 
     def verify_metadata(self, address):
         k = generate_metadata_pointer(bytes.fromhex(strip_0x(address)), ':cic.person')
         url = os.path.join(meta_url, k)
         logg.debug('verify metadata url {}'.format(url))
-        res = urlopen(url)
+        try:
+            res = urllib.request.urlopen(url)
+        except urllib.error.HTTPError as e:
+            raise VerifierError(
+                    '({}) {}'.format(url, e),
+                    'metadata (person)',
+                    )
         b = res.read()
         o_retrieved = json.loads(b.decode('utf-8'))
 
@@ -160,16 +178,20 @@ class Verifier:
         f.close()
 
         if o_original != o_retrieved:
-            raise ValueError(o_retrieved)
+            raise VerifierError(o_retrieved, 'metadata (person)')
 
 
     def verify(self, address, balance):
         logg.debug('verify {} {}'.format(address, balance))
     
-        self.verify_local_key(address)
-        self.verify_accounts_index(address)
-        self.verify_balance(address, balance)
-        self.verify_metadata(address)
+        try:
+            self.verify_local_key(address)
+            self.verify_accounts_index(address)
+            self.verify_balance(address, balance)
+            self.verify_metadata(address)
+        except VerifierError as e:
+            logg.critical('verification failed: {}'.format(e))
+            sys.exit(1)
 
 
 class MockClient:

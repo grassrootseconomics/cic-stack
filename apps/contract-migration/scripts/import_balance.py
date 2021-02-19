@@ -51,6 +51,7 @@ argparser.add_argument('-c', type=str, default=config_dir, help='config root to 
 argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='oldchain:1', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
+argparser.add_argument('--token-symbol', default='SRF', type=str, dest='r', help='Token symbol to use for trnsactions')
 argparser.add_argument('--head', action='store_true', help='start at current block height (overrides --offset)')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
@@ -102,6 +103,8 @@ chain_spec = ChainSpec.from_chain_str('evm:' + chain_str)
 old_chain_spec_str = args.old_chain_spec
 
 user_dir = args.user_dir # user_out_dir from import_users.py
+
+token_symbol = args.token_symbol
 
 
 class Handler:
@@ -217,7 +220,7 @@ def main():
     tx = txf.template(signer_address, token_index_address)
     data = add_0x(registry_addressof_method)
     h = hashlib.new('sha256')
-    h.update(b'SRF')
+    h.update(token_symbol.encode('utf-8'))
     z = h.digest()
     data += eth_abi.encode_single('bytes32', z).hex()
     txf.set_code(tx, data)
@@ -226,10 +229,12 @@ def main():
     o['params'].append(txf.normalize(tx))
     o['params'].append('latest')
     r = conn.do(o)
-    print('r {}'.format(r))
-    sarafu_token_address = to_checksum(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
+    try:
+        sarafu_token_address = to_checksum(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
+    except ValueError as e:
+        logg.critical('lookup failed for token {}: {}'.format(token_symbol, e))
+        sys.exit(1)
     logg.info('found token address {}'.format(sarafu_token_address))
-
 
     syncer_backend = MemBackend(chain_str, 0)
 

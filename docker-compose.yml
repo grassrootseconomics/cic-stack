@@ -84,7 +84,7 @@ services:
       # And these two are for wait-for-it (could parse this)
       ETH_PROVIDER_HOST: eth 
       ETH_PROVIDER_PORT: 8545
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-Bloxberg:8996}
+      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_DATA_DIR: ${CIC_DATA_DIR:-/tmp/cic/config}
     command: ["./reset.sh"]
     depends_on:
@@ -102,7 +102,7 @@ services:
       # And these two are for wait-for-it (could parse this)
       ETH_PROVIDER_HOST: eth 
       ETH_PROVIDER_PORT: 8545
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-Bloxberg:8996}
+      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_DATA_DIR: ${CIC_DATA_DIR:-/tmp/cic/config}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
@@ -146,7 +146,7 @@ services:
       DATABASE_DEBUG: 1
       ETH_ABI_DIR: ${ETH_ABI_DIR:-/usr/local/share/cic/solidity/abi}
       CIC_TRUST_ADDRESS: ${DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER:-0xEb3907eCad74a0013c259D5874AE7f22DcBcC95C}
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-Bloxberg:8996}
+      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       CELERY_BROKER_URL: redis://redis:6379
       CELERY_RESULT_URL: redis://redis:6379
     deploy: 
@@ -214,7 +214,7 @@ services:
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
       PGPASSWORD: ${DATABASE_PASSWORD:-tralala}
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-Bloxberg:8996}
+      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       BANCOR_DIR: ${BANCOR_DIR:-/usr/local/share/cic/bancor}
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
@@ -254,7 +254,7 @@ services:
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       DATABASE_DEBUG: 1
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-Bloxberg:8996}
+      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
         #BANCOR_DIR: $BANCOR_DIR
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
@@ -291,7 +291,7 @@ services:
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-Bloxberg:8996}
+      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
         #BANCOR_DIR: $BANCOR_DIR
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
@@ -328,7 +328,7 @@ services:
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-Bloxberg:8996}
+      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
         #BANCOR_DIR: $BANCOR_DIR
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
@@ -368,7 +368,7 @@ services:
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-Bloxberg:8996}
+      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
         #BANCOR_DIR: $BANCOR_DIR
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
