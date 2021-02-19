@@ -18,14 +18,9 @@ logg = logging.getLogger()
 
 class GasFilter(SyncFilter):
 
-<<<<<<< HEAD
-    def __init__(self, queue, gas_provider):
-=======
     def __init__(self, gas_provider, queue=None):
         self.queue = queue
->>>>>>> origin/master
         self.gas_provider = gas_provider
-        self.queue = queue
 
 
     def filter(self, w3, tx, rcpt, chain_str, session=None):
@@ -45,13 +40,9 @@ class GasFilter(SyncFilter):
                 return
 
             chain_spec = ChainSpec.from_chain_str(chain_str)
-<<<<<<< HEAD
-            txs = get_paused_txs(StatusBits.GAS_ISSUES, r[0], chain_spec.chain_id())
-=======
             txs = get_paused_txs(StatusEnum.WAITFORGAS, r[0], chain_spec.chain_id(), session=session)
 
             SessionBase.release_session(session)
->>>>>>> origin/master
 
             if len(txs) > 0:
                 logg.info('resuming gas-in-waiting txs for {}: {}'.format(r[0], txs.keys()))
