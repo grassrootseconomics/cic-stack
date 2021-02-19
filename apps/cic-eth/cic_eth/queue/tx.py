@@ -35,8 +35,7 @@ celery_app = celery.current_app
 logg = logging.getLogger()
 
 
-@celery_app.task()
-def create(nonce, holder_address, tx_hash, signed_tx, chain_str, obsolete_predecessors=True):
+def create(nonce, holder_address, tx_hash, signed_tx, chain_str, obsolete_predecessors=True, session=None):
     """Create a new transaction queue record.
 
     :param nonce: Transaction nonce
@@ -52,10 +51,10 @@ def create(nonce, holder_address, tx_hash, signed_tx, chain_str, obsolete_predec
     :returns: transaction hash
     :rtype: str, 0x-hash
     """
-    session = SessionBase.create_session()
+    session = SessionBase.bind_session(session)
     lock = Lock.check_aggregate(chain_str, LockEnum.QUEUE, holder_address, session=session) 
     if lock > 0:
-        session.close()
+        SessionBase.release_session(session)
         raise LockedError(lock)
 
     o = Otx.add(
@@ -81,7 +80,7 @@ def create(nonce, holder_address, tx_hash, signed_tx, chain_str, obsolete_predec
             otx.cancel(confirmed=False, session=session)
 
     session.commit()
-    session.close()
+    SessionBase.release_session(session)
     logg.debug('queue created nonce {} from {} hash {}'.format(nonce, holder_address, tx_hash))
     return tx_hash
 
@@ -100,7 +99,9 @@ def set_sent_status(tx_hash, fail=False):
     :rtype: boolean
     """
     session = SessionBase.create_session()
-    o = session.query(Otx).filter(Otx.tx_hash==tx_hash).first()
+    q = session.query(Otx)
+    q = q.filter(Otx.tx_hash==tx_hash)
+    o = q.first()
     if o == None:
         logg.warning('not local tx, skipping {}'.format(tx_hash))
         session.close()
@@ -454,6 +455,7 @@ def get_tx(tx_hash):
     session = SessionBase.create_session()
     tx = session.query(Otx).filter(Otx.tx_hash==tx_hash).first()
     if tx == None:
+        session.close()
         raise NotLocalTxError('queue does not contain tx hash {}'.format(tx_hash))
 
     o = {
@@ -498,7 +500,7 @@ def get_nonce_tx(nonce, sender, chain_id):
 
 
 # TODO: pass chain spec instead of chain id
-def get_paused_txs(status=None, sender=None, chain_id=0):
+def get_paused_txs(status=None, sender=None, chain_id=0, session=None):
     """Returns not finalized transactions that have been attempted sent without success.
 
     :param status: If set, will return transactions with this local queue status only
@@ -511,12 +513,13 @@ def get_paused_txs(status=None, sender=None, chain_id=0):
     :returns: Transactions
     :rtype: dict, with transaction hash as key, signed raw transaction as value
     """
-    session = SessionBase.create_session()
+    session = SessionBase.bind_session(session)
     q = session.query(Otx)
 
     if status != None:
         #if status == StatusEnum.PENDING or status >= StatusEnum.SENT:
         if status == StatusEnum.PENDING or status & StatusBits.IN_NETWORK or not is_alive(status):
+            SessionBase.release_session(session)
             raise ValueError('not a valid paused tx value: {}'.format(status))
         q = q.filter(Otx.status.op('&')(status.value)==status.value)
         q = q.join(TxCache)
@@ -536,12 +539,12 @@ def get_paused_txs(status=None, sender=None, chain_id=0):
             #gas += tx['gas'] * tx['gasPrice']
             txs[r.tx_hash] = r.signed_tx
 
-    session.close()
+    SessionBase.release_session(session)
 
     return txs
 
 
-def get_status_tx(status, before=None, exact=False, limit=0):
+def get_status_tx(status, before=None, exact=False, limit=0, session=None):
     """Retrieve transaction with a specific queue status.
 
     :param status: Status to match transactions with
@@ -554,7 +557,7 @@ def get_status_tx(status, before=None, exact=False, limit=0):
     :rtype: list of cic_eth.db.models.otx.Otx
     """
     txs = {}
-    session = SessionBase.create_session()
+    session = SessionBase.bind_session(session)
     q = session.query(Otx)
     q = q.join(TxCache)
     q = q.filter(TxCache.date_updated<before)
@@ -568,12 +571,12 @@ def get_status_tx(status, before=None, exact=False, limit=0):
             break
         txs[o.tx_hash] = o.signed_tx
         i += 1
-    session.close()
+    SessionBase.release_session(session)
     return txs
 
 
 # TODO: move query to model
-def get_upcoming_tx(status=StatusEnum.READYSEND, recipient=None, before=None, chain_id=0):
+def get_upcoming_tx(status=StatusEnum.READYSEND, recipient=None, before=None, chain_id=0, session=None):
     """Returns the next pending transaction, specifically the transaction with the lowest nonce, for every recipient that has pending transactions.
 
     Will omit addresses that have the LockEnum.SEND bit in Lock set.
@@ -592,7 +595,7 @@ def get_upcoming_tx(status=StatusEnum.READYSEND, recipient=None, before=None, ch
     :returns: Transactions
     :rtype: dict, with transaction hash as key, signed raw transaction as value
     """
-    session = SessionBase.create_session()
+    session = SessionBase.bind_session(session)
     q_outer = session.query(
             TxCache.sender,
             func.min(Otx.nonce).label('nonce'),
@@ -602,6 +605,7 @@ def get_upcoming_tx(status=StatusEnum.READYSEND, recipient=None, before=None, ch
     q_outer = q_outer.filter(or_(Lock.flags==None, Lock.flags.op('&')(LockEnum.SEND.value)==0))
 
     if not is_alive(status):
+        SessionBase.release_session(session)
         raise ValueError('not a valid non-final tx value: {}'.format(status))
     if status == StatusEnum.PENDING:
         q_outer = q_outer.filter(Otx.status==status.value)
@@ -643,7 +647,7 @@ def get_upcoming_tx(status=StatusEnum.READYSEND, recipient=None, before=None, ch
         session.add(o)
         session.commit()
 
-    session.close()
+    SessionBase.release_session(session)
 
     return txs
 

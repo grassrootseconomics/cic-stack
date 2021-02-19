@@ -131,8 +131,8 @@ services:
 
   cic-cache-tracker:
     build:
-      context: apps/cic-cache/
-      dockerfile: docker/Dockerfile
+      context: apps
+      dockerfile: cic-cache/docker/Dockerfile
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS # supplied at contract-config after contract provisioning
       ETH_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
@@ -167,8 +167,8 @@ services:
 
   cic-cache-server:
     build: 
-        context: apps/cic-cache/
-        dockerfile: docker/Dockerfile
+        context: apps
+        dockerfile: cic-cache/docker/Dockerfile
     environment:
       DATABASE_USER: $DATABASE_USER
       DATABASE_HOST: $DATABASE_HOST
@@ -253,7 +253,12 @@ services:
       DATABASE_PORT: ${DATABASE_PORT:-5432}
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+<<<<<<< HEAD
       DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+=======
+        #DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_DEBUG: 1
+>>>>>>> origin/master
       CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-Bloxberg:8996}
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
         #BANCOR_DIR: $BANCOR_DIR
@@ -290,6 +295,7 @@ services:
       DATABASE_PORT: ${DATABASE_PORT:-5432}
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
       CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-Bloxberg:8996}
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
         #BANCOR_DIR: $BANCOR_DIR

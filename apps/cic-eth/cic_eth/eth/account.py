@@ -304,6 +304,8 @@ def cache_gift_data(
     tx = unpack_signed_raw_tx(tx_signed_raw_bytes, chain_spec.chain_id())
     tx_data = unpack_gift(tx['data'])
 
+    session = SessionBase.create_session()
+
     tx_cache = TxCache(
         tx_hash_hex,
         tx['from'],
@@ -312,9 +314,9 @@ def cache_gift_data(
         zero_address,
         0,
         0,
+        session=session,
             )
 
-    session = SessionBase.create_session()
     session.add(tx_cache)
     session.commit()
     cache_id = tx_cache.id
@@ -347,6 +349,7 @@ def cache_account_data(
     tx = unpack_signed_raw_tx(tx_signed_raw_bytes, chain_spec.chain_id())
     tx_data = unpack_register(tx['data'])
 
+    session = SessionBase.create_session()
     tx_cache = TxCache(
         tx_hash_hex,
         tx['from'],
@@ -355,9 +358,8 @@ def cache_account_data(
         zero_address,
         0,
         0,
+        session=session,
             )
-
-    session = SessionBase.create_session()
     session.add(tx_cache)
     session.commit()
     cache_id = tx_cache.id

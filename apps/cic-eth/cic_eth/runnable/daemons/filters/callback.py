@@ -37,7 +37,7 @@ class CallbackFilter(SyncFilter):
                 transfer_type,
                 int(rcpt.status == 0),
             ],
-            queue=tc.queue,
+            queue=self.queue,
             )
 #        s_translate = celery.signature(
 #            'cic_eth.ext.address.translate',
@@ -82,7 +82,7 @@ class CallbackFilter(SyncFilter):
         return (transfer_type, transfer_data)
 
 
-    def filter(self, w3, tx, rcpt, chain_spec):
+    def filter(self, w3, tx, rcpt, chain_spec, session=None):
         logg.debug('applying callback filter "{}:{}"'.format(self.queue, self.method))
         chain_str = str(chain_spec)
 

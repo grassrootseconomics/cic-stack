@@ -381,6 +381,7 @@ def cache_transfer_data(
         tx['to'],
         tx_data['amount'],
         tx_data['amount'],
+        session=session,
             )
     session.add(tx_cache)
     session.commit()
@@ -440,6 +441,7 @@ def cache_approve_data(
         tx['to'],
         tx_data['amount'],
         tx_data['amount'],
+        session=session,
             )
     session.add(tx_cache)
     session.commit()
