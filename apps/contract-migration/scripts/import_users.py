@@ -100,7 +100,14 @@ def register_eth(i, u):
 
     ps.get_message()
     m = ps.get_message(timeout=args.timeout)
-    address = json.loads(m['data'])
+    try:
+        address = json.loads(m['data'])
+    except TypeError as e:
+        if m == None:
+            logg.critical('empty response from redis callback (did the service crash?)')
+        else:
+            logg.critical('unexpected response from redis callback: {}'.format(m))
+        sys.exit(1)
     logg.debug('[{}] register eth {} {}'.format(i, u, address))
 
     return address

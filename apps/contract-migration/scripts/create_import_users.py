@@ -33,7 +33,9 @@ logg = logging.getLogger()
 
 fake = Faker(['sl', 'en_US', 'no', 'de', 'ro'])
 
-config_dir = os.environ.get('CONFINI_DIR', '/usr/local/etc/cic')
+script_dir = os.path.realpath(os.path.dirname(__file__))
+#config_dir = os.environ.get('CONFINI_DIR', '/usr/local/etc/cic')
+config_dir = os.environ.get('CONFINI_DIR', os.path.join(script_dir, 'config'))
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument('-c', type=str, default=config_dir, help='Config dir')

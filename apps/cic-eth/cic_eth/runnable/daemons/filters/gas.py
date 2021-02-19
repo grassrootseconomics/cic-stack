@@ -40,7 +40,7 @@ class GasFilter(SyncFilter):
                 return
 
             chain_spec = ChainSpec.from_chain_str(chain_str)
-            txs = get_paused_txs(StatusEnum.WAITFORGAS, r[0], chain_spec.chain_id(), session=session)
+            txs = get_paused_txs(StatusBits.GAS_ISSUES, r[0], chain_spec.chain_id(), session=session)
 
             SessionBase.release_session(session)
 
