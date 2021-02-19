@@ -120,7 +120,7 @@ ARG cryptocurrency_cli_tools_version=0.0.4
 RUN pip install --extra-index-url $pip_extra_index_url cryptocurrency-cli-tools==$cryptocurrency_cli_tools_version
 
 RUN echo Install smart contract interface implementations, least frequently changed first
-ARG giftable_erc20_token_version=0.0.7b11
+ARG giftable_erc20_token_version=0.0.7b12
 RUN pip install --extra-index-url $pip_extra_index_url giftable-erc20-token==$giftable_erc20_token_version 
 
 ARG eth_accounts_index_version=0.0.10a9
@@ -134,14 +134,14 @@ RUN pip install --extra-index-url $pip_extra_index_url erc20-transfer-authorizat
 #ARG erc20_single_shot_faucet_version=0.2.0a5
 #RUN pip install --extra-index-url $pip_extra_index_url erc20-single-shot-faucet==$erc20_single_shot_faucet_version 
 
-ARG sarafu_faucet_version=0.0.1a10
+ARG sarafu_faucet_version=0.0.1a11
 RUN pip install --extra-index-url $pip_extra_index_url sarafu-faucet==$sarafu_faucet_version
 
-ARG eth_address_index_version=0.1.0a9
+ARG eth_address_index_version=0.1.0a10
 RUN pip install --extra-index-url $pip_extra_index_url eth-address-index==$eth_address_index_version
 
 RUN echo Install cic specific python packages
-ARG cic_registry_version=0.5.3a10+build.ecc50917
+ARG cic_registry_version=0.5.3a20+build.30d0026c
 RUN pip install  --extra-index-url $pip_extra_index_url  cic-registry==$cic_registry_version
 
 RUN echo Install misc helpers
@@ -155,7 +155,7 @@ RUN pip install  --extra-index-url $pip_extra_index_url eth-gas-proxy==$eth_gas_
 ARG cic_contracts_version=0.0.2a2
 RUN pip install  --extra-index-url $pip_extra_index_url cic-contracts==$cic_contracts_version
 
-ARG chainlib_version=0.0.1a15
+ARG chainlib_version=0.0.1a16
 RUN pip install  --extra-index-url $pip_extra_index_url chainlib==$chainlib_version
 
 ARG chainsyncer_version=0.0.1a8
