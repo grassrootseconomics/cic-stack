@@ -8,6 +8,7 @@ import uuid
 import importlib
 import copy
 import random
+import json
 
 # external imports
 import redis
@@ -122,7 +123,11 @@ class TrafficItem:
         self.method = item.do
         self.uuid = uuid.uuid4()
         self.ext = None
-        self.complete = False
+        self.result = None
+
+
+    def __str__(self):
+        return 'traffic item method {} uuid {}'.format(self.method, self.uuid)
 
 
 class TrafficRouter:
@@ -256,15 +261,25 @@ class Handler:
                 logg.info('traffic method {} completed immediately')
                 self.traffic_router.release(traffic_item)
             traffic_item.ext = t
-            self.traffic_items[traffic_item.uuid] = traffic_item
+            self.traffic_items[traffic_item.ext] = traffic_item
 
 
         # TODO: add drain
         while True:
-            m = self.pubsub.get_message(timeout=0.01)
+            m = self.pubsub.get_message(timeout=0.1)
             if m == None:
                 break
             logg.debug('redis message {}'.format(m))
+            if m['type'] == 'message':
+                message_data = json.loads(m['data'])
+                uu = message_data['root_id']
+                match_item = self.traffic_items[uu]
+                self.traffic_router.release(match_item)
+                if message_data['status'] == 0:
+                    logg.error('task item {} failed with error code {}'.format(match_item, message_data['status']))
+                else:
+                    match_item['result'] = message_data['result']
+                    logg.debug('got callback result: {}'.format(match_item))
 
 
     def name(self):

@@ -18,7 +18,11 @@ logg = celery_app.log.get_default_logger()
 def redis(self, result, destination, status_code):
     (host, port, db, channel) = destination.split(':')
     r = redis_interface.Redis(host=host, port=port, db=db)
-    s = json.dumps(result)
+    data = {
+            'root_id': self.request.root_id,
+            'status': status_code,
+            'result': result,
+            }
     logg.debug('redis callback on host {} port {} db {} channel {}'.format(host, port, db, channel))
-    r.publish(channel, s)
+    r.publish(channel, json.dumps(data))
     r.close()
