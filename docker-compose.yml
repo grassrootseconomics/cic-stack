@@ -237,7 +237,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_tasker.sh -q cic-eth -v
+        ./start_tasker.sh -q cic-eth -vv
     # command: [/bin/sh, "./start_tasker.sh", -q, cic-eth, -vv ]
 
   cic-eth-manager-head:
