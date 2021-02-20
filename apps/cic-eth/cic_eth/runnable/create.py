@@ -77,7 +77,7 @@ def main():
 
     ps.get_message()
     m = ps.get_message(timeout=args.timeout)
-    print(json.loads(m['data']))
+    print(json.loads(m['data']['result']))
 
 
 if __name__ == '__main__':
