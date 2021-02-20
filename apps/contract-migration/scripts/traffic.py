@@ -321,6 +321,7 @@ class Handler:
 
             if e != None:
                 logg.info('failed {}: {}'.format(str(traffic_item), e))
+                self.traffic_router.release(traffic_item)
                 continue
 
             if t == None:

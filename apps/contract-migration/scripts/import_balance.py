@@ -51,7 +51,7 @@ argparser.add_argument('-c', type=str, default=config_dir, help='config root to 
 argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='oldchain:1', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
-argparser.add_argument('--token-symbol', default='SRF', type=str, dest='r', help='Token symbol to use for trnsactions')
+argparser.add_argument('--token-symbol', default='SRF', type=str, dest='token_symbol', help='Token symbol to use for trnsactions')
 argparser.add_argument('--head', action='store_true', help='start at current block height (overrides --offset)')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
@@ -99,7 +99,7 @@ if args.head:
 else:
     block_offset = args.offset
 
-chain_spec = ChainSpec.from_chain_str('evm:' + chain_str)
+chain_spec = ChainSpec.from_chain_str(chain_str)
 old_chain_spec_str = args.old_chain_spec
 
 user_dir = args.user_dir # user_out_dir from import_users.py
@@ -123,7 +123,7 @@ class Handler:
         return 'balance_handler'
 
 
-    def filter(self, conn, block, tx):
+    def filter(self, conn, block, tx, db_session):
         if tx.payload == None or len(tx.payload) == 0:
             logg.debug('no payload, skipping {}'.format(tx))
             return
@@ -148,9 +148,13 @@ class Handler:
             u = Person.deserialize(o)
             original_address = u.identities['evm'][old_chain_spec_str][0]
             balance = self.balances[original_address]
-            logg.info('registered {} originally {} ({}) tx hash {} balance {}'.format(recipient, original_address, u, tx.hash, balance))
 
-            (tx_hash_hex, o) = self.tx_factory.erc20_transfer(self.token_address, signer_address, recipient, balance)
+            # TODO: store token object in handler ,get decimals from there
+            multiplier = 10**6
+            balance_full = balance * multiplier
+            logg.info('registered {} originally {} ({}) tx hash {} balance {}'.format(recipient, original_address, u, tx.hash, balance_full))
+
+            (tx_hash_hex, o) = self.tx_factory.erc20_transfer(self.token_address, signer_address, recipient, balance_full)
             logg.info('submitting erc20 transfer tx {} for recipient {}'.format(tx_hash_hex, recipient))
             r = conn.do(o)
 #        except TypeError as e:
@@ -186,7 +190,7 @@ class BlockGetter:
         return b
 
 
-def progress_callback(s, block_number, tx_index):
+def progress_callback(block_number, tx_index, s):
     sys.stdout.write(s.ljust(200) + "\n")
 
 
@@ -259,9 +263,10 @@ def main():
 #            break
 #    f.close()
 
+    # TODO get decimals from token
     balances = {}
     f = open('{}/balances.csv'.format(user_dir, 'r'))
-    remove_zeros = 10**12
+    remove_zeros = 10**6
     i = 0
     while True:
         l = f.readline()
@@ -270,7 +275,7 @@ def main():
         r = l.split(',')
         try:
             address = to_checksum(r[0])
-            sys.stdout.write('loading balance {} {}'.format(i, address).ljust(200) + "\r")
+            sys.stdout.write('loading balance {} {} {}'.format(i, address, r[1]).ljust(200) + "\r")
         except ValueError:
             break
         balance = int(int(r[1].rstrip()) / remove_zeros)
