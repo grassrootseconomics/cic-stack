@@ -6,10 +6,13 @@
 # standard imports
 import logging
 
-# third-party imports 
+# external imports 
 import celery
-from cic_registry.chain import ChainSpec
+#from cic_registry.chain import ChainSpec
 from cic_registry import CICRegistry
+from chainlib.chain import ChainSpec
+
+# local imports
 from cic_eth.eth.factory import TxFactory
 from cic_eth.db.enum import LockEnum
 

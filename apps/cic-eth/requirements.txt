@@ -8,7 +8,7 @@ redis==3.5.3
 alembic==1.4.2
 websockets==8.1
 requests~=2.24.0
-eth_accounts_index~=0.0.10a7
+eth_accounts_index~=0.0.10a10
 erc20-approval-escrow~=0.3.0a5
 erc20-single-shot-faucet~=0.2.0a6
 rlp==2.0.1
@@ -18,5 +18,5 @@ eth-gas-proxy==0.0.1a4
 websocket-client==0.57.0
 moolb~=0.1.1b2
 eth-address-index~=0.1.0a8
-chainlib~=0.0.1a12
+chainlib~=0.0.1a16
 hexathon~=0.0.1a3

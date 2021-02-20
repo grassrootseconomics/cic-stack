@@ -76,8 +76,9 @@ def main():
     t = api.create_account(register=register)
 
     ps.get_message()
-    m = ps.get_message(timeout=args.timeout)
-    print(json.loads(m['data']['result']))
+    o = ps.get_message(timeout=args.timeout)
+    m = json.loads(o['data'])
+    print(m['result'])
 
 
 if __name__ == '__main__':

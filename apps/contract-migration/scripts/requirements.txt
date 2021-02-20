@@ -1,7 +1,7 @@
 psycopg2==2.8.6
 chainlib~=0.0.1a15
 chainsyncer~=0.0.1a9
-cic-eth~=0.10.0a28
+cic-eth~=0.10.0a30
 cic-registry~=0.5.3a19
 confini~=0.3.6rc3
 celery==4.4.7
