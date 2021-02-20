@@ -167,6 +167,39 @@ for k in config.all():
             sys.exit(1)
 
 
+class TrafficTasker:
+
+    oracles = {
+        'account': None,
+        'token': None,
+            }
+
+    def __init__(self):
+
+        self.tokens = self.oracles['token'].get_tokens()
+        self.accounts = self.oracles['account'].get_accounts()
+        self.balances = {}
+
+        self.aux = {}
+
+
+    def load_balances(self):
+        pass
+
+
+    def cache_balance(self, holder_address, token, value):
+        if self.balances.get(holder_address) == None:
+            self.balances[holder_address] = {}
+        self.balances[holder_address][token] = value
+        logg.debug('setting cached balance of {} token {} to {}'.format(holder_address, token, value))
+
+
+    def add_aux(self, k, v):
+        logg.debug('added {} = {} to traffictasker'.format(k, v))
+        self.aux[k] = v
+
+
+
 class TokenOracle:
 
     def __init__(self, chain_spec, registry):
@@ -221,10 +254,6 @@ class AccountsOracle:
 class Handler:
 
     def __init__(self, config, chain_spec, registry, traffic_router):
-        self.chain_spec = chain_spec
-        self.registry = registry
-        self.token_oracle = TokenOracle(self.chain_spec, self.registry)
-        self.accounts_oracle = AccountsOracle(self.chain_spec, self.registry)
         self.traffic_router = traffic_router
         self.redis_channel = str(uuid.uuid4())
         self.pubsub = self.__connect_redis(self.redis_channel, config)
@@ -239,25 +268,25 @@ class Handler:
 
 
     def refresh(self, block_number, tx_index):
-        tokens = self.token_oracle.get_tokens()
-        accounts = self.accounts_oracle.get_accounts()
 
-        if len(accounts) == 0:
-            logg.error('no accounts yet')
-            #return
+        token_tasker = TrafficTasker()
 
-        elif len(tokens) == 0:
+        if len(token_tasker.tokens) == 0:
             logg.error('no tokens yet')
-            #return
+            return
 
-        item = traffic_router.reserve()
-        if item != None:
-            item.method(config, tokens, accounts, block_number, tx_index)
+        while True:
+            item = traffic_router.reserve()
+            if item == None:
+                logg.debug('no items left to reserve {}'.format(item))
+                break
+            item.method(config, token_tasker.tokens, token_tasker.accounts, block_number, tx_index)
 
         # TODO: add drain
-        m = self.pubsub.get_message(timeout=0.01)
-        if m != None
-            pass
+        while True:
+            m = self.pubsub.get_message(timeout=0.01)
+            if m == None:
+                break
 
 
     def name(self):
@@ -308,6 +337,9 @@ def main(local_config=None):
     block_offset = int(strip_0x(r), 16) + 1
     syncer_backend.set(block_offset, 0)
 
+
+    TrafficTasker.oracles['token']= TokenOracle(chain_spec, CICRegistry)
+    TrafficTasker.oracles['account'] = AccountsOracle(chain_spec, CICRegistry)
 
     syncer = HeadSyncer(syncer_backend, loop_callback=handler.refresh)
     syncer.add_filter(handler)
