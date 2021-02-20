@@ -11,9 +11,9 @@ queue = 'cic-eth'
 name = 'account'
 
 
-def do(tokens, accounts, aux, block_number, tx_index):
+def do(token_pair, sender, recipient, sender_balance, aux, block_number, tx_index):
 
-    logg.debug('running {} {} {}'.format(__name__, tokens, accounts))
+    logg.debug('running {} {} {}'.format(__name__, token_pair, sender, recipient))
     api = Api(
         str(aux['chain_spec']),
         queue=queue,
@@ -21,5 +21,7 @@ def do(tokens, accounts, aux, block_number, tx_index):
         callback_task='cic_eth.callbacks.redis.redis',
         callback_queue=queue,
         )
+
     t = api.create_account(register=True)
-    return (None, t,)
+
+    return (None, t, sender_balance, sender_balance,)

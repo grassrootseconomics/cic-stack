@@ -32,6 +32,7 @@ from cic_eth.admin import ctrl
 from cic_eth.eth.rpc import RpcClient
 from cic_eth.eth.rpc import GasOracle
 from cic_eth.queue import tx
+from cic_eth.queue import balance
 from cic_eth.callbacks import Callback
 from cic_eth.callbacks import http
 from cic_eth.callbacks import tcp
