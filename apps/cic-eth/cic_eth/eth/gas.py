@@ -52,7 +52,10 @@ class GasOracle():
         :returns: Etheerum account address
         :rtype: str, 0x-hex
         """
-        return AccountRole.get_address('GAS_GIFTER')
+        session = SessionBase.create_session()
+        a = AccountRole.get_address('GAS_GIFTER', session)
+        session.close()
+        return a
 
 
     def gas_price(self, category='safe'):

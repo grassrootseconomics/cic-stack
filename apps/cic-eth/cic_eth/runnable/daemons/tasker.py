@@ -50,6 +50,7 @@ argparser = argparse.ArgumentParser()
 argparser.add_argument('-p', '--provider', dest='p', type=str, help='web3 provider')
 argparser.add_argument('-c', type=str, default=config_dir, help='config file')
 argparser.add_argument('-q', type=str, default='cic-eth', help='queue name for worker tasks')
+argparser.add_argument('-r', type=str, help='CIC registry address')
 argparser.add_argument('--abi-dir', dest='abi_dir', type=str, help='Directory containing bytecode and abi')
 argparser.add_argument('--trace-queue-status', default=None, dest='trace_queue_status', action='store_true', help='set to perist all queue entry status changes to storage')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
@@ -69,6 +70,7 @@ config.process()
 args_override = {
         'ETH_ABI_DIR': getattr(args, 'abi_dir'),
         'CIC_CHAIN_SPEC': getattr(args, 'i'),
+        'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
         'ETH_PROVIDER': getattr(args, 'p'),
         'TASKS_TRACE_QUEUE_STATUS': getattr(args, 'trace_queue_status'),
         }

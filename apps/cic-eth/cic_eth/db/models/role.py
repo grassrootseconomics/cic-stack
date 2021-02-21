@@ -24,9 +24,10 @@ class AccountRole(SessionBase):
     tag = Column(Text)
     address_hex = Column(String(42))
 
-
+    
+    # TODO: 
     @staticmethod
-    def get_address(tag):
+    def get_address(tag, session):
         """Get Ethereum address matching the given tag
 
         :param tag: Tag
@@ -34,14 +35,24 @@ class AccountRole(SessionBase):
         :returns: Ethereum address, or zero-address if tag does not exist
         :rtype: str, 0x-hex
         """
-        role = AccountRole.get_role(tag)
-        if role == None:
-            return zero_address
-        return role.address_hex
+        if session == None:
+            raise ValueError('nested bind session calls will not succeed as the first call to release_session in the stack will leave the db object detached further down the stack. We will need additional reference count.')
+
+        session = SessionBase.bind_session(session)
+
+        role = AccountRole.get_role(tag, session)
+    
+        r = zero_address
+        if role != None:
+            r = role.address_hex
+
+        SessionBase.release_session(session)
+
+        return r
 
 
     @staticmethod
-    def get_role(tag):
+    def get_role(tag, session=None):
         """Get AccountRole model object matching the given tag
 
         :param tag: Tag
@@ -49,20 +60,26 @@ class AccountRole(SessionBase):
         :returns: Role object, if found
         :rtype: cic_eth.db.models.role.AccountRole
         """
-        session = AccountRole.create_session()
-        role = AccountRole.__get_role(session, tag)
-        session.close()
-        #return role.address_hex
+        session = SessionBase.bind_session(session)
+        
+        role = AccountRole.__get_role(tag, session)
+        
+        SessionBase.release_session(session)
+
         return role
 
 
     @staticmethod
-    def __get_role(session, tag):
-        return session.query(AccountRole).filter(AccountRole.tag==tag).first()
+    def __get_role(tag, session):
+        q = session.query(AccountRole)
+        q = q.filter(AccountRole.tag==tag)
+        r = q.first()
+        session.flush()
+        return r
 
 
     @staticmethod    
-    def set(tag, address_hex):
+    def set(tag, address_hex, session=None):
         """Persist a tag to Ethereum address association. 
 
         This will silently overwrite the existing value.
@@ -74,16 +91,16 @@ class AccountRole(SessionBase):
         :returns: Role object
         :rtype: cic_eth.db.models.role.AccountRole
         """
-        #session = AccountRole.create_session()
-        #role = AccountRole.__get(session, tag)
-        role = AccountRole.get_role(tag) #session, tag)
+        session = SessionBase.bind_session(session)
+        
+        role = AccountRole.get_role(tag, session)
         if role == None:
             role = AccountRole(tag)
         role.address_hex = address_hex
-        #session.add(role)
-        #session.commit()
-        #session.close()
-        return role #address_hex
+        
+        SessionBase.release_session(session)
+
+        return role 
 
 
     @staticmethod
@@ -95,20 +112,17 @@ class AccountRole(SessionBase):
         :returns: Role tag, or None if no match
         :rtype: str or None
         """
-        localsession = session
-        if localsession == None:
-            localsession = SessionBase.create_session()
+        session = SessionBase.bind_session(session)
 
-        q = localsession.query(AccountRole)
+        q = session.query(AccountRole)
         q = q.filter(AccountRole.address_hex==address)
         role = q.first()
         tag = None
         if role != None:
             tag = role.tag
 
-        if session == None:
-            localsession.close()
-       
+        SessionBase.release_session(session)
+
         return tag
 
 

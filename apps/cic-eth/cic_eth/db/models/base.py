@@ -114,6 +114,7 @@ class SessionBase(Model):
 
     @staticmethod
     def release_session(session=None):
+        session.flush()
         session_key = str(id(session))
         if SessionBase.localsessions.get(session_key) != None:
             logg.debug('destroying session {}'.format(session_key))
