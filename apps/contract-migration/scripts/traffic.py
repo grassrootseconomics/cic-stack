@@ -4,7 +4,6 @@ import logging
 import re
 import sys
 import json
-from argparse import RawTextHelpFormatter
 
 # external imports
 import redis
@@ -25,23 +24,14 @@ from cmd.traffic import (
         TrafficProvisioner,
         TrafficSyncHandler,
         )
+from cmd.traffic import add_args as add_traffic_args
 
 
+# common basics
 script_dir = os.path.realpath(os.path.dirname(__file__))
-
 logg = common.log.create()
 argparser = common.argparse.create(script_dir, common.argparse.full_template)
-
-def subprocessor(subparser):
-    subparser.formatter_class = formatter_class=RawTextHelpFormatter
-    subparser.add_argument('--redis-host-callback', dest='redis_host_callback', default='localhost', type=str, help='redis host to use for callback')
-    subparser.add_argument('--redis-port-callback', dest='redis_port_callback', default=6379, type=int, help='redis port to use for callback')
-    subparser.add_argument('--batch-size', dest='batch_size', default=10, type=int, help='number of events to process simultaneously')
-    subparser.description = """Generates traffic on the cic network using dynamically loaded modules as event sources
-
-"""
-
-argparser = common.argparse.add(argparser, subprocessor, 'traffic')
+argparser = common.argparse.add(argparser, add_traffic_args, 'traffic')
 args = common.argparse.parse(argparser, logg)
 config = common.config.create(args.c, args, args.env_prefix)
 
@@ -52,14 +42,11 @@ if batchsize < 1:
 logg.info('batch size {}'.format(batchsize))
 config.add(batchsize, '_BATCH_SIZE', True)
 
-# redis task result callback
 config.add(args.redis_host_callback, '_REDIS_HOST_CALLBACK', True)
 config.add(args.redis_port_callback, '_REDIS_PORT_CALLBACK', True)
 
-# keystore
 config.add(args.y, '_KEYSTORE_FILE', True)
 
-# queue
 config.add(args.q, '_CELERY_QUEUE', True)
 
 common.config.log(config)

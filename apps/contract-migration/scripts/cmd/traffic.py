@@ -5,12 +5,24 @@ import uuid
 import importlib
 import random
 import copy
+from argparse import RawTextHelpFormatter
 
 # external imports
 import redis
 from cic_eth.api.api_task import Api
 
 logg = logging.getLogger(__name__)
+
+
+def add_args(argparser):
+    argparser.formatter_class = formatter_class=RawTextHelpFormatter
+    argparser.add_argument('--redis-host-callback', dest='redis_host_callback', default='localhost', type=str, help='redis host to use for callback')
+    argparser.add_argument('--redis-port-callback', dest='redis_port_callback', default=6379, type=int, help='redis port to use for callback')
+    argparser.add_argument('--batch-size', dest='batch_size', default=10, type=int, help='number of events to process simultaneously')
+    argparser.description = """Generates traffic on the cic network using dynamically loaded modules as event sources
+
+"""
+    return argparser
 
 
 class TrafficItem:
