@@ -49,7 +49,7 @@ This will monitor new mined blocks and send balances to the newly created accoun
 
 Without any modifications to the cluster and config files:
 
-`python -c config --redis-host-callback redis <datadir>`
+`python import_users.py -c config --redis-host-callback redis <datadir>`
 
 ** A note on the The callback**:  The script uses a redis callback to retrieve the newly generated custodial address. This is the redis server _from the perspective of the cic-eth component_.
 
