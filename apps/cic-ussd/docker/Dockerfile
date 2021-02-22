@@ -46,3 +46,5 @@ RUN cd cic-ussd && \
 # copy config and migration files to definitive file so they can be referenced in path definitions for running scripts
 COPY cic-ussd/.config/ /usr/local/etc/cic-ussd/
 COPY cic-ussd/cic_ussd/db/migrations/ /usr/local/share/cic-ussd/alembic
+
+WORKDIR /root
