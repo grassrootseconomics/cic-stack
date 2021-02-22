@@ -18,9 +18,8 @@ logg = logging.getLogger()
 
 class GasFilter(SyncFilter):
 
-    def __init__(self, gas_provider, queue=None):
+    def __init__(self, queue=None):
         self.queue = queue
-        self.gas_provider = gas_provider
 
 
     def filter(self, w3, tx, rcpt, chain_str, session=None):
