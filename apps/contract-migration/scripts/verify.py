@@ -11,7 +11,7 @@ import csv
 import json
 import urllib
 
-# external impotts
+# external imports
 import celery
 import eth_abi
 import confini
@@ -19,9 +19,9 @@ from hexathon import (
         strip_0x,
         add_0x,
         )
-from cic_registry.chain import ChainSpec
 from chainsyncer.backend import MemBackend
 from chainsyncer.driver import HeadSyncer
+from chainlib.chain import ChainSpec
 from chainlib.eth.connection import HTTPConnection
 from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.eth.block import (
@@ -53,7 +53,7 @@ config_dir = '/usr/local/etc/cic-syncer'
 argparser = argparse.ArgumentParser(description='daemon that monitors transactions in new blocks')
 argparser.add_argument('-p', '--provider', dest='p', type=str, help='chain rpc provider address')
 argparser.add_argument('-c', type=str, default=config_dir, help='config root to use')
-argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='oldchain:1', help='chain spec')
+argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:oldchain:1', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
 argparser.add_argument('--meta-provider', type=str, dest='meta_provider', default='http://localhost:63380', help='cic-meta url')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
@@ -294,8 +294,10 @@ def main():
             u = Person.deserialize(o)
             logg.debug('data {}'.format(u.identities['evm']))
 
-            new_address = u.identities['evm'][chain_str][0]
-            old_address = u.identities['evm'][old_chain_str][0]
+            subchain_str = '{}:{}'.format(chain_spec.common_name(), chain_spec.network_id())
+            new_address = u.identities['evm'][subchain_str][0]
+            subchain_str = '{}:{}'.format(old_chain_spec.common_name(), old_chain_spec.network_id())
+            old_address = u.identities['evm'][subchain_str][0]
             balance = balances[old_address]
             logg.debug('checking {} -> {} = {}'.format(old_address, new_address, balance))
 
