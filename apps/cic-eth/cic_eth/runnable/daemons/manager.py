@@ -98,11 +98,17 @@ def main():
 
     syncers = []
 
-    if SyncerBackend.first(chain_spec):
-        backend = SyncerBackend.initial(chain_spec, block_offset)
+    #if SyncerBackend.first(chain_spec):
+    #    backend = SyncerBackend.initial(chain_spec, block_offset)
+    syncer_backends = SyncerBackend.resume(chain_spec, block_offset)
 
-    block_sync = SyncerBackend.live(chain_spec, block_offset+1)
-    syncers.append(HeadSyncer(block_sync))
+    if len(syncer_backends) == 0:
+        syncer_backends.append(SyncerBackend.initial(chain_spec, block_offset))
+
+    #block_sync = SyncerBackend.live(chain_spec, block_offset+1)
+    for syncer_backend in syncer_backends:
+        syncers.append(HeadSyncer(syncer_backend))
+
 
     trusted_addresses_src = config.get('CIC_TRUST_ADDRESS')
     if trusted_addresses_src == None:

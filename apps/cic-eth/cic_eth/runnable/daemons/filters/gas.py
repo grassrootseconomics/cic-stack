@@ -22,10 +22,9 @@ class GasFilter(SyncFilter):
         self.queue = queue
 
 
-    def filter(self, w3, tx, rcpt, chain_str, session=None):
-        logg.debug('applying gas filter')
-        tx_hash_hex = tx.hash.hex()
-        if tx['value'] > 0:
+    def filter(self, conn, block, tx, session): #rcpt, chain_str, session=None):
+        tx_hash_hex = tx.hash
+        if tx.value > 0:
             logg.debug('gas refill tx {}'.format(tx_hash_hex))
             session = SessionBase.bind_session(session)
             q = session.query(TxCache.recipient)
@@ -54,3 +53,7 @@ class GasFilter(SyncFilter):
                         queue=self.queue,
                 )
                 s.apply_async()
+
+
+    def __str__(self):
+        return 'eic-eth gasfilter'

@@ -39,3 +39,7 @@ class TxFilter(SyncFilter):
                 )
         t = s.apply_async()
         return t
+
+
+    def __str__(self):
+        return 'cic-eth erc20 transfer filter'

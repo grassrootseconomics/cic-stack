@@ -37,3 +37,8 @@ class RegistrationFilter(SyncFilter):
                     queue=self.queue,
                     )
                 s.apply_async()
+
+
+    def __str__(self):
+        return 'cic-eth account registration'
+
