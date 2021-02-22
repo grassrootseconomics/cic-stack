@@ -5,14 +5,14 @@ WORKDIR /tmp/src/cic-meta
 COPY cic-meta/package.json \
      ./
 
-RUN npm install
-
 COPY cic-meta/src/ src/
 COPY cic-meta/tests/ tests/
 COPY cic-meta/scripts/ scripts/
 #COPY docker/*.sh /root/
 
 RUN alias tsc=node_modules/typescript/bin/tsc 
+
+RUN npm install
 
 COPY cic-meta/.config/ /usr/local/etc/cic-meta/
 # COPY cic-meta/scripts/server/initdb/server.postgres.sql /usr/local/share/cic-meta/sql/server.sql
