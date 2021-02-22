@@ -191,7 +191,7 @@ class BlockGetter:
 
 
 def progress_callback(block_number, tx_index, s):
-    sys.stdout.write(s.ljust(200) + "\n")
+    sys.stdout.write(str(s).ljust(200) + "\n")
 
 
 

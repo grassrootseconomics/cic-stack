@@ -178,8 +178,10 @@ def register(self, account_address, chain_str, writer_address=None):
     """
     chain_spec = ChainSpec.from_chain_str(chain_str)
 
+    session = SessionBase.create_session()
     if writer_address == None:
-        writer_address = AccountRole.get_address('ACCOUNTS_INDEX_WRITER')
+        writer_address = AccountRole.get_address('ACCOUNTS_INDEX_WRITER', session)
+    session.close()
 
     if writer_address == zero_address:
         raise RoleMissingError(account_address)

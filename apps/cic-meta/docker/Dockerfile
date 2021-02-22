@@ -3,7 +3,6 @@ FROM node:15.3.0-alpine3.10
 WORKDIR /tmp/src/cic-meta
 
 COPY cic-meta/package.json \
-	 cic-meta/package-lock.json \
      ./
 
 RUN npm install
