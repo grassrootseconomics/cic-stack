@@ -254,7 +254,6 @@ def main():
 
     balances = {}
     f = open('{}/balances.csv'.format(user_dir, 'r'))
-    remove_zeros = 10**12
     i = 0
     while True:
         l = f.readline()
@@ -266,7 +265,7 @@ def main():
             sys.stdout.write('loading balance {} {}'.format(i, address).ljust(200) + "\r")
         except ValueError:
             break
-        balance = int(int(r[1].rstrip()) / remove_zeros)
+        balance = int(r[1].rstrip())
         balances[address] = balance
         i += 1
 

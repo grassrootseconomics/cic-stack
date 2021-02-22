@@ -142,7 +142,7 @@ if __name__ == '__main__':
             new_address = register_eth(i, u)
             if u.identities.get('evm') == None:
                 u.identities['evm'] = {}
-            subchain_str = '{}:{}'.format(chain_spec.common_name(), chain_spec.network_id())
+            sub_chain_str = '{}:{}'.format(chain_spec.common_name(), chain_spec.network_id())
             u.identities['evm'][sub_chain_str] = [new_address]
 
             register_ussd(u)
