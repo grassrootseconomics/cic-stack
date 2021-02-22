@@ -125,12 +125,12 @@ def main():
         task_queue = config.get('_CELERY_QUEUE')
         if len(task_split) > 1:
             task_queue = task_split[0]
-        callback_filter = CallbackFilter(task_split[1], task_queue)
+        callback_filter = CallbackFilter(chain_spec, task_split[1], task_queue)
         callback_filters.append(callback_filter)
 
     tx_filter = TxFilter(config.get('_CELERY_QUEUE'))
 
-    registration_filter = RegistrationFilter(config.get('_CELERY_QUEUE'))
+    registration_filter = RegistrationFilter(chain_spec, config.get('_CELERY_QUEUE'))
 
     gas_filter = GasFilter(config.get('_CELERY_QUEUE'))
 

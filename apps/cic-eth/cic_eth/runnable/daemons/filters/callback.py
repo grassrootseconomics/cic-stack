@@ -24,9 +24,10 @@ class CallbackFilter(SyncFilter):
 
     trusted_addresses = []
 
-    def __init__(self, method, queue):
+    def __init__(self, chain_spec, method, queue):
         self.queue = queue
         self.method = method
+        self.chain_spec = chain_spec
 
 
     def call_back(self, transfer_type, result):
@@ -53,47 +54,53 @@ class CallbackFilter(SyncFilter):
         s.apply_async()
 
 
-    def parse_data(self, tx, rcpt):
+    def parse_data(self, tx):
         transfer_type = 'transfer'
         transfer_data = None
-        method_signature = tx.input[:10]
+        method_signature = tx.payload[:10]
+
 
         if method_signature == transfer_method_signature:
-            transfer_data = unpack_transfer(tx.input)
+            transfer_data = unpack_transfer(tx.payload)
             transfer_data['from'] = tx['from']
             transfer_data['token_address'] = tx['to']
 
         elif method_signature == transferfrom_method_signature:
             transfer_type = 'transferfrom'
-            transfer_data = unpack_transferfrom(tx.input)
+            transfer_data = unpack_transferfrom(tx.payload)
             transfer_data['token_address'] = tx['to']
 
         # TODO: do not rely on logs here
         elif method_signature == giveto_method_signature:
             transfer_type = 'tokengift'
-            transfer_data = unpack_gift(tx.input)
-            for l in rcpt.logs:
+            transfer_data = unpack_gift(tx.payload)
+            for l in tx.logs:
                 if l.topics[0].hex() == '0x45c201a59ac545000ead84f30b2db67da23353aa1d58ac522c48505412143ffa':
                     transfer_data['value'] = web3.Web3.toInt(hexstr=l.data)
                     token_address_bytes = l.topics[2][32-20:]
                     transfer_data['token_address'] = web3.Web3.toChecksumAddress(token_address_bytes.hex())
-                    transfer_data['from'] = rcpt.to
+                    transfer_data['from'] = tx.to
 
         return (transfer_type, transfer_data)
 
 
-    def filter(self, w3, tx, rcpt, chain_spec, session=None):
+    def filter(self, conn, block, tx, db_session=None):
         logg.debug('applying callback filter "{}:{}"'.format(self.queue, self.method))
-        chain_str = str(chain_spec)
-
-        transfer_data = self.parse_data(tx, rcpt)
+        chain_str = str(self.chain_spec)
 
         transfer_data = None
-        if len(tx.input) < 10:
-            logg.debug('callbacks filter data length not sufficient for method signature in tx {}, skipping'.format(tx['hash']))
+        try:
+            transfer_data = self.parse_data(tx)
+        except TypeError:
+            logg.debug('invalid method data length for tx {}'.format(tx.hash))
             return
 
-        logg.debug('checking callbacks filter input {}'.format(tx.input[:10]))
+        transfer_data = None
+        if len(tx.payload) < 10:
+            logg.debug('callbacks filter data length not sufficient for method signature in tx {}, skipping'.format(tx.hash))
+            return
+
+        logg.debug('checking callbacks filter input {}'.format(tx.payload[:10]))
 
         if transfer_data != None:
             token_symbol = None

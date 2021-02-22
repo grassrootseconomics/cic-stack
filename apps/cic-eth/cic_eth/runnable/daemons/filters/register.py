@@ -15,24 +15,24 @@ account_registry_add_log_hash = '0x5ed3bdd47b9af629827a8d129aa39c870b10c03f0153f
 
 class RegistrationFilter(SyncFilter):
 
-    def __init__(self, queue):
+    def __init__(self, chain_spec, queue):
+        self.chain_spec = chain_spec
         self.queue = queue
 
 
-    def filter(self, w3, tx, rcpt, chain_spec, session=None):
-        logg.debug('applying registration filter')
+    def filter(self, conn, block, tx, db_session=None): 
         registered_address = None
-        for l in rcpt['logs']:
-            event_topic_hex = l['topics'][0].hex()
+        for l in tx.logs:
+            event_topic_hex = l['topics'][0]
             if event_topic_hex == account_registry_add_log_hash:
-                address_bytes = l.topics[1][32-20:]
-                address = to_checksum(address_bytes.hex())
+                address_hex = l['topics'][1][32-20:]
+                address = to_checksum(address_hex)
                 logg.debug('request token gift to {}'.format(address))
                 s = celery.signature(
                     'cic_eth.eth.account.gift',
                     [
                         address,
-                        str(chain_spec),
+                        str(self.chain_spec),
                         ],
                     queue=self.queue,
                     )

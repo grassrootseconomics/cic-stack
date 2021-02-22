@@ -6,7 +6,7 @@ import celery
 
 # local imports
 from cic_eth.db.models.otx import Otx
-from cic_eth.db.models.base import SessionBase
+from chainsyncer.db.models.base import SessionBase
 from .base import SyncFilter
 
 logg = logging.getLogger()
@@ -18,12 +18,11 @@ class TxFilter(SyncFilter):
         self.queue = queue
 
 
-    def filter(self, w3, tx, rcpt, chain_spec, session=None):
-        session = SessionBase.bind_session(session)
-        logg.debug('applying tx filter')
-        tx_hash_hex = tx.hash.hex()
-        otx = Otx.load(tx_hash_hex, session=session)
-        SessionBase.release_session(session)
+    def filter(self, conn, block, tx, db_session=None):
+        db_session = SessionBase.bind_session(db_session)
+        tx_hash_hex = tx.hash
+        otx = Otx.load(tx_hash_hex, session=db_session)
+        SessionBase.release_session(db_session)
         if otx == None:
             logg.debug('tx {} not found locally, skipping'.format(tx_hash_hex))
             return None
