@@ -20,7 +20,7 @@ from hexathon import (
 from chainlib.eth.address import to_checksum
 from cic_types.models.person import Person
 from cic_eth.api.api_task import Api
-from cic_registry.chain import ChainSpec
+from chainlib.chain import ChainSpec
 from cic_types.processor import generate_metadata_pointer
 
 logging.basicConfig(level=logging.WARNING)
@@ -142,7 +142,8 @@ if __name__ == '__main__':
             new_address = register_eth(i, u)
             if u.identities.get('evm') == None:
                 u.identities['evm'] = {}
-            u.identities['evm'][chain_str] = [new_address]
+            subchain_str = '{}:{}'.format(chain_spec.common_name(), chain_spec.network_id())
+            u.identities['evm'][sub_chain_str] = [new_address]
 
             register_ussd(u)
 
