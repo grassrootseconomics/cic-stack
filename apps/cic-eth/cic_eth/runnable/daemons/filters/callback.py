@@ -112,5 +112,6 @@ class CallbackFilter(SyncFilter):
             except UnknownContractError:
                 logg.debug('callback filter {}:{} skipping "transfer" method on unknown contract {} tx {}'.format(tc.queue, tc.method, transfer_data['to'], tx.hash.hex()))
 
+
     def __str__(self):
         return 'cic-eth callbacks'

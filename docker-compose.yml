@@ -240,7 +240,7 @@ services:
         ./start_tasker.sh -q cic-eth -vv
     # command: [/bin/sh, "./start_tasker.sh", -q, cic-eth, -vv ]
 
-  cic-eth-manager-head:
+  cic-eth-tracker:
     build:
         context: apps/
         dockerfile: cic-eth/docker/Dockerfile
@@ -274,45 +274,9 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_manager.sh head -v
+        ./start_manager.sh -v -c /usr/local/etc/cic-eth
     # command: "/root/start_manager.sh head -vv"
 
-  cic-eth-manager-history:
-    build:
-        context: apps/
-        dockerfile: cic-eth/docker/Dockerfile
-    environment:
-      ETH_PROVIDER: http://eth:8545
-      DATABASE_USER: ${DATABASE_USER:-grassroots}
-      DATABASE_HOST: ${DATABASE_HOST:-postgres}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
-      DATABASE_NAME: ${DATABASE_NAME_CIC_CACHE:-cic_eth}
-      DATABASE_PORT: ${DATABASE_PORT:-5432}
-      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
-      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
-      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
-      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
-        #BANCOR_DIR: $BANCOR_DIR
-      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
-      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
-      TASKS_TRANSFER_CALLBACKS: $TASKS_TRANSFER_CALLBACKS
-    depends_on:
-      - eth
-      - postgres
-      - redis
-        #deploy:
-      #restart_policy:
-      #  condition: on-failure
-    volumes:
-        - contract-config:/tmp/cic/config/:ro
-    command:
-      - /bin/bash
-      - -c
-      - |
-        if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_manager.sh history -v
-    # command: "/root/start_manager.sh history -vv"
 
   cic-eth-dispatcher:
     build:
