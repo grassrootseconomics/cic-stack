@@ -21,6 +21,7 @@ from cic_eth.db.models.role import AccountRole
 from cic_eth.db.models.tx import TxCache
 from cic_eth.eth.util import unpack_signed_raw_tx
 from cic_eth.error import RoleMissingError
+from cic_eth.task import CriticalSQLAlchemyTask
 
 #logg = logging.getLogger(__name__)
 logg = logging.getLogger()
@@ -130,7 +131,8 @@ def unpack_gift(data):
         }
      
 
-@celery_app.task()
+# TODO: Separate out nonce initialization task
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def create(password, chain_str):
     """Creates and stores a new ethereum account in the keystore.
 
@@ -149,6 +151,7 @@ def create(password, chain_str):
     logg.debug('created account {}'.format(a))
 
     # Initialize nonce provider record for account
+    # TODO: this can safely be set to zero, since we are randomly creating account
     n = c.w3.eth.getTransactionCount(a, 'pending')
     session = SessionBase.create_session()
     o = session.query(Nonce).filter(Nonce.address_hex==a).first()
@@ -162,7 +165,7 @@ def create(password, chain_str):
     return a
 
 
-@celery_app.task(bind=True, throws=(RoleMissingError,))
+@celery_app.task(bind=True, throws=(RoleMissingError,), base=CriticalSQLAlchemyTask)
 def register(self, account_address, chain_str, writer_address=None):
     """Creates a transaction to add the given address to the accounts index.
 
@@ -211,7 +214,7 @@ def register(self, account_address, chain_str, writer_address=None):
     return account_address
 
 
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
 def gift(self, account_address, chain_str):
     """Creates a transaction to invoke the faucet contract for the given address.
 
@@ -326,7 +329,7 @@ def cache_gift_data(
     return (tx_hash_hex, cache_id)
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def cache_account_data(
     tx_hash_hex,
     tx_signed_raw_hex,

@@ -51,19 +51,6 @@ def sign_and_register_tx(tx, chain_str, queue, cache_task=None):
 
     logg.debug('adding queue tx {}'.format(tx_hash_hex))
 
-#    s = celery.signature(
-#        'cic_eth.queue.tx.create',
-#        [
-#            tx['nonce'],
-#            tx['from'],
-#            tx_hash_hex,
-#            tx_signed_raw_hex,
-#            chain_str,
-#            ],
-#        queue=queue,
-#        )
-
-    # TODO: consider returning this as a signature that consequtive tasks can be linked to
     queue_create(
         tx['nonce'],
         tx['from'],
