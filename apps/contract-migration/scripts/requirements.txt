@@ -1,7 +1,7 @@
 psycopg2==2.8.6
-chainlib~=0.0.1a15
-chainsyncer~=0.0.1a10
-cic-eth==0.10.0a30+build.fdb16130
+chainlib~=0.0.1a17
+chainsyncer~=0.0.1a12
+cic-eth==0.10.0a31
 cic-registry~=0.5.3a21
 confini~=0.3.6rc3
 celery==4.4.7

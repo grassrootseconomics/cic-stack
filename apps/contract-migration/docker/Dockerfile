@@ -155,10 +155,10 @@ RUN pip install  --extra-index-url $pip_extra_index_url eth-gas-proxy==$eth_gas_
 ARG cic_contracts_version=0.0.2a2
 RUN pip install  --extra-index-url $pip_extra_index_url cic-contracts==$cic_contracts_version
 
-ARG chainlib_version=0.0.1a16
+ARG chainlib_version=0.0.1a17
 RUN pip install  --extra-index-url $pip_extra_index_url chainlib==$chainlib_version
 
-ARG chainsyncer_version=0.0.1a8
+ARG chainsyncer_version=0.0.1a12
 RUN pip install  --extra-index-url $pip_extra_index_url chainsyncer==$chainsyncer_version
 
 

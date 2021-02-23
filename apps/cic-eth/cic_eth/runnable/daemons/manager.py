@@ -75,8 +75,6 @@ SessionBase.connect(dsn, pool_size=1, debug=config.true('DATABASE_DEBUG'))
 
 
 def main():
-    #global chain_spec, c, queue
-
     # parse chain spec object
     chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
             

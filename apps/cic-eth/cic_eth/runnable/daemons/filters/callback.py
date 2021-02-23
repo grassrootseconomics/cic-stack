@@ -85,7 +85,6 @@ class CallbackFilter(SyncFilter):
 
 
     def filter(self, conn, block, tx, db_session=None):
-        logg.debug('applying callback filter "{}:{}"'.format(self.queue, self.method))
         chain_str = str(self.chain_spec)
 
         transfer_data = None

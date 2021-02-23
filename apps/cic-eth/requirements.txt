@@ -18,6 +18,6 @@ eth-gas-proxy==0.0.1a4
 websocket-client==0.57.0
 moolb~=0.1.1b2
 eth-address-index~=0.1.0a8
-chainlib~=0.0.1a16
+chainlib~=0.0.1a17
 hexathon~=0.0.1a3
-chainsyncer~=0.0.1a8
+chainsyncer~=0.0.1a12

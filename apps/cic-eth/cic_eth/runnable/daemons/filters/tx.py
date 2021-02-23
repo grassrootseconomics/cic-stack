@@ -3,6 +3,9 @@ import logging
 
 # third-party imports
 import celery
+from hexathon import (
+        add_0x,
+        )
 
 # local imports
 from cic_eth.db.models.otx import Otx
@@ -21,7 +24,7 @@ class TxFilter(SyncFilter):
     def filter(self, conn, block, tx, db_session=None):
         db_session = SessionBase.bind_session(db_session)
         tx_hash_hex = tx.hash
-        otx = Otx.load(tx_hash_hex, session=db_session)
+        otx = Otx.load(add_0x(tx_hash_hex), session=db_session)
         SessionBase.release_session(db_session)
         if otx == None:
             logg.debug('tx {} not found locally, skipping'.format(tx_hash_hex))
