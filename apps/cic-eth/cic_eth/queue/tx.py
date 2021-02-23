@@ -26,6 +26,7 @@ from cic_eth.db.enum import (
         is_alive,
         dead,
         )
+from cic_eth.task import CriticalSQLAlchemyTask
 from cic_eth.eth.util import unpack_signed_raw_tx # TODO: should not be in same sub-path as package that imports queue.tx
 from cic_eth.error import NotLocalTxError
 from cic_eth.error import LockedError
@@ -86,7 +87,7 @@ def create(nonce, holder_address, tx_hash, signed_tx, chain_str, obsolete_predec
 
 
 # TODO: Replace set_* with single task for set status
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def set_sent_status(tx_hash, fail=False):
     """Used to set the status after a send attempt
 
@@ -118,7 +119,7 @@ def set_sent_status(tx_hash, fail=False):
     return tx_hash
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def set_final_status(tx_hash, block=None, fail=False):
     """Used to set the status of an incoming transaction result. 
 
@@ -174,7 +175,7 @@ def set_final_status(tx_hash, block=None, fail=False):
     return tx_hash
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def set_cancel(tx_hash, manual=False):
     """Used to set the status when a transaction is cancelled.
 
@@ -206,7 +207,7 @@ def set_cancel(tx_hash, manual=False):
     return tx_hash
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def set_rejected(tx_hash):
     """Used to set the status when the node rejects sending a transaction to network
 
@@ -232,7 +233,7 @@ def set_rejected(tx_hash):
     return tx_hash
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def set_fubar(tx_hash):
     """Used to set the status when an unexpected error occurs.
 
@@ -258,7 +259,7 @@ def set_fubar(tx_hash):
     return tx_hash
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def set_manual(tx_hash):
     """Used to set the status when queue is manually changed
 
@@ -284,7 +285,7 @@ def set_manual(tx_hash):
     return tx_hash
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def set_ready(tx_hash):
     """Used to mark a transaction as ready to be sent to network
 
@@ -310,7 +311,7 @@ def set_ready(tx_hash):
     return tx_hash
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def set_waitforgas(tx_hash):
     """Used to set the status when a transaction must be deferred due to gas refill
 
@@ -336,7 +337,7 @@ def set_waitforgas(tx_hash):
     return tx_hash
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def get_state_log(tx_hash):
 
     logs = []
@@ -355,7 +356,7 @@ def get_state_log(tx_hash):
     return logs
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def get_tx_cache(tx_hash):
     """Returns an aggregate dictionary of outgoing transaction data and metadata
 
@@ -404,7 +405,7 @@ def get_tx_cache(tx_hash):
     return tx
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def get_lock(address=None):
     """Retrieve all active locks
 
@@ -442,7 +443,7 @@ def get_lock(address=None):
     return locks
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def get_tx(tx_hash):
     """Retrieve a transaction queue record by transaction hash
 
@@ -469,7 +470,7 @@ def get_tx(tx_hash):
     return o
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def get_nonce_tx(nonce, sender, chain_id):
     """Retrieve all transactions for address with specified nonce
 
@@ -652,7 +653,7 @@ def get_upcoming_tx(status=StatusEnum.READYSEND, recipient=None, before=None, ch
     return txs
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def get_account_tx(address, as_sender=True, as_recipient=True, counterpart=None):
     """Returns all local queue transactions for a given Ethereum address
 

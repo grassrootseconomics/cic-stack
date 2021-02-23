@@ -44,6 +44,7 @@ def sign_and_register_tx(tx, chain_str, queue, cache_task=None):
     :type queue: str
     :param cache_task: Cache task to call with signed transaction. If None, no task will be called.
     :type cache_task: str
+    :raises: sqlalchemy.exc.DatabaseError
     :returns: Tuple; Transaction hash, signed raw transaction data
     :rtype: tuple
     """

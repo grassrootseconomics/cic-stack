@@ -32,6 +32,7 @@ from cic_eth.eth.nonce import NonceOracle
 from cic_eth.error import AlreadyFillingGasError
 from cic_eth.eth.util import tx_hex_string
 from cic_eth.admin.ctrl import lock_send
+from cic_eth.task import CriticalSQLAlchemyTask
 
 celery_app = celery.current_app
 logg = logging.getLogger()
@@ -40,7 +41,7 @@ MAX_NONCE_ATTEMPTS = 3
 
 
 # TODO this function is too long
-@celery_app.task(bind=True, throws=(OutOfGasError))
+@celery_app.task(bind=True, throws=(OutOfGasError), base=CriticalSQLAlchemyTask)
 def check_gas(self, tx_hashes, chain_str, txs=[], address=None, gas_required=None):
     """Check the gas level of the sender address of a transaction.
 
@@ -131,7 +132,7 @@ def check_gas(self, tx_hashes, chain_str, txs=[], address=None, gas_required=Non
 
 
 # TODO: chain chainable transactions that use hashes as inputs may be chained to this function to output signed txs instead.
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
 def hashes_to_txs(self, tx_hashes):
     """Return a list of raw signed transactions from the local transaction queue corresponding to a list of transaction hashes.
 
@@ -313,6 +314,7 @@ class ParityNodeHandler:
         return (t, PermanentTxError, 'Fubar {}'.format(tx_hex_string(tx_hex, self.chain_spec.chain_id())))
 
 
+# TODO: A lock should be introduced to ensure that the send status change and the transaction send is atomic.
 @celery_app.task(bind=True)
 def send(self, txs, chain_str):
     """Send transactions to the network.
@@ -351,13 +353,6 @@ def send(self, txs, chain_str):
 
     c = RpcClient(chain_spec)
     r = None
-    try:
-        r = c.w3.eth.send_raw_transaction(tx_hex)
-    except Exception as e:
-        raiser = ParityNodeHandler(chain_spec, queue)
-        (t, e, m) = raiser.handle(e, tx_hash_hex, tx_hex)
-        raise e(m)
-
     s_set_sent = celery.signature(
         'cic_eth.queue.tx.set_sent_status',
         [
@@ -366,6 +361,12 @@ def send(self, txs, chain_str):
             ],
             queue=queue,
         )
+    try:
+        r = c.w3.eth.send_raw_transaction(tx_hex)
+    except Exception as e:
+        raiser = ParityNodeHandler(chain_spec, queue)
+        (t, e, m) = raiser.handle(e, tx_hash_hex, tx_hex)
+        raise e(m)
     s_set_sent.apply_async()
 
     tx_tail = txs[1:]
@@ -380,7 +381,8 @@ def send(self, txs, chain_str):
     return r.hex()
 
 
-@celery_app.task(bind=True, throws=(AlreadyFillingGasError))
+# TODO: if this method fails the nonce will be out of sequence. session needs to be extended to include the queue create, so that nonce is rolled back if the second sql query fails. Better yet, split each state change into separate tasks.
+@celery_app.task(bind=True, throws=(web3.exceptions.TransactionNotFound,))
 def refill_gas(self, recipient_address, chain_str):
     """Executes a native token transaction to fund the recipient's gas expenditures.
 
@@ -463,7 +465,7 @@ def refill_gas(self, recipient_address, chain_str):
     return tx_send_gas_signed['raw']
 
 
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
 def resend_with_higher_gas(self, txold_hash_hex, chain_str, gas=None, default_factor=1.1):
     """Create a new transaction from an existing one with same nonce and higher gas price.
 
@@ -621,7 +623,7 @@ def resume_tx(self, txpending_hash_hex, chain_str):
     return txpending_hash_hex
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def otx_cache_parse_tx(
         tx_hash_hex,
         tx_signed_raw_hex,
@@ -648,7 +650,7 @@ def otx_cache_parse_tx(
     return txc
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def cache_gas_refill_data(
         tx_hash_hex,
         tx,

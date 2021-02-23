@@ -19,6 +19,7 @@ from cic_eth.eth.task import create_check_gas_and_send_task
 from cic_eth.eth.factory import TxFactory
 from cic_eth.eth.util import unpack_signed_raw_tx
 from cic_eth.ext.address import translate_address
+from cic_eth.task import CriticalSQLAlchemyTask
 
 celery_app = celery.current_app
 logg = logging.getLogger()
@@ -199,7 +200,7 @@ def balance(tokens, holder_address, chain_str):
     return tokens
 
 
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
 def transfer(self, tokens, holder_address, receiver_address, value, chain_str):
     """Transfer ERC20 tokens between addresses
 
@@ -253,7 +254,7 @@ def transfer(self, tokens, holder_address, receiver_address, value, chain_str):
     return tx_hash_hex
 
 
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
 def approve(self, tokens, holder_address, spender_address, value, chain_str):
     """Approve ERC20 transfer on behalf of holder address
 
@@ -330,7 +331,7 @@ def resolve_tokens_by_symbol(token_symbols, chain_str):
     return tokens
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def otx_cache_transfer(
         tx_hash_hex,
         tx_signed_raw_hex,
@@ -354,7 +355,7 @@ def otx_cache_transfer(
     return txc
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def cache_transfer_data(
     tx_hash_hex,
     tx,
@@ -390,7 +391,7 @@ def cache_transfer_data(
     return (tx_hash_hex, cache_id)
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def otx_cache_approve(
         tx_hash_hex,
         tx_signed_raw_hex,
@@ -414,7 +415,7 @@ def otx_cache_approve(
     return txc
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def cache_approve_data(
     tx_hash_hex,
     tx,
