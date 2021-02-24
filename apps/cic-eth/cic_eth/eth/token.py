@@ -19,7 +19,10 @@ from cic_eth.eth.task import create_check_gas_and_send_task
 from cic_eth.eth.factory import TxFactory
 from cic_eth.eth.util import unpack_signed_raw_tx
 from cic_eth.ext.address import translate_address
-from cic_eth.task import CriticalSQLAlchemyTask
+from cic_eth.task import (
+        CriticalSQLAlchemyTask,
+        CriticalWeb3Task,
+    )
 
 celery_app = celery.current_app
 logg = logging.getLogger()
@@ -173,7 +176,7 @@ def unpack_approve(data):
         }
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalWeb3Task)
 def balance(tokens, holder_address, chain_str):
     """Return token balances for a list of tokens for given address
 
@@ -308,7 +311,7 @@ def approve(self, tokens, holder_address, spender_address, value, chain_str):
     return tx_hash_hex
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalWeb3Task)
 def resolve_tokens_by_symbol(token_symbols, chain_str):
     """Returns contract addresses of an array of ERC20 token symbols
 

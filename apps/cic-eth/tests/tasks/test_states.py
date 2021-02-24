@@ -27,14 +27,14 @@ def test_states_initial(
     tx = {
         'from': init_w3.eth.accounts[0],
         'to': init_w3.eth.accounts[1],
-        'nonce': 42,
+        'nonce': 13,
         'gas': 21000,
         'gasPrice': 1000000,
         'value': 128,
-        'chainId': 666,
+        'chainId': 42,
         'data': '',
         }
-    (tx_hash_hex, tx_raw_signed_hex) = sign_and_register_tx(tx, 'Foo:666', None)
+    (tx_hash_hex, tx_raw_signed_hex) = sign_and_register_tx(tx, 'foo:bar:42', None)
 
     otx = init_database.query(Otx).filter(Otx.tx_hash==tx_hash_hex).first()
     assert otx.status == StatusEnum.PENDING.value
@@ -43,7 +43,7 @@ def test_states_initial(
             'cic_eth.eth.tx.check_gas',
             [
                 [tx_hash_hex],
-                'Foo:666',
+                'foo:bar:42',
                 [tx_raw_signed_hex],
                 init_w3.eth.accounts[0],
                 8000000,
@@ -67,7 +67,7 @@ def test_states_initial(
             'cic_eth.eth.tx.check_gas',
             [
                 [tx_hash_hex],
-                'Foo:666',
+                'foo:bar:42',
                 [tx_raw_signed_hex],
                 init_w3.eth.accounts[0],
                 8000000,
@@ -94,14 +94,14 @@ def test_states_failed(
     tx = {
         'from': init_w3.eth.accounts[0],
         'to': init_w3.eth.accounts[1],
-        'nonce': 42,
+        'nonce': 13,
         'gas': 21000,
         'gasPrice': 1000000,
         'value': 128,
-        'chainId': 666,
+        'chainId': 42,
         'data': '',
         }
-    (tx_hash_hex, tx_raw_signed_hex) = sign_and_register_tx(tx, 'Foo:666', None)
+    (tx_hash_hex, tx_raw_signed_hex) = sign_and_register_tx(tx, 'foo:bar:42', None)
 
     otx = init_database.query(Otx).filter(Otx.tx_hash==tx_hash_hex).first()
     otx.sendfail(session=init_database)
@@ -112,7 +112,7 @@ def test_states_failed(
             'cic_eth.eth.tx.check_gas',
             [
                 [tx_hash_hex],
-                'Foo:666',
+                'foo:bar:42',
                 [tx_raw_signed_hex],
                 init_w3.eth.accounts[0],
                 8000000,

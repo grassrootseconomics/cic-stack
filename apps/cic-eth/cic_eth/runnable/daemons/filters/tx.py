@@ -10,9 +10,10 @@ from hexathon import (
 # local imports
 from cic_eth.db.models.otx import Otx
 from chainsyncer.db.models.base import SessionBase
+from chainlib.status import Status
 from .base import SyncFilter
 
-logg = logging.getLogger()
+logg = logging.getLogger(__name__)
 
 
 class TxFilter(SyncFilter):
@@ -25,17 +26,17 @@ class TxFilter(SyncFilter):
         db_session = SessionBase.bind_session(db_session)
         tx_hash_hex = tx.hash
         otx = Otx.load(add_0x(tx_hash_hex), session=db_session)
-        SessionBase.release_session(db_session)
         if otx == None:
             logg.debug('tx {} not found locally, skipping'.format(tx_hash_hex))
             return None
-        logg.info('otx found {}'.format(otx.tx_hash))
+        logg.info('local tx match {}'.format(otx.tx_hash))
+        SessionBase.release_session(db_session)
         s = celery.signature(
                 'cic_eth.queue.tx.set_final_status',
                 [
-                    tx_hash_hex,
-                    rcpt.blockNumber,
-                    rcpt.status == 0,
+                    add_0x(tx_hash_hex),
+                    tx.block.number,
+                    tx.status == Status.ERROR,
                     ],
                 queue=self.queue,
                 )

@@ -26,7 +26,7 @@ def test_set(
                 'data': '',
                 'chainId': 1,
                 }
-        (tx_hash, tx_signed) = sign_tx(tx_def, 'Foo:1')
+        (tx_hash, tx_signed) = sign_tx(tx_def, 'foo:bar:1')
         otx = Otx(
             tx_def['nonce'],
             tx_def['from'],
@@ -82,7 +82,7 @@ def test_clone(
                 'data': '',
                 'chainId': 1,
                 }
-        (tx_hash, tx_signed) = sign_tx(tx_def, 'Foo:1')
+        (tx_hash, tx_signed) = sign_tx(tx_def, 'foo:bar:1')
         otx = Otx(
             tx_def['nonce'],
             tx_def['from'],

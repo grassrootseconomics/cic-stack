@@ -10,6 +10,7 @@ from cic_registry.chain import ChainSpec
 from cic_eth.eth.rpc import RpcClient
 from cic_eth.db.models.otx import Otx
 from cic_eth.error import NotLocalTxError
+from cic_eth.task import CriticalSQLAlchemyAndWeb3Task
 
 celery_app = celery.current_app
 
@@ -17,7 +18,7 @@ logg = logging.getLogger()
 
 
 # TODO: This method does not belong in the _queue_ module, it operates across queue and network
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyAndWeb3Task)
 def tx_times(tx_hash, chain_str):
     chain_spec = ChainSpec.from_chain_str(chain_str)
     c = RpcClient(chain_spec)

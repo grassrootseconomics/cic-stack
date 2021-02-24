@@ -8,7 +8,7 @@ from chainlib.eth.address import to_checksum
 # local imports
 from .base import SyncFilter
 
-logg = logging.getLogger()
+logg = logging.getLogger(__name__)
 
 account_registry_add_log_hash = '0x5ed3bdd47b9af629827a8d129aa39c870b10c03f0153fe9ddb8e84b665061acd' # keccak256(AccountAdded(address,uint256))
 

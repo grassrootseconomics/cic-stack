@@ -20,5 +20,10 @@ def tcp(self, result, destination, status_code):
     (host, port) = destination.split(':')
     logg.debug('tcp callback to {} {}'.format(host, port))
     s.connect((host, int(port)))
-    s.send(json.dumps(result).encode('utf-8'))
+    data = {
+            'root_id': self.request.root_id,
+            'status': status_code,
+            'result': result,
+            }
+    s.send(json.dumps(data).encode('utf-8'))
     s.close()

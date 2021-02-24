@@ -67,7 +67,7 @@ def test_callback_tcp(
             logg.debug('recived {} '.format(data))
             o = json.loads(echo)
             try:
-                assert o == data
+                assert o['result'] == data
             except Exception as e:
                 self.exception = e
 
@@ -130,7 +130,7 @@ def test_callback_redis(
             o = json.loads(echo['data'])
             logg.debug('recived {} '.format(o))
             try:
-                assert o == data
+                assert o['result'] == data
             except Exception as e:
                 self.exception = e
 

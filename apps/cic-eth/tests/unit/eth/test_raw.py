@@ -14,11 +14,11 @@ def test_unpack(
         'gas': 21000,
         'gasPrice': 200000000,
         'data': '0x',
-        'chainId': 8995,
+        'chainId': 42,
             }
 
-    (tx_hash, tx_raw) = sign_tx(tx, 'Foo:8995')
+    (tx_hash, tx_raw) = sign_tx(tx, 'foo:bar:42')
 
-    tx_recovered = unpack_signed_raw_tx(bytes.fromhex(tx_raw[2:]), 8995)
+    tx_recovered = unpack_signed_raw_tx(bytes.fromhex(tx_raw[2:]), 42)
 
     assert tx_hash == tx_recovered['hash']

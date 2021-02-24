@@ -32,7 +32,10 @@ from cic_eth.eth.nonce import NonceOracle
 from cic_eth.error import AlreadyFillingGasError
 from cic_eth.eth.util import tx_hex_string
 from cic_eth.admin.ctrl import lock_send
-from cic_eth.task import CriticalSQLAlchemyTask
+from cic_eth.task import (
+        CriticalSQLAlchemyTask,
+        CriticalWeb3Task,
+        )
 
 celery_app = celery.current_app
 logg = logging.getLogger()
@@ -315,7 +318,7 @@ class ParityNodeHandler:
 
 
 # TODO: A lock should be introduced to ensure that the send status change and the transaction send is atomic.
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, base=CriticalWeb3Task)
 def send(self, txs, chain_str):
     """Send transactions to the network.
 
@@ -363,6 +366,8 @@ def send(self, txs, chain_str):
         )
     try:
         r = c.w3.eth.send_raw_transaction(tx_hex)
+    except requests.exceptions.ConnectionError as e:
+        raise(e)
     except Exception as e:
         raiser = ParityNodeHandler(chain_spec, queue)
         (t, e, m) = raiser.handle(e, tx_hash_hex, tx_hex)
@@ -382,7 +387,7 @@ def send(self, txs, chain_str):
 
 
 # TODO: if this method fails the nonce will be out of sequence. session needs to be extended to include the queue create, so that nonce is rolled back if the second sql query fails. Better yet, split each state change into separate tasks.
-@celery_app.task(bind=True, throws=(web3.exceptions.TransactionNotFound,))
+@celery_app.task(bind=True, throws=(web3.exceptions.TransactionNotFound,), base=CriticalWeb3Task)
 def refill_gas(self, recipient_address, chain_str):
     """Executes a native token transaction to fund the recipient's gas expenditures.
 
@@ -465,7 +470,7 @@ def refill_gas(self, recipient_address, chain_str):
     return tx_send_gas_signed['raw']
 
 
-@celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
+@celery_app.task(bind=True)
 def resend_with_higher_gas(self, txold_hash_hex, chain_str, gas=None, default_factor=1.1):
     """Create a new transaction from an existing one with same nonce and higher gas price.
 
@@ -539,7 +544,7 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_str, gas=None, default_fa
     return tx_hash_hex
 
 
-@celery_app.task(bind=True, throws=(web3.exceptions.TransactionNotFound,))
+@celery_app.task(bind=True, throws=(web3.exceptions.TransactionNotFound,), base=CriticalWeb3Task)
 def sync_tx(self, tx_hash_hex, chain_str):
 
     queue = self.request.delivery_info['routing_key']

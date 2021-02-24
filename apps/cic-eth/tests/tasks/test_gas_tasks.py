@@ -37,7 +37,7 @@ def test_refill_gas(
     eth_empty_accounts,
         ):
 
-    provider_address = AccountRole.get_address('GAS_GIFTER')
+    provider_address = AccountRole.get_address('GAS_GIFTER', init_database)
     receiver_address = eth_empty_accounts[0]
 
     c = init_rpc
@@ -93,7 +93,7 @@ def test_refill_deduplication(
     eth_empty_accounts,
         ):
 
-    provider_address = AccountRole.get_address('ETH_GAS_PROVIDER_ADDRESS')
+    provider_address = AccountRole.get_address('ETH_GAS_PROVIDER_ADDRESS', init_database)
     receiver_address = eth_empty_accounts[0]
 
     c = init_rpc

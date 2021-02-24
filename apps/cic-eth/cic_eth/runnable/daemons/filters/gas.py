@@ -13,7 +13,7 @@ from cic_eth.queue.tx import get_paused_txs
 from cic_eth.eth.task import create_check_gas_and_send_task
 from .base import SyncFilter
 
-logg = logging.getLogger()
+logg = logging.getLogger(__name__)
 
 
 class GasFilter(SyncFilter):
@@ -33,7 +33,7 @@ class GasFilter(SyncFilter):
             r = q.first()
 
             if r == None:
-                logg.warning('unsolicited gas refill tx {}'.format(tx_hash_hex))
+                logg.debug('unsolicited gas refill tx {}'.format(tx_hash_hex))
                 SessionBase.release_session(session)
                 return
 

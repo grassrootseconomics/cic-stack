@@ -14,6 +14,7 @@ from cic_eth.db.enum import (
         StatusBits,
         dead,
         )
+from cic_eth.task import CriticalSQLAlchemyTask
 
 celery_app = celery.current_app
 
@@ -35,7 +36,7 @@ def __balance_outgoing_compatible(token_address, holder_address, chain_str):
     return delta
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def balance_outgoing(tokens, holder_address, chain_str):
     """Retrieve accumulated value of unprocessed transactions sent from the given address.
 
@@ -73,7 +74,7 @@ def __balance_incoming_compatible(token_address, receiver_address, chain_str):
     return delta
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def balance_incoming(tokens, receipient_address, chain_str):
     """Retrieve accumulated value of unprocessed transactions to be received by the given address.
 

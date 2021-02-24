@@ -27,9 +27,11 @@ from hexathon import (
         strip_0x,
         )
 from chainsyncer.backend import SyncerBackend
-from chainsyncer.driver import HeadSyncer
+from chainsyncer.driver import (
+        HeadSyncer,
+        HistorySyncer,
+        )
 from chainsyncer.db.models.base import SessionBase
-from chainsyncer.error import LoopDone
 
 # local imports
 from cic_eth.registry import init_registry
@@ -101,12 +103,21 @@ def main():
     syncer_backends = SyncerBackend.resume(chain_spec, block_offset)
 
     if len(syncer_backends) == 0:
+        logg.info('found no backends to resume')
         syncer_backends.append(SyncerBackend.initial(chain_spec, block_offset))
+    else:
+        for syncer_backend in syncer_backends:
+            logg.info('resuming sync session {}'.format(syncer_backend))
 
-    #block_sync = SyncerBackend.live(chain_spec, block_offset+1)
+    syncer_backends.append(SyncerBackend.live(chain_spec, block_offset+1))
+
     for syncer_backend in syncer_backends:
-        syncers.append(HeadSyncer(syncer_backend))
-
+        try:
+            syncers.append(HistorySyncer(syncer_backend))
+            logg.info('Initializing HISTORY syncer on backend {}'.format(syncer_backend))
+        except AttributeError:
+            logg.info('Initializing HEAD syncer on backend {}'.format(syncer_backend))
+            syncers.append(HeadSyncer(syncer_backend))
 
     trusted_addresses_src = config.get('CIC_TRUST_ADDRESS')
     if trusted_addresses_src == None:
@@ -142,10 +153,8 @@ def main():
         for cf in callback_filters:
             syncer.add_filter(cf)
 
-        try:
-            syncer.loop(int(config.get('SYNCER_LOOP_INTERVAL')), conn)
-        except LoopDone as e:
-            sys.stderr.write("sync '{}' done at block {}\n".format(args.mode, e))
+        r = syncer.loop(int(config.get('SYNCER_LOOP_INTERVAL')), conn)
+        sys.stderr.write("sync {} done at block {}\n".format(syncer, r))
 
         i += 1
 

@@ -13,7 +13,7 @@ from cic_eth.eth.token import unpack_transferfrom
 from cic_eth.eth.token import ExtendedTx
 from .base import SyncFilter
 
-logg = logging.getLogger()
+logg = logging.getLogger(__name__)
 
 transfer_method_signature = '0xa9059cbb' # keccak256(transfer(address,uint256))
 transferfrom_method_signature = '0x23b872dd' # keccak256(transferFrom(address,address,uint256))
