@@ -137,11 +137,11 @@ def main():
         callback_filter = CallbackFilter(chain_spec, task_split[1], task_queue)
         callback_filters.append(callback_filter)
 
-    tx_filter = TxFilter(config.get('_CELERY_QUEUE'))
+    tx_filter = TxFilter(chain_spec, config.get('_CELERY_QUEUE'))
 
     registration_filter = RegistrationFilter(chain_spec, config.get('_CELERY_QUEUE'))
 
-    gas_filter = GasFilter(config.get('_CELERY_QUEUE'))
+    gas_filter = GasFilter(chain_spec, config.get('_CELERY_QUEUE'))
 
     i = 0
     for syncer in syncers:

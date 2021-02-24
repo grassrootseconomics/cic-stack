@@ -8,6 +8,7 @@ import web3
 from cic_registry import CICRegistry
 from cic_registry import zero_address
 from cic_registry.chain import ChainSpec
+from hexathon import strip_0x
 
 # platform imports
 from cic_eth.db.models.tx import TxCache
@@ -124,11 +125,12 @@ def unpack_transfer(data):
     :returns: Parsed parameters
     :rtype: dict
     """
-    f = data[2:10]
+    data = strip_0x(data)
+    f = data[:8]
     if f != contract_function_signatures['transfer']:
         raise ValueError('Invalid transfer data ({})'.format(f))
 
-    d = data[10:]
+    d = data[8:]
     return {
         'to': web3.Web3.toChecksumAddress('0x' + d[64-40:64]),
         'amount': int(d[64:], 16)
@@ -144,11 +146,12 @@ def unpack_transferfrom(data):
     :returns: Parsed parameters
     :rtype: dict
     """
-    f = data[2:10]
+    data = strip_0x(data)
+    f = data[:8]
     if f != contract_function_signatures['transferfrom']:
         raise ValueError('Invalid transferFrom data ({})'.format(f))
 
-    d = data[10:]
+    d = data[8:]
     return {
         'from': web3.Web3.toChecksumAddress('0x' + d[64-40:64]),
         'to': web3.Web3.toChecksumAddress('0x' + d[128-40:128]),
@@ -165,11 +168,12 @@ def unpack_approve(data):
     :returns: Parsed parameters
     :rtype: dict
     """
-    f = data[2:10]
+    data = strip_0x(data)
+    f = data[:8]
     if f != contract_function_signatures['approve']:
         raise ValueError('Invalid approval data ({})'.format(f))
 
-    d = data[10:]
+    d = data[8:]
     return {
         'to': web3.Web3.toChecksumAddress('0x' + d[64-40:64]),
         'amount': int(d[64:], 16)

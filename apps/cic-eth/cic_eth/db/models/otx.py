@@ -79,6 +79,13 @@ class Otx(SessionBase):
         return r
 
 
+    def __status_not_set(self, status):
+        r = not(self.status & status)
+        if r:
+            logg.warning('status bit {} not set on {}'.format(status.name, self.tx_hash))
+        return r
+
+
     def set_block(self, block, session=None):
         """Set block number transaction was mined in.
 
@@ -320,6 +327,32 @@ class Otx(SessionBase):
         SessionBase.release_session(session)
 
 
+    def dequeue(self, session=None):
+        """Marks that a process to execute send attempt is underway
+
+        Only manipulates object, does not transaction or commit to backend.
+
+        :raises cic_eth.db.error.TxStateChangeError: State change represents a sequence of events that should not exist.
+        """
+        if self.__status_not_set(StatusBits.QUEUED):
+            return
+
+        session = SessionBase.bind_session(session)
+
+        if self.status & StatusBits.FINAL:
+            raise TxStateChangeError('SENDFAIL cannot be set on an entry with FINAL state set ({})'.format(status_str(self.status)))
+        if self.status & StatusBits.IN_NETWORK:
+            raise TxStateChangeError('SENDFAIL cannot be set on an entry with IN_NETWORK state set ({})'.format(status_str(self.status)))
+
+        self.__reset_status(StatusBits.QUEUED, session)
+
+        if self.tracing:
+            self.__state_log(session=session)
+
+        SessionBase.release_session(session)
+
+
+
     def minefail(self, block, session=None):
         """Marks that transaction was mined but code execution did not succeed.
 
@@ -372,18 +405,6 @@ class Otx(SessionBase):
             self.__set_status(StatusEnum.CANCELLED, session)
         else:
             self.__set_status(StatusEnum.OBSOLETED, session)
-
-
-#        if confirmed:
-#            if self.status != StatusEnum.OBSOLETED:
-#                logg.warning('CANCELLED must follow OBSOLETED, but had {}'.format(StatusEnum(self.status).name))
-#                #raise TxStateChangeError('CANCELLED must follow OBSOLETED, but had {}'.format(StatusEnum(self.status).name))
-#            self.__set_status(StatusEnum.CANCELLED, session)
-#        elif self.status != StatusEnum.OBSOLETED:
-#            if self.status > StatusEnum.SENT:
-#                logg.warning('OBSOLETED must follow PENDING, SENDFAIL or SENT, but had {}'.format(StatusEnum(self.status).name))
-#                #raise TxStateChangeError('OBSOLETED must follow PENDING, SENDFAIL or SENT, but had {}'.format(StatusEnum(self.status).name))
-        #    self.__set_status(StatusEnum.OBSOLETED, session)
 
         if self.tracing:
             self.__state_log(session=session)

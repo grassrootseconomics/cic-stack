@@ -18,8 +18,9 @@ logg = logging.getLogger(__name__)
 
 class TxFilter(SyncFilter):
 
-    def __init__(self, queue):
+    def __init__(self, chain_spec, queue):
         self.queue = queue
+        self.chain_spec = chain_spec
 
 
     def filter(self, conn, block, tx, db_session=None):

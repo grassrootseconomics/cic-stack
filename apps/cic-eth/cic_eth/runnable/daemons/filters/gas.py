@@ -3,6 +3,7 @@ import logging
 
 # third-party imports
 from cic_registry.chain import ChainSpec
+from hexathon import add_0x
 
 # local imports
 from cic_eth.db.enum import StatusBits
@@ -18,12 +19,13 @@ logg = logging.getLogger(__name__)
 
 class GasFilter(SyncFilter):
 
-    def __init__(self, queue=None):
+    def __init__(self, chain_spec, queue=None):
         self.queue = queue
+        self.chain_spec = chain_spec
 
 
     def filter(self, conn, block, tx, session): #rcpt, chain_str, session=None):
-        tx_hash_hex = tx.hash
+        tx_hash_hex = add_0x(tx.hash)
         if tx.value > 0:
             logg.debug('gas refill tx {}'.format(tx_hash_hex))
             session = SessionBase.bind_session(session)
@@ -37,16 +39,15 @@ class GasFilter(SyncFilter):
                 SessionBase.release_session(session)
                 return
 
-            chain_spec = ChainSpec.from_chain_str(chain_str)
-            txs = get_paused_txs(StatusBits.GAS_ISSUES, r[0], chain_spec.chain_id(), session=session)
+            txs = get_paused_txs(StatusBits.GAS_ISSUES, r[0], self.chain_spec.chain_id(), session=session)
 
             SessionBase.release_session(session)
 
+            logg.info('resuming gas-in-waiting txs for {}'.format(r[0]))
             if len(txs) > 0:
-                logg.info('resuming gas-in-waiting txs for {}: {}'.format(r[0], txs.keys()))
                 s = create_check_gas_and_send_task(
                         list(txs.values()),
-                        str(chain_str),
+                        str(self.chain_spec),
                         r[0],
                         0,
                         tx_hashes_hex=list(txs.keys()),

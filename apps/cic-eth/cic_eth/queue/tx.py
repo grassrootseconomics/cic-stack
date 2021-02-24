@@ -312,6 +312,24 @@ def set_ready(tx_hash):
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
+def set_dequeue(tx_hash):
+    session = SessionBase.create_session()
+    o = session.query(Otx).filter(Otx.tx_hash==tx_hash).first()
+    if o == None:
+        session.close()
+        raise NotLocalTxError('queue does not contain tx hash {}'.format(tx_hash))
+
+    session.flush()
+
+    o.dequeue(session=session)
+    session.commit()
+    session.close()
+
+    return tx_hash
+
+
+
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def set_waitforgas(tx_hash):
     """Used to set the status when a transaction must be deferred due to gas refill
 

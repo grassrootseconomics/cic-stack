@@ -8,6 +8,7 @@ from cic_registry import CICRegistry
 from cic_registry.chain import ChainSpec
 from erc20_single_shot_faucet import Faucet
 from cic_registry import zero_address
+from hexathon import strip_0x
 
 # local import
 from cic_eth.eth import RpcClient
@@ -102,11 +103,12 @@ def unpack_register(data):
     :returns: Parsed parameters
     :rtype: dict
     """
-    f = data[2:10]
+    data = strip_0x(data)
+    f = data[:8]
     if f != '0a3b0a4f':
         raise ValueError('Invalid account index register data ({})'.format(f))
 
-    d = data[10:]
+    d = data[8:]
     return {
         'to': web3.Web3.toChecksumAddress('0x' + d[64-40:64]),
         }
@@ -121,11 +123,12 @@ def unpack_gift(data):
     :returns: Parsed parameters
     :rtype: dict
     """
-    f = data[2:10]
+    data = strip_0x(data)
+    f = data[:8]
     if f != '63e4bff4':
-        raise ValueError('Invalid account index register data ({})'.format(f))
+        raise ValueError('Invalid gift data ({})'.format(f))
 
-    d = data[10:]
+    d = data[8:]
     return {
         'to': web3.Web3.toChecksumAddress('0x' + d[64-40:64]),
         }
