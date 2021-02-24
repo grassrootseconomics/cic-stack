@@ -298,7 +298,7 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
       TASKS_TRANSFER_CALLBACKS: $TASKS_TRANSFER_CALLBACKS
-      DATABASE_DEBUG: ${DATABASE_DEBUG:-true}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-false}
 
     depends_on:
       - eth
@@ -314,7 +314,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_dispatcher.sh -q cic-eth -v
+        ./start_dispatcher.sh -q cic-eth -vv
     # command: "/root/start_dispatcher.sh -q cic-eth -vv"
 
 

@@ -36,8 +36,8 @@ default_abi_dir = '/usr/share/local/cic/solidity/abi'
 default_config_dir = os.path.join('/usr/local/etc/cic-eth')
 
 argparser = argparse.ArgumentParser()
-argparser.add_argument('-p', '--provider', dest='p', default='http://localhost:8545', type=str, help='Web3 provider url (http only)')
-argparser.add_argument('-r', '--registry-address', type=str, help='CIC registry address')
+argparser.add_argument('-p', '--provider', dest='p', type=str, help='Web3 provider url (http only)')
+argparser.add_argument('-r', '--registry-address', dest='r', type=str, help='CIC registry address')
 argparser.add_argument('-f', '--format', dest='f', default='terminal', type=str, help='Output format')
 argparser.add_argument('-c', type=str, default=default_config_dir, help='config root to use')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
@@ -61,8 +61,10 @@ config.process()
 args_override = {
         'ETH_PROVIDER': getattr(args, 'p'),
         'CIC_CHAIN_SPEC': getattr(args, 'i'),
+        'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
         }
 # override args
+config.dict_override(args_override, 'cli args')
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
 logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
@@ -148,7 +150,6 @@ def render_lock(o, **kwargs):
 
 # TODO: move each command to submodule
 def main():
-    logg.debug('len {}'.format(len(args.query)))
     txs  = []
     renderer = render_tx
     if len(args.query) > 66:

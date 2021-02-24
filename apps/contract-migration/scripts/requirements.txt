@@ -1,2 +1,2 @@
-cic-base[full]==0.1.1a1
+cic-base[full]==0.1.1a4
 cic-eth==0.10.0a31

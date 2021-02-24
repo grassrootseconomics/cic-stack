@@ -100,7 +100,7 @@ class MinedSyncer(Syncer):
             logg.debug('got blocks {}'.format(e))
             for block in e:
                 block_number = self.process(c.w3, block.hex())
-                logg.info('processed block {} {}'.format(block_number, block.hex()))
+                logg.debug('processed block {} {}'.format(block_number, block.hex()))
             self.bc_cache.disconnect()
             if len(e) > 0:
                 time.sleep(self.yield_delay)

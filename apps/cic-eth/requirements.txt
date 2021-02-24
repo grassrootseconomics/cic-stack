@@ -20,5 +20,5 @@ moolb~=0.1.1b2
 eth-address-index~=0.1.0a8
 chainlib~=0.0.1a17
 hexathon~=0.0.1a3
-chainsyncer~=0.0.1a16
+chainsyncer~=0.0.1a17
 cic-base==0.1.1a3

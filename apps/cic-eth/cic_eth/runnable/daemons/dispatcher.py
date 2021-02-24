@@ -21,6 +21,7 @@ import cic_eth
 from cic_eth.eth import RpcClient
 from cic_eth.db import SessionBase
 from cic_eth.db.enum import StatusEnum
+from cic_eth.db.enum import StatusBits
 from cic_eth.db.enum import LockEnum
 from cic_eth.db import dsn_from_config
 from cic_eth.queue.tx import get_upcoming_tx
@@ -129,12 +130,13 @@ class DispatchSyncer:
                     )
             s_check.link(s_send)
             t = s_check.apply_async()
+            logg.info('processed {}'.format(k))
 
 
     def loop(self, w3, interval):
         while run:
             txs = {}
-            typ = StatusEnum.READYSEND
+            typ = StatusBits.QUEUED
             utxs = get_upcoming_tx(typ, chain_id=self.chain_id)
             for k in utxs.keys():
                 txs[k] = utxs[k]
