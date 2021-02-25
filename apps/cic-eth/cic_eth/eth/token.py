@@ -9,6 +9,7 @@ from cic_registry import CICRegistry
 from cic_registry import zero_address
 from cic_registry.chain import ChainSpec
 from hexathon import strip_0x
+from chainlib.status import Status as TxStatus
 
 # platform imports
 from cic_eth.db.models.tx import TxCache
@@ -478,6 +479,8 @@ class ExtendedTx:
         self.destination_token_symbol = ''
         self.source_token_decimals = ExtendedTx._default_decimals
         self.destination_token_decimals = ExtendedTx._default_decimals
+        self.status = TxStatus.PENDING.name
+        self.status_code = TxStatus.PENDING.value
 
 
     def set_actors(self, sender, recipient, trusted_declarator_addresses=None):
@@ -505,10 +508,18 @@ class ExtendedTx:
         self.destination_token_value = destination_value
 
 
+    def set_status(self, n):
+        if n:
+            self.status = TxStatus.ERROR.name
+        else:
+            self.status = TxStatus.SUCCESS.name
+        self.status_code = n
+
+
     def to_dict(self):
         o = {}
         for attr in dir(self):
-            if attr[0] == '_' or attr in ['set_actors', 'set_tokens', 'to_dict']:
+            if attr[0] == '_' or attr in ['set_actors', 'set_tokens', 'set_status', 'to_dict']:
                 continue
             o[attr] = getattr(self, attr)
         return o 

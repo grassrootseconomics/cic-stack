@@ -6,6 +6,8 @@ import web3
 import celery
 from cic_registry.error import UnknownContractError
 from chainlib.status import Status as TxStatus
+from chainlib.eth.address import to_checksum
+from hexathon import strip_0x
 
 # local imports
 from .base import SyncFilter
@@ -35,12 +37,13 @@ class CallbackFilter(SyncFilter):
 
 
     def call_back(self, transfer_type, result):
+        logg.debug('result {}'.format(result))
         s = celery.signature(
             self.method,
             [
                 result,
                 transfer_type,
-                int(rcpt.status == 0),
+                int(result['status_code'] == 0),
             ],
             queue=self.queue,
             )
@@ -60,39 +63,40 @@ class CallbackFilter(SyncFilter):
 
 
     def parse_data(self, tx):
-        #transfer_type = 'transfer'
         transfer_type = None
         transfer_data = None
         logg.debug('have payload {}'.format(tx.payload))
         method_signature = tx.payload[:8]
 
-        if tx.status == TxStatus.ERROR:
-            logg.error('tx {} has failed, no callbacks will be called'.format(tx.hash))
+        logg.debug('tx status {}'.format(tx.status))
+        if method_signature == transfer_method_signature:
+            transfer_data = unpack_transfer(tx.payload)
+            transfer_data['from'] = tx['from']
+            transfer_data['token_address'] = tx['to']
 
-        else:
-            logg.debug('tx status {}'.format(tx.status))
-            if method_signature == transfer_method_signature:
-                transfer_data = unpack_transfer(tx.payload)
-                transfer_data['from'] = tx['from']
-                transfer_data['token_address'] = tx['to']
+        elif method_signature == transferfrom_method_signature:
+            transfer_type = 'transferfrom'
+            transfer_data = unpack_transferfrom(tx.payload)
+            transfer_data['token_address'] = tx['to']
 
-            elif method_signature == transferfrom_method_signature:
-                transfer_type = 'transferfrom'
-                transfer_data = unpack_transferfrom(tx.payload)
-                transfer_data['token_address'] = tx['to']
+        # TODO: do not rely on logs here
+        elif method_signature == giveto_method_signature:
+            transfer_type = 'tokengift'
+            transfer_data = unpack_gift(tx.payload)
+            for l in tx.logs:
+                topics = l['topics']
+                logg.debug('topixx {}'.format(topics))
+                if strip_0x(topics[0]) == '45c201a59ac545000ead84f30b2db67da23353aa1d58ac522c48505412143ffa':
+                    transfer_data['value'] = web3.Web3.toInt(hexstr=strip_0x(l['data']))
+                    #token_address_bytes = topics[2][32-20:]
+                    token_address = strip_0x(topics[2])[64-40:]
+                    transfer_data['token_address'] = to_checksum(token_address)
+                    transfer_data['from'] = tx.inputs[0]
 
-            # TODO: do not rely on logs here
-            elif method_signature == giveto_method_signature:
-                transfer_type = 'tokengift'
-                transfer_data = unpack_gift(tx.payload)
-                for l in tx.logs:
-                    if l.topics[0].hex() == '0x45c201a59ac545000ead84f30b2db67da23353aa1d58ac522c48505412143ffa':
-                        transfer_data['value'] = web3.Web3.toInt(hexstr=l.data)
-                        token_address_bytes = l.topics[2][32-20:]
-                        transfer_data['token_address'] = web3.Web3.toChecksumAddress(token_address_bytes.hex())
-                        transfer_data['from'] = tx.to
+        logg.debug('resolved method {}'.format(transfer_type))
 
-            logg.debug('resolved method {}'.format(transfer_type))
+        if transfer_data != None:
+            transfer_data['status'] = tx.status
 
         return (transfer_type, transfer_data)
 
@@ -122,7 +126,11 @@ class CallbackFilter(SyncFilter):
                 tokentx = ExtendedTx(tx.hash, self.chain_spec)
                 tokentx.set_actors(transfer_data['from'], transfer_data['to'], self.trusted_addresses)
                 tokentx.set_tokens(transfer_data['token_address'], transfer_data['value'])
-                t = self.call_back(tokentx.to_dict())
+                if transfer_data['status'] == 0:
+                    tokentx.set_status(1)
+                else:
+                    tokentx.set_status(0)
+                t = self.call_back(transfer_type, tokentx.to_dict())
                 logg.info('callback success task id {} tx {}'.format(t, tx.hash))
             except UnknownContractError:
                 logg.debug('callback filter {}:{} skipping "transfer" method on unknown contract {} tx {}'.format(tc.queue, tc.method, transfer_data['to'], tx.hash))

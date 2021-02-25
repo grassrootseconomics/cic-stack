@@ -457,6 +457,7 @@ class AdminApi:
         tx_unpacked = unpack_signed_raw_tx(bytes.fromhex(tx['signed_tx'][2:]), chain_spec.chain_id())
         tx['gas_price'] = tx_unpacked['gasPrice']
         tx['gas_limit'] = tx_unpacked['gas']
+        tx['data'] = tx_unpacked['data']
 
         s = celery.signature(
             'cic_eth.queue.tx.get_state_log',

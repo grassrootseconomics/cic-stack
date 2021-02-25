@@ -18,6 +18,7 @@ import web3
 from cic_registry import CICRegistry
 from cic_registry.chain import ChainSpec
 from cic_registry.chain import ChainRegistry
+from hexathon import add_0x
 
 # local imports
 from cic_eth.api import AdminApi
@@ -68,6 +69,8 @@ config.dict_override(args_override, 'cli args')
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
 logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
+
+config.add(add_0x(args.query), '_QUERY', True)
 
 re_websocket = re.compile('^wss?://')
 re_http = re.compile('^https?://')
@@ -152,18 +155,18 @@ def render_lock(o, **kwargs):
 def main():
     txs  = []
     renderer = render_tx
-    if len(args.query) > 66:
-        txs = [admin_api.tx(chain_spec, tx_raw=args.query)]
-    elif len(args.query) > 42:
-        txs = [admin_api.tx(chain_spec, tx_hash=args.query)]
-    elif len(args.query) == 42:
-        txs = admin_api.account(chain_spec, args.query, include_recipient=False)
+    if len(config.get('_QUERY')) > 66:
+        txs = [admin_api.tx(chain_spec, tx_raw=config.get('_QUERY'))]
+    elif len(config.get('_QUERY')) > 42:
+        txs = [admin_api.tx(chain_spec, tx_hash=config.get('_QUERY'))]
+    elif len(config.get('_QUERY')) == 42:
+        txs = admin_api.account(chain_spec, config.get('_QUERY'), include_recipient=False)
         renderer = render_account
-    elif len(args.query) >= 4 and args.query[:4] == 'lock':
+    elif len(config.get('_QUERY')) >= 4 and config.get('_QUERY')[:4] == 'lock':
         txs = admin_api.get_lock()
         renderer = render_lock
     else:
-        raise ValueError('cannot parse argument {}'.format(args.query))
+        raise ValueError('cannot parse argument {}'.format(config.get('_QUERY')))
 
     if len(txs) == 0:
         logg.info('no matches found')
