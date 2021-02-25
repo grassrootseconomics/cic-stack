@@ -7,6 +7,7 @@ import celery
 from cic_registry.error import UnknownContractError
 from chainlib.status import Status as TxStatus
 from chainlib.eth.address import to_checksum
+from chainlib.eth.constant import ZERO_ADDRESS
 from hexathon import strip_0x
 
 # local imports
@@ -83,6 +84,9 @@ class CallbackFilter(SyncFilter):
         elif method_signature == giveto_method_signature:
             transfer_type = 'tokengift'
             transfer_data = unpack_gift(tx.payload)
+            transfer_data['from'] = tx.inputs[0]
+            transfer_data['value'] = 0
+            transfer_data['token_address'] = ZERO_ADDRESS
             for l in tx.logs:
                 topics = l['topics']
                 logg.debug('topixx {}'.format(topics))
@@ -91,7 +95,6 @@ class CallbackFilter(SyncFilter):
                     #token_address_bytes = topics[2][32-20:]
                     token_address = strip_0x(topics[2])[64-40:]
                     transfer_data['token_address'] = to_checksum(token_address)
-                    transfer_data['from'] = tx.inputs[0]
 
         logg.debug('resolved method {}'.format(transfer_type))
 
