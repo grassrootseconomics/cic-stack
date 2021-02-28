@@ -88,7 +88,7 @@ batch_delay = args.batch_delay
 def register_eth(i, u):
     redis_channel = str(uuid.uuid4())
     ps.subscribe(redis_channel)
-    ps.get_message()
+    #ps.get_message()
     api = Api(
         config.get('CIC_CHAIN_SPEC'),
         queue=args.q,
@@ -98,18 +98,24 @@ def register_eth(i, u):
         )
     t = api.create_account(register=True)
 
-    ps.get_message()
-    m = ps.get_message(timeout=args.timeout)
-    try:
-        r = json.loads(m['data'])
-        address = r['result']
-    except TypeError as e:
-        if m == None:
-            logg.critical('empty response from redis callback (did the service crash?)')
-        else:
-            logg.critical('unexpected response from redis callback: {}'.format(m))
-        sys.exit(1)
-    logg.debug('[{}] register eth {} {}'.format(i, u, address))
+    while True:
+        ps.get_message()
+        m = ps.get_message(timeout=args.timeout)
+        address = None
+        if m['type'] == 'subscribe':
+            logg.debug('skipping subscribe message')
+            continue
+        try:
+            r = json.loads(m['data'])
+            address = r['result']
+            break
+        except TypeError as e:
+            if m == None:
+                logg.critical('empty response from redis callback (did the service crash?)')
+            else:
+                logg.critical('unexpected response from redis callback: {}'.format(m))
+            sys.exit(1)
+        logg.debug('[{}] register eth {} {}'.format(i, u, address))
 
     return address
    

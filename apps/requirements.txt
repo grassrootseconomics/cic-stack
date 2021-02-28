@@ -3,7 +3,7 @@ alembic==1.4.2
 bcrypt==3.2.0
 celery==4.4.7
 confini==0.3.6rc3
-crypto-dev-signer==0.4.13rc2
+crypto-dev-signer==0.4.13rc3
 cryptography==3.2.1
 ecuth==0.4.5a1
 eth-accounts-index==0.0.10a10
@@ -44,4 +44,4 @@ giftable-erc20-token==0.0.7b12
 hexathon==0.0.1a3
 chainlib==0.0.1a19
 chainsyncer==0.0.1a18
-cic-registry==0.5.3.a21
+cic-registry==0.5.3.a22

@@ -139,6 +139,7 @@ class Verifier:
         o = self.erc20_tx_factory.erc20_balance(self.token_address, address)
         r = self.conn.do(o)
         actual_balance = int(strip_0x(r), 16)
+        balance = int(balance / 1000000) * 1000000
         logg.debug('balance for {}: {}'.format(address, balance))
         if balance != actual_balance:
             raise VerifierError((actual_balance, balance), 'balance')

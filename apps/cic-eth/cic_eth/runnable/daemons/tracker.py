@@ -13,7 +13,10 @@ import celery
 import rlp
 import web3
 from web3 import HTTPProvider, WebsocketProvider
-import cic_base
+import cic_base.config
+import cic_base.log
+import cic_base.argparse
+import cic_base.rpc
 from cic_registry import CICRegistry
 from chainlib.chain import ChainSpec
 from cic_registry import zero_address
