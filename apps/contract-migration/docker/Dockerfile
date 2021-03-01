@@ -107,7 +107,7 @@ RUN cd cic-bancor/python && \
 
 
 RUN apt-get install -y cargo
-ARG cic_base_version=0.1.1a8
+ARG cic_base_version=0.1.1a9
 RUN pip install  --extra-index-url $pip_extra_index_url cic-base[full_graph]==$cic_base_version
 
 ARG cic_registry_version=0.5.3a22
