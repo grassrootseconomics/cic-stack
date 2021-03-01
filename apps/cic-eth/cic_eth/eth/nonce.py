@@ -14,10 +14,10 @@ class NonceOracle():
         self.default_nonce = default_nonce
 
 
-    def next(self):
+    def next(self, session=None):
         """Get next unique nonce.
 
         :returns: Nonce
         :rtype: number
         """
-        return Nonce.next(self.address, self.default_nonce)
+        return Nonce.next(self.address, self.default_nonce, session=session)

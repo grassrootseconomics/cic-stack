@@ -36,6 +36,7 @@ class AccountTxFactory(TxFactory):
             self,
             address,
             chain_spec,
+            session=None,
             ):
         """Register an Ethereum account address with the on-chain account registry
 
@@ -58,7 +59,7 @@ class AccountTxFactory(TxFactory):
             'gas': gas,
             'gasPrice': self.gas_price,
             'chainId': chain_spec.chain_id(),
-            'nonce': self.next_nonce(),
+            'nonce': self.next_nonce(session=session),
             'value': 0,
             })
         return tx_add
@@ -68,6 +69,7 @@ class AccountTxFactory(TxFactory):
             self,
             address,
             chain_spec,
+            session=None,
         ):
         """Trigger the on-chain faucet to disburse tokens to the provided Ethereum account
 
@@ -88,7 +90,7 @@ class AccountTxFactory(TxFactory):
             'gas': gas,
             'gasPrice': self.gas_price,
             'chainId': chain_spec.chain_id(),
-            'nonce': self.next_nonce(),
+            'nonce': self.next_nonce(session=session),
             'value': 0,
             })
         return tx_add
@@ -157,7 +159,10 @@ def create(password, chain_str):
     # TODO: this can safely be set to zero, since we are randomly creating account
     n = c.w3.eth.getTransactionCount(a, 'pending')
     session = SessionBase.create_session()
-    o = session.query(Nonce).filter(Nonce.address_hex==a).first()
+    q = session.query(Nonce)
+    q = q.filter(Nonce.address_hex==a)
+    o = q.first()
+    session.flush()
     if o == None:
         o = Nonce()
         o.address_hex = a
@@ -186,12 +191,11 @@ def register(self, account_address, chain_str, writer_address=None):
 
     session = SessionBase.create_session()
     if writer_address == None:
-        writer_address = AccountRole.get_address('ACCOUNTS_INDEX_WRITER', session)
-    session.close()
+        writer_address = AccountRole.get_address('ACCOUNTS_INDEX_WRITER', session=session)
 
     if writer_address == zero_address:
+        session.close()
         raise RoleMissingError(account_address)
-
 
     logg.debug('adding account address {} to index; writer {}'.format(account_address, writer_address))
     queue = self.request.delivery_info['routing_key']
@@ -199,7 +203,8 @@ def register(self, account_address, chain_str, writer_address=None):
     c = RpcClient(chain_spec, holder_address=writer_address)
     txf = AccountTxFactory(writer_address, c)
 
-    tx_add = txf.add(account_address, chain_spec)
+    tx_add = txf.add(account_address, chain_spec, session=session)
+    session.close()
     (tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx_add, chain_str, queue, 'cic_eth.eth.account.cache_account_data')
 
     gas_budget = tx_add['gas'] * tx_add['gasPrice']

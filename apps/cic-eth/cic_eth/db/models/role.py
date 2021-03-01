@@ -40,11 +40,13 @@ class AccountRole(SessionBase):
 
         session = SessionBase.bind_session(session)
 
-        role = AccountRole.get_role(tag, session)
+        role = AccountRole.__get_role(tag, session)
     
         r = zero_address
         if role != None:
             r = role.address_hex
+
+        session.flush()
 
         SessionBase.release_session(session)
 
@@ -63,6 +65,8 @@ class AccountRole(SessionBase):
         session = SessionBase.bind_session(session)
         
         role = AccountRole.__get_role(tag, session)
+
+        session.flush()
         
         SessionBase.release_session(session)
 
@@ -74,7 +78,6 @@ class AccountRole(SessionBase):
         q = session.query(AccountRole)
         q = q.filter(AccountRole.tag==tag)
         r = q.first()
-        session.flush()
         return r
 
 
@@ -93,10 +96,12 @@ class AccountRole(SessionBase):
         """
         session = SessionBase.bind_session(session)
         
-        role = AccountRole.get_role(tag, session)
+        role = AccountRole.__get_role(tag, session)
         if role == None:
             role = AccountRole(tag)
         role.address_hex = address_hex
+
+        session.flush()
         
         SessionBase.release_session(session)
 

@@ -161,7 +161,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        /usr/local/bin/cic-cache-tracker -vv
+        /usr/local/bin/cic-cache-tracker -v
     volumes:
       - contract-config:/tmp/cic/config/:ro
 
@@ -313,7 +313,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_dispatcher.sh -q cic-eth -vv
+        ./start_dispatcher.sh -q cic-eth -v
     # command: "/root/start_dispatcher.sh -q cic-eth -vv"
 
 

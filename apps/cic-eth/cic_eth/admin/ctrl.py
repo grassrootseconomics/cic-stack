@@ -8,6 +8,7 @@ from cic_registry import zero_address
 
 # local imports
 from cic_eth.db.enum import LockEnum
+from cic_eth.db.models.base import SessionBase
 from cic_eth.db.models.lock import Lock
 from cic_eth.error import LockedError
 
@@ -116,9 +117,10 @@ def unlock_queue(chained_input, chain_str, address=zero_address):
 
 @celery_app.task()
 def check_lock(chained_input, chain_str, lock_flags, address=None):
-    r = Lock.check(chain_str, lock_flags, address=zero_address)
+    session = SessionBase.create_session()
+    r = Lock.check(chain_str, lock_flags, address=zero_address, session=session)
     if address != None:
-        r |= Lock.check(chain_str, lock_flags, address=address)
+        r |= Lock.check(chain_str, lock_flags, address=address, session=session)
     if r > 0:
         logg.debug('lock check {} has match {} for {}'.format(lock_flags, r, address))
         raise LockedError(r)

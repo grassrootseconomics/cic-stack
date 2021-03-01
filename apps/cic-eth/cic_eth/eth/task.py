@@ -33,7 +33,7 @@ def sign_tx(tx, chain_str):
     return (tx_hash_hex, tx_transfer_signed['raw'],)
 
 
-def sign_and_register_tx(tx, chain_str, queue, cache_task=None):
+def sign_and_register_tx(tx, chain_str, queue, cache_task=None, session=None):
     """Signs the provided transaction, and adds it to the transaction queue cache (with status PENDING).
 
     :param tx: Standard ethereum transaction data
@@ -58,6 +58,7 @@ def sign_and_register_tx(tx, chain_str, queue, cache_task=None):
         tx_hash_hex,
         tx_signed_raw_hex,
         chain_str,
+        session=session,
     )        
 
     if cache_task != None:

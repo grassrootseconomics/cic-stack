@@ -32,10 +32,10 @@ class TxFactory:
         logg.debug('txfactory instance address {} gas price'.format(self.address, self.gas_price))
         
 
-    def next_nonce(self):
+    def next_nonce(self, session=None):
         """Returns the current cached nonce value, and increments it for next transaction.
 
         :returns: Nonce
         :rtype: number
         """
-        return self.nonce_oracle.next()
+        return self.nonce_oracle.next(session=session)

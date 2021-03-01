@@ -55,11 +55,9 @@ class Lock(SessionBase):
         :returns: New flag state of entry
         :rtype: number
         """
-        localsession = session
-        if localsession == None:
-            localsession = SessionBase.create_session()
+        session = SessionBase.bind_session(session)
 
-        q = localsession.query(Lock)
+        q = session.query(Lock)
         #q = q.join(TxCache, isouter=True)
         q = q.filter(Lock.address==address)
         q = q.filter(Lock.blockchain==chain_str)
@@ -71,7 +69,8 @@ class Lock(SessionBase):
             lock.address = address
             lock.blockchain = chain_str
             if tx_hash != None:
-                q = localsession.query(Otx)
+                session.flush()
+                q = session.query(Otx)
                 q = q.filter(Otx.tx_hash==tx_hash)
                 otx = q.first()
                 if otx != None:
@@ -80,12 +79,11 @@ class Lock(SessionBase):
         lock.flags |= flags
         r = lock.flags
 
-        localsession.add(lock)
-        localsession.commit()
+        session.add(lock)
+        session.commit()
 
-        if session == None:
-            localsession.close()
-        
+        SessionBase.release_session(session)
+
         return r
 
 
@@ -110,11 +108,9 @@ class Lock(SessionBase):
         :returns: New flag state of entry
         :rtype: number
         """
-        localsession = session
-        if localsession == None:
-            localsession = SessionBase.create_session()
+        session = SessionBase.bind_session(session)
 
-        q = localsession.query(Lock)
+        q = session.query(Lock)
         #q = q.join(TxCache, isouter=True)
         q = q.filter(Lock.address==address)
         q = q.filter(Lock.blockchain==chain_str)
@@ -124,14 +120,13 @@ class Lock(SessionBase):
         if lock != None:
             lock.flags &= ~flags
             if lock.flags == 0:
-                localsession.delete(lock)
+                session.delete(lock)
             else:
-                localsession.add(lock)
+                session.add(lock)
                 r = lock.flags
-            localsession.commit()
+            session.commit()
 
-        if session == None:
-            localsession.close()
+        SessionBase.release_session(session)
 
         return r
 
@@ -156,22 +151,20 @@ class Lock(SessionBase):
         :rtype: number
         """
 
-        localsession = session
-        if localsession == None:
-            localsession = SessionBase.create_session()
+        session = SessionBase.bind_session(session)
 
-        q = localsession.query(Lock)
+        q = session.query(Lock)
         #q = q.join(TxCache, isouter=True)
         q = q.filter(Lock.address==address)
         q = q.filter(Lock.blockchain==chain_str)
         q = q.filter(Lock.flags.op('&')(flags)==flags)
         lock = q.first()
-        if session == None:
-            localsession.close()
        
         r = 0
         if lock != None:
             r = lock.flags & flags
+
+        SessionBase.release_session(session)
         return r
 
 

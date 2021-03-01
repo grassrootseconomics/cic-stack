@@ -16,7 +16,7 @@ ARG root_requirement_file='requirements.txt'
 #RUN apk add linux-headers
 #RUN apk add libffi-dev
 RUN apt-get update && \
-	apt install -y gcc gnupg libpq-dev wget make g++ gnupg bash procps
+	apt install -y gcc gnupg libpq-dev wget make g++ gnupg bash procps git
 
 # Copy shared requirements from top of mono-repo
 RUN echo "copying root req file ${root_requirement_file}"
@@ -42,7 +42,6 @@ COPY cic-eth/config/ /usr/local/etc/cic-eth/
 COPY cic-eth/cic_eth/db/migrations/ /usr/local/share/cic-eth/alembic/
 COPY cic-eth/crypto_dev_signer_config/ /usr/local/etc/crypto-dev-signer/
 
-RUN apt-get install -y git && \
-	git clone https://gitlab.com/grassrootseconomics/cic-contracts.git && \
+RUN git clone https://gitlab.com/grassrootseconomics/cic-contracts.git && \
 	mkdir -p /usr/local/share/cic/solidity && \
 	cp -R cic-contracts/abis /usr/local/share/cic/solidity/abi

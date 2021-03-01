@@ -472,7 +472,9 @@ def get_tx(tx_hash):
     :rtype: dict
     """
     session = SessionBase.create_session()
-    tx = session.query(Otx).filter(Otx.tx_hash==tx_hash).first()
+    q = session.query(Otx)
+    q = q.filter(Otx.tx_hash==tx_hash)
+    tx = q.first()
     if tx == None:
         session.close()
         raise NotLocalTxError('queue does not contain tx hash {}'.format(tx_hash))

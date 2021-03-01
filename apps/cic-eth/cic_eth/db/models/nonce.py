@@ -21,12 +21,9 @@ class Nonce(SessionBase):
 
     @staticmethod
     def get(address, session=None):
-        localsession = session
-        if localsession == None:
-            localsession = SessionBase.create_session()
+        session = SessionBase.bind_session(session)
 
-
-        q = localsession.query(Nonce)
+        q = session.query(Nonce)
         q = q.filter(Nonce.address_hex==address)
         nonce = q.first()
 
@@ -34,28 +31,29 @@ class Nonce(SessionBase):
         if nonce != None:
             nonce_value = nonce.nonce;
 
-        if session == None:
-            localsession.close()
+        SessionBase.release_session(session)
 
         return nonce_value
 
 
     @staticmethod
-    def __get(conn, address):
-        r = conn.execute("SELECT nonce FROM nonce WHERE address_hex = '{}'".format(address))
+    def __get(session, address):
+        r = session.execute("SELECT nonce FROM nonce WHERE address_hex = '{}'".format(address))
         nonce = r.fetchone()
+        session.flush()
         if nonce == None:
             return None
         return nonce[0]
 
 
     @staticmethod
-    def __set(conn, address, nonce):
-        conn.execute("UPDATE nonce set nonce = {} WHERE address_hex = '{}'".format(nonce, address))
+    def __set(session, address, nonce):
+        session.execute("UPDATE nonce set nonce = {} WHERE address_hex = '{}'".format(nonce, address))
+        session.flush()
 
 
     @staticmethod
-    def next(address, initial_if_not_exists=0):
+    def next(address, initial_if_not_exists=0, session=None):
         """Generate next nonce for the given address.
 
         If there is no previous nonce record for the address, the nonce may be initialized to a specified value, or 0 if no value has been given.
@@ -67,20 +65,32 @@ class Nonce(SessionBase):
         :returns: Nonce
         :rtype: number
         """
-        conn = Nonce.engine.connect()
+        session = SessionBase.bind_session(session)
+        
+        SessionBase.release_session(session)
+
+        session.begin_nested()
+        #conn = Nonce.engine.connect()
         if Nonce.transactional:
-            conn.execute('BEGIN')
-            conn.execute('LOCK TABLE nonce IN SHARE ROW EXCLUSIVE MODE')
-        nonce = Nonce.__get(conn, address)
+            #session.execute('BEGIN')
+            session.execute('LOCK TABLE nonce IN SHARE ROW EXCLUSIVE MODE')
+            session.flush()
+        nonce = Nonce.__get(session, address)
         logg.debug('get nonce {} for address {}'.format(nonce, address))
         if nonce == None:
             nonce = initial_if_not_exists
-            conn.execute("INSERT INTO nonce (nonce, address_hex) VALUES ({}, '{}')".format(nonce, address))
+            session.execute("INSERT INTO nonce (nonce, address_hex) VALUES ({}, '{}')".format(nonce, address))
+            session.flush()
             logg.debug('setting default nonce to {} for address {}'.format(nonce, address))
-        Nonce.__set(conn, address, nonce+1)
-        if Nonce.transactional:
-            conn.execute('COMMIT')
-        conn.close()
+        Nonce.__set(session, address, nonce+1)
+        #if Nonce.transactional:
+            #session.execute('COMMIT')
+            #session.execute('UNLOCK TABLE nonce')
+        #conn.close()
+        session.commit()
+        session.commit()
+
+        SessionBase.release_session(session)
         return nonce
 
 
