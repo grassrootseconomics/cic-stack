@@ -149,6 +149,9 @@ def tx_collate(tx_batches, chain_str, offset, limit, newest_first=True):
     txs_by_block = {}
     chain_spec = ChainSpec.from_chain_str(chain_str)
 
+    if isinstance(tx_batches, dict):
+        tx_batches = [tx_batches]
+
     for b in tx_batches:
         for v in b.values():
             tx = None
