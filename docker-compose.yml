@@ -161,7 +161,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        /usr/local/bin/cic-cache-tracker -v
+        /usr/local/bin/cic-cache-tracker -vv
     volumes:
       - contract-config:/tmp/cic/config/:ro
 
@@ -274,7 +274,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_tracker.sh -v -c /usr/local/etc/cic-eth
+        ./start_tracker.sh -vv -c /usr/local/etc/cic-eth
     # command: "/root/start_manager.sh head -vv"
 
 

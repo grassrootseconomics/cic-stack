@@ -58,6 +58,7 @@ from cic_eth.runnable.daemons.filters import (
         GasFilter,
         TxFilter,
         RegistrationFilter,
+        TransferAuthFilter,
         )
 
 script_dir = os.path.realpath(os.path.dirname(__file__))
@@ -146,6 +147,8 @@ def main():
 
     gas_filter = GasFilter(chain_spec, config.get('_CELERY_QUEUE'))
 
+    transfer_auth_filter = TransferAuthFilter(registry, chain_spec, config.get('_CELERY_QUEUE'))
+
     i = 0
     for syncer in syncers:
         logg.debug('running syncer index {}'.format(i))
@@ -153,6 +156,7 @@ def main():
         syncer.add_filter(registration_filter)
         # TODO: the two following filter functions break the filter loop if return uuid. Pro: less code executed. Con: Possibly unintuitive flow break
         syncer.add_filter(tx_filter)
+        syncer.add_filter(transfer_auth_filter)
         for cf in callback_filters:
             syncer.add_filter(cf)
 

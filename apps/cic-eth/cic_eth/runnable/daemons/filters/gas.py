@@ -1,7 +1,7 @@
 # standard imports
 import logging
 
-# third-party imports
+# external imports
 from cic_registry.chain import ChainSpec
 from hexathon import add_0x
 
@@ -24,7 +24,7 @@ class GasFilter(SyncFilter):
         self.chain_spec = chain_spec
 
 
-    def filter(self, conn, block, tx, session): #rcpt, chain_str, session=None):
+    def filter(self, conn, block, tx, session):
         tx_hash_hex = add_0x(tx.hash)
         if tx.value > 0:
             logg.debug('gas refill tx {}'.format(tx_hash_hex))
