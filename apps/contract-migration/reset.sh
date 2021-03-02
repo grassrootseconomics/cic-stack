@@ -35,7 +35,7 @@ if [[ -n "${ETH_PROVIDER}" ]]; then
 
 	CIC_ACCOUNTS_INDEX_ADDRESS=`eth-accounts-index-deploy -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -y $keystore_file --writer $DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER -vv -w`
 
-	CIC_REGISTRY_ADDRESS=`cic-registry-deploy -i $CIC_CHAIN_SPEC -y $keystore_file -k CICRegistry -k BancorRegistry -k AccountRegistry -k TokenRegistry -k AddressDeclarator -k Faucet -k TransferApproval -p $ETH_PROVIDER -vv -w`
+	CIC_REGISTRY_ADDRESS=`cic-registry-deploy -i $CIC_CHAIN_SPEC -y $keystore_file -k CICRegistry -k BancorRegistry -k AccountRegistry -k TokenRegistry -k AddressDeclarator -k Faucet -k TransferAuthorization -p $ETH_PROVIDER -vv -w`
 	cic-registry-set -y $keystore_file -r $CIC_REGISTRY_ADDRESS -i $CIC_CHAIN_SPEC -k CICRegistry  -p $ETH_PROVIDER $CIC_REGISTRY_ADDRESS -vv
 	#cic-registry-set -r $CIC_REGISTRY_ADDRESS -i $CIC_CHAIN_SPEC -k BancorRegistry -p $ETH_PROVIDER $BANCOR_REGISTRY_ADDRESS -vv
 	cic-registry-set -y $keystore_file -r $CIC_REGISTRY_ADDRESS -i $CIC_CHAIN_SPEC -k AccountRegistry -p $ETH_PROVIDER $CIC_ACCOUNTS_INDEX_ADDRESS  -vv

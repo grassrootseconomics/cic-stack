@@ -31,7 +31,8 @@ set -e
 set -a
 
 # We need to not install these here...
-pip install --extra-index-url $DEV_PIP_EXTRA_INDEX_URL cic-eth==0.10.0a36 chainlib==0.0.1a19 cic-contracts==0.0.2a2
+pip install --extra-index-url $DEV_PIP_EXTRA_INDEX_URL cic-eth==0.10.0a37 chainlib==0.0.1a19 cic-contracts==0.0.2a2
+pip install --extra-index-url $DEV_PIP_EXTRA_INDEX_URL --force-reinstall erc20-transfer-authorization==0.3.0a10
 
 >&2 echo "create account for gas gifter"
 old_gas_provider=$DEV_ETH_ACCOUNT_GAS_PROVIDER
@@ -89,13 +90,13 @@ export DEV_ETH_SARAFU_TOKEN_ADDRESS=$DEV_ETH_RESERVE_ADDRESS
 
 
 >&2 echo "deploy transfer authorization contract"
-#CIC_TRANSFER_AUTHORIZATION_ADDRESS=`erc20-approval-escrow-deploy -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER --approver $DEV_ETH_ACCOUNT_TRANSFER_AUTHORIZATION_OWNER -w $debug`
-#echo CIC_APPROVAL_ESCROW_ADDRESS=$CIC_TRANSFER_AUTHORIZATION_ADDRESS  >> $env_out_file
-#export CIC_TRANSFER_AUTHORIZATION_ADDRESS=$CIC_TRANSFER_AUTHORIZATION_ADDRESS 
+CIC_TRANSFER_AUTHORIZATION_ADDRESS=`erc20-transfer-auth-deploy -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER --approver $DEV_ETH_ACCOUNT_TRANSFER_AUTHORIZATION_OWNER -w $debug`
+echo CIC_TRANSFER_AUTHORIZATION_ADDRESS=$CIC_TRANSFER_AUTHORIZATION_ADDRESS  >> $env_out_file
+export CIC_TRANSFER_AUTHORIZATION_ADDRESS=$CIC_TRANSFER_AUTHORIZATION_ADDRESS 
 
 # Register transfer approval contract
-#>&2 echo "add transfer approval request contract to registry"
-#>&2 cic-registry-set -y $keystore_file -r $CIC_REGISTRY_ADDRESS -k TransferApproval -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug $CIC_TRANSFER_AUTHORIZATION_ADDRESS
+>&2 echo "add transfer authorization request contract to registry"
+>&2 cic-registry-set -y $keystore_file -r $CIC_REGISTRY_ADDRESS -k TransferAuthorization -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug $CIC_TRANSFER_AUTHORIZATION_ADDRESS
 
 
 # Deploy one-time token faucet for newly created token

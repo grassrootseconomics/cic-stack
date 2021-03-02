@@ -26,7 +26,6 @@ from cic_eth.eth import bancor
 from cic_eth.eth import token
 from cic_eth.eth import tx
 from cic_eth.eth import account
-from cic_eth.eth import request
 from cic_eth.admin import debug
 from cic_eth.admin import ctrl
 from cic_eth.eth.rpc import RpcClient
