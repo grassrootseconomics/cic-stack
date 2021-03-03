@@ -46,8 +46,12 @@ class TransferAuthFilter(SyncFilter):
 
     def filter(self, conn, block, tx, session): #rcpt, chain_str, session=None):
 
+        if tx.payload == None:
+            logg.debug('no payload')
+            return False
+
         payloadlength = len(tx.payload)
-        if len(tx.payload) != 8+256:
+        if payloadlength != 8+256:
             logg.debug('{} below minimum length for a transfer auth call'.format(payloadlength))
             logg.debug('payload {}'.format(tx.payload))
             return False

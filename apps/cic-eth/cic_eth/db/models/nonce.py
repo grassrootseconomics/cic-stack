@@ -88,7 +88,7 @@ class Nonce(SessionBase):
             #session.execute('UNLOCK TABLE nonce')
         #conn.close()
         session.commit()
-        session.commit()
+#        session.commit()
 
         SessionBase.release_session(session)
         return nonce

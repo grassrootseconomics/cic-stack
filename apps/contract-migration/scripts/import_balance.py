@@ -148,7 +148,11 @@ class Handler:
                 return
             u = Person.deserialize(o)
             original_address = u.identities[old_chain_spec.engine()]['{}:{}'.format(old_chain_spec.common_name(), old_chain_spec.network_id())][0]
-            balance = self.balances[original_address]
+            try:
+                balance = self.balances[original_address]
+            except KeyError as e:
+                logg.error('balance get fail orig {} new {}'.format(original_address, recipient))
+                return
 
             # TODO: store token object in handler ,get decimals from there
             multiplier = 10**6
