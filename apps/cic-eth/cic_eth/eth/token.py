@@ -46,6 +46,7 @@ class TokenTxFactory(TxFactory):
             spender_address,
             amount,
             chain_spec,
+            session=None,
             ):
         """Create an ERC20 "approve" transaction
 
@@ -73,7 +74,7 @@ class TokenTxFactory(TxFactory):
             'gas': source_token_gas,
             'gasPrice': self.gas_price,
             'chainId': chain_spec.chain_id(),
-            'nonce': self.next_nonce(),
+            'nonce': self.next_nonce(session=session),
             })
         return tx_approve
 
@@ -84,6 +85,7 @@ class TokenTxFactory(TxFactory):
         receiver_address,
         value,
         chain_spec,
+        session=None,
         ):
         """Create an ERC20 "transfer" transaction
 
@@ -112,7 +114,7 @@ class TokenTxFactory(TxFactory):
                     'gas': source_token_gas,
                     'gasPrice': self.gas_price,
                     'chainId': chain_spec.chain_id(),
-                    'nonce': self.next_nonce(),
+                    'nonce': self.next_nonce(session=session),
                 })
         return tx_transfer
 
@@ -244,9 +246,11 @@ def transfer(self, tokens, holder_address, receiver_address, value, chain_str):
     c = RpcClient(chain_spec, holder_address=holder_address)
 
     txf = TokenTxFactory(holder_address, c)
-
-    tx_transfer = txf.transfer(t['address'], receiver_address, value, chain_spec)
-    (tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx_transfer, chain_str, queue, cache_task='cic_eth.eth.token.otx_cache_transfer')
+    
+    session = SessionBase.create_session()
+    tx_transfer = txf.transfer(t['address'], receiver_address, value, chain_spec, session=session)
+    (tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx_transfer, chain_str, queue, cache_task='cic_eth.eth.token.otx_cache_transfer', session=session)
+    session.close()
     
     gas_budget = tx_transfer['gas'] * tx_transfer['gasPrice']
 
@@ -299,8 +303,10 @@ def approve(self, tokens, holder_address, spender_address, value, chain_str):
 
     txf = TokenTxFactory(holder_address, c)
 
-    tx_transfer = txf.approve(t['address'], spender_address, value, chain_spec)
-    (tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx_transfer, chain_str, queue, cache_task='cic_eth.eth.token.otx_cache_approve')
+    session = SessionBase.create_session()
+    tx_transfer = txf.approve(t['address'], spender_address, value, chain_spec, session=session)
+    (tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx_transfer, chain_str, queue, cache_task='cic_eth.eth.token.otx_cache_approve', session=session)
+    session.close()
     
     gas_budget = tx_transfer['gas'] * tx_transfer['gasPrice']
 
@@ -459,6 +465,7 @@ def cache_approve_data(
     return (tx_hash_hex, cache_id)
 
 
+# TODO: Move to dedicated metadata package
 class ExtendedTx:
 
     _default_decimals = 6

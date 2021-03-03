@@ -204,8 +204,9 @@ def register(self, account_address, chain_str, writer_address=None):
     txf = AccountTxFactory(writer_address, c)
 
     tx_add = txf.add(account_address, chain_spec, session=session)
+    
+    (tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx_add, chain_str, queue, 'cic_eth.eth.account.cache_account_data', session=session)
     session.close()
-    (tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx_add, chain_str, queue, 'cic_eth.eth.account.cache_account_data')
 
     gas_budget = tx_add['gas'] * tx_add['gasPrice']
 
@@ -241,12 +242,14 @@ def gift(self, account_address, chain_str):
     c = RpcClient(chain_spec, holder_address=account_address)
     txf = AccountTxFactory(account_address, c)
 
-    tx_add = txf.gift(account_address, chain_spec)
-    (tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx_add, chain_str, queue, 'cic_eth.eth.account.cache_gift_data')
+    session = SessionBase.create_session()
+    tx_add = txf.gift(account_address, chain_spec, session=session)
+    (tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx_add, chain_str, queue, 'cic_eth.eth.account.cache_gift_data', session=session)
+    session.close()
 
     gas_budget = tx_add['gas'] * tx_add['gasPrice']
 
-    logg.debug('register user tx {}'.format(tx_hash_hex))
+    logg.debug('gift user tx {}'.format(tx_hash_hex))
     s = create_check_gas_and_send_task(
             [tx_signed_raw_hex],
             chain_str,
