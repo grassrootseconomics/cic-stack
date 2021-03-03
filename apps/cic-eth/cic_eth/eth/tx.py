@@ -387,6 +387,7 @@ def send(self, txs, chain_str):
 
 
 # TODO: if this method fails the nonce will be out of sequence. session needs to be extended to include the queue create, so that nonce is rolled back if the second sql query fails. Better yet, split each state change into separate tasks.
+# TODO: method is too long, factor out code for clarity
 @celery_app.task(bind=True, throws=(web3.exceptions.TransactionNotFound,), base=CriticalWeb3Task)
 def refill_gas(self, recipient_address, chain_str):
     """Executes a native token transaction to fund the recipient's gas expenditures.
@@ -409,8 +410,8 @@ def refill_gas(self, recipient_address, chain_str):
     q = q.filter(TxCache.from_value!=0)
     q = q.filter(TxCache.recipient==recipient_address)
     c = q.count()
-    session.close()
     if c > 0:
+        session.close()
         raise AlreadyFillingGasError(recipient_address)
 
     queue = self.request.delivery_info['routing_key']
@@ -420,7 +421,7 @@ def refill_gas(self, recipient_address, chain_str):
     logg.debug('refill gas from provider address {}'.format(c.gas_provider()))
     default_nonce = c.w3.eth.getTransactionCount(c.gas_provider(), 'pending')
     nonce_generator = NonceOracle(c.gas_provider(), default_nonce)
-    nonce = nonce_generator.next()
+    nonce = nonce_generator.next(session=session)
     gas_price = c.gas_price()
     gas_limit = c.default_gas_limit
     refill_amount = c.refill_amount()
@@ -449,7 +450,9 @@ def refill_gas(self, recipient_address, chain_str):
         tx_hash_hex,
         tx_send_gas_signed['raw'],
         chain_str,
+        session=session,
         )
+    session.close()
 
     s_tx_cache = celery.signature(
             'cic_eth.eth.tx.cache_gas_refill_data',
@@ -492,8 +495,8 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_str, gas=None, default_fa
     q = session.query(Otx)
     q = q.filter(Otx.tx_hash==txold_hash_hex)
     otx = q.first()
-    session.close()
     if otx == None:
+        session.close()
         raise NotLocalTxError(txold_hash_hex)
 
     chain_spec = ChainSpec.from_chain_str(chain_str)
@@ -528,8 +531,10 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_str, gas=None, default_fa
         tx_hash_hex,
         tx_signed_raw_hex,
         chain_str,
+        session=session,
             )
-    TxCache.clone(txold_hash_hex, tx_hash_hex)
+    TxCache.clone(txold_hash_hex, tx_hash_hex, session=session)
+    session.close()
 
     s = create_check_gas_and_send_task(
             [tx_signed_raw_hex],
@@ -546,6 +551,13 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_str, gas=None, default_fa
 
 @celery_app.task(bind=True, throws=(web3.exceptions.TransactionNotFound,), base=CriticalWeb3Task)
 def sync_tx(self, tx_hash_hex, chain_str):
+    """Force update of network status of a simgle transaction
+
+    :param tx_hash_hex: Transaction hash
+    :type tx_hash_hex: str, 0x-hex
+    :param chain_str: Chain spec string representation
+    :type chain_str: str
+    """
 
     queue = self.request.delivery_info['routing_key']
 
