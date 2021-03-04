@@ -1,7 +1,7 @@
 cic-base~=0.1.1a10
 web3==5.12.2
 celery==4.4.7
-crypto-dev-signer~=0.4.13rc3
+crypto-dev-signer~=0.4.13rc4
 confini~=0.3.6rc3
 cic-registry~=0.5.3a22
 cic-bancor~=0.0.6

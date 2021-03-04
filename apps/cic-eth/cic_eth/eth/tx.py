@@ -69,7 +69,6 @@ def check_gas(self, tx_hashes, chain_str, txs=[], address=None, gas_required=Non
         for i in range(len(tx_hashes)):
             o = get_tx(tx_hashes[i])
             txs.append(o['signed_tx'])
-            logg.debug('ooooo {}'.format(o))
             if address == None:
                 address = o['address']
 
@@ -178,12 +177,7 @@ class ParityNodeHandler:
     def handle(self, exception, tx_hash_hex, tx_hex):
         meth = self.handle_default
         if isinstance(exception, (ValueError)):
-#            s_debug = celery.signature(
-#                'cic_eth.admin.debug.out_tmp',
-#                [tx_hash_hex, '{}: {}'.format(tx_hash_hex, exception)],
-#                queue=queue,
-#                )
-#            s_debug.apply_async()
+            
             earg = exception.args[0]
             if earg['code'] == -32010:
                 logg.debug('skipping lock for code {}'.format(earg['code']))
@@ -191,14 +185,15 @@ class ParityNodeHandler:
             elif earg['code'] == -32602:
                 meth = self.handle_invalid_encoding
             else:
+                # TODO: move to status log db comment field
                 meth = self.handle_invalid
         elif isinstance(exception, (requests.exceptions.ConnectionError)):
             meth = self.handle_connection
-        (t, e_fn, message) = meth(tx_hash_hex, tx_hex)
+        (t, e_fn, message) = meth(tx_hash_hex, tx_hex, str(exception))
         return (t, e_fn, '{} {}'.format(message, exception))
            
 
-    def handle_connection(self, tx_hash_hex, tx_hex):
+    def handle_connection(self, tx_hash_hex, tx_hex, debugstr=None):
         s_set_sent = celery.signature(
             'cic_eth.queue.tx.set_sent_status',
             [
@@ -211,7 +206,7 @@ class ParityNodeHandler:
         return (t, TemporaryTxError, 'Sendfail {}'.format(tx_hex_string(tx_hex, self.chain_spec.chain_id())))
 
 
-    def handle_invalid_encoding(self, tx_hash_hex, tx_hex):
+    def handle_invalid_encoding(self, tx_hash_hex, tx_hex, debugstr=None):
         tx_bytes = bytes.fromhex(tx_hex[2:])
         tx = unpack_signed_raw_tx(tx_bytes, self.chain_spec.chain_id())
         s_lock = celery.signature(
@@ -258,7 +253,7 @@ class ParityNodeHandler:
         return (t, PermanentTxError, 'Reject invalid encoding {}'.format(tx_hex_string(tx_hex, self.chain_spec.chain_id())))
 
 
-    def handle_invalid_parameters(self, tx_hash_hex, tx_hex):
+    def handle_invalid_parameters(self, tx_hash_hex, tx_hex, debugstr=None):
         s_sync = celery.signature(
             'cic_eth.eth.tx.sync_tx',
             [
@@ -271,7 +266,7 @@ class ParityNodeHandler:
         return (t, PermanentTxError, 'Reject invalid parameters {}'.format(tx_hex_string(tx_hex, self.chain_spec.chain_id())))
 
 
-    def handle_invalid(self, tx_hash_hex, tx_hex):
+    def handle_invalid(self, tx_hash_hex, tx_hex, debugstr=None):
         tx_bytes = bytes.fromhex(tx_hex[2:])
         tx = unpack_signed_raw_tx(tx_bytes, self.chain_spec.chain_id())
         s_lock = celery.signature(
@@ -289,6 +284,16 @@ class ParityNodeHandler:
             [],
             queue=self.queue,
             )
+        s_debug = celery.signature(
+            'cic_eth.admin.debug.alert',
+            [
+                tx_hash_hex,
+                tx_hash_hex,
+                debugstr,
+                ],
+            queue=queue,
+            )
+        s_set_reject.link(s_debug)
         s_lock.link(s_set_reject)
         t = s_lock.apply_async()
         return (t, PermanentTxError, 'Reject invalid {}'.format(tx_hex_string(tx_hex, self.chain_spec.chain_id())))

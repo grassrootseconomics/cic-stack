@@ -19,6 +19,7 @@ def celery_includes():
         'cic_eth.queue.balance',
         'cic_eth.admin.ctrl',
         'cic_eth.admin.nonce',
+        'cic_eth.admin.debug',
         'cic_eth.eth.account',
         'cic_eth.callbacks.noop',
         'cic_eth.callbacks.http',

@@ -192,7 +192,7 @@ services:
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
         "/usr/local/bin/uwsgi" \
         --wsgi-file /usr/src/cic-cache/cic_cache/runnable/server.py \
-        --http :80 \
+        --http :8000 \
         --pyargv -vv
 
   cic-eth-tasker:
@@ -237,7 +237,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_tasker.sh -q cic-eth -vv
+        ./start_tasker.sh -q cic-eth -v
     # command: [/bin/sh, "./start_tasker.sh", -q, cic-eth, -vv ]
 
   cic-eth-tracker:
@@ -274,7 +274,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_tracker.sh -vv -c /usr/local/etc/cic-eth
+        ./start_tracker.sh -v -c /usr/local/etc/cic-eth
     # command: "/root/start_manager.sh head -vv"
 
 

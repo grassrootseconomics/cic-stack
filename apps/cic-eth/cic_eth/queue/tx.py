@@ -30,6 +30,7 @@ from cic_eth.task import CriticalSQLAlchemyTask
 from cic_eth.eth.util import unpack_signed_raw_tx # TODO: should not be in same sub-path as package that imports queue.tx
 from cic_eth.error import NotLocalTxError
 from cic_eth.error import LockedError
+from cic_eth.db.enum import status_str
 
 celery_app = celery.current_app
 #logg = celery_app.log.get_default_logger()
@@ -405,7 +406,7 @@ def get_tx_cache(tx_hash):
         'tx_hash': otx.tx_hash,
         'signed_tx': otx.signed_tx,
         'nonce': otx.nonce,
-        'status': StatusEnum(otx.status).name,
+        'status': status_str(otx.status),
         'status_code': otx.status,
         'source_token': txc.source_token_address,
         'destination_token': txc.destination_token_address,

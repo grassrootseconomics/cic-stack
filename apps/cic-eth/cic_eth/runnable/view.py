@@ -23,8 +23,11 @@ from hexathon import add_0x
 # local imports
 from cic_eth.api import AdminApi
 from cic_eth.eth.rpc import RpcClient
-from cic_eth.db.enum import StatusEnum
-from cic_eth.db.enum import LockEnum
+from cic_eth.db.enum import (
+    StatusEnum,
+    status_str,
+    LockEnum,
+)
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -119,7 +122,7 @@ def render_tx(o, **kwargs):
     
     for v in o.get('status_log', []):
         d = datetime.datetime.fromisoformat(v[0])
-        e = StatusEnum(v[1]).name
+        e = status_str(v[1])
         content += '{}: {}\n'.format(d, e)
 
     return content

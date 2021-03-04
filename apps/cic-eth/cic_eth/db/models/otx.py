@@ -2,7 +2,7 @@
 import datetime
 import logging
 
-# third-party imports
+# external imports
 from sqlalchemy import Column, Enum, String, Integer, DateTime, Text, or_, ForeignKey
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 
