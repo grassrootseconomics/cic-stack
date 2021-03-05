@@ -114,10 +114,16 @@ def init_w3_conn(
 
 @pytest.fixture(scope='function')
 def init_w3(
+        init_database,
         init_eth_tester,
         init_eth_account_roles,
         init_w3_conn,
         ):
+
+    for address in init_w3_conn.eth.accounts:
+        nonce = init_w3_conn.eth.getTransactionCount(address, 'pending')
+        Nonce.init(address, nonce=nonce, session=init_database)
+        init_database.commit()
 
     yield init_w3_conn
     logg.debug('mining om nom nom... {}'.format(init_eth_tester.mine_block()))
@@ -132,8 +138,7 @@ def init_eth_account_roles(
     address = w3_account_roles.get('eth_account_gas_provider')
     role = AccountRole.set('GAS_GIFTER', address)
     init_database.add(role)
-    Nonce.init(address, session=init_database)
-    init_database.commit()
+
     return w3_account_roles
 
 
@@ -166,7 +171,6 @@ def w3_account_roles(
 
     role_ids = [
         'eth_account_bancor_deployer',
-        'eth_account_gas_provider',
         'eth_account_reserve_owner',
         'eth_account_reserve_minter',
         'eth_account_accounts_index_owner',
@@ -175,6 +179,7 @@ def w3_account_roles(
         'eth_account_sarafu_gifter',
         'eth_account_approval_owner',
         'eth_account_faucet_owner',
+        'eth_account_gas_provider',
     ]
     roles = {}
 

@@ -10,6 +10,8 @@ import web3
 # local imports
 from cic_eth.api import AdminApi
 from cic_eth.db.models.role import AccountRole
+from cic_eth.db.models.otx import Otx
+from cic_eth.db.models.tx import TxCache
 from cic_eth.db.enum import (
         StatusEnum,
         StatusBits,
@@ -39,17 +41,36 @@ def test_resend_inplace(
     c = RpcClient(default_chain_spec)
     
     sigs = []
-    s = celery.signature(
-        'cic_eth.eth.tx.refill_gas',
+
+    gas_provider = c.gas_provider()
+
+    s_nonce = celery.signature(
+        'cic_eth.eth.tx.reserve_nonce',
         [
             init_w3.eth.accounts[0],
+            gas_provider,
+            ],
+        queue=None,
+        )
+    s_refill = celery.signature(
+        'cic_eth.eth.tx.refill_gas',
+        [
             chain_str,
             ],
         queue=None,
             )
-    t = s.apply_async()
-    tx_raw = t.get()
+    s_nonce.link(s_refill)
+    t = s_nonce.apply_async()
+    t.get()
+    for r in t.collect():
+        pass
     assert t.successful()
+
+    q = init_database.query(Otx)
+    q = q.join(TxCache)
+    q = q.filter(TxCache.recipient==init_w3.eth.accounts[0])
+    o = q.first()
+    tx_raw = o.signed_tx
 
     tx_dict = unpack_signed_raw_tx(bytes.fromhex(tx_raw[2:]), default_chain_spec.chain_id())
     gas_price_before = tx_dict['gasPrice'] 

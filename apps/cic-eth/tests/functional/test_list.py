@@ -9,6 +9,10 @@ from tests.mock.filter import (
         block_filter,
         tx_filter,
         )
+from cic_eth.db.models.nonce import (
+        Nonce,
+        NonceReservation,
+        )
 
 
 logg = logging.getLogger()
@@ -28,9 +32,20 @@ def test_list_tx(
 
     tx_hashes = []
     # external tx
+    nonce = init_w3.eth.getTransactionCount(init_w3.eth.accounts[0])
+    q = init_database.query(Nonce)
+    q = q.filter(Nonce.address_hex==init_w3.eth.accounts[0])
+    o = q.first()
+    o.nonce = nonce
+    init_database.add(o)
+    init_database.commit()
+
+    NonceReservation.next(init_w3.eth.accounts[0], 'foo', session=init_database)
+    init_database.commit()
+
     init_eth_tester.mine_blocks(13)
     txf = TokenTxFactory(init_w3.eth.accounts[0], init_rpc)
-    tx = txf.transfer(dummy_token_gifted, init_w3.eth.accounts[1], 3000, default_chain_spec)
+    tx = txf.transfer(dummy_token_gifted, init_w3.eth.accounts[1], 3000, default_chain_spec, 'foo')
     (tx_hash_hex, tx_signed_raw_hex) = sign_tx(tx, str(default_chain_spec))
     tx_hashes.append(tx_hash_hex)
     init_w3.eth.sendRawTransaction(tx_signed_raw_hex)
@@ -42,9 +57,12 @@ def test_list_tx(
     tx_filter.add(a.to_bytes(4, 'big'))
 
     # external tx
+    NonceReservation.next(init_w3.eth.accounts[0], 'bar', session=init_database)
+    init_database.commit()
+
     init_eth_tester.mine_blocks(28)
     txf = TokenTxFactory(init_w3.eth.accounts[0], init_rpc)
-    tx = txf.transfer(dummy_token_gifted, init_w3.eth.accounts[1], 4000, default_chain_spec)
+    tx = txf.transfer(dummy_token_gifted, init_w3.eth.accounts[1], 4000, default_chain_spec, 'bar')
     (tx_hash_hex, tx_signed_raw_hex) = sign_tx(tx, str(default_chain_spec))
     tx_hashes.append(tx_hash_hex)
     init_w3.eth.sendRawTransaction(tx_signed_raw_hex)
@@ -56,10 +74,13 @@ def test_list_tx(
     tx_filter.add(a.to_bytes(4, 'big'))
 
     # custodial tx
+    #NonceReservation.next(init_w3.eth.accounts[0], 'blinky', session=init_database)
+    #init_database.commit()
+
     init_eth_tester.mine_blocks(3)
-    txf = TokenTxFactory(init_w3.eth.accounts[0], init_rpc)
+    #txf = TokenTxFactory(init_w3.eth.accounts[0], init_rpc)
     api = Api(str(default_chain_spec), queue=None)
-    t = api.transfer(init_w3.eth.accounts[0], init_w3.eth.accounts[1], 1000, 'DUM')
+    t = api.transfer(init_w3.eth.accounts[0], init_w3.eth.accounts[1], 1000, 'DUM') #, 'blinky')
     t.get()
     tx_hash_hex = None
     for c in t.collect():
@@ -68,9 +89,11 @@ def test_list_tx(
     tx_hashes.append(tx_hash_hex)
 
     # custodial tx
+    #NonceReservation.next(init_w3.eth.accounts[0], 'clyde', session=init_database)
+    init_database.commit()
     init_eth_tester.mine_blocks(6)
     api = Api(str(default_chain_spec), queue=None)
-    t = api.transfer(init_w3.eth.accounts[0], init_w3.eth.accounts[1], 2000, 'DUM')
+    t = api.transfer(init_w3.eth.accounts[0], init_w3.eth.accounts[1], 2000, 'DUM') #, 'clyde')
     t.get()
     tx_hash_hex = None
     for c in t.collect():

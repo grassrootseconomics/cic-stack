@@ -49,28 +49,7 @@ def test_transfer_api(
     assert t.successful()
 
 
-def test_transfer_approval_api(
-        default_chain_spec,
-        init_w3,
-        cic_registry,
-        init_database,
-        bancor_registry,
-        bancor_tokens,
-        transfer_approval,
-        celery_session_worker,
-        ):
-
-    token = CICRegistry.get_address(default_chain_spec, bancor_tokens[0])
-    approval_contract = CICRegistry.get_contract(default_chain_spec, 'TransferApproval')
-
-    api = Api(str(default_chain_spec), callback_param='transfer_request', callback_task='cic_eth.callbacks.noop.noop', queue=None)
-    t = api.transfer_request(init_w3.eth.accounts[2], init_w3.eth.accounts[4], approval_contract.address(), 111, token.symbol())
-    t.get()
-    #for r in t.collect():
-    #    print(r)
-    assert t.successful()
-
-
+@pytest.mark.skip()
 def test_convert_api(
         default_chain_spec,
         init_w3,
@@ -91,6 +70,7 @@ def test_convert_api(
     assert t.successful()
 
 
+@pytest.mark.skip()
 def test_convert_transfer_api(
         default_chain_spec,
         init_w3,

@@ -11,12 +11,14 @@ from cic_eth.eth.util import unpack_signed_raw_tx
 from cic_eth.queue.tx import create as queue_create
 from cic_eth.db.models.otx import Otx
 from cic_eth.db.models.tx import TxCache
+from cic_eth.db.models.nonce import NonceReservation
 
 logg = logging.getLogger()
 
 
 def test_unpack_transfer(
     default_chain_spec,
+    init_database,
     init_w3,
     init_rpc,
     cic_registry,
@@ -24,6 +26,9 @@ def test_unpack_transfer(
     bancor_registry,
         ):
  
+    NonceReservation.next(init_w3.eth.accounts[0], 'foo', init_database)
+    init_database.commit()
+
     source_token = CICRegistry.get_address(default_chain_spec, bancor_tokens[0])
     logg.debug('bancor tokens {} {}'.format(bancor_tokens, source_token))
     txf = TokenTxFactory(init_w3.eth.accounts[0], init_rpc)
@@ -32,6 +37,7 @@ def test_unpack_transfer(
             init_w3.eth.accounts[1],
             42,
             default_chain_spec,
+            'foo',
             )
     s = init_w3.eth.sign_transaction(transfer_tx)
     s_bytes = bytes.fromhex(s['raw'][2:])
@@ -56,6 +62,9 @@ def test_queue_cache_transfer(
         bancor_registry,
         ):
 
+    NonceReservation.next(init_w3.eth.accounts[0], 'foo', init_database)
+    init_database.commit()
+
     source_token = CICRegistry.get_address(default_chain_spec, bancor_tokens[0])
     txf = TokenTxFactory(init_w3.eth.accounts[0], init_rpc)
     value = 42
@@ -64,6 +73,7 @@ def test_queue_cache_transfer(
             init_w3.eth.accounts[1],
             value,
             default_chain_spec,
+            'foo',
             )
     tx_signed = init_w3.eth.sign_transaction(transfer_tx)
     tx_hash = init_w3.eth.sendRawTransaction(tx_signed['raw'])

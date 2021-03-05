@@ -17,6 +17,7 @@ from cic_eth.db.models.tx import TxCache
 logg = logging.getLogger()
 
 
+@pytest.mark.skip()
 def test_resolve_converters_by_tokens(
         cic_registry,
         init_w3,
@@ -43,6 +44,7 @@ def test_resolve_converters_by_tokens(
         assert len(t['converters']) == 1
 
         
+@pytest.mark.skip()
 def test_unpack_convert(
     default_chain_spec,
     cic_registry,
@@ -84,6 +86,7 @@ def test_unpack_convert(
     assert convert_data['fee'] == 0
 
 
+@pytest.mark.skip()
 def test_queue_cache_convert(
         default_chain_spec,
         init_w3,

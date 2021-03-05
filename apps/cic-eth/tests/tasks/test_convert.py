@@ -1,8 +1,12 @@
+# standard imports
 import logging
 import os
 
+# external imports
+import pytest
 import celery
 
+# local imports
 from cic_eth.db import TxConvertTransfer
 from cic_eth.eth.bancor import BancorTxFactory
 

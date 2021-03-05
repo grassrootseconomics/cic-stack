@@ -30,6 +30,7 @@ def test_refill_gas(
     default_chain_spec,
     init_eth_tester,
     init_rpc,
+    init_w3,
     init_database,
     cic_registry,
     init_eth_account_roles,
@@ -47,7 +48,7 @@ def test_refill_gas(
     s_nonce = celery.signature(
             'cic_eth.eth.tx.reserve_nonce',
             [
-                receiver_address,
+                eth_empty_accounts[0],
                 provider_address,
                 ],
             queue=None,
@@ -90,11 +91,11 @@ def test_refill_gas(
     assert balance_new == (balance + refill_amount)
 
     # Verify that entry is added in TxCache
-    session = SessionBase.create_session()
-    q = session.query(Otx)
+    q = init_database.query(Otx)
     q = q.join(TxCache)
     q = q.filter(TxCache.recipient==receiver_address)
     r = q.first()
+    init_database.commit()
     
     assert r.status == StatusEnum.SENT
 
@@ -102,6 +103,7 @@ def test_refill_gas(
 def test_refill_deduplication(
     default_chain_spec,
     init_rpc,
+    init_w3,
     init_database,
     init_eth_account_roles,
     cic_registry,
@@ -256,16 +258,14 @@ def test_resend_with_higher_gas(
 
     c = init_rpc
 
-    token_data = [
-                    {
-                        'address': bancor_tokens[0],
-                        },
-                    ]
+    token_data = {
+                'address': bancor_tokens[0],
+                }
 
     s_nonce = celery.signature(
             'cic_eth.eth.tx.reserve_nonce',
             [
-                token_data,
+                [token_data],
                 init_w3.eth.accounts[0],
                 ],
             queue=None,
@@ -318,6 +318,7 @@ def test_resend_with_higher_gas(
                 tx_hash_hex,
                 str(default_chain_spec),
             ],
+            queue=None,
             )
     
     t = s_resend.apply_async()

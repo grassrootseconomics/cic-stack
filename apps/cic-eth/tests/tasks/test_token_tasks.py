@@ -20,21 +20,30 @@ def test_approve(
         cic_registry,
         ):
 
-    s = celery.signature(
-            'cic_eth.eth.token.approve',
-            [
-                [
+    token_data = [
                     {
                         'address': bancor_tokens[0],
                     },
-                    ],
+                    ]
+    s_nonce = celery.signature(
+            'cic_eth.eth.tx.reserve_nonce',
+            [
+                token_data,
+                init_rpc.w3.eth.accounts[0],
+                ],
+            queue=None,
+            )
+    s_approve = celery.signature(
+            'cic_eth.eth.token.approve',
+            [
                 init_rpc.w3.eth.accounts[0],
                 init_rpc.w3.eth.accounts[1],
                 1024,
                 str(default_chain_spec),
                 ],
             )
-    t = s.apply_async()
+    s_nonce.link(s_approve)
+    t = s_nonce.apply_async()
     t.get()
     for r in t.collect():
         logg.debug('result {}'.format(r))

@@ -35,15 +35,10 @@ def test_faucet(
     init_database,
         ):
 
-    nonce = init_w3.eth.getTransactionCount(init_w3.eth.accounts[7])
-    Nonce.init(init_w3.eth.accounts[7], nonce, session=init_database)
-    init_database.commit()
- 
     s_nonce = celery.signature(
             'cic_eth.eth.tx.reserve_nonce',
             [
                 init_w3.eth.accounts[7],
-                init_w3.eth.accounts[0],
                 ],
             queue=None,
             )

@@ -55,7 +55,11 @@ def test_reserve_nonce_chain(
         ):
 
     provider_address = init_rpc.gas_provider()
-    Nonce.init(provider_address, 42, session=init_database)
+    q = init_database.query(Nonce)
+    q = q.filter(Nonce.address_hex==provider_address)
+    o = q.first()
+    o.nonce = 42
+    init_database.add(o)
     init_database.commit()
 
     s_nonce = celery.signature(

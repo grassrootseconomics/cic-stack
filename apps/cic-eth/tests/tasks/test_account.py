@@ -72,10 +72,6 @@ def test_register_account(
 
     logg.debug('chainspec {}'.format(str(default_chain_spec)))
 
-    nonce = init_w3.eth.getTransactionCount(init_w3.eth.accounts[0])
-    Nonce.init(init_w3.eth.accounts[0], nonce, session=init_database)
-    init_database.commit()
-    
     s_nonce = celery.signature(
             'cic_eth.eth.tx.reserve_nonce',
             [

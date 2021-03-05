@@ -33,8 +33,14 @@ def test_balance_complex(
 
     tx_hashes = []
 
+    # TODO: Temporary workaround for nonce db cache initialization being made before deployments.
+    # Instead use different accounts than system ones for transfers for tests 
     nonce = init_w3.eth.getTransactionCount(init_w3.eth.accounts[0])
-    Nonce.init(init_w3.eth.accounts[0], nonce, session=init_database)
+    q = init_database.query(Nonce)
+    q = q.filter(Nonce.address_hex==init_w3.eth.accounts[0])
+    o = q.first()
+    o.nonce = nonce
+    init_database.add(o)
     init_database.commit()
  
     for i in range(3):
