@@ -121,6 +121,7 @@ class DispatchSyncer:
                 set_dequeue(tx['hash'])
             except NotLocalTxError as e:
                 logg.warning('dispatcher was triggered with non-local tx {}'.format(tx['hash']))
+                continue
 
             s_check = celery.signature(
                 'cic_eth.admin.ctrl.check_lock',

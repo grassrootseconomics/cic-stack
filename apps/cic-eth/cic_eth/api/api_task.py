@@ -92,6 +92,11 @@ class Api:
                     ],
                 queue=self.queue,
                 )
+        s_nonce = celery.signature(
+                'cic_eth.eth.tx.reserve_nonce',
+                [],
+                queue=self.queue,
+                )
         s_tokens = celery.signature(
                 'cic_eth.eth.token.resolve_tokens_by_symbol',
                 [
@@ -110,7 +115,8 @@ class Api:
                     ],
                 queue=self.queue,
                 )
-        s_check.link(s_tokens)
+        s_nonce.link(s_tokens)
+        s_check.link(s_nonce)
         if self.callback_param != None:
             s_convert.link(self.callback_success)
             s_tokens.link(s_convert).on_error(self.callback_error)
@@ -147,6 +153,11 @@ class Api:
                     ],
                 queue=self.queue,
                 )
+        s_nonce = celery.signature(
+                'cic_eth.eth.tx.reserve_nonce',
+                [],
+                queue=self.queue,
+                )
         s_tokens = celery.signature(
                 'cic_eth.eth.token.resolve_tokens_by_symbol',
                 [
@@ -165,7 +176,8 @@ class Api:
                     ],
                 queue=self.queue,
                 )
-        s_check.link(s_tokens)
+        s_nonce.link(s_tokens)
+        s_check.link(s_nonce)
         if self.callback_param != None:
             s_convert.link(self.callback_success)
             s_tokens.link(s_convert).on_error(self.callback_error)
@@ -200,6 +212,13 @@ class Api:
                     ],
                 queue=self.queue,
                 )
+        s_nonce = celery.signature(
+                'cic_eth.eth.tx.reserve_nonce',
+                [
+                    from_address,
+                    ],
+                queue=self.queue,
+                )
         s_tokens = celery.signature(
                 'cic_eth.eth.token.resolve_tokens_by_symbol',
                 [
@@ -217,7 +236,8 @@ class Api:
                     ],
                 queue=self.queue,
                 )
-        s_check.link(s_tokens)
+        s_nonce.link(s_tokens)
+        s_check.link(s_nonce)
         if self.callback_param != None:
             s_transfer.link(self.callback_success)
             s_tokens.link(s_transfer).on_error(self.callback_error)
@@ -225,82 +245,6 @@ class Api:
             s_tokens.link(s_transfer)
 
         t = s_check.apply_async(queue=self.queue)
-        return t
-
-
-    def transfer_request(self, from_address, to_address, spender_address, value, token_symbol):
-        """Executes a chain of celery tasks that issues a transfer request of ERC20 tokens from one address to another.
-
-        :param from_address: Ethereum address of sender
-        :type from_address: str, 0x-hex
-        :param to_address: Ethereum address of recipient
-        :type to_address: str, 0x-hex
-        :param spender_address: Ethereum address that is executing transfer (typically an escrow contract)
-        :type spender_address: str, 0x-hex
-        :param value: Estimated return from conversion
-        :type  value: int
-        :param token_symbol: ERC20 token symbol of token to send
-        :type token_symbol: str
-        :returns: uuid of root task
-        :rtype: celery.Task
-        """
-        s_check = celery.signature(
-                'cic_eth.admin.ctrl.check_lock',
-                [
-                    [token_symbol],
-                    self.chain_str,
-                    LockEnum.QUEUE,
-                    from_address,
-                    ],
-                queue=self.queue,
-                )
-        s_tokens_transfer_approval = celery.signature(
-                'cic_eth.eth.token.resolve_tokens_by_symbol',
-                [
-                    self.chain_str,
-                    ],
-                queue=self.queue,
-                )
-        s_tokens_approve = celery.signature(
-                'cic_eth.eth.token.resolve_tokens_by_symbol',
-                [
-                    self.chain_str,
-                    ],
-                queue=self.queue,
-                )
-        s_approve = celery.signature(
-                'cic_eth.eth.token.approve',
-                [
-                    from_address,
-                    spender_address,
-                    value,
-                    self.chain_str,
-                    ],
-                queue=self.queue,
-                )
-        s_transfer_approval = celery.signature(
-                'cic_eth.eth.request.transfer_approval_request',
-                [
-                    from_address,
-                    to_address,
-                    value,
-                    self.chain_str,
-                    ],
-                queue=self.queue,
-                )
-        # TODO: make approve and transfer_approval chainable so callback can be part of the full chain
-        if self.callback_param != None:
-            s_transfer_approval.link(self.callback_success)
-            s_tokens_approve.link(s_approve)
-            s_tokens_transfer_approval.link(s_transfer_approval).on_error(self.callback_error)
-        else:
-            s_tokens_approve.link(s_approve)
-            s_tokens_transfer_approval.link(s_transfer_approval)
-
-        g = celery.group(s_tokens_approve, s_tokens_transfer_approval) #s_tokens.apply_async(queue=self.queue)
-        s_check.link(g)
-        t = s_check.apply_async()
-        #t = s_tokens.apply_async(queue=self.queue)
         return t
 
 
@@ -396,6 +340,11 @@ class Api:
                     ],
                 queue=self.queue,
                 )
+        s_nonce = celery.signature(
+                'cic_eth.eth.tx.reserve_nonce',
+                [],
+                queue=self.queue,
+                )
         s_account = celery.signature(
                 'cic_eth.eth.account.create',
                 [
@@ -403,7 +352,8 @@ class Api:
                     ],
                 queue=self.queue,
                 )
-        s_check.link(s_account)
+        s_nonce.link(s_account)
+        s_check.link(s_nonce)
         if self.callback_param != None:
             s_account.link(self.callback_success)
 
@@ -438,6 +388,11 @@ class Api:
                     ],
                 queue=self.queue,
                 )
+        s_nonce = celery.signature(
+                'cic_eth.eth.tx.reserve_nonce',
+                [],
+                queue=self.queue,
+                )
         s_refill = celery.signature(
                 'cic_eth.eth.tx.refill_gas',
                 [
@@ -445,7 +400,8 @@ class Api:
                     ],
                 queue=self.queue,
                 )
-        s_check.link(s_refill) 
+        s_nonce.link(s_refill) 
+        s_check.link(s_nonce)
         if self.callback_param != None:
             s_refill.link(self.callback_success)
 

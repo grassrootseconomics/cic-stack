@@ -27,7 +27,7 @@ def database_engine(
         SessionBase.poolable = False
     dsn = dsn_from_config(load_config)
     #SessionBase.connect(dsn, True)
-    SessionBase.connect(dsn, load_config.get('DATABASE_DEBUG') != None)
+    SessionBase.connect(dsn, debug=load_config.get('DATABASE_DEBUG') != None)
     return dsn
 
 

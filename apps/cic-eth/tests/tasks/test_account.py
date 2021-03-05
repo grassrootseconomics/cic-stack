@@ -64,6 +64,7 @@ def test_register_account(
         init_database,
         init_eth_tester,
         init_w3,
+        init_rpc,
         cic_registry,
         celery_session_worker,
         eth_empty_accounts,
@@ -71,18 +72,31 @@ def test_register_account(
 
     logg.debug('chainspec {}'.format(str(default_chain_spec)))
 
-    s = celery.signature(
-            'cic_eth.eth.account.register',
+    nonce = init_w3.eth.getTransactionCount(init_w3.eth.accounts[0])
+    Nonce.init(init_w3.eth.accounts[0], nonce, session=init_database)
+    init_database.commit()
+    
+    s_nonce = celery.signature(
+            'cic_eth.eth.tx.reserve_nonce',
             [
                 eth_empty_accounts[0],
+                init_w3.eth.accounts[0],
+                ],
+            queue=None,
+            )
+    s_register = celery.signature(
+            'cic_eth.eth.account.register',
+            [
                 str(default_chain_spec),
                 init_w3.eth.accounts[0],
                 ],
             )
-    t = s.apply_async()
+    s_nonce.link(s_register)
+    t = s_nonce.apply_async()
     address = t.get()
-    r = t.collect()
-    t.successful()
+    for r in t.collect():
+        pass
+    assert t.successful()
 
     session = SessionBase.create_session()
     o = session.query(Otx).first()

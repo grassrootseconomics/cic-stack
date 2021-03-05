@@ -36,6 +36,7 @@ class AccountTxFactory(TxFactory):
             self,
             address,
             chain_spec,
+            uuid,
             session=None,
             ):
         """Register an Ethereum account address with the on-chain account registry
@@ -59,7 +60,7 @@ class AccountTxFactory(TxFactory):
             'gas': gas,
             'gasPrice': self.gas_price,
             'chainId': chain_spec.chain_id(),
-            'nonce': self.next_nonce(session=session),
+            'nonce': self.next_nonce(uuid, session=session),
             'value': 0,
             })
         return tx_add
@@ -69,6 +70,7 @@ class AccountTxFactory(TxFactory):
             self,
             address,
             chain_spec,
+            uuid,
             session=None,
         ):
         """Trigger the on-chain faucet to disburse tokens to the provided Ethereum account
@@ -90,7 +92,7 @@ class AccountTxFactory(TxFactory):
             'gas': gas,
             'gasPrice': self.gas_price,
             'chainId': chain_spec.chain_id(),
-            'nonce': self.next_nonce(session=session),
+            'nonce': self.next_nonce(uuid, session=session),
             'value': 0,
             })
         return tx_add
@@ -156,19 +158,9 @@ def create(password, chain_str):
     logg.debug('created account {}'.format(a))
 
     # Initialize nonce provider record for account
-    # TODO: this can safely be set to zero, since we are randomly creating account
-    n = c.w3.eth.getTransactionCount(a, 'pending')
     session = SessionBase.create_session()
-    q = session.query(Nonce)
-    q = q.filter(Nonce.address_hex==a)
-    o = q.first()
-    session.flush()
-    if o == None:
-        o = Nonce()
-        o.address_hex = a
-        o.nonce = n
-        session.add(o)
-        session.commit()
+    Nonce.init(a, session=session)
+    session.commit()
     session.close()
     return a
 
@@ -203,7 +195,7 @@ def register(self, account_address, chain_str, writer_address=None):
     c = RpcClient(chain_spec, holder_address=writer_address)
     txf = AccountTxFactory(writer_address, c)
 
-    tx_add = txf.add(account_address, chain_spec, session=session)
+    tx_add = txf.add(account_address, chain_spec, self.request.root_id, session=session)
     
     (tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx_add, chain_str, queue, 'cic_eth.eth.account.cache_account_data', session=session)
     session.close()
@@ -243,7 +235,7 @@ def gift(self, account_address, chain_str):
     txf = AccountTxFactory(account_address, c)
 
     session = SessionBase.create_session()
-    tx_add = txf.gift(account_address, chain_spec, session=session)
+    tx_add = txf.gift(account_address, chain_spec, self.request.root_id, session=session)
     (tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx_add, chain_str, queue, 'cic_eth.eth.account.cache_gift_data', session=session)
     session.close()
 

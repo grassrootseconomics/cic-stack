@@ -1,5 +1,8 @@
 # local imports
-from cic_eth.db.models.nonce import Nonce
+from cic_eth.db.models.nonce import (
+        Nonce,
+        NonceReservation,
+        )
 
 class NonceOracle():
     """Ensures atomic nonce increments for all transactions across all tasks and threads.
@@ -14,10 +17,15 @@ class NonceOracle():
         self.default_nonce = default_nonce
 
 
-    def next(self, session=None):
+    def next(self):
         """Get next unique nonce.
 
         :returns: Nonce
         :rtype: number
         """
-        return Nonce.next(self.address, self.default_nonce, session=session)
+        raise AttributeError('this should not be called')
+        return Nonce.next(self.address, self.default_nonce)
+
+
+    def next_by_task_uuid(self, uuid, session=None):
+        return NonceReservation.release(uuid, session=session)

@@ -102,6 +102,9 @@ def register_eth(i, u):
         ps.get_message()
         m = ps.get_message(timeout=args.timeout)
         address = None
+        if m == None:
+            logg.debug('message timeout')
+            return
         if m['type'] == 'subscribe':
             logg.debug('skipping subscribe message')
             continue

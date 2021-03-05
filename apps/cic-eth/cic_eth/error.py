@@ -54,6 +54,13 @@ class RoleMissingError(Exception):
     pass
 
 
+class IntegrityError(Exception):
+    """Exception raised to signal irregularities with deduplication and ordering of tasks
+
+    """
+    pass
+
+
 class LockedError(Exception):
     """Exception raised when attempt is made to execute action that is deactivated by lock
 

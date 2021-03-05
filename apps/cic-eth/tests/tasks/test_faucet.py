@@ -10,6 +10,9 @@ import celery
 from cic_eth.eth.account import unpack_gift
 from cic_eth.eth.factory import TxFactory
 from cic_eth.eth.util import unpack_signed_raw_tx
+from cic_eth.db.models.nonce import Nonce
+from cic_eth.db.models.otx import Otx
+from cic_eth.db.models.tx import TxCache
 
 logg = logging.getLogger()
 
@@ -32,10 +35,21 @@ def test_faucet(
     init_database,
         ):
 
-    s = celery.signature(
+    nonce = init_w3.eth.getTransactionCount(init_w3.eth.accounts[7])
+    Nonce.init(init_w3.eth.accounts[7], nonce, session=init_database)
+    init_database.commit()
+ 
+    s_nonce = celery.signature(
+            'cic_eth.eth.tx.reserve_nonce',
+            [
+                init_w3.eth.accounts[7],
+                init_w3.eth.accounts[0],
+                ],
+            queue=None,
+            )
+    s_gift = celery.signature(
         'cic_eth.eth.account.gift',
         [
-            init_w3.eth.accounts[7],
             str(default_chain_spec),
             ],
             )     
@@ -45,15 +59,21 @@ def test_faucet(
             str(default_chain_spec),
             ],
         )
-    s.link(s_send)
-    t = s.apply_async()
-    signed_tx = t.get()
+    s_gift.link(s_send)
+    s_nonce.link(s_gift)
+    t = s_nonce.apply_async()
+    t.get()
     for r in t.collect():
         logg.debug('result {}'.format(r))
-
     assert t.successful()
 
-    tx = unpack_signed_raw_tx(bytes.fromhex(signed_tx[0][2:]), default_chain_spec.chain_id())
+    q = init_database.query(Otx)
+    q = q.join(TxCache)
+    q = q.filter(TxCache.sender==init_w3.eth.accounts[7])
+    o = q.first()
+    signed_tx = o.signed_tx
+
+    tx = unpack_signed_raw_tx(bytes.fromhex(signed_tx[2:]), default_chain_spec.chain_id())
     giveto = unpack_gift(tx['data'])
     assert giveto['to'] == init_w3.eth.accounts[7]
 

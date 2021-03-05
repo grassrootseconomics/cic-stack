@@ -315,7 +315,9 @@ def set_ready(tx_hash):
 @celery_app.task(base=CriticalSQLAlchemyTask)
 def set_dequeue(tx_hash):
     session = SessionBase.create_session()
-    o = session.query(Otx).filter(Otx.tx_hash==tx_hash).first()
+    q = session.query(Otx)
+    q = q.filter(Otx.tx_hash==tx_hash)
+    o = q.first()
     if o == None:
         session.close()
         raise NotLocalTxError('queue does not contain tx hash {}'.format(tx_hash))
@@ -566,7 +568,7 @@ def get_paused_txs(status=None, sender=None, chain_id=0, session=None):
     return txs
 
 
-def get_status_tx(status, before=None, exact=False, limit=0, session=None):
+def get_status_tx(status, not_status=None, before=None, exact=False, limit=0, session=None):
     """Retrieve transaction with a specific queue status.
 
     :param status: Status to match transactions with
@@ -582,11 +584,15 @@ def get_status_tx(status, before=None, exact=False, limit=0, session=None):
     session = SessionBase.bind_session(session)
     q = session.query(Otx)
     q = q.join(TxCache)
-    q = q.filter(TxCache.date_updated<before)
+   #     before = datetime.datetime.utcnow()
+    if before != None:
+        q = q.filter(TxCache.date_updated<before)
     if exact:
-        q = q.filter(Otx.status==status.value)
+        q = q.filter(Otx.status==status)
     else:
-        q = q.filter(Otx.status.op('&')(status.value)==status.value)
+        q = q.filter(Otx.status.op('&')(status)>0)
+        if not_status != None:
+            q = q.filter(Otx.status.op('&')(not_status)==0)
     i = 0
     for o in q.all():
         if limit > 0 and i == limit:

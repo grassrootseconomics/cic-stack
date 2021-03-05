@@ -9,6 +9,7 @@ from cic_eth.eth.bancor import BancorTxFactory
 logg = logging.getLogger()
 
 
+@pytest.mark.skip()
 def test_transfer_after_convert(
         init_w3,
         init_database,

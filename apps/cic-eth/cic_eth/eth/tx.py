@@ -12,6 +12,7 @@ from cic_registry.chain import ChainSpec
 from .rpc import RpcClient
 from cic_eth.db import Otx, SessionBase
 from cic_eth.db.models.tx import TxCache
+from cic_eth.db.models.nonce import NonceReservation
 from cic_eth.db.models.lock import Lock
 from cic_eth.db.enum import (
         LockEnum,
@@ -84,15 +85,23 @@ def check_gas(self, tx_hashes, chain_str, txs=[], address=None, gas_required=Non
     logg.debug('address {} has gas {} needs {}'.format(address, balance, gas_required))
 
     if gas_required > balance:
+        s_nonce = celery.signature(
+            'cic_eth.eth.tx.reserve_nonce',
+            [
+                address,
+                c.gas_provider(),
+                ],
+            queue=queue,
+            )
         s_refill_gas = celery.signature(
             'cic_eth.eth.tx.refill_gas',
             [
-                address,
                 chain_str,
                 ],
             queue=queue,
                 )
-        s_refill_gas.apply_async()
+        s_nonce.link(s_refill_gas)
+        s_nonce.apply_async()
         wait_tasks = []
         for tx_hash in tx_hashes:
             s = celery.signature(
@@ -108,15 +117,23 @@ def check_gas(self, tx_hashes, chain_str, txs=[], address=None, gas_required=Non
 
     safe_gas = c.safe_threshold_amount()
     if balance < safe_gas:
+        s_nonce = celery.signature(
+            'cic_eth.eth.tx.reserve_nonce'
+            [
+                address,
+                c.gas_provider(),
+                ],
+            queue=queue,
+            )
         s_refill_gas = celery.signature(
             'cic_eth.eth.tx.refill_gas',
             [
-                address,
                 chain_str,
                 ],
             queue=queue,
                 )
-        s_refill_gas.apply_async()
+        s_nonce.link(s_refill)
+        s_nonce.apply_async()
         logg.debug('requested refill from {} to {}'.format(c.gas_provider(), address))
     ready_tasks = []
     for tx_hash in tx_hashes:
@@ -291,7 +308,7 @@ class ParityNodeHandler:
                 tx_hash_hex,
                 debugstr,
                 ],
-            queue=queue,
+            queue=self.queue,
             )
         s_set_reject.link(s_debug)
         s_lock.link(s_set_reject)
@@ -299,7 +316,7 @@ class ParityNodeHandler:
         return (t, PermanentTxError, 'Reject invalid {}'.format(tx_hex_string(tx_hex, self.chain_spec.chain_id())))
 
 
-    def handle_default(self, tx_hash_hex, tx_hex):
+    def handle_default(self, tx_hash_hex, tx_hex, debugstr):
         tx_bytes = bytes.fromhex(tx_hex[2:])
         tx = unpack_signed_raw_tx(tx_bytes, self.chain_spec.chain_id())
         s_lock = celery.signature(
@@ -317,9 +334,19 @@ class ParityNodeHandler:
             [],
             queue=self.queue,
             )
+        s_debug = celery.signature(
+            'cic_eth.admin.debug.alert',
+            [
+                tx_hash_hex,
+                tx_hash_hex,
+                debugstr,
+                ],
+            queue=self.queue,
+            )
+        s_set_fubar.link(s_debug)
         s_lock.link(s_set_fubar)
         t = s_lock.apply_async()
-        return (t, PermanentTxError, 'Fubar {}'.format(tx_hex_string(tx_hex, self.chain_spec.chain_id())))
+        return (t, PermanentTxError, 'Fubar {} {}'.format(tx_hex_string(tx_hex, self.chain_spec.chain_id()), debugstr))
 
 
 # TODO: A lock should be introduced to ensure that the send status change and the transaction send is atomic.
@@ -407,6 +434,7 @@ def refill_gas(self, recipient_address, chain_str):
     """
     chain_spec = ChainSpec.from_chain_str(chain_str)
 
+    zero_amount = False
     session = SessionBase.create_session()
     status_filter = StatusBits.FINAL | StatusBits.NODE_ERROR | StatusBits.NETWORK_ERROR | StatusBits.UNKNOWN_ERROR
     q = session.query(Otx.tx_hash)
@@ -416,8 +444,11 @@ def refill_gas(self, recipient_address, chain_str):
     q = q.filter(TxCache.recipient==recipient_address)
     c = q.count()
     if c > 0:
-        session.close()
-        raise AlreadyFillingGasError(recipient_address)
+        #session.close()
+        #raise AlreadyFillingGasError(recipient_address)
+        logg.warning(str(AlreadyFillingGasError(recipient_address)))
+        zero_amount = True
+    session.flush()
 
     queue = self.request.delivery_info['routing_key']
 
@@ -426,10 +457,13 @@ def refill_gas(self, recipient_address, chain_str):
     logg.debug('refill gas from provider address {}'.format(c.gas_provider()))
     default_nonce = c.w3.eth.getTransactionCount(c.gas_provider(), 'pending')
     nonce_generator = NonceOracle(c.gas_provider(), default_nonce)
-    nonce = nonce_generator.next(session=session)
+    #nonce = nonce_generator.next(session=session)
+    nonce = nonce_generator.next_by_task_uuid(self.request.root_id, session=session)
     gas_price = c.gas_price()
     gas_limit = c.default_gas_limit
-    refill_amount = c.refill_amount()
+    refill_amount = 0
+    if not zero_amount:
+        refill_amount = c.refill_amount()
     logg.debug('tx send gas price {} nonce {}'.format(gas_price, nonce))
 
     # create and sign transaction
@@ -475,6 +509,7 @@ def refill_gas(self, recipient_address, chain_str):
         queue=queue,
             )
     celery.group(s_tx_cache, s_status)()
+
     return tx_send_gas_signed['raw']
 
 
@@ -552,6 +587,21 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_str, gas=None, default_fa
     s.apply_async()
 
     return tx_hash_hex
+
+
+@celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
+def reserve_nonce(self, chained_input, address=None):
+    session = SessionBase.create_session()
+
+    if address == None:
+        address = chained_input
+
+    root_id = self.request.root_id
+    nonce = NonceReservation.next(address, root_id)
+
+    session.close()
+
+    return chained_input
 
 
 @celery_app.task(bind=True, throws=(web3.exceptions.TransactionNotFound,), base=CriticalWeb3Task)

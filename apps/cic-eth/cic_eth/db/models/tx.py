@@ -143,7 +143,7 @@ class TxCache(SessionBase):
         self.block_number = block_number
         self.tx_index = tx_index
         # not automatically set in sqlite, it seems:
-        self.date_created = datetime.datetime.now()
+        self.date_created = datetime.datetime.utcnow()
         self.date_updated = self.date_created
         self.date_checked = self.date_created
 

@@ -15,6 +15,7 @@ from eth_keys import KeyAPI
 from cic_eth.eth import RpcClient
 from cic_eth.eth.rpc import GasOracle
 from cic_eth.db.models.role import AccountRole
+from cic_eth.db.models.nonce import Nonce
 
 #logg = logging.getLogger(__name__)
 logg = logging.getLogger()
@@ -128,8 +129,10 @@ def init_eth_account_roles(
     w3_account_roles,
         ):
 
-    role = AccountRole.set('GAS_GIFTER', w3_account_roles.get('eth_account_gas_provider'))
+    address = w3_account_roles.get('eth_account_gas_provider')
+    role = AccountRole.set('GAS_GIFTER', address)
     init_database.add(role)
+    Nonce.init(address, session=init_database)
     init_database.commit()
     return w3_account_roles
 
@@ -186,6 +189,7 @@ def w3_account_roles(
         i += 1
 
     return roles
+
 
 @pytest.fixture(scope='session')
 def w3_account_token_owners(

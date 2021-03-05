@@ -54,7 +54,7 @@ class SessionBase(Model):
 
 
     @staticmethod
-    def connect(dsn, pool_size=8, debug=False):
+    def connect(dsn, pool_size=16, debug=False):
         """Create new database connection engine and connect to database backend.
 
         :param dsn: DSN string defining connection.

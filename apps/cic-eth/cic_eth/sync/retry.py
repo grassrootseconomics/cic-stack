@@ -9,7 +9,10 @@ import celery
 # local imports
 from .base import Syncer
 from cic_eth.eth.rpc import RpcClient
-from cic_eth.db.enum import StatusEnum
+from cic_eth.db.enum import (
+        StatusEnum,
+        StatusBits,
+        )
 from cic_eth.queue.tx import get_status_tx
 
 logg = logging.getLogger()
@@ -47,7 +50,8 @@ class RetrySyncer(Syncer):
 #                    )
             before = datetime.datetime.utcnow() - datetime.timedelta(seconds=self.stalled_grace_seconds)
             stalled_txs = get_status_tx(
-                    StatusEnum.SENT.value,
+                    StatusBits.IN_NETWORK.value,
+                    not_status=StatusBits.FINAL | StatusBits.MANUAL | StatusBits.OBSOLETE,
                     before=before,
                     )
        #     return list(failed_txs.keys()) + list(stalled_txs.keys())

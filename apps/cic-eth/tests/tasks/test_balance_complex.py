@@ -8,6 +8,7 @@ import celery
 # local imports
 from cic_eth.eth.rpc import RpcClient
 from cic_eth.db.models.otx import Otx
+from cic_eth.db.models.nonce import Nonce
 from cic_eth.eth.util import unpack_signed_raw_tx
 
 #logg = logging.getLogger(__name__)
@@ -31,18 +32,32 @@ def test_balance_complex(
             }
 
     tx_hashes = []
+
+    nonce = init_w3.eth.getTransactionCount(init_w3.eth.accounts[0])
+    Nonce.init(init_w3.eth.accounts[0], nonce, session=init_database)
+    init_database.commit()
+ 
     for i in range(3):
-        s = celery.signature(
-                'cic_eth.eth.token.transfer',
+        s_nonce = celery.signature(
+                'cic_eth.eth.tx.reserve_nonce',
                 [
                     [token_data],
+                    init_w3.eth.accounts[0],
+                    ],
+                queue=None,
+                )
+        s_transfer = celery.signature(
+                'cic_eth.eth.token.transfer',
+                [
                     init_w3.eth.accounts[0],
                     init_w3.eth.accounts[1],
                     1000*(i+1),
                     chain_str,
                     ],
+                queue=None,
         )
-        t = s.apply_async()
+        s_nonce.link(s_transfer)
+        t = s_nonce.apply_async()
         t.get()
         r = None
         for c in t.collect():

@@ -313,7 +313,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_dispatcher.sh -q cic-eth -v
+        ./start_dispatcher.sh -q cic-eth -vv
     # command: "/root/start_dispatcher.sh -q cic-eth -vv"
 
 

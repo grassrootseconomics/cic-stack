@@ -58,6 +58,7 @@ argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spe
 argparser.add_argument('--meta-provider', type=str, dest='meta_provider', default='http://localhost:63380', help='cic-meta url')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
+argparser.add_argument('-x', '--exit-on-error', dest='x', action='store_true', help='Halt exection on error')
 argparser.add_argument('-v', help='be verbose', action='store_true')
 argparser.add_argument('-vv', help='be more verbose', action='store_true')
 argparser.add_argument('user_dir', type=str, help='user export directory')
@@ -91,6 +92,27 @@ old_chain_spec = ChainSpec.from_chain_str(args.old_chain_spec)
 old_chain_str = str(old_chain_spec)
 user_dir = args.user_dir # user_out_dir from import_users.py
 meta_url = args.meta_provider
+exit_on_error = args.x
+
+
+class VerifierState:
+
+    def __init__(self, item_keys):
+        self.items = {}
+        for k in item_keys:
+            logg.info('k {}'.format(k))
+            self.items[k] = 0
+
+
+    def poke(self, item_key):
+        self.items[item_key] += 1
+
+
+    def __str__(self):
+        r = ''
+        for k in self.items.keys():
+            r += '{}: {}\n'.format(k, self.items[k])
+        return r
 
 
 class VerifierError(Exception):
@@ -107,7 +129,8 @@ class VerifierError(Exception):
 
 class Verifier:
 
-    def __init__(self, conn, cic_eth_api, gas_oracle, chain_spec, index_address, token_address, data_dir):
+    # TODO: what an awful function signature
+    def __init__(self, conn, cic_eth_api, gas_oracle, chain_spec, index_address, token_address, data_dir, exit_on_error=False):
         self.conn = conn
         self.gas_oracle = gas_oracle
         self.chain_spec = chain_spec
@@ -117,9 +140,18 @@ class Verifier:
         self.tx_factory = TxFactory(chain_id=chain_spec.chain_id(), gas_oracle=gas_oracle)
         self.api = cic_eth_api
         self.data_dir = data_dir
+        self.exit_on_error = exit_on_error
+
+        verifymethods = []
+        for k in dir(self):
+            if len(k) > 7 and k[:7] == 'verify_':
+                logg.info('adding verify method {}'.format(k))
+                verifymethods.append(k[7:])
+
+        self.state = VerifierState(verifymethods)
 
 
-    def verify_accounts_index(self, address):
+    def verify_accounts_index(self, address, balance=None):
         tx = self.tx_factory.template(ZERO_ADDRESS, self.index_address)
         data = keccak256_string_to_hex('have(address)')[:8]
         data += eth_abi.encode_single('address', address).hex()
@@ -145,14 +177,14 @@ class Verifier:
             raise VerifierError((actual_balance, balance), 'balance')
 
 
-    def verify_local_key(self, address):
+    def verify_local_key(self, address, balance=None):
         r = self.api.have_account(address, str(self.chain_spec))
         logg.debug('verify local key result {}'.format(r))
         if r != address:
             raise VerifierError((address, r), 'local key')
 
 
-    def verify_metadata(self, address):
+    def verify_metadata(self, address, balance=None):
         k = generate_metadata_pointer(bytes.fromhex(strip_0x(address)), ':cic.person')
         url = os.path.join(meta_url, k)
         logg.debug('verify metadata url {}'.format(url))
@@ -184,15 +216,33 @@ class Verifier:
 
     def verify(self, address, balance):
         logg.debug('verify {} {}'.format(address, balance))
-    
-        try:
-            self.verify_local_key(address)
-            self.verify_accounts_index(address)
-            self.verify_balance(address, balance)
-            self.verify_metadata(address)
-        except VerifierError as e:
-            logg.critical('verification failed: {}'.format(e))
-            sys.exit(1)
+  
+        methods = [
+                'local_key',
+                'accounts_index',
+                'balance',
+                'metadata',
+                ]
+
+        for k in methods:
+            try:
+                m = getattr(self, 'verify_{}'.format(k))
+                m(address, balance)
+#            self.verify_local_key(address)
+#            self.verify_accounts_index(address)
+#            self.verify_balance(address, balance)
+#            self.verify_metadata(address)
+            except VerifierError as e:
+                logline = 'verification {} failed for {}: {}'.format(k, address, str(e))
+                if self.exit_on_error:
+                    logg.critical(logline)
+                    sys.exit(1)
+                logg.error(logline)
+                self.state.poke(k)
+
+
+    def __str__(self):
+        return str(self.state)
 
 
 class MockClient:
@@ -263,7 +313,8 @@ def main():
         r = l.split(',')
         try:
             address = to_checksum(r[0])
-            sys.stdout.write('loading balance {} {}'.format(i, address).ljust(200) + "\r")
+            #sys.stdout.write('loading balance {} {}'.format(i, address).ljust(200) + "\r")
+            logg.debug('loading balance {} {}'.format(i, address).ljust(200))
         except ValueError:
             break
         balance = int(r[1].rstrip())
@@ -274,7 +325,7 @@ def main():
 
     api = AdminApi(MockClient())
 
-    verifier = Verifier(conn, api, gas_oracle, chain_spec, account_index_address, sarafu_token_address, user_dir)
+    verifier = Verifier(conn, api, gas_oracle, chain_spec, account_index_address, sarafu_token_address, user_dir, exit_on_error)
 
     user_new_dir = os.path.join(user_dir, 'new')
     for x in os.walk(user_new_dir):
@@ -298,10 +349,16 @@ def main():
             new_address = u.identities['evm'][subchain_str][0]
             subchain_str = '{}:{}'.format(old_chain_spec.common_name(), old_chain_spec.network_id())
             old_address = u.identities['evm'][subchain_str][0]
-            balance = balances[old_address]
+            balance = 0
+            try:
+                balance = balances[old_address]
+            except KeyError:
+                logg.info('no old balance found for {}, assuming 0'.format(old_address))
             logg.debug('checking {} -> {} = {}'.format(old_address, new_address, balance))
 
             verifier.verify(new_address, balance)
+
+    print(verifier)
 
 
 if __name__ == '__main__':

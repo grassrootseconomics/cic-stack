@@ -138,7 +138,7 @@ def sendfail_filter(w3, tx_hash, rcpt, chain_str):
 
 # TODO: can we merely use the dispatcher instead?
 def dispatch(chain_str):
-    txs = get_status_tx(StatusEnum.RETRY, datetime.datetime.utcnow())
+    txs = get_status_tx(StatusEnum.RETRY, before=datetime.datetime.utcnow())
     if len(txs) == 0:
         logg.debug('no retry state txs found')
         return
