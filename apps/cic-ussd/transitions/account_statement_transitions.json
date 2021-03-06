@@ -1,0 +1,59 @@
+[
+  {
+    "trigger": "scan_data",
+    "source": "first_transaction_set",
+    "dest": "middle_transaction_set",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_one_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "first_transaction_set",
+    "dest": "start",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "first_transaction_set",
+    "dest": "exit_invalid_menu_option"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "middle_transaction_set",
+    "dest": "last_transaction_set",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_one_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "middle_transaction_set",
+    "dest": "first_transaction_set",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_two_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "middle_transaction_set",
+    "dest": "start",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "middle_transaction_set",
+    "dest": "exit_invalid_menu_option"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "last_transaction_set",
+    "dest": "middle_transaction_set",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_two_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "last_transaction_set",
+    "dest": "start",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "last_transaction_set",
+    "dest": "exit_invalid_menu_option"
+  }
+]

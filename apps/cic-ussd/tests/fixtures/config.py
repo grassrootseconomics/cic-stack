@@ -2,18 +2,24 @@
 import i18n
 import logging
 import os
+import tempfile
 
 # third party imports
 import pytest
+from chainlib.chain import ChainSpec
 from confini import Config
 from sqlalchemy import create_engine
 
 # local imports
+from cic_ussd.chain import Chain
 from cic_ussd.db import dsn_from_config
+from cic_ussd.encoder import PasswordEncoder
 from cic_ussd.files.local_files import create_local_file_data_stores, json_file_parser
 from cic_ussd.menu.ussd_menu import UssdMenu
+from cic_ussd.metadata import blockchain_address_to_metadata_pointer
+from cic_ussd.metadata.signer import Signer
+from cic_ussd.metadata.user import UserMetadata
 from cic_ussd.state_machine import UssdStateMachine
-from cic_ussd.encoder import PasswordEncoder
 
 
 logg = logging.getLogger()
@@ -102,3 +108,29 @@ def uwsgi_env():
         'uwsgi.node': b'mango-habanero'
     }
 
+
+@pytest.fixture(scope='function')
+def setup_metadata_signer(load_config):
+    temp_dir = tempfile.mkdtemp(dir='/tmp')
+    logg.debug(f'Created temp dir: {temp_dir}')
+    Signer.gpg_path = temp_dir
+    Signer.gpg_passphrase = load_config.get('PGP_PASSPHRASE')
+    Signer.key_file_path = f"{load_config.get('PGP_KEYS_PATH')}{load_config.get('PGP_PRIVATE_KEYS')}"
+
+
+@pytest.fixture(scope='function')
+def define_metadata_pointer_url(load_config, create_activated_user):
+    identifier = blockchain_address_to_metadata_pointer(blockchain_address=create_activated_user.blockchain_address)
+    UserMetadata.base_url = load_config.get('CIC_META_URL')
+    user_metadata_client = UserMetadata(identifier=identifier)
+    return user_metadata_client.url
+
+
+@pytest.fixture(scope='function')
+def setup_chain_spec(load_config):
+    chain_spec = ChainSpec(
+        common_name=load_config.get('CIC_COMMON_NAME'),
+        engine=load_config.get('CIC_ENGINE'),
+        network_id=load_config.get('CIC_NETWORK_ID')
+    )
+    Chain.spec = chain_spec

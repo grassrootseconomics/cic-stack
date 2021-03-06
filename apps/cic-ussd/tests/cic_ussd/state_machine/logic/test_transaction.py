@@ -5,7 +5,6 @@ import json
 import pytest
 
 # local imports
-from cic_ussd.state_machine import UssdStateMachine
 from cic_ussd.state_machine.logic.transaction import (has_sufficient_balance,
                                                       is_valid_recipient,
                                                       is_valid_transaction_amount,
@@ -100,8 +99,8 @@ def test_process_transaction_request(create_valid_tx_recipient,
                                      create_valid_tx_sender,
                                      load_config,
                                      mock_outgoing_transactions,
+                                     setup_chain_spec,
                                      ussd_session_data):
-    UssdStateMachine.chain_str = load_config.get('CIC_CHAIN_SPEC')
     ussd_session_data['session_data'] = {
         'recipient_phone_number': create_valid_tx_recipient.phone_number,
         'transaction_amount': '50'

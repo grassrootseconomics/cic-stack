@@ -12,7 +12,7 @@ from cic_ussd.processor import (custom_display_text,
 def test_process_pin_authorization(create_activated_user,
                                    load_ussd_menu,
                                    set_locale_files):
-    ussd_menu = UssdMenu.find_by_name(name='name_management_pin_authorization')
+    ussd_menu = UssdMenu.find_by_name(name='standard_pin_authorization')
     response = process_pin_authorization(
         display_key=ussd_menu.get('display_key'),
         user=create_activated_user

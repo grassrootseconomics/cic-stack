@@ -1,10 +1,13 @@
 [
   "account_management",
-  "profile_management",
+  "metadata_management",
   "select_preferred_language",
   "enter_current_pin",
-  "mini_statement_inquiry_pin_authorization",
   "enter_new_pin",
   "new_pin_confirmation",
-  "display_user_profile_data"
+  "display_user_metadata",
+  "standard_pin_authorization",
+  "account_balances_pin_authorization",
+  "account_statement_pin_authorization",
+  "account_balances"
 ]

@@ -10,7 +10,7 @@ import pytest
 # local imports
 from cic_ussd.db.models.user import User
 from cic_ussd.error import ActionDataNotFoundError
-from cic_ussd.transactions import from_wei
+from cic_ussd.conversions import from_wei
 
 logg = logging.getLogger()
 
@@ -155,6 +155,7 @@ def test_unsuccessful_incoming_transaction_recipient_not_found(celery_session_wo
 def test_successful_incoming_transaction_sender_not_found(caplog,
                                                           celery_session_worker,
                                                           create_valid_tx_recipient,
+                                                          mock_notifier_api,
                                                           successful_incoming_transfer_callback):
     result = successful_incoming_transfer_callback.get('RESULT')
     param = successful_incoming_transfer_callback.get('PARAM')

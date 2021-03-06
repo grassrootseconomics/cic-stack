@@ -40,10 +40,25 @@
     "trigger": "scan_data",
     "source": "initial_pin_confirmation",
     "dest": "start",
+    "conditions": [
+      "cic_ussd.state_machine.logic.pin.pins_match",
+      "cic_ussd.state_machine.logic.validator.has_cached_user_metadata"
+    ],
     "after": [
       "cic_ussd.state_machine.logic.pin.complete_pin_change",
-      "cic_ussd.state_machine.logic.user.update_account_status_to_active",
-      "cic_ussd.state_machine.logic.sms.send_terms_to_user_if_required"
+      "cic_ussd.state_machine.logic.user.get_user_metadata",
+      "cic_ussd.state_machine.logic.user.update_account_status_to_active"
+    ]
+  },
+  {
+    "trigger": "scan_data",
+    "source": "initial_pin_confirmation",
+    "unless": "cic_ussd.state_machine.logic.validator.has_cached_user_metadata",
+    "conditions": "cic_ussd.state_machine.logic.pin.pins_match",
+    "dest": "enter_given_name",
+    "after": [
+      "cic_ussd.state_machine.logic.pin.complete_pin_change",
+      "cic_ussd.state_machine.logic.user.update_account_status_to_active"
     ]
   }
 ]

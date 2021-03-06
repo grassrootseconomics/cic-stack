@@ -12,14 +12,18 @@ import redis
 
 # third-party imports
 from confini import Config
+from chainlib.chain import ChainSpec
 from urllib.parse import quote_plus
 
 # local imports
+from cic_ussd.chain import Chain
 from cic_ussd.db import dsn_from_config
 from cic_ussd.db.models.base import SessionBase
 from cic_ussd.encoder import PasswordEncoder
 from cic_ussd.files.local_files import create_local_file_data_stores, json_file_parser
 from cic_ussd.menu.ussd_menu import UssdMenu
+from cic_ussd.metadata.signer import Signer
+from cic_ussd.metadata.user import UserMetadata
 from cic_ussd.operations import (define_response_with_content,
                                  process_menu_interaction_requests,
                                  define_multilingual_responses)
@@ -59,6 +63,7 @@ config.censor('PASSWORD', 'DATABASE')
 # define log levels
 if args.vv:
     logging.getLogger().setLevel(logging.DEBUG)
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.DEBUG)
 elif args.v:
     logging.getLogger().setLevel(logging.INFO)
 
@@ -92,6 +97,14 @@ InMemoryStore.cache = redis.StrictRedis(host=config.get('REDIS_HOSTNAME'),
                                         decode_responses=True)
 InMemoryUssdSession.redis_cache = InMemoryStore.cache
 
+# define metadata URL
+UserMetadata.base_url = config.get('CIC_META_URL')
+
+# define signer values
+Signer.gpg_path = config.get('PGP_EXPORT_DIR')
+Signer.gpg_passphrase = config.get('PGP_PASSPHRASE')
+Signer.key_file_path = f"{config.get('PGP_KEYS_PATH')}{config.get('PGP_PRIVATE_KEYS')}"
+
 # initialize celery app
 celery.Celery(backend=config.get('CELERY_RESULT_URL'), broker=config.get('CELERY_BROKER_URL'))
 
@@ -99,7 +112,13 @@ celery.Celery(backend=config.get('CELERY_RESULT_URL'), broker=config.get('CELERY
 states = json_file_parser(filepath=config.get('STATEMACHINE_STATES'))
 transitions = json_file_parser(filepath=config.get('STATEMACHINE_TRANSITIONS'))
 
-UssdStateMachine.chain_str = config.get('CIC_CHAIN_SPEC')
+chain_spec = ChainSpec(
+    common_name=config.get('CIC_COMMON_NAME'),
+    engine=config.get('CIC_ENGINE'),
+    network_id=config.get('CIC_NETWORK_ID')
+)
+
+Chain.spec = chain_spec
 UssdStateMachine.states = states
 UssdStateMachine.transitions = transitions
 
@@ -152,7 +171,8 @@ def application(env, start_response):
             return []
 
         # handle menu interaction requests
-        response = process_menu_interaction_requests(chain_str=config.get('CIC_CHAIN_SPEC'),
+        chain_str = chain_spec.__str__()
+        response = process_menu_interaction_requests(chain_str=chain_str,
                                                      external_session_id=external_session_id,
                                                      phone_number=phone_number,
                                                      queue=args.q,

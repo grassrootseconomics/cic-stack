@@ -1,3 +1,7 @@
+# third-party imports
+from cic_types.pytest import *
+
+
 # local imports
 from tests.fixtures.config import *
 from tests.fixtures.db import *
@@ -8,41 +12,3 @@ from tests.fixtures.redis import *
 from tests.fixtures.callback import *
 from tests.fixtures.requests import *
 from tests.fixtures.mocks import *
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

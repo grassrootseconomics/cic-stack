@@ -4,6 +4,7 @@
 import pytest
 
 # local imports
+from cic_ussd.chain import Chain
 from cic_ussd.transactions import OutgoingTransactionProcessor, truncate
 
 
@@ -11,8 +12,9 @@ def test_outgoing_transaction_processor(load_config,
                                         create_valid_tx_recipient,
                                         create_valid_tx_sender,
                                         mock_outgoing_transactions):
+    chain_str = Chain.spec.__str__()
     outgoing_tx_processor = OutgoingTransactionProcessor(
-        chain_str=load_config.get('CIC_CHAIN_SPEC'),
+        chain_str=chain_str,
         from_address=create_valid_tx_sender.blockchain_address,
         to_address=create_valid_tx_recipient.blockchain_address
     )

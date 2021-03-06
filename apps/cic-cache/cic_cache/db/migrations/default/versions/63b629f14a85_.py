@@ -29,8 +29,8 @@ def upgrade():
             sa.Column('source_token', sa.String(42), nullable=False),
             sa.Column('destination_token', sa.String(42), nullable=False),
             sa.Column('success', sa.Boolean, nullable=False),
-            sa.Column('from_value', sa.BIGINT(), nullable=False),
-            sa.Column('to_value', sa.BIGINT(), nullable=False),
+            sa.Column('from_value', sa.NUMERIC(), nullable=False),
+            sa.Column('to_value', sa.NUMERIC(), nullable=False),
             sa.Column('date_block', sa.DateTime, nullable=False),
             )
     op.create_table(

@@ -12,7 +12,8 @@ def celery_includes():
     return [
         'cic_ussd.tasks.ussd',
         'cic_ussd.tasks.callback_handler',
-        'cic_notify.tasks.sms'
+        'cic_notify.tasks.sms',
+        'cic_ussd.tasks.metadata'
     ]
 
 

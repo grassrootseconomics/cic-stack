@@ -445,8 +445,9 @@ class Api:
                 ],
             queue=self.queue,
             )
+        s_local.link(s_brief)
         if self.callback_param != None:
-            s_assemble.link(self.callback_success).on_error(self.callback_error)
+            s_brief.link(self.callback_success).on_error(self.callback_error)
 
         t = None
         if external_task != None:
@@ -471,10 +472,9 @@ class Api:
             c = celery.chain(s_external_get, s_external_process)
             t = celery.chord([s_local, c])(s_brief)
         else:
-            t = s_local.apply_sync()
+            t = s_local.apply_async(queue=self.queue)
 
         return t
-
 
     def ping(self, r):
         """A noop callback ping for testing purposes.

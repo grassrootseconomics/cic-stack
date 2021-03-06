@@ -2,49 +2,37 @@
   {
     "trigger": "scan_data",
     "source": "enter_gender",
-    "dest": "enter_first_name",
-    "conditions": [
-      "cic_ussd.state_machine.logic.validator.is_valid_name",
-      "cic_ussd.state_machine.logic.validator.has_empty_username_data"
-    ],
-    "after": "cic_ussd.state_machine.logic.user.save_profile_attribute_to_session_data"
-  },
-  {
-    "trigger": "scan_data",
-    "source": "enter_gender",
     "dest": "enter_location",
-    "conditions": "cic_ussd.state_machine.validator.has_empty_location_data",
-    "after": "cic_ussd.state_machine.logic.user.save_profile_attribute_to_session_data"
+    "after": "cic_ussd.state_machine.logic.user.save_metadata_attribute_to_session_data",
+    "conditions": "cic_ussd.state_machine.logic.validator.is_valid_gender_selection"
   },
   {
     "trigger": "scan_data",
     "source": "enter_gender",
-    "dest": "enter_business_profile",
-    "conditions": "cic_ussd.state_machine.validator.has_empty_business_profile_data",
-    "after": "cic_ussd.state_machine.logic.user.save_profile_attribute_to_session_data"
+    "dest": "standard_pin_authorization",
+    "after": "cic_ussd.state_machine.logic.user.save_metadata_attribute_to_session_data",
+    "conditions": [
+      "cic_ussd.state_machine.logic.validator.has_cached_user_metadata",
+      "cic_ussd.state_machine.logic.validator.is_valid_gender_selection"
+    ]
   },
   {
     "trigger": "scan_data",
-    "source": "enter_gender",
-    "dest": "gender_management_pin_authorization",
-    "conditions": "cic_ussd.state_machine.logic.validator.has_complete_profile_data"
-  },
-  {
-    "trigger": "scan_data",
-    "source": "gender_management_pin_authorization",
+    "source": "standard_pin_authorization",
     "dest": "exit",
     "conditions": "cic_ussd.state_machine.logic.pin.is_authorized_pin",
-    "after": "cic_ussd.state_machine.logic.user.persist_profile_data"
+    "after": "cic_ussd.state_machine.logic.user.edit_user_metadata_attribute",
+    "unless": "cic_ussd.state_machine.logic.validator.has_cached_user_metadata"
   },
   {
     "trigger": "scan_data",
-    "source": "gender_management_pin_authorization",
+    "source": "standard_pin_authorization",
     "dest": "exit_pin_blocked",
     "conditions": "cic_ussd.state_machine.logic.pin.is_locked_account"
   },
   {
     "trigger": "scan_data",
     "source": "enter_gender",
-    "dest": "exit_invalid_input"
+    "dest": "exit_invalid_menu_option"
   }
 ]

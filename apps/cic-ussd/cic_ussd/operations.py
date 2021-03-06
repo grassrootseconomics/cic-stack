@@ -5,7 +5,6 @@ import logging
 # third party imports
 import celery
 import i18n
-import phonenumbers
 from cic_eth.api.api_task import Api
 from tinydb.table import Document
 from typing import Optional
@@ -239,7 +238,7 @@ def persist_session_to_db_task(external_session_id: str, queue: str):
     :type queue: str
     """
     s_persist_session_to_db = celery.signature(
-        'cic_ussd.tasks.ussd.persist_session_to_db',
+        'cic_ussd.tasks.ussd_session.persist_session_to_db',
         [external_session_id]
     )
     s_persist_session_to_db.apply_async(queue=queue)
@@ -453,37 +452,3 @@ def save_to_in_memory_ussd_session_data(queue: str, session_data: dict, ussd_ses
     )
     persist_session_to_db_task(external_session_id=external_session_id, queue=queue)
 
-
-def process_phone_number(phone_number: str, region: str):
-    """This function parses any phone number for the provided region
-    :param phone_number: A string with a phone number.
-    :type phone_number: str
-    :param region: Caller defined region
-    :type region: str
-    :return: The parsed phone number value based on the defined region
-    :rtype: str
-    """
-    if not isinstance(phone_number, str):
-        try:
-            phone_number = str(int(phone_number))
-
-        except ValueError:
-            pass
-
-    phone_number_object = phonenumbers.parse(phone_number, region)
-    parsed_phone_number = phonenumbers.format_number(phone_number_object, phonenumbers.PhoneNumberFormat.E164)
-
-    return parsed_phone_number
-
-
-def get_user_by_phone_number(phone_number: str) -> Optional[User]:
-    """This function queries the database for a user based on the provided phone number.
-    :param phone_number: A valid phone number.
-    :type phone_number: str
-    :return: A user object matching a given phone number
-    :rtype: User|None
-    """
-    # consider adding region to user's metadata
-    phone_number = process_phone_number(phone_number=phone_number, region='KE')
-    user = User.session.query(User).filter_by(phone_number=phone_number).first()
-    return user

@@ -18,6 +18,7 @@ def test_send_sms_notification(celery_session_worker,
                                recipient,
                                set_locale_files,
                                mock_notifier_api):
+
     notifier = Notifier()
     notifier.queue = None
 
@@ -26,4 +27,10 @@ def test_send_sms_notification(celery_session_worker,
 
     assert messages[0].get('message') == expected_message
     assert messages[0].get('recipient') == recipient
+
+
+
+
+
+
 

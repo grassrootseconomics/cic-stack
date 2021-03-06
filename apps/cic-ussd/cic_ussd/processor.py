@@ -1,17 +1,26 @@
 # standard imports
 import logging
+import json
+import re
 from typing import Optional
 
 # third party imports
+import celery
+from cic_types.models.person import Person
 from tinydb.table import Document
 
 # local imports
-from cic_ussd.accounts import BalanceManager
+from cic_ussd.account import define_account_tx_metadata, retrieve_account_statement
+from cic_ussd.balance import BalanceManager, compute_operational_balance, get_cached_operational_balance
+from cic_ussd.chain import Chain
 from cic_ussd.db.models.user import AccountStatus, User
 from cic_ussd.db.models.ussd_session import UssdSession
 from cic_ussd.menu.ussd_menu import UssdMenu
+from cic_ussd.metadata import blockchain_address_to_metadata_pointer
+from cic_ussd.phone_number import get_user_by_phone_number
+from cic_ussd.redis import cache_data, create_cached_data_key, get_cached_data
 from cic_ussd.state_machine import UssdStateMachine
-from cic_ussd.transactions import to_wei, from_wei
+from cic_ussd.conversions import to_wei, from_wei
 from cic_ussd.translation import translation_for
 
 logg = logging.getLogger(__name__)
@@ -57,17 +66,17 @@ def process_exit_insufficient_balance(display_key: str, user: User, ussd_session
     :rtype: str
     """
     # get account balance
-    balance_manager = BalanceManager(address=user.blockchain_address,
-                                     chain_str=UssdStateMachine.chain_str,
-                                     token_symbol='SRF')
-    balance = balance_manager.get_operational_balance()
+    operational_balance = get_cached_operational_balance(blockchain_address=user.blockchain_address)
 
     # compile response data
     user_input = ussd_session.get('user_input').split('*')[-1]
     transaction_amount = to_wei(value=int(user_input))
     token_symbol = 'SRF'
+
     recipient_phone_number = ussd_session.get('session_data').get('recipient_phone_number')
-    tx_recipient_information = recipient_phone_number
+    recipient = get_user_by_phone_number(phone_number=recipient_phone_number)
+
+    tx_recipient_information = define_account_tx_metadata(user=recipient)
 
     return translation_for(
         key=display_key,
@@ -75,7 +84,7 @@ def process_exit_insufficient_balance(display_key: str, user: User, ussd_session
         amount=from_wei(transaction_amount),
         token_symbol=token_symbol,
         recipient_information=tx_recipient_information,
-        token_balance=balance
+        token_balance=operational_balance
     )
 
 
@@ -93,9 +102,9 @@ def process_exit_successful_transaction(display_key: str, user: User, ussd_sessi
     transaction_amount = to_wei(int(ussd_session.get('session_data').get('transaction_amount')))
     token_symbol = 'SRF'
     recipient_phone_number = ussd_session.get('session_data').get('recipient_phone_number')
-    sender_phone_number = user.phone_number
-    tx_recipient_information = recipient_phone_number
-    tx_sender_information = sender_phone_number
+    recipient = get_user_by_phone_number(phone_number=recipient_phone_number)
+    tx_recipient_information = define_account_tx_metadata(user=recipient)
+    tx_sender_information = define_account_tx_metadata(user=user)
 
     return translation_for(
         key=display_key,
@@ -122,9 +131,10 @@ def process_transaction_pin_authorization(user: User, display_key: str, ussd_ses
     """
     # compile response data
     recipient_phone_number = ussd_session.get('session_data').get('recipient_phone_number')
-    tx_recipient_information = recipient_phone_number
-    tx_sender_information = user.phone_number
-    logg.debug('Requires integration with cic-meta to get user name.')
+    recipient = get_user_by_phone_number(phone_number=recipient_phone_number)
+    tx_recipient_information = define_account_tx_metadata(user=recipient)
+    tx_sender_information = define_account_tx_metadata(user=user)
+
     token_symbol = 'SRF'
     user_input = ussd_session.get('user_input').split('*')[-1]
     transaction_amount = to_wei(value=int(user_input))
@@ -139,6 +149,122 @@ def process_transaction_pin_authorization(user: User, display_key: str, ussd_ses
     )
 
 
+def process_account_balances(user: User, display_key: str, ussd_session: dict):
+    """
+    :param user:
+    :type user:
+    :param display_key:
+    :type display_key:
+    :param ussd_session:
+    :type ussd_session:
+    :return:
+    :rtype:
+    """
+    # retrieve cached balance
+    operational_balance = get_cached_operational_balance(blockchain_address=user.blockchain_address)
+
+    logg.debug('Requires call to retrieve tax and bonus amounts')
+    tax = ''
+    bonus = ''
+
+    return translation_for(
+        key=display_key,
+        preferred_language=user.preferred_language,
+        operational_balance=operational_balance,
+        tax=tax,
+        bonus=bonus,
+        token_symbol='SRF'
+    )
+
+
+def format_transactions(transactions: list, preferred_language: str):
+    
+    formatted_transactions = ''
+    if len(transactions) > 0:
+        for transaction in transactions:
+            recipient_phone_number = transaction.get('recipient_phone_number')
+            sender_phone_number = transaction.get('sender_phone_number')
+            value = transaction.get('to_value')
+            timestamp = transaction.get('timestamp')
+            action_tag = transaction.get('action_tag')
+            token_symbol = 'SRF'
+
+            if action_tag == 'SENT' or action_tag == 'ULITUMA':
+                formatted_transactions += f'{action_tag} {value} {token_symbol} {recipient_phone_number} {timestamp}.\n'
+            else:
+                formatted_transactions += f'{action_tag} {value} {token_symbol} {sender_phone_number} {timestamp}. \n'
+        return formatted_transactions
+    else:
+        if preferred_language == 'en':
+            formatted_transactions = 'Empty'
+        else:
+            formatted_transactions = 'Hamna historia'
+        return formatted_transactions
+
+
+def process_account_statement(user: User, display_key: str, ussd_session: dict):
+    """
+    :param user:
+    :type user:
+    :param display_key:
+    :type display_key:
+    :param ussd_session:
+    :type ussd_session:
+    :return:
+    :rtype:
+    """
+    # retrieve cached statement
+    identifier = blockchain_address_to_metadata_pointer(blockchain_address=user.blockchain_address)
+    key = create_cached_data_key(identifier=identifier, salt='cic.statement')
+    transactions = get_cached_data(key=key)
+
+    first_transaction_set = []
+    middle_transaction_set = []
+    last_transaction_set = []
+
+    transactions = json.loads(transactions)
+
+    if len(transactions) > 6:
+        last_transaction_set += transactions[6:]
+        middle_transaction_set += transactions[3:][:3]
+        first_transaction_set += transactions[:3]
+    # there are probably much cleaner and operational inexpensive ways to do this so find them
+    elif 4 < len(transactions) < 7:
+        middle_transaction_set += transactions[3:]
+        first_transaction_set += transactions[:3]
+    else:
+        first_transaction_set += transactions[:3]
+
+    if display_key == 'ussd.kenya.first_transaction_set':
+        return translation_for(
+            key=display_key,
+            preferred_language=user.preferred_language,
+            first_transaction_set=format_transactions(
+                transactions=first_transaction_set,
+                preferred_language=user.preferred_language
+            )
+        )
+    elif display_key == 'ussd.kenya.middle_transaction_set':
+        return translation_for(
+            key=display_key,
+            preferred_language=user.preferred_language,
+            middle_transaction_set=format_transactions(
+                transactions=middle_transaction_set,
+                preferred_language=user.preferred_language
+            )
+        )
+
+    elif display_key == 'ussd.kenya.last_transaction_set':
+        return translation_for(
+            key=display_key,
+            preferred_language=user.preferred_language,
+            last_transaction_set=format_transactions(
+                transactions=last_transaction_set,
+                preferred_language=user.preferred_language
+            )
+        )
+
+
 def process_start_menu(display_key: str, user: User):
     """This function gets data on an account's balance and token in order to append it to the start of the start menu's
     title. It passes said arguments to the translation function and returns the appropriate corresponding text from the
@@ -150,16 +276,41 @@ def process_start_menu(display_key: str, user: User):
     :return: Corresponding translation text response
     :rtype: str
     """
-    balance_manager = BalanceManager(address=user.blockchain_address,
-                                     chain_str=UssdStateMachine.chain_str,
+    chain_str = Chain.spec.__str__()
+    blockchain_address = user.blockchain_address
+    balance_manager = BalanceManager(address=blockchain_address,
+                                     chain_str=chain_str,
                                      token_symbol='SRF')
-    balance = balance_manager.get_operational_balance()
+
+    # get balances synchronously for display on start menu
+    balances_data = balance_manager.get_balances()
+
+    key = create_cached_data_key(
+        identifier=bytes.fromhex(blockchain_address[2:]),
+        salt='cic.balances_data'
+    )
+    cache_data(key=key, data=json.dumps(balances_data))
+
+    # get operational balance
+    operational_balance = compute_operational_balance(balances=balances_data)
+
+    # retrieve and cache account's metadata
+    s_query_user_metadata = celery.signature(
+        'cic_ussd.tasks.metadata.query_user_metadata',
+        [blockchain_address]
+    )
+    s_query_user_metadata.apply_async(queue='cic-ussd')
+
+    # retrieve and cache account's statement
+    retrieve_account_statement(blockchain_address=blockchain_address)
+
+    # TODO [Philip]: figure out how to get token symbol from a metadata layer of sorts.
     token_symbol = 'SRF'
-    logg.debug("Requires integration to determine user's balance and token.")
+
     return translation_for(
         key=display_key,
         preferred_language=user.preferred_language,
-        account_balance=balance,
+        account_balance=operational_balance,
         account_token_name=token_symbol
     )
 
@@ -241,5 +392,11 @@ def custom_display_text(
         return process_exit_successful_transaction(display_key=display_key, user=user, ussd_session=ussd_session)
     elif menu_name == 'start':
         return process_start_menu(display_key=display_key, user=user)
+    elif 'pin_authorization' in menu_name:
+        return process_pin_authorization(display_key=display_key, user=user)
+    elif menu_name == 'account_balances':
+        return process_account_balances(display_key=display_key, user=user, ussd_session=ussd_session)
+    elif 'transaction_set' in menu_name:
+        return process_account_statement(display_key=display_key, user=user, ussd_session=ussd_session)
     else:
         return translation_for(key=display_key, preferred_language=user.preferred_language)

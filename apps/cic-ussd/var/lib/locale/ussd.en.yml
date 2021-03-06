@@ -11,6 +11,23 @@ en:
     initial_pin_confirmation: |-
       CON Enter your PIN again
       0. Back
+    enter_given_name: |-
+      CON Enter first name
+      0. Back
+    enter_family_name: |-
+      CON Enter last name
+      0. Back
+    enter_gender: |-
+      CON Enter gender
+      1. Male
+      2. Female
+      0. Back
+    enter_location: |-
+      CON Enter location
+      0. Back
+    enter_products: |-
+      CON Please enter a product or service you offer
+      0. Back
     start: |-
       CON Balance %{account_balance} %{account_token_name}
       1. Send
@@ -27,40 +44,23 @@ en:
       1. My profile
       2. Change language
       3. Check balance
-      4. Change PIN
+      4. Check statement
+      5. Change PIN
       0. Back
-    profile_management: |-
+    metadata_management: |-
       CON My profile
       1. Edit name
       2. Edit gender
       3. Edit location
-      4. Edit business
+      4. Edit products
       5. View my profile
-      0. Back
-    enter_first_name: |-
-      CON Enter first name
-      0. Back
-    enter_last_name: |-
-      CON Enter last name
-      0. Back
-    enter_gender: |-
-      CON Enter gender
-      1. Male
-      2. Female
-      0. Back
-    enter_location: |-
-      CON Enter location
-      0. Back
-    enter_business_profile: |-
-      CON Please enter a product or service you offer
       0. Back
     display_user_profile_data: |-
       END Your details are:
         Name: %{full_name}
         Gender: %{gender}
         Location: %{location}
-        You sell: %{business_profile}
-      If any details are missing, please use my profile to add your details.
+        You sell: %{products}
       0. Back
     select_preferred_language: |-
       CON Choose language
@@ -85,48 +85,46 @@ en:
       retry: |-
         CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
         0. Back
-    name_management_pin_authorization:
+    standard_pin_authorization:
       first: |-
         CON Please enter your PIN.
         0. Back
       retry: |-
         CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
         0. Back
-    gender_management_pin_authorization:
+    account_balances_pin_authorization:
       first: |-
-        CON Please enter your PIN.
+        CON Please enter your PIN to view balances.
         0. Back
       retry: |-
         CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
         0. Back
-    location_management_pin_authorization:
+    account_statement_pin_authorization:
       first: |-
-        CON Please enter your PIN.
+        CON Please enter your PIN to view statement.
         0. Back
       retry: |-
         CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
         0. Back
-    business_profile_management_pin_authorization:
-      first: |-
-        CON Please enter your PIN.
-        0. Back
-      retry: |-
-        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
-        0. Back
-    view_profile_pin_authorization:
-      first: |-
-        CON Please enter your PIN.
-        0. Back
-      retry: |-
-        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
-        0. Back
-    mini_statement_pin_authorization:
-      first: |-
-        CON Please enter your PIN.
-        0. Back
-      retry: |-
-        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
-        0. Back
+    account_balances: |-
+      CON Your balances are as follows:
+        balance: %{operational_balance} %{token_symbol}
+        taxes: %{tax} %{token_symbol}
+        bonsuses: %{bonus} %{token_symbol}
+      0. Back
+    first_transaction_set: |-
+      CON %{first_transaction_set}
+      1. Next
+      00. Exit
+    middle_transaction_set: |-
+      CON %{middle_transaction_set}
+      1. Next
+      2. Previous
+      00. Exit
+    last_transaction_set: |-
+      CON %{last_transaction_set}
+      2. Previous
+      00. Exit
     exit: |-
       END Thank you for using the service.
     exit_invalid_request: |-
@@ -168,5 +166,5 @@ en:
       CON Your request has been sent. You will receive an SMS shortly.
       00. Back
       99. Exit
-    account_creation_prompt: >
+    account_creation_prompt: |-
       Your account is being created. You will receive an SMS when your account is ready.

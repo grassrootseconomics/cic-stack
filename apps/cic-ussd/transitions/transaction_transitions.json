@@ -3,7 +3,10 @@
     "trigger": "scan_data",
     "source": "enter_transaction_recipient",
     "dest": "enter_transaction_amount",
-    "after": "cic_ussd.state_machine.logic.transaction.save_recipient_phone_to_session_data",
+    "after": [
+      "cic_ussd.state_machine.logic.transaction.save_recipient_phone_to_session_data",
+      "cic_ussd.state_machine.logic.transaction.retrieve_recipient_metadata"
+    ],
     "conditions": "cic_ussd.state_machine.logic.transaction.is_valid_recipient"
   },
   {

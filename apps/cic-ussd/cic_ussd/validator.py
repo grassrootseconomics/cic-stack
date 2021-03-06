@@ -110,7 +110,7 @@ def validate_phone_number(phone: str):
 
 
 def validate_response_type(processor_response: str) -> bool:
-    """
+    """1*3443*3443*Philip*Wanga*1*Juja*Software Developer*2*3
     This function checks the prefix for a corresponding menu's text from the response offered by the Ussd Processor and
     determines whether the response should prompt the end of a ussd session or the
     :param processor_response: A ussd menu's text value.

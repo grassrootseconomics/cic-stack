@@ -17,3 +17,17 @@ class ActionDataNotFoundError(OSError):
     """Raised when action data matching a specific task uuid is not found in the redis cache"""
     pass
 
+
+class UserMetadataNotFoundError(OSError):
+    """Raised when metadata is expected but not available in cache."""
+    pass
+
+
+class UnsupportedMethodError(OSError):
+    """Raised when the method passed to the make request function is unsupported."""
+    pass
+
+
+class CachedDataNotFoundError(OSError):
+    """Raised when the method passed to the make request function is unsupported."""
+    pass

@@ -11,8 +11,12 @@ RUN apk update && \
         apk add git linux-headers postgresql-dev gnupg bash
 RUN apk add --update musl-dev gcc libffi-dev
 
+# create secrets directory
+RUN mkdir -vp pgp/keys
+
 # create application directory
 RUN mkdir -vp cic-ussd
+RUN mkdir -vp data
 
 COPY cic-ussd/setup.cfg \
      cic-ussd/setup.py \
@@ -28,6 +32,7 @@ RUN cd cic-ussd && \
 
 # copy all necessary files
 COPY cic-ussd/cic_ussd/ cic-ussd/cic_ussd/
+COPY cic-ussd/cic_ussd/db/ussd_menu.json data/
 COPY cic-ussd/scripts/ cic-ussd/scripts/
 COPY cic-ussd/states/ cic-ussd/states/
 COPY cic-ussd/transitions/ cic-ussd/transitions/

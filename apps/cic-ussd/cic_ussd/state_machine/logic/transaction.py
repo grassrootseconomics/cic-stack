@@ -1,14 +1,18 @@
 # standard imports
+import json
 import logging
 from typing import Tuple
 
 # third party imports
+import celery
 
 # local imports
-from cic_ussd.accounts import BalanceManager
+from cic_ussd.balance import BalanceManager, compute_operational_balance
+from cic_ussd.chain import Chain
 from cic_ussd.db.models.user import AccountStatus, User
-from cic_ussd.operations import get_user_by_phone_number, save_to_in_memory_ussd_session_data
-from cic_ussd.state_machine.state_machine import UssdStateMachine
+from cic_ussd.operations import save_to_in_memory_ussd_session_data
+from cic_ussd.phone_number import get_user_by_phone_number
+from cic_ussd.redis import create_cached_data_key, get_cached_data
 from cic_ussd.transactions import OutgoingTransactionProcessor
 
 
@@ -27,22 +31,7 @@ def is_valid_recipient(state_machine_data: Tuple[str, dict, User]) -> bool:
     recipient = get_user_by_phone_number(phone_number=user_input)
     is_not_initiator = user_input != user.phone_number
     has_active_account_status = user.get_account_status() == AccountStatus.ACTIVE.name
-    logg.debug('This section requires implementation of checks for user roles and authorization status of an account.')
-    return is_not_initiator and has_active_account_status
-
-
-def is_valid_token_agent(state_machine_data: Tuple[str, dict, User]) -> bool:
-    """This function checks that a user exists, is not the initiator of the transaction, has an active account status
-    and is authorized to perform exchange transactions.
-    :param state_machine_data: A tuple containing user input, a ussd session and user object.
-    :type state_machine_data: tuple
-    :return: A user's validity
-    :rtype: bool
-    """
-    user_input, ussd_session, user = state_machine_data
-    # is_token_agent = AccountRole.TOKEN_AGENT.value in user.get_user_roles()
-    logg.debug('This section requires implementation of user roles and authorization to facilitate exchanges.')
-    return is_valid_recipient(state_machine_data=state_machine_data)
+    return is_not_initiator and has_active_account_status and recipient is not None
 
 
 def is_valid_transaction_amount(state_machine_data: Tuple[str, dict, User]) -> bool:
@@ -70,10 +59,17 @@ def has_sufficient_balance(state_machine_data: Tuple[str, dict, User]) -> bool:
     """
     user_input, ussd_session, user = state_machine_data
     balance_manager = BalanceManager(address=user.blockchain_address,
-                                     chain_str=UssdStateMachine.chain_str,
+                                     chain_str=Chain.spec.__str__(),
                                      token_symbol='SRF')
-    balance = balance_manager.get_operational_balance()
-    return int(user_input) <= balance
+    # get cached balance
+    key = create_cached_data_key(
+        identifier=bytes.fromhex(user.blockchain_address[2:]),
+        salt='cic.balances_data'
+    )
+    cached_balance = get_cached_data(key=key)
+    operational_balance = compute_operational_balance(balances=json.loads(cached_balance))
+
+    return int(user_input) <= operational_balance
 
 
 def save_recipient_phone_to_session_data(state_machine_data: Tuple[str, dict, User]):
@@ -86,6 +82,25 @@ def save_recipient_phone_to_session_data(state_machine_data: Tuple[str, dict, Us
         'recipient_phone_number': user_input
     }
     save_to_in_memory_ussd_session_data(queue='cic-ussd', session_data=session_data, ussd_session=ussd_session)
+
+
+def retrieve_recipient_metadata(state_machine_data: Tuple[str, dict, User]):
+    """
+    :param state_machine_data:
+    :type state_machine_data:
+    :return:
+    :rtype:
+    """
+    user_input, ussd_session, user = state_machine_data
+
+    recipient = get_user_by_phone_number(phone_number=user_input)
+    blockchain_address = recipient.blockchain_address
+    # retrieve and cache account's metadata
+    s_query_user_metadata = celery.signature(
+        'cic_ussd.tasks.metadata.query_user_metadata',
+        [blockchain_address]
+    )
+    s_query_user_metadata.apply_async(queue='cic-ussd')
 
 
 def save_transaction_amount_to_session_data(state_machine_data: Tuple[str, dict, User]):
@@ -113,7 +128,8 @@ def process_transaction_request(state_machine_data: Tuple[str, dict, User]):
     to_address = recipient.blockchain_address
     from_address = user.blockchain_address
     amount = int(ussd_session.get('session_data').get('transaction_amount'))
-    outgoing_tx_processor = OutgoingTransactionProcessor(chain_str=UssdStateMachine.chain_str,
+    chain_str = Chain.spec.__str__()
+    outgoing_tx_processor = OutgoingTransactionProcessor(chain_str=chain_str,
                                                          from_address=from_address,
                                                          to_address=to_address)
     outgoing_tx_processor.process_outgoing_transfer_transaction(amount=amount)

@@ -452,7 +452,7 @@ services:
         condition: on-failure
     volumes:
       - ${LOCAL_VOLUME_DIR:-/tmp/cic}/pgp:/tmp/cic/pgp
-    command: "/root/start_server.sh -vv"
+    # command: "/root/start_server.sh -vv"
 
   cic-ussd-server:
     # image: grassrootseconomics:cic-ussd
@@ -467,12 +467,15 @@ services:
       DATABASE_NAME: cic_ussd
       DATABASE_ENGINE: postgresql
       DATABASE_DRIVER: psycopg2
+      PGP_PASSPHRASE: merman
       SERVER_PORT: 8000
     ports:
       - ${HTTP_PORT_CIC_USSD:-63315}:8000
     depends_on:
       - postgres
       - redis
+    volumes:
+      - ./apps/contract-migration/testdata/pgp/:/usr/src/secrets/
     deploy:
       restart_policy:
         condition: on-failure
@@ -493,9 +496,12 @@ services:
       DATABASE_DRIVER: psycopg2
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_BROKER_URL:-redis://redis}
+      PGP_PASSPHRASE: merman
     depends_on:
       - postgres
       - redis
+    volumes:
+      - ./apps/contract-migration/testdata/pgp/:/usr/src/secrets/
     deploy:
       restart_policy:
         condition: on-failure

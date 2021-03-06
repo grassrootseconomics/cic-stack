@@ -2,7 +2,7 @@
    {
     "trigger": "scan_data",
     "source": "account_management",
-    "dest": "profile_management",
+    "dest": "metadata_management",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_one_selected"
   },
   {
@@ -14,21 +14,44 @@
   {
     "trigger": "scan_data",
     "source": "account_management",
-    "dest": "mini_statement_pin_authorization",
+    "dest": "account_balances_pin_authorization",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_three_selected"
   },
   {
     "trigger": "scan_data",
-    "source": "mini_statement_pin_authorization",
-    "dest": "exit",
-    "conditions": "cic_ussd.state_machine.logic.pin.is_authorized_pin",
-    "after": "cic_ussd.state_machine.logic.sms.process_mini_statement_request"
+    "source": "account_balances_pin_authorization",
+    "dest": "account_balances",
+    "conditions": "cic_ussd.state_machine.logic.pin.is_authorized_pin"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "account_balances_pin_authorization",
+    "dest": "exit_pin_blocked",
+    "conditions": "cic_ussd.state_machine.logic.pin.is_blocked_pin"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "account_management",
+    "dest": "account_statement_pin_authorization",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_four_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "account_statement_pin_authorization",
+    "dest": "first_transaction_set",
+    "conditions": "cic_ussd.state_machine.logic.pin.is_authorized_pin"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "account_statement_pin_authorization",
+    "dest": "exit_pin_blocked",
+    "conditions": "cic_ussd.state_machine.logic.menu.is_blocked_pin"
   },
   {
     "trigger": "scan_data",
     "source": "account_management",
     "dest": "enter_current_pin",
-    "conditions": "cic_ussd.state_machine.logic.menu.menu_four_selected"
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_five_selected"
   },
   {
     "trigger": "scan_data",

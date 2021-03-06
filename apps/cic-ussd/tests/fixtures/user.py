@@ -1,13 +1,17 @@
 # standard imports
-from random import randint
+import json
 import uuid
+from random import randint
 
 # third party imports
 import pytest
+from cic_types.models.person import generate_metadata_pointer
 from faker import Faker
 
 # local imports
 from cic_ussd.db.models.user import AccountStatus, User
+from cic_ussd.redis import cache_data
+from cic_ussd.metadata import blockchain_address_to_metadata_pointer
 
 
 fake = Faker()
@@ -92,3 +96,25 @@ def create_locked_accounts(init_database, set_fernet_key):
         user.account_status = AccountStatus.LOCKED.value
         user.session.add(user)
         user.session.commit()
+
+
+@pytest.fixture(scope='function')
+def complete_user_metadata(create_activated_user):
+    return {
+        "date_registered": create_activated_user.created,
+        "family_name": "Snow",
+        "given_name": "Name",
+        "gender": 'Male',
+        "location": "Kangemi",
+        "products": "Mandazi"
+    }
+
+
+@pytest.fixture(scope='function')
+def cached_user_metadata(create_activated_user, init_redis_cache, person_metadata):
+    user_metadata = json.dumps(person_metadata)
+    key = generate_metadata_pointer(
+        identifier=blockchain_address_to_metadata_pointer(blockchain_address=create_activated_user.blockchain_address),
+        cic_type='cic.person'
+    )
+    cache_data(key=key, data=user_metadata)

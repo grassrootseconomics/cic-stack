@@ -6,6 +6,7 @@ import uuid
 import pytest
 
 # local imports
+from cic_ussd.chain import Chain
 from cic_ussd.db.models.task_tracker import TaskTracker
 from cic_ussd.menu.ussd_menu import UssdMenu
 from cic_ussd.operations import (add_tasks_to_tracker,
@@ -17,13 +18,12 @@ from cic_ussd.operations import (add_tasks_to_tracker,
                                  get_latest_input,
                                  initiate_account_creation_request,
                                  process_current_menu,
-                                 process_phone_number,
                                  process_menu_interaction_requests,
                                  cache_account_creation_task_id,
-                                 get_user_by_phone_number,
                                  reset_pin,
                                  update_ussd_session,
                                  save_to_in_memory_ussd_session_data)
+from cic_ussd.phone_number import get_user_by_phone_number,process_phone_number
 from cic_ussd.transactions import truncate
 from cic_ussd.redis import InMemoryStore
 from cic_ussd.session.ussd_session import UssdSession as InMemoryUssdSession
@@ -99,6 +99,7 @@ def test_initiate_account_creation_request(account_creation_action_data,
                                            load_config,
                                            load_ussd_menu,
                                            mocker,
+                                           setup_chain_spec,
                                            set_locale_files,
                                            ussd_session_data):
     external_session_id = ussd_session_data.get('external_session_id')
@@ -112,7 +113,8 @@ def test_initiate_account_creation_request(account_creation_action_data,
     mocked_cache_function = mocker.patch('cic_ussd.operations.cache_account_creation_task_id')
     mocked_cache_function(phone_number, task_id)
 
-    response = initiate_account_creation_request(chain_str=load_config.get('CIC_CHAIN_SPEC'),
+    chain_str = Chain.spec.__str__()
+    response = initiate_account_creation_request(chain_str=chain_str,
                                                  external_session_id=external_session_id,
                                                  phone_number=ussd_session_data.get('msisdn'),
                                                  service_code=ussd_session_data.get('service_code'),
@@ -204,11 +206,13 @@ def test_process_menu_interaction_requests(external_session_id,
                                            load_ussd_menu,
                                            load_data_into_state_machine,
                                            load_config,
+                                           setup_chain_spec,
                                            celery_session_worker,
                                            create_activated_user,
                                            create_in_db_ussd_session):
+    chain_str = Chain.spec.__str__()
     response = process_menu_interaction_requests(
-        chain_str=load_config.get('CIC_CHAIN_SPEC'),
+        chain_str=chain_str,
         external_session_id=external_session_id,
         phone_number=phone_number,
         queue='cic-ussd',

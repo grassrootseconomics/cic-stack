@@ -14,15 +14,11 @@ class UssdStateMachine(Machine):
     menu  as well as providing a means for navigating through these states based on different user inputs.
     It defines different helper functions that co-ordinate with the stakeholder components of the ussd menu: i.e  the
     User, UssdSession, UssdMenu to facilitate user interaction with ussd menu.
-
-    :cvar chain_str: The chain name and network id.
-    :type chain_str: str
     :cvar states: A list of pre-defined states.
     :type states: list
     :cvar transitions: A list of pre-defined transitions.
     :type transitions: list
     """
-    chain_str = None
     states = []
     transitions = []
 

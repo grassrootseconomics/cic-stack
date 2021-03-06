@@ -15,7 +15,7 @@ def test_persist_session_to_db_task(
         create_in_redis_ussd_session):
     external_session_id = ussd_session_data.get('external_session_id')
     s_persist_session_to_db = celery.signature(
-        'cic_ussd.tasks.ussd.persist_session_to_db',
+        'cic_ussd.tasks.ussd_session.persist_session_to_db',
         [external_session_id]
     )
     result = s_persist_session_to_db.apply_async()
@@ -38,7 +38,7 @@ def test_session_not_found_error(
     with pytest.raises(SessionNotFoundError) as error:
         external_session_id = 'SomeRandomValue'
         s_persist_session_to_db = celery.signature(
-            'cic_ussd.tasks.ussd.persist_session_to_db',
+            'cic_ussd.tasks.ussd_session.persist_session_to_db',
             [external_session_id]
         )
         result = s_persist_session_to_db.apply_async()

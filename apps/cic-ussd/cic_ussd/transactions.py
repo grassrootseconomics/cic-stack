@@ -7,6 +7,7 @@ from datetime import datetime
 from cic_eth.api import Api
 
 # local imports
+from cic_ussd.balance import get_cached_operational_balance
 from cic_ussd.notifications import Notifier
 
 
@@ -35,7 +36,7 @@ def from_wei(value: int) -> float:
     :return: SRF equivalent of value in Wei
     :rtype: float
     """
-    value = float(value) / 1e+18
+    value = float(value) / 1e+6
     return truncate(value=value, decimals=2)
 
 
@@ -67,11 +68,9 @@ class IncomingTransactionProcessor:
         self.token_symbol = token_symbol
         self.value = value
 
-    def process_token_gift_incoming_transactions(self, first_name: str):
+    def process_token_gift_incoming_transactions(self):
         """This function processes incoming transactions with a "tokengift" param, it collects all appropriate data to
         send out notifications to users when their accounts are successfully created.
-        :param first_name: The first name of the recipient of the token gift transaction.
-        :type first_name: str
 
         """
         balance = from_wei(value=self.value)
@@ -80,20 +79,22 @@ class IncomingTransactionProcessor:
                                        phone_number=self.phone_number,
                                        preferred_language=self.preferred_language,
                                        balance=balance,
-                                       first_name=first_name,
                                        token_symbol=self.token_symbol)
 
-    def process_transfer_incoming_transaction(self, sender_information: str):
+    def process_transfer_incoming_transaction(self, sender_information: str, recipient_blockchain_address: str):
         """This function processes incoming transactions with the "transfer" param and issues notifications to users
         about reception of funds into their accounts.
         :param sender_information: A string with a user's full name and phone number.
         :type sender_information: str
+        :param recipient_blockchain_address:
+        type recipient_blockchain_address: str
         """
         key = 'sms.received_tokens'
         amount = from_wei(value=self.value)
         timestamp = datetime.now().strftime('%d-%m-%y, %H:%M %p')
 
-        logg.debug('Balance requires implementation of cic-eth integration with balance.')
+        operational_balance = get_cached_operational_balance(blockchain_address=recipient_blockchain_address)
+
         notifier.send_sms_notification(key=key,
                                        phone_number=self.phone_number,
                                        preferred_language=self.preferred_language,
@@ -101,7 +102,7 @@ class IncomingTransactionProcessor:
                                        token_symbol=self.token_symbol,
                                        tx_sender_information=sender_information,
                                        timestamp=timestamp,
-                                       balance='')
+                                       balance=operational_balance)
 
 
 class OutgoingTransactionProcessor:

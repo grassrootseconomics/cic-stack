@@ -11,6 +11,23 @@ sw:
     initial_pin_confirmation: |-
       CON Weka PIN yako tena
       0. Nyuma
+    enter_given_name: |-
+      CON Weka jina lako la kwanza
+      0. Nyuma
+    enter_family_name: |-
+      CON Weka jina lako la mwisho
+      0. Nyuma
+    enter_gender: |-
+      CON Weka jinsia yako
+      1. Mwanaume
+      2. Mwanamke
+      0. Nyuma
+    enter_location: |-
+      CON Weka eneo lako
+      0. Nyuma
+    enter_products: |-
+      CON Tafadhali weka bidhaa ama huduma unauza
+      0. Nyuma
     start: |-
       CON Salio %{account_balance} %{account_token_name}
       1. Tuma
@@ -27,39 +44,23 @@ sw:
       1. Wasifu wangu
       2. Chagua lugha utakayotumia
       3. Angalia salio
-      4. Badilisha nambari ya siri
+      4. Angalia taarifa ya matumizi
+      5. Badilisha nambari ya siri
       0. Nyuma
-    profile_management: |-
+    metadata_management: |-
       CON Wasifu wangu
       1. Weka jina
       2. Weka jinsia
       3. Weka eneo
-      4. Weka biashara
+      4. Weka bidhaa
+      5. Angalia wasifu wako
       0. Nyuma
-    enter_first_name: |-
-      CON Weka jina lako la kwanza
-      0. Nyuma
-    enter_last_name: |-
-      CON Weka jina lako la mwisho
-      0. Nyuma
-    enter_gender: |-
-      CON Weka jinsia yako
-      1. Mwanaume
-      2. Mwanamke
-      0. Nyuma
-    enter_location: |-
-      CON Weka eneo lako
-      0. Nyuma
-    enter_business_profile: |-
-      CON Tafadhali weka bidhaa ama huduma unauza
-      0. Nyuma
-    display_user_profile_data: |-
+    display_user_metadata: |-
       END Wasifu wako una maelezo yafuatayo:
         Jina: %{full_name}
         Jinsia: %{gender}
         Eneo: %{location}
         Unauza: %{user_bio}
-      Iwapo hakuna, enda kwa wasifu wako uweke maelezo zaidi.
       0. Nyuma
     select_preferred_language: |-
       CON Chagua lugha
@@ -84,48 +85,46 @@ sw:
       retry: |-
         CON Weka nambari ya siri. Una majaribio %{remaining_attempts} yaliyobaki.
         0. Nyuma
-    name_management_pin_authorization:
+    standard_pin_authorization:
       first: |-
         CON Tafadhali weka PIN yako.
         0. Nyuma
       retry: |-
         CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
         0. Nyuma
-    gender_management_pin_authorization:
+    account_balances_pin_authorization:
       first: |-
-        CON Tafadhali weka PIN yako.
+        CON Tafadhali weka PIN yako kuona salio.
         0. Nyuma
       retry: |-
         CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
         0. Nyuma
-    location_management_pin_authorization:
+    account_statement_pin_authorization:
       first: |-
-        CON Tafadhali weka PIN yako.
+        CON Tafadhali weka PIN yako kuona taarifa ya matumizi.
         0. Nyuma
       retry: |-
         CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
         0. Nyuma
-    business_profile_management_pin_authorization:
-      first: |-
-        CON Tafadhali weka PIN yako.
-        0. Nyuma
-      retry: |-
-        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
-        0. Nyuma
-    view_profile_pin_authorization:
-      first: |-
-        CON Tafadhali weka PIN yako.
-        0. Nyuma
-      retry: |-
-        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
-        0. Nyuma
-    mini_statement_pin_authorization:
-      first: |-
-        CON Tafadhali weka PIN yako.
-        0. Nyuma
-      retry: |-
-        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
-        0. Nyuma
+    account_balances: |-
+      CON Salio zako ni zifuatazo:
+        salio: %{operational_balance}
+        ushuru: %{tax}
+        tuzo: %{bonus}
+      0. Back
+    first_transaction_set: |-
+      CON %{first_transaction_set}
+      1. Mbele
+      00. Ondoka
+    middle_transaction_set: |-
+      CON %{middle_transaction_set}
+      1. Mbele
+      2. Nyuma
+      00. Ondoka
+    last_transaction_set: |-
+      CON %{last_transaction_set}
+      2. Nyuma
+      00. Ondoka
     exit: |-
       END Asante kwa kutumia huduma.
     exit_invalid_request: |-

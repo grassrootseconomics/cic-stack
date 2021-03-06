@@ -11,12 +11,13 @@ from cic_ussd.db.models.base import SessionBase
 from cic_ussd.db.models.ussd_session import UssdSession
 from cic_ussd.error import SessionNotFoundError
 from cic_ussd.session.ussd_session import UssdSession as InMemoryUssdSession
+from cic_ussd.tasks.base import CriticalSQLAlchemyTask
 
 celery_app = celery.current_app
 logg = get_logger(__file__)
 
 
-@celery_app.task
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def persist_session_to_db(external_session_id: str):
     """
     This task initiates the saving of the session object to the database and it's removal from the in-memory storage.
@@ -62,11 +63,10 @@ def persist_session_to_db(external_session_id: str):
                 in_db_ussd_session.set_data(key=key, value=value, session=session)
 
         session.add(in_db_ussd_session)
+        session.commit()
+        session.close()
         InMemoryUssdSession.redis_cache.expire(external_session_id, timedelta(minutes=1))
     else:
         session.close()
         raise SessionNotFoundError('Session does not exist!')
-
-    session.commit()
-    session.close()
 

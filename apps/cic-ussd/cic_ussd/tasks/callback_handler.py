@@ -1,23 +1,26 @@
 # standard imports
 import json
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 # third-party imports
 import celery
 
 # local imports
+from cic_ussd.conversions import from_wei
 from cic_ussd.db.models.base import SessionBase
 from cic_ussd.db.models.user import User
+from cic_ussd.account import define_account_tx_metadata
 from cic_ussd.error import ActionDataNotFoundError
-from cic_ussd.redis import InMemoryStore
+from cic_ussd.redis import InMemoryStore, cache_data, create_cached_data_key
+from cic_ussd.tasks.base import CriticalSQLAlchemyTask
 from cic_ussd.transactions import IncomingTransactionProcessor
 
 logg = logging.getLogger(__file__)
 celery_app = celery.current_app
 
 
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
 def process_account_creation_callback(self, result: str, url: str, status_code: int):
     """This function defines a task that creates a user and
     :param result: The blockchain address for the created account
@@ -49,14 +52,14 @@ def process_account_creation_callback(self, result: str, url: str, status_code: 
             user = User(blockchain_address=result, phone_number=phone_number)
             session.add(user)
             session.commit()
+            session.close()
 
             # expire cache
-            cache.expire(task_id, timedelta(seconds=30))
-            session.close()
+            cache.expire(task_id, timedelta(seconds=180))
 
         else:
-            cache.expire(task_id, timedelta(seconds=30))
             session.close()
+            cache.expire(task_id, timedelta(seconds=180))
 
     else:
         session.close()
@@ -65,9 +68,8 @@ def process_account_creation_callback(self, result: str, url: str, status_code: 
 
 @celery_app.task
 def process_incoming_transfer_callback(result: dict, param: str, status_code: int):
-    logg.debug(f'PARAM: {param}, RESULT: {result}, STATUS_CODE: {status_code}')
     session = SessionBase.create_session()
-    if result and status_code == 0:
+    if status_code == 0:
 
         # collect result data
         recipient_blockchain_address = result.get('recipient')
@@ -93,22 +95,123 @@ def process_incoming_transfer_callback(result: dict, param: str, status_code: in
                                                              value=value)
 
         if param == 'tokengift':
-            logg.debug('Name information would require integration with cic meta.')
-            incoming_tx_processor.process_token_gift_incoming_transactions(first_name="")
+            incoming_tx_processor.process_token_gift_incoming_transactions()
         elif param == 'transfer':
-            logg.debug('Name information would require integration with cic meta.')
             if sender_user:
-                sender_information = f'{sender_user.phone_number}, {""}, {""}'
-                incoming_tx_processor.process_transfer_incoming_transaction(sender_information=sender_information)
+                sender_information = define_account_tx_metadata(user=sender_user)
+                incoming_tx_processor.process_transfer_incoming_transaction(
+                    sender_information=sender_information,
+                    recipient_blockchain_address=recipient_blockchain_address
+                )
             else:
                 logg.warning(
                     f'Tx with sender: {sender_blockchain_address} was received but has no matching user in the system.'
                 )
                 incoming_tx_processor.process_transfer_incoming_transaction(
-                    sender_information=sender_blockchain_address)
+                    sender_information='GRASSROOTS ECONOMICS',
+                    recipient_blockchain_address=recipient_blockchain_address
+                )
         else:
             session.close()
             raise ValueError(f'Unexpected transaction param: {param}.')
     else:
         session.close()
+        raise ValueError(f'Unexpected status code: {status_code}.')
+
+
+@celery_app.task
+def process_balances_callback(result: list, param: str, status_code: int):
+    if status_code == 0:
+        balances_data = result[0]
+        blockchain_address = balances_data.get('address')
+        key = create_cached_data_key(
+            identifier=bytes.fromhex(blockchain_address[2:]),
+            salt='cic.balances_data'
+        )
+        cache_data(key=key, data=json.dumps(balances_data))
+    else:
+        raise ValueError(f'Unexpected status code: {status_code}.')
+
+
+# TODO: clean up this handler
+def define_transaction_action_tag(
+        preferred_language: str,
+        sender_blockchain_address: str,
+        param: str):
+    # check if out going ot incoming transaction
+    if sender_blockchain_address == param:
+        # check preferred language
+        if preferred_language == 'en':
+            action_tag = 'SENT'
+        else:
+            action_tag = 'ULITUMA'
+    else:
+        if preferred_language == 'en':
+            action_tag = 'RECEIVED'
+        else:
+            action_tag = 'ULIPOKEA'
+    return action_tag
+
+
+@celery_app.task
+def process_statement_callback(result, param: str, status_code: int):
+    if status_code == 0:
+        # create session
+        session = SessionBase.create_session()
+        processed_transactions = []
+
+        # process transaction data to cache
+        for transaction in result:
+            sender_blockchain_address = transaction.get('sender')
+            recipient_address = transaction.get('recipient')
+            source_token = transaction.get('source_token')
+
+            # filter out any transactions that are "gassy"
+            if '0x0000000000000000000000000000000000000000' in source_token:
+                pass
+            else:
+                # describe a processed transaction
+                processed_transaction = {}
+
+                # check if sender is in the system
+                sender: User = session.query(User).filter_by(blockchain_address=sender_blockchain_address).first()
+                if sender:
+                    processed_transaction['sender_phone_number'] = sender.phone_number
+
+                    action_tag = define_transaction_action_tag(
+                        preferred_language=sender.preferred_language,
+                        sender_blockchain_address=sender_blockchain_address,
+                        param=param
+                    )
+                    processed_transaction['action_tag'] = action_tag
+
+                else:
+                    processed_transaction['sender_phone_number'] = 'GRASSROOTS ECONOMICS'
+
+                # check if recipient is in the system
+                recipient: User = session.query(User).filter_by(blockchain_address=recipient_address).first()
+                if recipient:
+                    processed_transaction['recipient_phone_number'] = recipient.phone_number
+
+                else:
+                    logg.warning(f'Tx with recipient not found in cic-ussd')
+
+                # add transaction values
+                processed_transaction['to_value'] = from_wei(value=transaction.get('to_value'))
+                processed_transaction['from_value'] = from_wei(value=transaction.get('from_value'))
+
+                raw_timestamp = transaction.get('timestamp')
+                timestamp = datetime.utcfromtimestamp(raw_timestamp).strftime('%d/%m/%y, %H:%M')
+                processed_transaction['timestamp'] = timestamp
+
+                processed_transactions.append(processed_transaction)
+
+        # cache account statement
+        identifier = bytes.fromhex(param[2:])
+        key = create_cached_data_key(identifier=identifier, salt='cic.statement')
+        data = json.dumps(processed_transactions)
+
+        # cache statement data
+        cache_data(key=key, data=data)
+    else:
         raise ValueError(f'Unexpected status code: {status_code}.')

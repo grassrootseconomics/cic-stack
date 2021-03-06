@@ -45,7 +45,7 @@ before_script:
     script:
       - export IMAGE_TAG="$IMAGE_TAG_BASE-$(date +%F.%H%M%S)"
       - docker build -t $IMAGE_TAG -f $DOCKERFILE_PATH .
-      - docker push "$IMAGE_TAG
+      - docker push $IMAGE_TAG
       - docker tag $IMAGE_TAG $LATEST_TAG
       - docker push $LATEST_TAG
     rules:
