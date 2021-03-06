@@ -513,7 +513,7 @@ def refill_gas(self, recipient_address, chain_str):
     return tx_send_gas_signed['raw']
 
 
-@celery_app.task(bind=True, base=(CriticalSQLAlchemyAndSignerTask,))
+@celery_app.task(bind=True, base=CriticalSQLAlchemyAndSignerTask)
 def resend_with_higher_gas(self, txold_hash_hex, chain_str, gas=None, default_factor=1.1):
     """Create a new transaction from an existing one with same nonce and higher gas price.
 
