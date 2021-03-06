@@ -118,7 +118,7 @@ def check_gas(self, tx_hashes, chain_str, txs=[], address=None, gas_required=Non
     safe_gas = c.safe_threshold_amount()
     if balance < safe_gas:
         s_nonce = celery.signature(
-            'cic_eth.eth.tx.reserve_nonce'
+            'cic_eth.eth.tx.reserve_nonce',
             [
                 address,
                 c.gas_provider(),
@@ -305,7 +305,6 @@ class ParityNodeHandler:
             'cic_eth.admin.debug.alert',
             [
                 tx_hash_hex,
-                tx_hash_hex,
                 debugstr,
                 ],
             queue=self.queue,
@@ -337,7 +336,6 @@ class ParityNodeHandler:
         s_debug = celery.signature(
             'cic_eth.admin.debug.alert',
             [
-                tx_hash_hex,
                 tx_hash_hex,
                 debugstr,
                 ],
@@ -446,7 +444,7 @@ def refill_gas(self, recipient_address, chain_str):
     if c > 0:
         #session.close()
         #raise AlreadyFillingGasError(recipient_address)
-        logg.warning(str(AlreadyFillingGasError(recipient_address)))
+        logg.warning('already filling gas {}'.format(str(AlreadyFillingGasError(recipient_address))))
         zero_amount = True
     session.flush()
 

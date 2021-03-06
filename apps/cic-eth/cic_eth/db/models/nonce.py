@@ -115,7 +115,6 @@ class Nonce(SessionBase):
         return nonce
 
 
-
 class NonceReservation(SessionBase):
 
     __tablename__ = 'nonce_task_reservation'

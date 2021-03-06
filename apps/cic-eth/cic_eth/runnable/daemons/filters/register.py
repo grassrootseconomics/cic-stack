@@ -26,7 +26,6 @@ class RegistrationFilter(SyncFilter):
 
     def filter(self, conn, block, tx, db_session=None): 
         registered_address = None
-        logg.debug('register filter checking log {}'.format(tx.logs))
         for l in tx.logs:
             event_topic_hex = l['topics'][0]
             if event_topic_hex == account_registry_add_log_hash:
@@ -34,16 +33,23 @@ class RegistrationFilter(SyncFilter):
 
                 address_hex = strip_0x(l['topics'][1])[64-40:]
                 address = to_checksum(add_0x(address_hex))
-                logg.debug('request token gift to {}'.format(address))
-                s = celery.signature(
-                    'cic_eth.eth.account.gift',
+                logg.info('request token gift to {}'.format(address))
+                s_nonce = celery.signature(
+                    'cic_eth.eth.tx.reserve_nonce',
                     [
                         address,
+                        ],
+                    queue=self.queue,
+                    )
+                s_gift = celery.signature(
+                    'cic_eth.eth.account.gift',
+                    [
                         str(self.chain_spec),
                         ],
                     queue=self.queue,
                     )
-                s.apply_async()
+                s_nonce.link(s_gift)
+                s_nonce.apply_async()
 
 
     def __str__(self):

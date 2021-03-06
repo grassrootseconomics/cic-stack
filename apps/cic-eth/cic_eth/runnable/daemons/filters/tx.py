@@ -30,7 +30,7 @@ class TxFilter(SyncFilter):
         if otx == None:
             logg.debug('tx {} not found locally, skipping'.format(tx_hash_hex))
             return None
-        logg.info('local tx match {}'.format(otx.tx_hash))
+        logg.info('tx filter match on {}'.format(otx.tx_hash))
         SessionBase.release_session(db_session)
         s = celery.signature(
                 'cic_eth.queue.tx.set_final_status',

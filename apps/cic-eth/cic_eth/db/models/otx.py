@@ -400,7 +400,7 @@ class Otx(SessionBase):
             raise TxStateChangeError('CANCEL cannot be set on an entry with FINAL state set ({})'.format(status_str(self.status)))
 
         if confirmed:
-            if not self.status & StatusBits.OBSOLETE:
+            if self.status > 0 and not self.status & StatusBits.OBSOLETE:
                 raise TxStateChangeError('CANCEL can only be set on an entry marked OBSOLETE ({})'.format(status_str(self.status)))
             self.__set_status(StatusEnum.CANCELLED, session)
         else:

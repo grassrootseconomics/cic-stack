@@ -1,5 +1,6 @@
 # standard imports
 import logging
+import sys
 
 # third-party imports
 import celery
@@ -317,6 +318,8 @@ class AdminApi:
         :return: Transaction details
         :rtype: dict
         """
+        problems = []
+
         if tx_hash != None and tx_raw != None:
             ValueError('Specify only one of hash or raw tx')
 
@@ -444,10 +447,12 @@ class AdminApi:
             r = c.w3.eth.getTransactionReceipt(tx_hash)
             if r.status == 1:
                 tx['network_status'] = 'Confirmed'
-                tx['block'] = r.blockNumber
-                tx['tx_index'] = r.transactionIndex
             else:
                 tx['network_status'] = 'Reverted'
+            tx['network_block_number'] = r.blockNumber
+            tx['network_tx_index'] = r.transactionIndex
+            if tx['block_number'] == None:
+                problems.append('Queue is missing block number {} for mined tx'.format(r.blockNumber))
         except web3.exceptions.TransactionNotFound:
             pass
 
@@ -468,5 +473,10 @@ class AdminApi:
             )
         t = s.apply_async()
         tx['status_log'] = t.get()
+
+        if len(problems) > 0:
+            sys.stderr.write('\n')
+            for p in problems:
+                sys.stderr.write('!!!{}\n'.format(p))
 
         return tx

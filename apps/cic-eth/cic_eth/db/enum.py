@@ -103,6 +103,9 @@ def status_str(v, bits_only=False):
         except ValueError:
             pass
 
+    if v == 0:
+        return 'NONE'
+
     for i in range(16):
         b = (1 << i)
         if (b & 0xffff) & v:

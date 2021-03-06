@@ -31,7 +31,7 @@ set -e
 set -a
 
 # We need to not install these here...
-pip install --extra-index-url $DEV_PIP_EXTRA_INDEX_URL cic-eth==0.10.0a37 chainlib==0.0.1a19 cic-contracts==0.0.2a2
+pip install --extra-index-url $DEV_PIP_EXTRA_INDEX_URL cic-eth==0.10.0a38 chainlib==0.0.1a19 cic-contracts==0.0.2a2
 pip install --extra-index-url $DEV_PIP_EXTRA_INDEX_URL --force-reinstall erc20-transfer-authorization==0.3.0a10
 
 >&2 echo "create account for gas gifter"

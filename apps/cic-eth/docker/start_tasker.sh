@@ -6,7 +6,7 @@ set -e
 # set CONFINI_ENV_PREFIX to override the env prefix to override env vars
 
 echo "!!! starting signer"
-python /usr/local/bin/crypto-dev-daemon -vv -c /usr/local/etc/crypto-dev-signer &
+python /usr/local/bin/crypto-dev-daemon -c /usr/local/etc/crypto-dev-signer &
 
 echo "!!! starting tracker"
 /usr/local/bin/cic-eth-taskerd $@

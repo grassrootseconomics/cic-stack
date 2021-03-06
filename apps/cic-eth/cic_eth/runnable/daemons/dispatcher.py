@@ -15,6 +15,8 @@ import web3
 from web3 import HTTPProvider, WebsocketProvider
 from cic_registry import CICRegistry
 from cic_registry.chain import ChainSpec
+from chainlib.eth.tx import unpack
+from hexathon import strip_0x
 
 # local imports
 import cic_eth
@@ -36,7 +38,7 @@ from cic_eth.error import (
         TemporaryTxError,
         NotLocalTxError,
         )
-from cic_eth.eth.util import unpack_signed_raw_tx_hex
+#from cic_eth.eth.util import unpack_signed_raw_tx_hex
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -115,7 +117,9 @@ class DispatchSyncer:
         chain_str = str(self.chain_spec)
         for k in txs.keys():
             tx_raw = txs[k]
-            tx = unpack_signed_raw_tx_hex(tx_raw, self.chain_spec.chain_id())
+            #tx = unpack_signed_raw_tx_hex(tx_raw, self.chain_spec.chain_id())
+            tx_raw_bytes = bytes.fromhex(strip_0x(tx_raw))
+            tx = unpack(tx_raw_bytes, self.chain_spec.chain_id())
             
             try:
                 set_dequeue(tx['hash'])

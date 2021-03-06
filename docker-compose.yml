@@ -50,6 +50,7 @@ services:
       # PGDATA: /tmp/cic/postgres
     ports:
       - ${DEV_POSTGRES_PORT:-63432}:5432
+    command: [ "-c", "max_connections=200" ]
     volumes:
       - ./scripts/initdb/create_db.sql:/docker-entrypoint-initdb.d/1-create_all_db.sql 
       - ./apps/cic-meta/scripts/initdb/postgresql.sh:/docker-entrypoint-initdb.d/2-init-cic-meta.sh
@@ -237,7 +238,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_tasker.sh -q cic-eth -v
+        ./start_tasker.sh -q cic-eth 
     # command: [/bin/sh, "./start_tasker.sh", -q, cic-eth, -vv ]
 
   cic-eth-tracker:

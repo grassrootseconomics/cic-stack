@@ -43,6 +43,7 @@ argparser = argparse.ArgumentParser()
 argparser.add_argument('-p', '--provider', dest='p', type=str, help='Web3 provider url (http only)')
 argparser.add_argument('-r', '--registry-address', dest='r', type=str, help='CIC registry address')
 argparser.add_argument('-f', '--format', dest='f', default='terminal', type=str, help='Output format')
+argparser.add_argument('--status-raw', dest='status_raw', action='store_true', help='Output statis bit enum names only')
 argparser.add_argument('-c', type=str, default=default_config_dir, help='config root to use')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
 argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
@@ -122,7 +123,7 @@ def render_tx(o, **kwargs):
     
     for v in o.get('status_log', []):
         d = datetime.datetime.fromisoformat(v[0])
-        e = status_str(v[1])
+        e = status_str(v[1], args.status_raw)
         content += '{}: {}\n'.format(d, e)
 
     return content

@@ -66,14 +66,21 @@ class TransferAuthFilter(SyncFilter):
         sender = add_0x(to_checksum(o['sender']))
         recipient = add_0x(to_checksum(recipient))
         token = add_0x(to_checksum(o['token']))
-        s = celery.signature(
+        token_data = {
+            'address': token,
+            }
+
+        s_nonce = celery.signature(
+            'cic_eth.eth.tx.reserve_nonce',
+            [
+                [token_data],
+                sender,
+                ],
+            queue=self.queue,
+            )
+        s_approve = celery.signature(
             'cic_eth.eth.token.approve',
             [
-                [
-                    {
-                        'address': token,
-                        },
-                    ],
                 sender,
                 recipient,
                 o['value'],
@@ -81,7 +88,8 @@ class TransferAuthFilter(SyncFilter):
                 ],
             queue=self.queue,
             )
-        t = s.apply_async()
+        s_nonce.link(s_approve)
+        t = s_nonce.apply_async()
         return True
 
 
