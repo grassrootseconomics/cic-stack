@@ -36,6 +36,8 @@ from cic_eth.admin.ctrl import lock_send
 from cic_eth.task import (
         CriticalSQLAlchemyTask,
         CriticalWeb3Task,
+        CriticalWeb3AndSignerTask,
+        CriticalSQLAlchemyAndSignerTask,
         )
 
 celery_app = celery.current_app
@@ -418,7 +420,7 @@ def send(self, txs, chain_str):
 
 # TODO: if this method fails the nonce will be out of sequence. session needs to be extended to include the queue create, so that nonce is rolled back if the second sql query fails. Better yet, split each state change into separate tasks.
 # TODO: method is too long, factor out code for clarity
-@celery_app.task(bind=True, throws=(web3.exceptions.TransactionNotFound,), base=CriticalWeb3Task)
+@celery_app.task(bind=True, throws=(web3.exceptions.TransactionNotFound,), base=CriticalWeb3AndSignerTask)
 def refill_gas(self, recipient_address, chain_str):
     """Executes a native token transaction to fund the recipient's gas expenditures.
 
@@ -511,7 +513,7 @@ def refill_gas(self, recipient_address, chain_str):
     return tx_send_gas_signed['raw']
 
 
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, base=(CriticalSQLAlchemyAndSignerTask,))
 def resend_with_higher_gas(self, txold_hash_hex, chain_str, gas=None, default_factor=1.1):
     """Create a new transaction from an existing one with same nonce and higher gas price.
 

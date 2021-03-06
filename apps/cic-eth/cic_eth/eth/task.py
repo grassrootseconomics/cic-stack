@@ -8,6 +8,7 @@ from cic_registry.chain import ChainSpec
 # local imports
 from cic_eth.eth import RpcClient
 from cic_eth.queue.tx import create as queue_create
+from cic_eth.error import SignerError
 
 celery_app = celery.current_app
 logg = celery_app.log.get_default_logger()
@@ -26,7 +27,13 @@ def sign_tx(tx, chain_str):
     """
     chain_spec = ChainSpec.from_chain_str(chain_str)
     c = RpcClient(chain_spec)
-    tx_transfer_signed = c.w3.eth.sign_transaction(tx) 
+    tx_transfer_signed = None
+    try:
+        tx_transfer_signed = c.w3.eth.sign_transaction(tx)
+    except FileNotFoundError:
+        pass
+    if tx_transfer_signed == None:
+        raise SignerError('sign tx')
     logg.debug('tx_transfer_signed {}'.format(tx_transfer_signed))
     tx_hash = c.w3.keccak(hexstr=tx_transfer_signed['raw'])
     tx_hash_hex = tx_hash.hex()
