@@ -1,10 +1,12 @@
-//var proto = 'http';
-//var host = 'localhost:9000';
+var ssl = false;
+var host = 'localhost';
+var port = 9000;
 var proto = 'https';
 var host = 'staging.sarafu.network';
-var user = 'admin_bert_token_inc.';
-var pass = '197781ed60bf16d5dc12d84e3df37e35';
-var serviceCode = '*483*061#';
+var user = 'foo';
+var pass = 'bar';
+var path = '/';
+var serviceCode = '*483*46#';
 
 // cheekily stolen from https://www.tutorialspoint.com/how-to-create-guid-uuid-in-javascript
 function createUUID() {
@@ -23,9 +25,17 @@ function send(s) {
 	document.getElementById('send_input').disabled = true;
 	var xhr = new XMLHttpRequest();
 	xhr.responseType = 'text';
-	current_user = document.getElementById('user').value;
-	current_pass = document.getElementById('pass').value;
-	xhr.open('POST', proto + '://' + host + '/api/v1/ussd/kenya?username=' + current_user + '&password=' + current_pass, true);
+	const current_user = document.getElementById('user').value;
+	const current_pass = document.getElementById('pass').value;
+	const current_host = document.getElementById('host').value;
+	const current_port = document.getElementById('port').value;
+	let current_scheme = 'http';
+	if (document.getElementById('ssl').checked) {
+		current_scheme += 's';
+	}
+	const url = current_scheme + '://' + current_host + ':' + current_port + '?username=' + current_user + '&password=' + current_pass
+	console.debug('connecting to', url);
+	xhr.open('POST', url, true);
 	xhr.setRequestHeader('Content-Type', 'application/json');
 	data = {
 		sessionId: uuid,
@@ -106,6 +116,8 @@ function abort() {
 window.addEventListener('load', () => {
 	document.getElementById('user').value = user;
 	document.getElementById('pass').value = pass;
+	document.getElementById('host').value = host;
+	document.getElementById('port').value = port;
 	document.getElementById('phone').addEventListener('keyup', (e) => {
 		if (e.keyCode == '13') {
 			document.getElementById('input').value = '';

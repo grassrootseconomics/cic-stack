@@ -16,9 +16,16 @@ div#session {
 		<textarea id="monitor" disabled="1"></textarea>
 		<div id="login">
 			<label for="user">API username</label>
-			<input type="text" id="user" name="user" type="text" /><br/>
+			<input type="text" id="user" name="user" />  
 			<label for="user">API password</label>
-			<input type="text" id="pass" name="pass" type="text" /><br/>
+			<input type="text" id="pass" name="pass" /> <br/>
+
+			<label for="host">API host</label>
+			 <input type="text" id="host" name="host" />
+			<label for="host">API port</label>
+			 <input type="text" id="port" name="port" />
+			<label for="host">SSL</label>
+			<input type="checkbox" id="ssl" name="ssl" checked="1"/> <br/>
 			<hr/>
 			<input type="text" id="phone" /> <button onclick="setPhone(document.getElementById('phone').value);" id="send_phone">set phone number</button> 
 		</div>
