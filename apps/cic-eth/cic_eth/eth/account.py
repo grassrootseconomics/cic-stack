@@ -21,8 +21,14 @@ from cic_eth.db.models.base import SessionBase
 from cic_eth.db.models.role import AccountRole
 from cic_eth.db.models.tx import TxCache
 from cic_eth.eth.util import unpack_signed_raw_tx
-from cic_eth.error import RoleMissingError
-from cic_eth.task import CriticalSQLAlchemyTask
+from cic_eth.error import (
+        RoleMissingError,
+        SignerError,
+        )
+from cic_eth.task import (
+        CriticalSQLAlchemyTask,
+        CriticalSQLAlchemyAndSignerTask,
+        )
 
 #logg = logging.getLogger(__name__)
 logg = logging.getLogger()
@@ -139,7 +145,7 @@ def unpack_gift(data):
      
 
 # TODO: Separate out nonce initialization task
-@celery_app.task(base=CriticalSQLAlchemyTask)
+@celery_app.task(base=CriticalSQLAlchemyAndSignerTask)
 def create(password, chain_str):
     """Creates and stores a new ethereum account in the keystore.
 
@@ -154,7 +160,13 @@ def create(password, chain_str):
     """
     chain_spec = ChainSpec.from_chain_str(chain_str)
     c = RpcClient(chain_spec)
-    a = c.w3.eth.personal.new_account(password)
+    a = None
+    try:
+        a = c.w3.eth.personal.new_account(password)
+    except FileNotFoundError:
+        pass
+    if a == None:
+        raise SignerError('create account')
     logg.debug('created account {}'.format(a))
 
     # Initialize nonce provider record for account
@@ -165,7 +177,7 @@ def create(password, chain_str):
     return a
 
 
-@celery_app.task(bind=True, throws=(RoleMissingError,), base=CriticalSQLAlchemyTask)
+@celery_app.task(bind=True, throws=(RoleMissingError,), base=CriticalSQLAlchemyAndSignerTask)
 def register(self, account_address, chain_str, writer_address=None):
     """Creates a transaction to add the given address to the accounts index.
 
@@ -215,7 +227,7 @@ def register(self, account_address, chain_str, writer_address=None):
     return account_address
 
 
-@celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
+@celery_app.task(bind=True, base=CriticalSQLAlchemyAndSignerTask)
 def gift(self, account_address, chain_str):
     """Creates a transaction to invoke the faucet contract for the given address.
 

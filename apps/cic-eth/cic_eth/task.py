@@ -5,6 +5,9 @@ import requests
 import celery
 import sqlalchemy
 
+# local imports
+from cic_eth.error import SignerError
+
 
 class CriticalTask(celery.Task):
     retry_jitter = True
@@ -30,4 +33,17 @@ class CriticalSQLAlchemyAndWeb3Task(CriticalTask):
         sqlalchemy.exc.DatabaseError,
         sqlalchemy.exc.TimeoutError,
         requests.exceptions.ConnectionError,
+        )
+
+class CriticalSQLAlchemyAndSignerTask(CriticalTask):
+     autoretry_for = (
+        sqlalchemy.exc.DatabaseError,
+        sqlalchemy.exc.TimeoutError,
+        SignerError,
+        ) 
+
+class CriticalWeb3AndSignerTask(CriticalTask):
+    autoretry_for = (
+        requests.exceptions.ConnectionError,
+        SignerError,
         )

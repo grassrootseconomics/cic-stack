@@ -24,6 +24,7 @@ from cic_eth.ext.address import translate_address
 from cic_eth.task import (
         CriticalSQLAlchemyTask,
         CriticalWeb3Task,
+        CriticalSQLAlchemyAndSignerTask,
     )
 
 celery_app = celery.current_app
@@ -212,7 +213,7 @@ def balance(tokens, holder_address, chain_str):
     return tokens
 
 
-@celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
+@celery_app.task(bind=True, base=CriticalSQLAlchemyAndSignerTask)
 def transfer(self, tokens, holder_address, receiver_address, value, chain_str):
     """Transfer ERC20 tokens between addresses
 
@@ -268,7 +269,7 @@ def transfer(self, tokens, holder_address, receiver_address, value, chain_str):
     return tx_hash_hex
 
 
-@celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
+@celery_app.task(bind=True, base=CriticalSQLAlchemyAndSignerTask)
 def approve(self, tokens, holder_address, spender_address, value, chain_str):
     """Approve ERC20 transfer on behalf of holder address
 

@@ -66,3 +66,10 @@ class LockedError(Exception):
 
     """
     pass
+
+
+class SignerError(Exception):
+    """Exception raised when signer is unavailable or generates an error
+
+    """
+    pass
