@@ -1,4 +1,4 @@
-cic-base~=0.1.1a17
+cic-base~=0.1.1a19
 web3==5.12.2
 celery==4.4.7
 crypto-dev-signer~=0.4.13rc4
