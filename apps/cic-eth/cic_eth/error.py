@@ -73,3 +73,10 @@ class SignerError(Exception):
 
     """
     pass
+
+
+class EthError(Exception):
+    """Exception raised when unspecified error from evm node is encountered
+
+    """
+    pass

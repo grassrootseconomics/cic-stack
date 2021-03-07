@@ -39,6 +39,7 @@ from cic_eth.task import (
         CriticalWeb3Task,
         CriticalWeb3AndSignerTask,
         CriticalSQLAlchemyAndSignerTask,
+        CriticalSQLAlchemyAndWeb3Task,
         )
 
 celery_app = celery.current_app
@@ -48,7 +49,7 @@ MAX_NONCE_ATTEMPTS = 3
 
 
 # TODO this function is too long
-@celery_app.task(bind=True, throws=(OutOfGasError), base=CriticalSQLAlchemyTask)
+@celery_app.task(bind=True, throws=(OutOfGasError), base=CriticalSQLAlchemyAndWeb3Task)
 def check_gas(self, tx_hashes, chain_str, txs=[], address=None, gas_required=None):
     """Check the gas level of the sender address of a transaction.
 
@@ -76,6 +77,9 @@ def check_gas(self, tx_hashes, chain_str, txs=[], address=None, gas_required=Non
             if address == None:
                 address = o['address']
 
+    if not web3.Web3.isChecksumAddress(address):
+        raise ValueError('invalid address {}'.format(address))
+
     chain_spec = ChainSpec.from_chain_str(chain_str)
 
     queue = self.request.delivery_info['routing_key']
@@ -84,7 +88,12 @@ def check_gas(self, tx_hashes, chain_str, txs=[], address=None, gas_required=Non
     c = RpcClient(chain_spec)
 
     # TODO: it should not be necessary to pass address explicitly, if not passed should be derived from the tx
-    balance = c.w3.eth.getBalance(address) 
+    balance = 0
+    try:
+        balance = c.w3.eth.getBalance(address) 
+    except ValueError as e:
+        raise EthError('balance call for {}'.format())
+
     logg.debug('address {} has gas {} needs {}'.format(address, balance, gas_required))
 
     if gas_required > balance:

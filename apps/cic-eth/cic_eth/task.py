@@ -6,7 +6,10 @@ import celery
 import sqlalchemy
 
 # local imports
-from cic_eth.error import SignerError
+from cic_eth.error import (
+        SignerError,
+        EthError,
+        )
 
 
 class CriticalTask(celery.Task):
@@ -33,6 +36,7 @@ class CriticalSQLAlchemyAndWeb3Task(CriticalTask):
         sqlalchemy.exc.DatabaseError,
         sqlalchemy.exc.TimeoutError,
         requests.exceptions.ConnectionError,
+        EthError,
         )
 
 class CriticalSQLAlchemyAndSignerTask(CriticalTask):
