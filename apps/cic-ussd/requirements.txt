@@ -1,4 +1,4 @@
-cic_base[full-graph]~=0.1.1a17
+cic_base[full-graph]~=0.1.1a19
 alembic==1.4.2
 bcrypt==3.2.0
 celery==4.4.7
