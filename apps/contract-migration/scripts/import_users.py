@@ -97,6 +97,7 @@ def register_eth(i, u):
         callback_queue=args.q,
         )
     t = api.create_account(register=True)
+    logg.debug('register {} -> {}'.format(u, t))
 
     while True:
         ps.get_message()

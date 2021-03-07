@@ -14,6 +14,7 @@ from cic_eth.db import Otx, SessionBase
 from cic_eth.db.models.tx import TxCache
 from cic_eth.db.models.nonce import NonceReservation
 from cic_eth.db.models.lock import Lock
+from cic_eth.db.models.role import AccountRole
 from cic_eth.db.enum import (
         LockEnum,
         StatusBits,
