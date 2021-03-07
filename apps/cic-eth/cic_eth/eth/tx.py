@@ -31,7 +31,10 @@ from cic_eth.eth.util import unpack_signed_raw_tx
 from cic_eth.eth.task import sign_and_register_tx, create_check_gas_and_send_task
 from cic_eth.eth.task import sign_tx
 from cic_eth.eth.nonce import NonceOracle
-from cic_eth.error import AlreadyFillingGasError
+from cic_eth.error import (
+        AlreadyFillingGasError,
+        EthError,
+        )
 from cic_eth.eth.util import tx_hex_string
 from cic_eth.admin.ctrl import lock_send
 from cic_eth.task import (
@@ -144,7 +147,7 @@ def check_gas(self, tx_hashes, chain_str, txs=[], address=None, gas_required=Non
                 ],
             queue=queue,
                 )
-        s_nonce.link(s_refill)
+        s_nonce.link(s_refill_gas)
         s_nonce.apply_async()
         logg.debug('requested refill from {} to {}'.format(c.gas_provider(), address))
     ready_tasks = []
