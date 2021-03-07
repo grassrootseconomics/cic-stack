@@ -82,6 +82,7 @@ class Api:
         :returns: uuid of root task
         :rtype: celery.Task
         """
+        raise NotImplementedError('out of service until new DEX migration is done')
         s_check = celery.signature(
                 'cic_eth.admin.ctrl.check_lock',
                 [
@@ -143,6 +144,7 @@ class Api:
         :returns: uuid of root task
         :rtype: celery.Task
         """
+        raise NotImplementedError('out of service until new DEX migration is done')
         s_check = celery.signature(
                 'cic_eth.admin.ctrl.check_lock',
                 [
@@ -340,11 +342,6 @@ class Api:
                     ],
                 queue=self.queue,
                 )
-        s_nonce = celery.signature(
-                'cic_eth.eth.tx.reserve_nonce',
-                [],
-                queue=self.queue,
-                )
         s_account = celery.signature(
                 'cic_eth.eth.account.create',
                 [
@@ -357,6 +354,13 @@ class Api:
             s_account.link(self.callback_success)
 
         if register:
+            s_nonce = celery.signature(
+                'cic_eth.eth.tx.reserve_nonce',
+                [
+                    'ACCOUNTS_INDEX_WRITER',
+                    ],
+                queue=self.queue,
+                )
             s_register = celery.signature(
                 'cic_eth.eth.account.register', 
                 [
@@ -390,7 +394,9 @@ class Api:
                 )
         s_nonce = celery.signature(
                 'cic_eth.eth.tx.reserve_nonce',
-                [],
+                [
+                    'GAS_GIFTER',
+                    ],
                 queue=self.queue,
                 )
         s_refill = celery.signature(

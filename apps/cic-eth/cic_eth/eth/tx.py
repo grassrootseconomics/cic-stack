@@ -588,13 +588,23 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_str, gas=None, default_fa
 
 
 @celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
-def reserve_nonce(self, chained_input, address=None):
+def reserve_nonce(self, chained_input, signer=None):
     session = SessionBase.create_session()
 
-    if address == None:
+    address = None
+    if signer == None:
         address = chained_input
+        logg.debug('non-explicit address for reserve nonce, using arg head {}'.format(chained_input))
+    else:
+        if web3.Web3.isChecksumAddress(signer):
+            address = signer
+            logg.debug('explicit address for reserve nonce {}'.format(signer))
+        else:
+            address = AccountRole.get_address(signer, session=session)
+            logg.debug('role for reserve nonce {} -> {}'.format(signer, address))
+
     if not web3.Web3.isChecksumAddress(address):
-        raise ValueError('invalid address {}'.format(address))
+        raise ValueError('invalid result when resolving address for nonce {}'.format(address))
 
     root_id = self.request.root_id
     nonce = NonceReservation.next(address, root_id)
