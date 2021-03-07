@@ -191,9 +191,16 @@ if __name__ == '__main__':
 
     fa = open(os.path.join(user_dir, 'balances.csv'), 'w')
 
-    for i in range(user_count):
-    
-        (eth, phone, o) = gen()
+    i = 0
+    while i < user_count:
+        eth = None
+        phone = None
+        o = None
+        try:
+            (eth, phone, o) = gen()
+        except Exception as e:
+            logg.warning('generate failed, trying anew: {}'.format(e))
+            continue
         uid = eth[2:].upper()
 
         print(o)
@@ -212,5 +219,7 @@ if __name__ == '__main__':
         amount = genAmount()
         fa.write('{},{}\n'.format(eth,amount))
         logg.debug('pidx {}, uid {}, eth {}, amount {}'.format(pidx, uid, eth, amount))
+        
+        i += 1
 
     fa.close()
