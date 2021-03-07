@@ -593,6 +593,8 @@ def reserve_nonce(self, chained_input, address=None):
 
     if address == None:
         address = chained_input
+    if not web3.Web3.isChecksumAddress(address):
+        raise ValueError('invalid address {}'.format(address))
 
     root_id = self.request.root_id
     nonce = NonceReservation.next(address, root_id)

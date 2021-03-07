@@ -54,6 +54,7 @@ class GasOracle():
         """
         session = SessionBase.create_session()
         a = AccountRole.get_address('GAS_GIFTER', session)
+        logg.debug('gasgifter {}'.format(a))
         session.close()
         return a
 

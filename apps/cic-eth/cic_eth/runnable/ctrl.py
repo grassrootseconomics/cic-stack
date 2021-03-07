@@ -25,7 +25,7 @@ logging.getLogger('urllib3').setLevel(logging.WARNING)
 
 
 default_abi_dir = '/usr/share/local/cic/solidity/abi'
-default_config_dir = os.path.join('/usr/local/etc/cic-eth')
+default_config_dir = os.environ.get('CONFINI_DIR', '/usr/local/etc/cic')
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument('-p', '--provider', dest='p', default='http://localhost:8545', type=str, help='Web3 provider url (http only)')

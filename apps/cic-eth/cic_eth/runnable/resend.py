@@ -22,7 +22,7 @@ logg = logging.getLogger()
 logging.getLogger('web3').setLevel(logging.WARNING)
 logging.getLogger('urllib3').setLevel(logging.WARNING)
 
-default_config_dir = os.path.join('/usr/local/etc/cic-eth')
+default_config_dir = os.environ.get('CONFINI_DIR', '/usr/local/etc/cic')
 
 
 argparser = argparse.ArgumentParser()

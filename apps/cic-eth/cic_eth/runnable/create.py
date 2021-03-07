@@ -5,6 +5,7 @@ import os
 import logging
 import uuid
 import json
+from xdg.BaseDirectory import xdg_config_home
 
 import celery
 from cic_eth.api import Api

@@ -112,11 +112,11 @@ def register_eth(i, u):
             r = json.loads(m['data'])
             address = r['result']
             break
-        except TypeError as e:
+        except Exception as e:
             if m == None:
-                logg.critical('empty response from redis callback (did the service crash?)')
+                logg.critical('empty response from redis callback (did the service crash?) {}'.format(e))
             else:
-                logg.critical('unexpected response from redis callback: {}'.format(m))
+                logg.critical('unexpected response from redis callback: {} {}'.format(m, e))
             sys.exit(1)
         logg.debug('[{}] register eth {} {}'.format(i, u, address))
 

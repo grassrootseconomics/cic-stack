@@ -352,8 +352,7 @@ class Api:
                     ],
                 queue=self.queue,
                 )
-        s_nonce.link(s_account)
-        s_check.link(s_nonce)
+        s_check.link(s_account)
         if self.callback_param != None:
             s_account.link(self.callback_success)
 
@@ -365,7 +364,8 @@ class Api:
                     ],
                 queue=self.queue,
                 )
-            s_account.link(s_register)
+            s_nonce.link(s_register)
+            s_account.link(s_nonce)
 
         t = s_check.apply_async(queue=self.queue)
         return t

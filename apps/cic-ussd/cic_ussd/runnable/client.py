@@ -21,10 +21,10 @@ from confini import Config
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
-config_dir = os.path.join(xdg_config_home, 'cli-ussd')
+default_config_dir = os.environ.get('CONFINI_DIR', '/usr/local/etc/cic')
 
 argparser = argparse.ArgumentParser(description='CLI tool to interface a Sempo USSD session')
-argparser.add_argument('-c', type=str, default=config_dir, help='config root to use')
+argparser.add_argument('-c', type=str, default=default_config_dir, help='config root to use')
 #argparser.add_argument('-d', type=str, default='local', help='deployment name to interface (config root subdirectory)')
 argparser.add_argument('--host', type=str, default='localhost')
 argparser.add_argument('--port', type=int, default=9000)
