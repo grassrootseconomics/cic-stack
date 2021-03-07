@@ -64,7 +64,7 @@ else:
     ssl = True
 
 
-if __name__ == "__main__":
+def main():
 
     # TODO: improve url building 
     url = 'http'
@@ -101,3 +101,7 @@ if __name__ == "__main__":
         state = response_data[:3]
         out = response_data[4:]
         print(out)
+
+
+if __name__ == "__main__":
+    main()

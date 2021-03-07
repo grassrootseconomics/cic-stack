@@ -74,7 +74,7 @@ new cic.PGPKeyStore(
 	importMeta,
 );
 
-const batchSize = 50;
+const batchSize = 16;
 const batchDelay = 1000;
 const total = parseInt(process.argv[3]);
 const workDir = path.join(process.argv[2], 'meta');
