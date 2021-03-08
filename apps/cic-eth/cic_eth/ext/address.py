@@ -4,7 +4,10 @@ import logging
 # third-party imports
 import celery
 from cic_registry.chain import ChainSpec
-from cic_registry import CICRegistry
+
+# local imports
+from cic_eth.eth import RpcClient
+from cic_eth.registry import safe_registry
 
 celery_app = celery.current_app
 
@@ -12,8 +15,10 @@ logg = logging.getLogger()
 
 
 def translate_address(address, trusted_addresses, chain_spec):
+    c = RpcClient(chain_spec)
+    registry = safe_registry(c.w3)
     for trusted_address in trusted_addresses:
-        o = CICRegistry.get_contract(chain_spec, 'AddressDeclarator', 'Declarator')
+        o = registry.get_contract(chain_spec, 'AddressDeclarator', 'Declarator')
         fn = o.function('declaration')
         declaration_hex = fn(trusted_address, address).call()
         declaration_bytes = declaration_hex[0].rstrip(b'\x00')

@@ -22,8 +22,9 @@ class TxFactory:
     """Gas price, updated between batches"""
 
 
-    def __init__(self, from_address, rpc_client):
+    def __init__(self, from_address, rpc_client, registry=CICRegistry):
         self.address = from_address
+        self.registry = registry 
 
         self.default_nonce = rpc_client.w3.eth.getTransactionCount(from_address, 'pending')
         self.nonce_oracle = NonceOracle(from_address, self.default_nonce)

@@ -5,13 +5,13 @@ import logging
 import celery
 import requests
 import web3
-from cic_registry import CICRegistry
 from cic_registry import zero_address
 from cic_registry.chain import ChainSpec
 from hexathon import strip_0x
 from chainlib.status import Status as TxStatus
 
 # platform imports
+from cic_eth.registry import safe_registry
 from cic_eth.db.models.tx import TxCache
 from cic_eth.db.models.base import SessionBase
 from cic_eth.eth import RpcClient
@@ -63,7 +63,7 @@ class TokenTxFactory(TxFactory):
         :returns: Unsigned "approve" transaction in standard Ethereum format
         :rtype: dict
         """
-        source_token = CICRegistry.get_address(chain_spec, token_address)
+        source_token = self.registry.get_address(chain_spec, token_address)
         source_token_contract = source_token.contract
         tx_approve_buildable = source_token_contract.functions.approve(
             spender_address,
@@ -103,7 +103,7 @@ class TokenTxFactory(TxFactory):
         :returns: Unsigned "transfer" transaction in standard Ethereum format
         :rtype: dict
         """
-        source_token = CICRegistry.get_address(chain_spec, token_address)
+        source_token = self.registry.get_address(chain_spec, token_address)
         source_token_contract = source_token.contract
         transfer_buildable = source_token_contract.functions.transfer(
                 receiver_address,
@@ -202,11 +202,9 @@ def balance(tokens, holder_address, chain_str):
     #abi = ContractRegistry.abi('ERC20Token')
     chain_spec = ChainSpec.from_chain_str(chain_str)
     c = RpcClient(chain_spec)
+    registry = safe_registry(c.w3)
     for t in tokens:
-        #token = CICRegistry.get_address(t['address'])
-        #abi = token.abi()
-        #o = c.w3.eth.contract(abi=abi, address=t['address'])
-        o = CICRegistry.get_address(chain_spec, t['address']).contract
+        o = registry.get_address(chain_spec, t['address']).contract
         b = o.functions.balanceOf(holder_address).call()
         t['balance_network'] = b
 
@@ -247,8 +245,9 @@ def transfer(self, tokens, holder_address, receiver_address, value, chain_str):
     t = tokens[0]
 
     c = RpcClient(chain_spec, holder_address=holder_address)
+    registry = safe_registry(c.w3)
 
-    txf = TokenTxFactory(holder_address, c)
+    txf = TokenTxFactory(holder_address, c, registry=registry)
     
     session = SessionBase.create_session()
     tx_transfer = txf.transfer(t['address'], receiver_address, value, chain_spec, self.request.root_id, session=session)
@@ -303,8 +302,9 @@ def approve(self, tokens, holder_address, spender_address, value, chain_str):
     t = tokens[0]
 
     c = RpcClient(chain_spec, holder_address=holder_address)
+    registry = safe_registry(c.w3)
 
-    txf = TokenTxFactory(holder_address, c)
+    txf = TokenTxFactory(holder_address, c, registry=registry)
 
     session = SessionBase.create_session()
     tx_transfer = txf.approve(t['address'], spender_address, value, chain_spec, self.request.root_id, session=session)
@@ -339,8 +339,10 @@ def resolve_tokens_by_symbol(token_symbols, chain_str):
     """
     tokens = []
     chain_spec = ChainSpec.from_chain_str(chain_str)
+    c = RpcClient(chain_spec)
+    registry = safe_registry(c.w3)
     for token_symbol in token_symbols:
-        token = CICRegistry.get_token(chain_spec, token_symbol)
+        token = registry.get_token(chain_spec, token_symbol)
         tokens.append({
             'address': token.address(),
             'converters': [],
@@ -502,12 +504,14 @@ class ExtendedTx:
 
 
     def set_tokens(self, source, source_value, destination=None, destination_value=None):
+        c = RpcClient(self._chain_spec)
+        registry = safe_registry(c.w3)
         if destination == None:
             destination = source
         if destination_value == None:
             destination_value = source_value
-        st = CICRegistry.get_address(self._chain_spec, source)
-        dt = CICRegistry.get_address(self._chain_spec, destination)
+        st = registry.get_address(self._chain_spec, source)
+        dt = registry.get_address(self._chain_spec, destination)
         self.source_token = source
         self.source_token_symbol = st.symbol()
         self.source_token_decimals = st.decimals()

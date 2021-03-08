@@ -12,8 +12,6 @@ from sqlalchemy import tuple_
 from sqlalchemy import func
 
 # local imports
-from cic_registry import CICRegistry
-from cic_registry.chain import ChainSpec
 from cic_eth.db.models.otx import Otx
 from cic_eth.db.models.otx import OtxStateLog
 from cic_eth.db.models.tx import TxCache

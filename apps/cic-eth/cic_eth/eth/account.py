@@ -4,13 +4,13 @@ import logging
 # third-party imports
 import web3
 import celery
-from cic_registry import CICRegistry
 from cic_registry.chain import ChainSpec
 from erc20_single_shot_faucet import Faucet
 from cic_registry import zero_address
 from hexathon import strip_0x
 
 # local import
+from cic_eth.registry import safe_registry
 from cic_eth.eth import RpcClient
 from cic_eth.eth import registry_extra_identifiers
 from cic_eth.eth.task import sign_and_register_tx
@@ -55,7 +55,7 @@ class AccountTxFactory(TxFactory):
         :rtype: dict
         """
 
-        c = CICRegistry.get_contract(chain_spec, 'AccountRegistry')
+        c = self.registry.get_contract(chain_spec, 'AccountRegistry')
         f = c.function('add')
         tx_add_buildable = f(
                 address,
@@ -89,7 +89,7 @@ class AccountTxFactory(TxFactory):
         :rtype: dict
         """
 
-        c = CICRegistry.get_contract(chain_spec, 'Faucet')
+        c = self.registry.get_contract(chain_spec, 'Faucet')
         f = c.function('giveTo')
         tx_add_buildable = f(address)
         gas = c.gas('add')
@@ -205,7 +205,8 @@ def register(self, account_address, chain_str, writer_address=None):
     queue = self.request.delivery_info['routing_key']
 
     c = RpcClient(chain_spec, holder_address=writer_address)
-    txf = AccountTxFactory(writer_address, c)
+    registry = safe_registry(c.w3)
+    txf = AccountTxFactory(writer_address, c, registry=registry)
 
     tx_add = txf.add(account_address, chain_spec, self.request.root_id, session=session)
     
@@ -244,7 +245,8 @@ def gift(self, account_address, chain_str):
     queue = self.request.delivery_info['routing_key']
 
     c = RpcClient(chain_spec, holder_address=account_address)
-    txf = AccountTxFactory(account_address, c)
+    registry = safe_registry(c.w3)
+    txf = AccountTxFactory(account_address, c, registry=registry)
 
     session = SessionBase.create_session()
     tx_add = txf.gift(account_address, chain_spec, self.request.root_id, session=session)

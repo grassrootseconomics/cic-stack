@@ -39,20 +39,9 @@ from chainsyncer.db.models.base import SessionBase
 # local imports
 from cic_eth.registry import init_registry
 from cic_eth.eth import RpcClient
-from cic_eth.db import Otx
-from cic_eth.db import TxConvertTransfer
-from cic_eth.db.models.tx import TxCache
-from cic_eth.db.enum import StatusEnum
 from cic_eth.db import dsn_from_config
-from cic_eth.queue.tx import get_paused_txs
 #from cic_eth.sync import Syncer
 #from cic_eth.sync.error import LoopDone
-from cic_eth.db.error import UnknownConvertError
-from cic_eth.eth.util import unpack_signed_raw_tx
-from cic_eth.eth.task import create_check_gas_and_send_task
-from cic_eth.eth.token import unpack_transfer
-from cic_eth.eth.token import unpack_transferfrom
-from cic_eth.eth.account import unpack_gift
 from cic_eth.runnable.daemons.filters import (
         CallbackFilter,
         GasFilter,

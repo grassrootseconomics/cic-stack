@@ -7,10 +7,10 @@ import web3
 import celery
 import moolb
 from cic_registry.chain import ChainSpec
-from cic_registry.registry import CICRegistry
 from hexathon import strip_0x
 
 # local imports
+from cic_eth.registry import safe_registry
 from cic_eth.eth.rpc import RpcClient
 from cic_eth.db.models.otx import Otx
 from cic_eth.eth.util import unpack_signed_raw_tx
@@ -51,6 +51,7 @@ def list_tx_by_bloom(bloomspec, address, chain_str):
     """
     chain_spec = ChainSpec.from_chain_str(chain_str)
     c = RpcClient(chain_spec)
+    registry = safe_registry(c.w3)
     block_filter_data = bytes.fromhex(bloomspec['block_filter'])
     tx_filter_data = bytes.fromhex(bloomspec['blocktx_filter'])
     databitlen = len(block_filter_data)*8
@@ -97,7 +98,7 @@ def list_tx_by_bloom(bloomspec, address, chain_str):
 
                         tx_hash_hex = tx['hash'].hex()
 
-                        token = CICRegistry.get_address(chain_spec, tx['to'])
+                        token = registry.get_address(chain_spec, tx['to'])
                         token_symbol = token.symbol()
                         token_decimals = token.decimals()
                         times = tx_times(tx_hash_hex, chain_str)
