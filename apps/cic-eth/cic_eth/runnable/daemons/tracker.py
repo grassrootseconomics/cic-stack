@@ -68,6 +68,21 @@ cic_base.config.log(config)
 dsn = dsn_from_config(config)
 SessionBase.connect(dsn, pool_size=1, debug=config.true('DATABASE_DEBUG'))
 
+re_websocket = re.compile('^wss?://')
+re_http = re.compile('^https?://')
+blockchain_provider = config.get('ETH_PROVIDER')
+if re.match(re_websocket, blockchain_provider) != None:
+    blockchain_provider = web3.Web3.WebsocketProvider(blockchain_provider)
+elif re.match(re_http, blockchain_provider) != None:
+    blockchain_provider = web3.Web3.HTTPProvider(blockchain_provider)
+else:
+    raise ValueError('unknown provider url {}'.format(blockchain_provider))
+
+def web3_constructor():
+    w3 = web3.Web3(blockchain_provider)
+    return (blockchain_provider, w3)
+RpcClient.set_constructor(web3_constructor)
+
 
 def main():
     # parse chain spec object
