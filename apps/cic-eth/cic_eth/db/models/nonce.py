@@ -78,7 +78,7 @@ class Nonce(SessionBase):
 
     # TODO: Incrementing nonce MUST be done by separate tasks.
     @staticmethod
-    def next(address, initial_if_not_exists=0):
+    def next(address, initial_if_not_exists=0, session=None):
         """Generate next nonce for the given address.
 
         If there is no previous nonce record for the address, the nonce may be initialized to a specified value, or 0 if no value has been given.
@@ -90,28 +90,31 @@ class Nonce(SessionBase):
         :returns: Nonce
         :rtype: number
         """
-        #session = SessionBase.bind_session(session)
+        session = SessionBase.bind_session(session)
         
-        #session.begin_nested()
-        conn = Nonce.engine.connect()
-        if Nonce.transactional:
-            conn.execute('BEGIN')
-            conn.execute('LOCK TABLE nonce IN SHARE ROW EXCLUSIVE MODE')
-            logg.debug('locking nonce table for address {}'.format(address))
-        nonce = Nonce.__get(conn, address)
+        session.begin_nested()
+        #conn = Nonce.engine.connect()
+        #if Nonce.transactional:
+        #    conn.execute('BEGIN')
+        #    conn.execute('LOCK TABLE nonce IN SHARE ROW EXCLUSIVE MODE')
+        #    logg.debug('locking nonce table for address {}'.format(address))
+        #nonce = Nonce.__get(conn, address)
+        nonce = Nonce.__get(session, address)
         logg.debug('get nonce {} for address {}'.format(nonce, address))
         if nonce == None:
             nonce = initial_if_not_exists
             logg.debug('setting default nonce to {} for address {}'.format(nonce, address))
-            Nonce.__init(conn, address, nonce)
-        Nonce.__set(conn, address, nonce+1)
-        if Nonce.transactional:
-            conn.execute('COMMIT')
-            logg.debug('unlocking nonce table for address {}'.format(address))
-        conn.close()
-        #session.commit()
+            #Nonce.__init(conn, address, nonce)
+            Nonce.__init(session, address, nonce)
+        #Nonce.__set(conn, address, nonce+1)
+        Nonce.__set(session, address, nonce + 1)
+        #if Nonce.transactional:
+            #conn.execute('COMMIT')
+        #    logg.debug('unlocking nonce table for address {}'.format(address))
+        #conn.close()
+        session.commit()
 
-        #SessionBase.release_session(session)
+        SessionBase.release_session(session)
         return nonce
 
 
@@ -173,7 +176,7 @@ class NonceReservation(SessionBase):
         if NonceReservation.peek(key, session) != None:
             raise IntegrityError('nonce for key {}'.format(key))
 
-        nonce = Nonce.next(address)
+        nonce = Nonce.next(address, session=session)
 
         o = NonceReservation()
         o.nonce = nonce

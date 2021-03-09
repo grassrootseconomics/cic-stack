@@ -302,7 +302,7 @@ def role(self, account, chain_str):
     return AccountRole.role_for(account)
 
 
-@celery_app.task()
+@celery_app.task(base=CriticalSQLAlchemyTask)
 def cache_gift_data(
     tx_hash_hex,
     tx_signed_raw_hex,

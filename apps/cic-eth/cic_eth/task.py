@@ -22,6 +22,7 @@ class CriticalSQLAlchemyTask(CriticalTask):
     autoretry_for = (
         sqlalchemy.exc.DatabaseError,
         sqlalchemy.exc.TimeoutError,
+        sqlalchemy.exc.ResourceClosedError,
         ) 
 
 
@@ -36,6 +37,7 @@ class CriticalSQLAlchemyAndWeb3Task(CriticalTask):
         sqlalchemy.exc.DatabaseError,
         sqlalchemy.exc.TimeoutError,
         requests.exceptions.ConnectionError,
+        sqlalchemy.exc.ResourceClosedError,
         EthError,
         )
 
@@ -43,6 +45,7 @@ class CriticalSQLAlchemyAndSignerTask(CriticalTask):
      autoretry_for = (
         sqlalchemy.exc.DatabaseError,
         sqlalchemy.exc.TimeoutError,
+        sqlalchemy.exc.ResourceClosedError,
         SignerError,
         ) 
 

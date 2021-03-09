@@ -66,7 +66,7 @@ cic_base.config.log(config)
 
 
 dsn = dsn_from_config(config)
-SessionBase.connect(dsn, pool_size=1, debug=config.true('DATABASE_DEBUG'))
+SessionBase.connect(dsn, pool_size=16, debug=config.true('DATABASE_DEBUG'))
 
 re_websocket = re.compile('^wss?://')
 re_http = re.compile('^https?://')

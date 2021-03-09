@@ -95,7 +95,7 @@ def check_gas(self, tx_hashes, chain_str, txs=[], address=None, gas_required=Non
     try:
         balance = c.w3.eth.getBalance(address) 
     except ValueError as e:
-        raise EthError('balance call for {}'.format())
+        raise EthError('balance call for {}: {}'.format(address, e))
 
     logg.debug('address {} has gas {} needs {}'.format(address, balance, gas_required))
 
