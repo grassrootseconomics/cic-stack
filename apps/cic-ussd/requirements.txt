@@ -6,7 +6,7 @@ betterpath==0.2.2
 billiard==3.6.3.0
 celery==4.4.7
 cffi==1.14.3
-cic-eth~=0.10.0a22
+cic-eth~=0.10.0a41
 cic-notify~=0.4.0a3
 click==7.1.2
 confini~=0.3.6rc3
