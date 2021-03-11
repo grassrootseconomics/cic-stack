@@ -1,9 +1,11 @@
 # standard imports
 import logging
 
-# third-party imports
+# external imports
 import celery
 from cic_registry.chain import ChainSpec
+from chainlib.eth.sign import sign_transaction
+from chainlib.eth.connection import RPCConnection
 
 # local imports
 from cic_eth.eth import RpcClient
@@ -26,16 +28,21 @@ def sign_tx(tx, chain_str):
     :rtype: tuple
     """
     chain_spec = ChainSpec.from_chain_str(chain_str)
-    c = RpcClient(chain_spec)
+    #c = RpcClient(chain_spec)
     tx_transfer_signed = None
+    conn = RPCConnection.connect('signer')
     try:
-        tx_transfer_signed = c.w3.eth.sign_transaction(tx)
-    except FileNotFoundError:
-        pass
-    if tx_transfer_signed == None:
-        raise SignerError('sign tx')
+        o = sign_transaction(tx)
+        tx_transfer_signed = conn.do(o)
+    #try:
+    #    tx_transfer_signed = c.w3.eth.sign_transaction(tx)
+    except Exception as e:
+        raise SignerError('sign tx {}: {}'.format(tx, e))
     logg.debug('tx_transfer_signed {}'.format(tx_transfer_signed))
-    tx_hash = c.w3.keccak(hexstr=tx_transfer_signed['raw'])
+    h = sha3.keccak_256()
+    h.update(tx_transfer_signed['raw'])
+    g = h.digest()
+    #tx_hash = c.w3.keccak(hexstr=tx_transfer_signed['raw'])
     tx_hash_hex = tx_hash.hex()
     return (tx_hash_hex, tx_transfer_signed['raw'],)
 

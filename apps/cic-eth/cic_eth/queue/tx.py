@@ -77,7 +77,17 @@ def create(nonce, holder_address, tx_hash, signed_tx, chain_str, obsolete_predec
 
         for otx in q.all():
             logg.info('otx {} obsoleted by {}'.format(otx.tx_hash, tx_hash))
-            otx.cancel(confirmed=False, session=session)
+            try:
+                otx.cancel(confirmed=False, session=session)
+            except TxStateChangeError as e:
+                logg.exception('obsolete fail: {}'.format(e))
+                session.close()
+                raise(e)
+            except Exception as e:
+                logg.exception('obsolete UNEXPECTED fail: {}'.format(e))
+                session.close()
+                raise(e)
+
 
     session.commit()
     SessionBase.release_session(session)
@@ -107,10 +117,20 @@ def set_sent_status(tx_hash, fail=False):
         session.close()
         return False
 
-    if fail:
-        o.sendfail(session=session)
-    else:
-        o.sent(session=session)
+    try:
+        if fail:
+            o.sendfail(session=session)
+        else:
+            o.sent(session=session)
+    except TxStateChangeError as e:
+        logg.exception('set sent fail: {}'.format(e))
+        session.close()
+        raise(e)
+    except Exception as e:
+        logg.exception('set sent UNEXPECED fail: {}'.format(e))
+        session.close()
+        raise(e)
+
 
     session.commit()
     session.close()
@@ -154,10 +174,20 @@ def set_final_status(tx_hash, block=None, fail=False):
     q = q.filter(Otx.tx_hash==tx_hash)
     o = q.first()
 
-    if fail:
-        o.minefail(block, session=session)
-    else:
-        o.success(block, session=session)
+    try:
+        if fail:
+            o.minefail(block, session=session)
+        else:
+            o.success(block, session=session)
+        session.commit()
+    except TxStateChangeError as e:
+        logg.exception('set final fail: {}'.format(e))
+        session.close()
+        raise(e)
+    except Exception as e:
+        logg.exception('set final UNEXPECED fail: {}'.format(e))
+        session.close()
+        raise(e)
 
     q = session.query(Otx)
     q = q.join(TxCache)
@@ -166,8 +196,16 @@ def set_final_status(tx_hash, block=None, fail=False):
     q = q.filter(Otx.tx_hash!=tx_hash)
 
     for otwo in q.all():
-        otwo.cancel(True, session=session)
-
+        try:
+            otwo.cancel(True, session=session)
+        except TxStateChangeError as e:
+            logg.exception('cancel non-final fail: {}'.format(e))
+            session.close()
+            raise(e)
+        except Exception as e:
+            logg.exception('cancel non-final UNEXPECTED fail: {}'.format(e))
+            session.close()
+            raise(e)
     session.commit()
     session.close()
 
@@ -195,12 +233,16 @@ def set_cancel(tx_hash, manual=False):
 
     session.flush()
 
-    if manual:
-        o.override(session=session)
-    else:
-        o.cancel(session=session)
-
-    session.commit()
+    try:
+        if manual:
+            o.override(session=session)
+        else:
+            o.cancel(session=session)
+        session.commit()
+    except TxStateChangeError as e:
+        logg.exception('set cancel fail: {}'.format(e))
+    except Exception as e:
+        logg.exception('set cancel UNEXPECTED fail: {}'.format(e))
     session.close()
 
     return tx_hash

@@ -275,7 +275,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_tracker.sh -v -c /usr/local/etc/cic-eth
+        ./start_tracker.sh -vv -c /usr/local/etc/cic-eth
     # command: "/root/start_manager.sh head -vv"
 
 

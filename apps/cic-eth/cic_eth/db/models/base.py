@@ -116,6 +116,6 @@ class SessionBase(Model):
     def release_session(session=None):
         session_key = str(id(session))
         if SessionBase.localsessions.get(session_key) != None:
-            logg.debug('destroying session {}'.format(session_key))
+            logg.debug('commit and destroy session {}'.format(session_key))
             session.commit()
             session.close()

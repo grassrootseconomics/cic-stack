@@ -92,7 +92,7 @@ class Nonce(SessionBase):
         """
         session = SessionBase.bind_session(session)
         
-        session.begin_nested()
+        #session.begin_nested()
         #conn = Nonce.engine.connect()
         #if Nonce.transactional:
         #    conn.execute('BEGIN')
@@ -112,7 +112,7 @@ class Nonce(SessionBase):
             #conn.execute('COMMIT')
         #    logg.debug('unlocking nonce table for address {}'.format(address))
         #conn.close()
-        session.commit()
+        #session.commit()
 
         SessionBase.release_session(session)
         return nonce

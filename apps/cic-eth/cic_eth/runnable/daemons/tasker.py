@@ -8,12 +8,14 @@ import re
 import urllib
 import websocket
 
-# third-party imports
+# external imports
 import celery
 import confini
-from crypto_dev_signer.eth.web3ext import Web3 as Web3Ext
+#from crypto_dev_signer.eth.web3ext import Web3 as Web3Ext
 from web3 import HTTPProvider, WebsocketProvider
-from gas_proxy.web3 import GasMiddleware
+import web3
+#from gas_proxy.web3 import GasMiddleware
+from chainlib.eth.connection import RPCConnection
 
 # local imports
 from cic_registry.registry import CICRegistry
@@ -122,65 +124,85 @@ else:
         'result_backend': result,
         })
 
+# set up signer
+RPCConnection.register_location('signer', config.get('SIGNER_SOCKET_PATH'))
 
-# set up web3
-# TODO: web3 socket wrapping is now a lot of code. factor out
-class JSONRPCHttpSocketAdapter:
-
-    def __init__(self, url):
-        self.response = None
-        self.url = url
-
-    def send(self, data):
-        logg.debug('redirecting socket send to jsonrpc http socket adapter {} {}'.format(self.url, data))
-        req = urllib.request.Request(self.url, method='POST')
-        req.add_header('Content-type', 'application/json')
-        req.add_header('Connection', 'close')
-        res = urllib.request.urlopen(req, data=data.encode('utf-8'))
-        self.response = res.read().decode('utf-8')
-        logg.debug('setting jsonrpc http socket adapter response to {}'.format(self.response))
-
-    def recv(self, n=0):
-        return self.response
-
-
+# set up web3py
 re_websocket = re.compile('^wss?://')
 re_http = re.compile('^https?://')
 blockchain_provider = config.get('ETH_PROVIDER')
-socket_constructor = None
 if re.match(re_websocket, blockchain_provider) != None:
-    def socket_constructor_ws():
-        return websocket.create_connection(config.get('ETH_PROVIDER'))
-    socket_constructor = socket_constructor_ws
-    blockchain_provider = WebsocketProvider(blockchain_provider)
+    blockchain_provider = web3.Web3.WebsocketProvider(blockchain_provider)
 elif re.match(re_http, blockchain_provider) != None:
-    def socket_constructor_http():
-        return JSONRPCHttpSocketAdapter(config.get('ETH_PROVIDER'))
-    socket_constructor = socket_constructor_http
-    blockchain_provider = HTTPProvider(blockchain_provider)
+    blockchain_provider = web3.Web3.HTTPProvider(blockchain_provider)
 else:
     raise ValueError('unknown provider url {}'.format(blockchain_provider))
 
-
-def web3ext_constructor():
-    w3 = Web3Ext(blockchain_provider, config.get('SIGNER_SOCKET_PATH'))
-    GasMiddleware.socket_constructor = socket_constructor
-    w3.middleware_onion.add(GasMiddleware)
-
-    def sign_transaction(tx):
-        r = w3.eth.signTransaction(tx)
-        d = r.__dict__
-        for k in d.keys():
-            if k == 'tx':
-                d[k] = d[k].__dict__ 
-            else:
-                d[k] = d[k].hex()
-        return d
-
-    setattr(w3.eth, 'sign_transaction', sign_transaction)
-    setattr(w3.eth, 'send_raw_transaction', w3.eth.sendRawTransaction)
+def web3_constructor():
+    w3 = web3.Web3(blockchain_provider)
     return (blockchain_provider, w3)
-RpcClient.set_constructor(web3ext_constructor) 
+RpcClient.set_constructor(web3_constructor)
+
+
+#
+## set up web3
+## TODO: web3 socket wrapping is now a lot of code. factor out
+#class JSONRPCHttpSocketAdapter:
+#
+#    def __init__(self, url):
+#        self.response = None
+#        self.url = url
+#
+#    def send(self, data):
+#        logg.debug('redirecting socket send to jsonrpc http socket adapter {} {}'.format(self.url, data))
+#        req = urllib.request.Request(self.url, method='POST')
+#        req.add_header('Content-type', 'application/json')
+#        req.add_header('Connection', 'close')
+#        res = urllib.request.urlopen(req, data=data.encode('utf-8'))
+#        self.response = res.read().decode('utf-8')
+#        logg.debug('setting jsonrpc http socket adapter response to {}'.format(self.response))
+#
+#    def recv(self, n=0):
+#        return self.response
+#
+#
+#re_websocket = re.compile('^wss?://')
+#re_http = re.compile('^https?://')
+#blockchain_provider = config.get('ETH_PROVIDER')
+#socket_constructor = None
+#if re.match(re_websocket, blockchain_provider) != None:
+#    def socket_constructor_ws():
+#        return websocket.create_connection(config.get('ETH_PROVIDER'))
+#    socket_constructor = socket_constructor_ws
+#    blockchain_provider = WebsocketProvider(blockchain_provider)
+#elif re.match(re_http, blockchain_provider) != None:
+#    def socket_constructor_http():
+#        return JSONRPCHttpSocketAdapter(config.get('ETH_PROVIDER'))
+#    socket_constructor = socket_constructor_http
+#    blockchain_provider = HTTPProvider(blockchain_provider)
+#else:
+#    raise ValueError('unknown provider url {}'.format(blockchain_provider))
+#
+#
+#def web3ext_constructor():
+#    w3 = Web3Ext(blockchain_provider, config.get('SIGNER_SOCKET_PATH'))
+#    #GasMiddleware.socket_constructor = socket_constructor
+#    #w3.middleware_onion.add(GasMiddleware)
+#
+#    def sign_transaction(tx):
+#        r = w3.eth.signTransaction(tx)
+#        d = r.__dict__
+#        for k in d.keys():
+#            if k == 'tx':
+#                d[k] = d[k].__dict__ 
+#            else:
+#                d[k] = d[k].hex()
+#        return d
+#
+#    setattr(w3.eth, 'sign_transaction', sign_transaction)
+#    setattr(w3.eth, 'send_raw_transaction', w3.eth.sendRawTransaction)
+#    return (blockchain_provider, w3)
+#RpcClient.set_constructor(web3ext_constructor) 
 
 Otx.tracing = config.true('TASKS_TRACE_QUEUE_STATUS')
 

@@ -624,6 +624,8 @@ def reserve_nonce(self, chained_input, signer=None):
     root_id = self.request.root_id
     nonce = NonceReservation.next(address, root_id)
 
+    session.commit()
+
     session.close()
 
     return chained_input

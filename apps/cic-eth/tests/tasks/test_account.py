@@ -19,6 +19,7 @@ from cic_eth.db.models.role import AccountRole
 from cic_eth.eth.account import AccountTxFactory
 
 logg = logging.getLogger() #__name__)
+logging.getLogger('fuuck').setLevel(logging.DEBUG)
 
 
 def test_create_account(
@@ -26,8 +27,9 @@ def test_create_account(
         init_w3,
         init_database,
         celery_session_worker,
+        caplog,
         ):
-    
+    caplog.set_level(logging.DEBUG, 'cic_eth.task')
     s = celery.signature(
             'cic_eth.eth.account.create',
             [
@@ -42,7 +44,6 @@ def test_create_account(
     session = SessionBase.create_session()
     q = session.query(Nonce).filter(Nonce.address_hex==r)
     o = q.first()
-    logg.debug('oooo s {}'.format(o))
     session.close()
     assert o != None
     assert o.nonce == 0
@@ -56,6 +57,7 @@ def test_create_account(
             )
     t = s.apply_async()
     assert r == t.get()
+    print('caplog records {}'.format(caplog.records))
 
 
 def test_register_account(

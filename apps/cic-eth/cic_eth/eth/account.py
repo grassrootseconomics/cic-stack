@@ -8,6 +8,11 @@ from cic_registry.chain import ChainSpec
 from erc20_single_shot_faucet import Faucet
 from cic_registry import zero_address
 from hexathon import strip_0x
+from chainlib.eth.connection import RPCConnection
+from chainlib.eth.sign import (
+        new_account,
+        sign_message,
+        )
 
 # local import
 from cic_eth.registry import safe_registry
@@ -28,6 +33,7 @@ from cic_eth.error import (
 from cic_eth.task import (
         CriticalSQLAlchemyTask,
         CriticalSQLAlchemyAndSignerTask,
+        BaseTask,
         )
 
 #logg = logging.getLogger(__name__)
@@ -145,8 +151,8 @@ def unpack_gift(data):
      
 
 # TODO: Separate out nonce initialization task
-@celery_app.task(base=CriticalSQLAlchemyAndSignerTask)
-def create(password, chain_str):
+@celery_app.task(bind=True, base=CriticalSQLAlchemyAndSignerTask)
+def create(self, password, chain_str):
     """Creates and stores a new ethereum account in the keystore.
 
     The password is passed on to the wallet backend, no encryption is performed in the task worker.
@@ -159,18 +165,23 @@ def create(password, chain_str):
     :rtype: str, 0x-hex
     """
     chain_spec = ChainSpec.from_chain_str(chain_str)
-    c = RpcClient(chain_spec)
+    #c = RpcClient(chain_spec)
     a = None
-    try:
-        a = c.w3.eth.personal.new_account(password)
-    except FileNotFoundError:
-        pass
+    conn = RPCConnection.connect('signer')
+    o = new_account()
+    a = conn.do(o)
+
+    #try:
+    #    a = c.w3.eth.personal.new_account(password)
+    #except FileNotFoundError:
+    #    pass
     if a == None:
         raise SignerError('create account')
     logg.debug('created account {}'.format(a))
 
     # Initialize nonce provider record for account
-    session = SessionBase.create_session()
+    #session = SessionBase.create_session()
+    session = self.create_session()
     Nonce.init(a, session=session)
     session.commit()
     session.close()
@@ -193,7 +204,8 @@ def register(self, account_address, chain_str, writer_address=None):
     """
     chain_spec = ChainSpec.from_chain_str(chain_str)
 
-    session = SessionBase.create_session()
+    session = self.create_session()
+    #session = SessionBase.create_session()
     if writer_address == None:
         writer_address = AccountRole.get_address('ACCOUNTS_INDEX_WRITER', session=session)
 
@@ -211,6 +223,7 @@ def register(self, account_address, chain_str, writer_address=None):
     tx_add = txf.add(account_address, chain_spec, self.request.root_id, session=session)
     
     (tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx_add, chain_str, queue, 'cic_eth.eth.account.cache_account_data', session=session)
+    session.commit()
     session.close()
 
     gas_budget = tx_add['gas'] * tx_add['gasPrice']
@@ -248,9 +261,11 @@ def gift(self, account_address, chain_str):
     registry = safe_registry(c.w3)
     txf = AccountTxFactory(account_address, c, registry=registry)
 
-    session = SessionBase.create_session()
+    #session = SessionBase.create_session()
+    session = self.create_session()
     tx_add = txf.gift(account_address, chain_spec, self.request.root_id, session=session)
     (tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx_add, chain_str, queue, 'cic_eth.eth.account.cache_gift_data', session=session)
+    session.commit()
     session.close()
 
     gas_budget = tx_add['gas'] * tx_add['gasPrice']
@@ -279,16 +294,17 @@ def have(self, account, chain_str):
     :returns: Account, or None if not exists
     :rtype: Varies
     """
-    c = RpcClient(account)
+    o = sign_message(account, '0x2a')
     try:
-        c.w3.eth.sign(account, text='2a')
+        conn = RPCConnection.connect('signer')
+        conn.do(o)
         return account
     except Exception as e:
         logg.debug('cannot sign with {}: {}'.format(account, e))
         return None
+    
 
-
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, base=BaseTask)
 def role(self, account, chain_str):
     """Return account role for address
 
@@ -299,11 +315,15 @@ def role(self, account, chain_str):
     :returns: Account, or None if not exists
     :rtype: Varies
     """
-    return AccountRole.role_for(account)
+    session = self.create_session()
+    role_tag =  AccountRole.role_for(account, session=session)
+    session.close()
+    return role_tag
 
 
-@celery_app.task(base=CriticalSQLAlchemyTask)
+@celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
 def cache_gift_data(
+    self,
     tx_hash_hex,
     tx_signed_raw_hex,
     chain_str,
@@ -326,7 +346,8 @@ def cache_gift_data(
     tx = unpack_signed_raw_tx(tx_signed_raw_bytes, chain_spec.chain_id())
     tx_data = unpack_gift(tx['data'])
 
-    session = SessionBase.create_session()
+    #session = SessionBase.create_session()
+    session = self.create_session()
 
     tx_cache = TxCache(
         tx_hash_hex,
@@ -346,8 +367,9 @@ def cache_gift_data(
     return (tx_hash_hex, cache_id)
 
 
-@celery_app.task(base=CriticalSQLAlchemyTask)
+@celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
 def cache_account_data(
+    self,
     tx_hash_hex,
     tx_signed_raw_hex,
     chain_str,

@@ -126,5 +126,8 @@ def check_lock(chained_input, chain_str, lock_flags, address=None):
         r |= Lock.check(chain_str, lock_flags, address=address, session=session)
     if r > 0:
         logg.debug('lock check {} has match {} for {}'.format(lock_flags, r, address))
+        session.close()
         raise LockedError(r)
+    session.flush()
+    session.close()
     return chained_input

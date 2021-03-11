@@ -1,5 +1,8 @@
 # import
+import time
 import requests
+import logging
+import uuid
 
 # external imports
 import celery
@@ -10,9 +13,23 @@ from cic_eth.error import (
         SignerError,
         EthError,
         )
+from cic_eth.db.models.base import SessionBase
+
+logg = logging.getLogger(__name__)
+
+celery_app = celery.current_app
 
 
-class CriticalTask(celery.Task):
+class BaseTask(celery.Task):
+
+    session_func = SessionBase.create_session
+
+    def create_session(self):
+        logg.warning('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> session from base {}'.format(id(self.session_func)))
+        return BaseTask.session_func()
+
+    
+class CriticalTask(BaseTask):
     retry_jitter = True
     retry_backoff = True
     retry_backoff_max = 8
@@ -54,3 +71,9 @@ class CriticalWeb3AndSignerTask(CriticalTask):
         requests.exceptions.ConnectionError,
         SignerError,
         )
+
+
+@celery_app.task(bind=True, base=BaseTask)
+def hello(self):
+    time.sleep(0.1)
+    return id(SessionBase.create_session)
