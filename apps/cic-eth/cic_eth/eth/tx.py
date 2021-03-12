@@ -4,9 +4,20 @@ import logging
 # third-party imports
 import celery
 import requests
-import web3
 from cic_registry import zero_address
 from cic_registry.chain import ChainSpec
+from chainlib.eth.address import is_checksum_address
+from chainlib.eth.gas import balance
+from chainlib.eth.error import (
+        EthException,
+        NotFoundEthException,
+        )
+from chainlib.eth.tx import (
+        transaction,
+        receipt,
+        )
+from chainlib.hash import keccak256_hex_to_hex
+
 
 # local imports
 from .rpc import RpcClient
@@ -80,7 +91,8 @@ def check_gas(self, tx_hashes, chain_str, txs=[], address=None, gas_required=Non
             if address == None:
                 address = o['address']
 
-    if not web3.Web3.isChecksumAddress(address):
+    #if not web3.Web3.isChecksumAddress(address):
+    if not is_checksum_address(address):
         raise ValueError('invalid address {}'.format(address))
 
     chain_spec = ChainSpec.from_chain_str(chain_str)
@@ -88,13 +100,16 @@ def check_gas(self, tx_hashes, chain_str, txs=[], address=None, gas_required=Non
     queue = self.request.delivery_info['routing_key']
 
     #c = RpcClient(chain_spec, holder_address=address)
-    c = RpcClient(chain_spec)
+    #c = RpcClient(chain_spec)
+    conn = RPCConnection.connect()
 
     # TODO: it should not be necessary to pass address explicitly, if not passed should be derived from the tx
     balance = 0
     try:
-        balance = c.w3.eth.getBalance(address) 
-    except ValueError as e:
+        #balance = c.w3.eth.getBalance(address) 
+        o = balance(address)
+        r = conn.do(o)
+    except EthException as e:
         raise EthError('balance call for {}: {}'.format(address, e))
 
     logg.debug('address {} has gas {} needs {}'.format(address, balance, gas_required))
@@ -394,8 +409,9 @@ def send(self, txs, chain_str):
     tx_hex = txs[0]
     logg.debug('send transaction {}'.format(tx_hex))
 
-    tx_hash = web3.Web3.keccak(hexstr=tx_hex)
-    tx_hash_hex = tx_hash.hex()
+    tx_hash = add_0x(keccak256_hex_to_hex())
+    #tx_hash = web3.Web3.keccak(hexstr=tx_hex)
+    #tx_hash_hex = tx_hash.hex()
 
     queue = self.request.delivery_info.get('routing_key', None)
 
@@ -434,7 +450,7 @@ def send(self, txs, chain_str):
 
 # TODO: if this method fails the nonce will be out of sequence. session needs to be extended to include the queue create, so that nonce is rolled back if the second sql query fails. Better yet, split each state change into separate tasks.
 # TODO: method is too long, factor out code for clarity
-@celery_app.task(bind=True, throws=(web3.exceptions.TransactionNotFound,), base=CriticalWeb3AndSignerTask)
+@celery_app.task(bind=True, throws=(NotFoundEthException,), base=CriticalWeb3AndSignerTask)
 def refill_gas(self, recipient_address, chain_str):
     """Executes a native token transaction to fund the recipient's gas expenditures.
 
@@ -467,9 +483,15 @@ def refill_gas(self, recipient_address, chain_str):
     queue = self.request.delivery_info['routing_key']
 
     c = RpcClient(chain_spec)
-    clogg = celery_app.log.get_default_logger()
+    conn = RPCConnection.connect()
     logg.debug('refill gas from provider address {}'.format(c.gas_provider()))
-    default_nonce = c.w3.eth.getTransactionCount(c.gas_provider(), 'pending')
+
+    # Get default nonce to use from network if no nonce has been set
+    # TODO: This step may be redundant as nonce entry is set at account creation time
+    #default_nonce = c.w3.eth.getTransactionCount(c.gas_provider(), 'pending')
+    o = count_pending(c.gas_provider())
+    default_nonce = conn.do(o)
+
     nonce_generator = NonceOracle(c.gas_provider(), default_nonce)
     #nonce = nonce_generator.next(session=session)
     nonce = nonce_generator.next_by_task_uuid(self.request.root_id, session=session)
@@ -491,9 +513,10 @@ def refill_gas(self, recipient_address, chain_str):
                 'value': refill_amount,
                 'data': '',
             }
-    tx_send_gas_signed = c.w3.eth.sign_transaction(tx_send_gas)
-    tx_hash = web3.Web3.keccak(hexstr=tx_send_gas_signed['raw'])
-    tx_hash_hex = tx_hash.hex()
+    #tx_send_gas_signed = c.w3.eth.sign_transaction(tx_send_gas)
+    #tx_hash = web3.Web3.keccak(hexstr=tx_send_gas_signed['raw'])
+    #tx_hash_hex = tx_hash.hex()
+    (tx_hash_hex, tx_send_gas_signed) = sign_tx(tx_send_gas)
 
     # TODO: route this through sign_and_register_tx instead
     logg.debug('adding queue refill gas tx {}'.format(tx_hash_hex))
@@ -612,14 +635,15 @@ def reserve_nonce(self, chained_input, signer=None):
         address = chained_input
         logg.debug('non-explicit address for reserve nonce, using arg head {}'.format(chained_input))
     else:
-        if web3.Web3.isChecksumAddress(signer):
+        #if web3.Web3.isChecksumAddress(signer):
+        if is_checksum_address(signer):
             address = signer
             logg.debug('explicit address for reserve nonce {}'.format(signer))
         else:
             address = AccountRole.get_address(signer, session=session)
             logg.debug('role for reserve nonce {} -> {}'.format(signer, address))
 
-    if not web3.Web3.isChecksumAddress(address):
+    if not is_checksum_address(address):
         raise ValueError('invalid result when resolving address for nonce {}'.format(address))
 
     root_id = self.request.root_id
@@ -632,7 +656,7 @@ def reserve_nonce(self, chained_input, signer=None):
     return chained_input
 
 
-@celery_app.task(bind=True, throws=(web3.exceptions.TransactionNotFound,), base=CriticalWeb3Task)
+@celery_app.task(bind=True, throws=(NotFoundEthException,), base=CriticalWeb3Task)
 def sync_tx(self, tx_hash_hex, chain_str):
     """Force update of network status of a simgle transaction
 
@@ -645,13 +669,19 @@ def sync_tx(self, tx_hash_hex, chain_str):
     queue = self.request.delivery_info['routing_key']
 
     chain_spec = ChainSpec.from_chain_str(chain_str)
-    c = RpcClient(chain_spec)
+    #c = RpcClient(chain_spec)
 
-    tx = c.w3.eth.getTransaction(tx_hash_hex)
+    #tx = c.w3.eth.getTransaction(tx_hash_hex)
+    conn = RPCConnection.connect()
+    o = transaction(tx_hash_hex)
+    tx = conn.do(o)
+
     rcpt = None
     try:
-        rcpt = c.w3.eth.getTransactionReceipt(tx_hash_hex)
-    except web3.exceptions.TransactionNotFound as e:
+        o = receipt(tx_hash_hex)
+        rcpt = conn.do(o)
+        #rcpt = c.w3.eth.getTransactionReceipt(tx_hash_hex)
+    except NotFoundEthException as e: #web3.exceptions.TransactionNotFound as e:
         pass
 
     if rcpt != None:

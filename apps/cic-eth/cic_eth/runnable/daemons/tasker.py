@@ -125,7 +125,7 @@ else:
         })
 
 # set up signer
-RPCConnection.register_location('signer', config.get('SIGNER_SOCKET_PATH'))
+RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), 'signer')
 
 # set up web3py
 re_websocket = re.compile('^wss?://')

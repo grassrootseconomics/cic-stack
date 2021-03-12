@@ -2,7 +2,6 @@
 import logging
 
 # third-party imports
-import web3
 import celery
 from cic_registry.chain import ChainSpec
 from erc20_single_shot_faucet import Faucet
@@ -13,6 +12,7 @@ from chainlib.eth.sign import (
         new_account,
         sign_message,
         )
+from chainlib.eth.address import to_checksum_address
 
 # local import
 from cic_eth.registry import safe_registry
@@ -126,7 +126,7 @@ def unpack_register(data):
 
     d = data[8:]
     return {
-        'to': web3.Web3.toChecksumAddress('0x' + d[64-40:64]),
+        'to': to_checksum_address(d[64-40:64]),
         }
 
 
@@ -146,7 +146,7 @@ def unpack_gift(data):
 
     d = data[8:]
     return {
-        'to': web3.Web3.toChecksumAddress('0x' + d[64-40:64]),
+        'to': to_checksum_address(d[64-40:64]),
         }
      
 

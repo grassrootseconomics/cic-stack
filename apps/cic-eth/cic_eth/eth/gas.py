@@ -1,6 +1,10 @@
 # standard imports
 import logging
 
+# external imports
+from chainlib.eth.gas import price
+from hexathon import strip_0x
+
 # local imports
 from cic_eth.db.models.role import AccountRole
 from cic_eth.db.models.base import SessionBase
@@ -19,9 +23,14 @@ class GasOracle():
     __refill_amount_value = __safe_threshold_amount_value * 5
     default_gas_limit = 21000
 
-    def __init__(self, w3):
-        self.w3 = w3
-        self.gas_price_current = w3.eth.gas_price()
+    def __init__(self, conn):
+        o = price()
+        r = conn.do(o)
+        b = bytes.from_hex(strip_0x(r))
+        self.gas_price_current = int.from_bytes(b, 'big')
+
+        #self.w3 = w3
+        #self.gas_price_current = w3.eth.gas_price()
 
 
     def safe_threshold_amount(self):
