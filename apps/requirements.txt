@@ -3,7 +3,7 @@ alembic==1.4.2
 bcrypt==3.2.0
 celery==4.4.7
 confini==0.3.6rc3
-crypto-dev-signer==0.4.13rc4
+crypto-dev-signer==0.4.13rc6
 cryptography==3.2.1
 ecuth==0.4.5a1
 eth-accounts-index==0.0.10a10
@@ -42,6 +42,6 @@ rlp==2.0.1
 cryptocurrency-cli-tools==0.0.4
 giftable-erc20-token==0.0.7b12
 hexathon==0.0.1a3
-chainlib==0.0.1a21
+chainlib==0.0.1a25
 chainsyncer==0.0.1a19
 cic-registry==0.5.3.a22

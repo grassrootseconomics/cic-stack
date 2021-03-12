@@ -1,7 +1,7 @@
-cic-base~=0.1.1a24
+cic-base~=0.1.1a30
 web3==5.12.2
 celery==4.4.7
-crypto-dev-signer~=0.4.13rc4
+crypto-dev-signer~=0.4.13rc6
 confini~=0.3.6rc3
 cic-registry~=0.5.3a22
 cic-bancor~=0.0.6
@@ -19,6 +19,7 @@ eth-gas-proxy==0.0.1a4
 websocket-client==0.57.0
 moolb~=0.1.1b2
 eth-address-index~=0.1.0a8
-chainlib~=0.0.1a21
+chainlib~=0.0.1a25
 hexathon~=0.0.1a3
 chainsyncer~=0.0.1a19
+pysha3==1.0.2

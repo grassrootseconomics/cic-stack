@@ -410,7 +410,8 @@ def send(self, txs, chain_str):
             queue=queue,
         )
     try:
-        r = c.w3.eth.send_raw_transaction(tx_hex)
+        #r = c.w3.eth.send_raw_transaction(tx_hex)
+        r = c.w3.eth.sendRawTransaction(tx_hex)
     except requests.exceptions.ConnectionError as e:
         raise(e)
     except Exception as e:

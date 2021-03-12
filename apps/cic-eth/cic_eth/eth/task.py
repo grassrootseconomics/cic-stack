@@ -2,10 +2,15 @@
 import logging
 
 # external imports
+import sha3
 import celery
 from cic_registry.chain import ChainSpec
 from chainlib.eth.sign import sign_transaction
 from chainlib.eth.connection import RPCConnection
+from hexathon import (
+        strip_0x,
+        add_0x,
+        )
 
 # local imports
 from cic_eth.eth import RpcClient
@@ -40,10 +45,10 @@ def sign_tx(tx, chain_str):
         raise SignerError('sign tx {}: {}'.format(tx, e))
     logg.debug('tx_transfer_signed {}'.format(tx_transfer_signed))
     h = sha3.keccak_256()
-    h.update(tx_transfer_signed['raw'])
-    g = h.digest()
+    h.update(bytes.fromhex(strip_0x(tx_transfer_signed['raw'])))
+    tx_hash = h.digest()
     #tx_hash = c.w3.keccak(hexstr=tx_transfer_signed['raw'])
-    tx_hash_hex = tx_hash.hex()
+    tx_hash_hex = add_0x(tx_hash.hex())
     return (tx_hash_hex, tx_transfer_signed['raw'],)
 
 
