@@ -10,5 +10,6 @@ sys.path.insert(0, root_dir)
 from tests.fixtures_config import *
 from tests.fixtures_celery import *
 from tests.fixtures_database import *
-from tests.fixtures_registry import *
-from chainlib.pytest.fixtures_ethtester import *
+from tests.fixtures_contracts import *
+from chainlib.eth.pytest import *
+from cic_registry.pytest import *
