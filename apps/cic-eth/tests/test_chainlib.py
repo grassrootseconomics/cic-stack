@@ -2,7 +2,7 @@
 import logging
 
 # external imports
-from chainlib.eth.connection import RPCConnection
+from chainlib.connection import RPCConnection
 from chainlib.eth.gas import (
         balance,
         price,
@@ -19,31 +19,33 @@ logg = logging.getLogger(__name__)
 
 
 def test_init_eth_tester(
-        accounts,
+        default_chain_spec,
+        eth_accounts,
         init_eth_tester,
-        init_rpc,
+        eth_rpc,
         ):
 
-    conn = RPCConnection.connect()
-    o = balance(accounts[0])
+    conn = RPCConnection.connect(default_chain_spec, 'default')
+    o = balance(eth_accounts[0])
     conn.do(o)
 
     o = price()
     conn.do(o)
 
-    o = count_pending(accounts[0])
+    o = count_pending(eth_accounts[0])
     conn.do(o)
 
-    o = count_confirmed(accounts[0])
+    o = count_confirmed(eth_accounts[0])
     conn.do(o)
 
 
 def test_signer(
+        default_chain_spec,
         init_eth_tester,
-        init_rpc,
-        accounts,
+        eth_rpc,
+        eth_accounts,
         ):
 
-    o = sign_message(accounts[0], '0x2a')
-    conn = RPCConnection.connect('signer')
+    o = sign_message(eth_accounts[0], '0x2a')
+    conn = RPCConnection.connect(default_chain_spec, 'signer')
     r = conn.do(o)
