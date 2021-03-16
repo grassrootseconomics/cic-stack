@@ -5,9 +5,9 @@ import logging
 import celery
 from cic_registry.chain import ChainSpec
 from erc20_single_shot_faucet import Faucet
-from cic_registry import zero_address
+from chainlib.eth.constant import ZERO_ADDRESS
 from hexathon import strip_0x
-from chainlib.eth.connection import RPCConnection
+from chainlib.connection import RPCConnection
 from chainlib.eth.sign import (
         new_account,
         sign_message,
@@ -167,7 +167,7 @@ def create(self, password, chain_str):
     chain_spec = ChainSpec.from_chain_str(chain_str)
     #c = RpcClient(chain_spec)
     a = None
-    conn = RPCConnection.connect('signer')
+    conn = RPCConnection.connect(chain_spec, 'signer')
     o = new_account()
     a = conn.do(o)
 
@@ -207,22 +207,22 @@ def register(self, account_address, chain_str, writer_address=None):
     session = self.create_session()
     #session = SessionBase.create_session()
     if writer_address == None:
-        writer_address = AccountRole.get_address('ACCOUNTS_INDEX_WRITER', session=session)
+        writer_address = AccountRole.get_address('ACCOUNT_REGISTRY_WRITER', session=session)
 
-    if writer_address == zero_address:
+    if writer_address == ZERO_ADDRESS:
         session.close()
         raise RoleMissingError(account_address)
 
     logg.debug('adding account address {} to index; writer {}'.format(account_address, writer_address))
     queue = self.request.delivery_info['routing_key']
 
-    c = RpcClient(chain_spec, holder_address=writer_address)
-    registry = safe_registry(c.w3)
-    txf = AccountTxFactory(writer_address, c, registry=registry)
+#    c = RpcClient(chain_spec, holder_address=writer_address)
+#    registry = safe_registry(c.w3)
+#    txf = AccountTxFactory(writer_address, c, registry=registry)
+#    tx_add = txf.add(account_address, chain_spec, self.request.root_id, session=session)
+#    (tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx_add, chain_str, queue, 'cic_eth.eth.account.cache_account_data', session=session)
 
-    tx_add = txf.add(account_address, chain_spec, self.request.root_id, session=session)
-    
-    (tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx_add, chain_str, queue, 'cic_eth.eth.account.cache_account_data', session=session)
+
     session.commit()
     session.close()
 
@@ -294,9 +294,10 @@ def have(self, account, chain_str):
     :returns: Account, or None if not exists
     :rtype: Varies
     """
+    chain_spec = ChainSpec.from_chain_str(chain_str)
     o = sign_message(account, '0x2a')
     try:
-        conn = RPCConnection.connect('signer')
+        conn = RPCConnection.connect(chain_spec, 'signer')
         conn.do(o)
         return account
     except Exception as e:
@@ -353,8 +354,8 @@ def cache_gift_data(
         tx_hash_hex,
         tx['from'],
         tx['to'],
-        zero_address,
-        zero_address,
+        ZERO_ADDRESS,
+        ZERO_ADDRESS,
         0,
         0,
         session=session,
@@ -398,8 +399,8 @@ def cache_account_data(
         tx_hash_hex,
         tx['from'],
         tx['to'],
-        zero_address,
-        zero_address,
+        ZERO_ADDRESS,
+        ZERO_ADDRESS,
         0,
         0,
         session=session,

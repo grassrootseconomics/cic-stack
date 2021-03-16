@@ -55,9 +55,9 @@ cic-eth-tag TRANSFER_AUTHORIZATION_OWNER $DEV_ETH_ACCOUNT_TRANSFER_AUTHORIZATION
 #cic-eth-tag FAUCET_GIFTER $DEV_ETH_ACCOUNT_FAUCET_OWNER
 
 >&2 echo "create account for accounts index writer"
-DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER=`cic-eth-create $debug --redis-host-callback=$REDIS_HOST --redis-port-callback=$REDIS_PORT --no-register`
-echo DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER=$DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER >> $env_out_file
-cic-eth-tag ACCOUNTS_INDEX_WRITER $DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER
+DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER=`cic-eth-create $debug --redis-host-callback=$REDIS_HOST --redis-port-callback=$REDIS_PORT --no-register`
+echo DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER=$DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER >> $env_out_file
+cic-eth-tag ACCOUNT_REGISTRY_WRITER $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER
 
 
 # Transfer gas to custodial gas provider adddress
@@ -68,7 +68,7 @@ cic-eth-tag ACCOUNTS_INDEX_WRITER $DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER
 >&2 eth-gas -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug $DEV_ETH_ACCOUNT_SARAFU_GIFTER $gas_amount
 
 >&2 echo gift gas to account index owner
->&2 eth-gas -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug $DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER $gas_amount
+>&2 eth-gas -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER $gas_amount
 
 # Send token to token creator
 >&2 echo "gift tokens to sarafu owner"
@@ -100,7 +100,7 @@ export CIC_TRANSFER_AUTHORIZATION_ADDRESS=$CIC_TRANSFER_AUTHORIZATION_ADDRESS
 
 # Deploy one-time token faucet for newly created token
 >&2 echo "deploy faucet"
-DEV_ETH_SARAFU_FAUCET_ADDRESS=`sarafu-faucet-deploy -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER --token-address $DEV_ETH_SARAFU_TOKEN_ADDRESS --editor $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER --set-amount $faucet_amount --accounts-index-address $DEV_ETH_ACCOUNTS_INDEX_ADDRESS -w $debug`
+DEV_ETH_SARAFU_FAUCET_ADDRESS=`sarafu-faucet-deploy -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER --token-address $DEV_ETH_SARAFU_TOKEN_ADDRESS --editor $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER --set-amount $faucet_amount --accounts-index-address $DEV_ETH_ACCOUNT_REGISTRY_ADDRESS -w $debug`
 echo DEV_ETH_SARAFU_FAUCET_ADDRESS=$DEV_ETH_SARAFU_FAUCET_ADDRESS  >> $env_out_file
 export DEV_ETH_SARAFU_FAUCET_ADDRESS=$DEV_ETH_SARAFU_FAUCET_ADDRESS 
 
@@ -143,7 +143,7 @@ token_description_two=0x54686973206973207468652053617261667520746f6b656e00000000
 
 # Add accounts index writer with key from keystore
 >&2 echo "add keystore account $keystore_file to accounts index writers"
->&2 eth-accounts-index-add -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -r $CIC_ACCOUNTS_INDEX_ADDRESS --writer $DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER -w $debug
+>&2 eth-accounts-index-add -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -r $CIC_ACCOUNT_REGISTRY_ADDRESS --writer $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER -w $debug
 
 echo -n 0 > $init_level_file
 

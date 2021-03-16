@@ -4,9 +4,9 @@ import logging
 # external imports
 import sha3
 import celery
-from cic_registry.chain import ChainSpec
+from chainlib.chain import ChainSpec
 from chainlib.eth.sign import sign_transaction
-from chainlib.eth.connection import RPCConnection
+from chainlib.connection import RPCConnection
 from hexathon import (
         strip_0x,
         add_0x,

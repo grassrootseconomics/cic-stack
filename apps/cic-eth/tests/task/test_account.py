@@ -6,9 +6,7 @@ import time
 # third-party imports
 import pytest
 import celery
-from chainlib.eth.connection import RPCConnection
-import logging_tree
-from eth_keys import KeyAPI
+from chainlib.connection import RPCConnection
 
 # local imports
 from cic_eth.error import OutOfGasError
@@ -25,7 +23,7 @@ logg = logging.getLogger()
 
 def test_create_account(
         default_chain_spec,
-        init_rpc,
+        eth_rpc,
         init_database,
         celery_session_worker,
         caplog,
@@ -60,13 +58,13 @@ def test_create_account(
 
 def test_register_account(
         default_chain_spec,
-        accounts_registry,
+        account_registry,
         init_database,
-        accounts,
-        rpc,
-        cic_registry,
+        eth_accounts,
+        eth_rpc,
+        registry,
         celery_session_worker,
-        empty_accounts,
+        eth_empty_accounts,
         ):
 
     logg.debug('chainspec {}'.format(str(default_chain_spec)))
@@ -74,8 +72,8 @@ def test_register_account(
     s_nonce = celery.signature(
             'cic_eth.eth.tx.reserve_nonce',
             [
-                empty_accounts[0],
-                accounts[0],
+                eth_empty_accounts[0],
+                eth_accounts[0],
                 ],
             queue=None,
             )
@@ -83,7 +81,7 @@ def test_register_account(
             'cic_eth.eth.account.register',
             [
                 str(default_chain_spec),
-                init_w3.eth.accounts[0],
+                eth_accounts[0],
                 ],
             )
     s_nonce.link(s_register)
@@ -112,7 +110,7 @@ def test_register_account(
 
     init_eth_tester.mine_block()
 
-    assert accounts_registry.have(eth_empty_accounts[0])
+    assert account_registry.have(eth_empty_accounts[0])
 
 
 def test_role_task(
