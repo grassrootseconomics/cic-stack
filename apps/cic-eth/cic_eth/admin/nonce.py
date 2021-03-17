@@ -10,16 +10,22 @@ from cic_eth.db.models.base import SessionBase
 from cic_eth.db.models.otx import Otx
 from cic_eth.db.models.tx import TxCache
 from cic_eth.db.models.nonce import Nonce
-from cic_eth.admin.ctrl import lock_send
-from cic_eth.admin.ctrl import unlock_send
-from cic_eth.admin.ctrl import lock_queue
-from cic_eth.admin.ctrl import unlock_queue
-from cic_eth.queue.tx import get_tx
-from cic_eth.queue.tx import set_cancel
+from cic_eth.admin.ctrl import (
+        lock_send,
+        unlock_send,
+        lock_queue,
+        unlock_queue,
+        )
+from cic_eth.queue.tx import (
+        get_tx,
+        set_cancel,
+        )
 from cic_eth.queue.tx import create as queue_create
 from cic_eth.eth.util import unpack_signed_raw_tx
-from cic_eth.eth.task import sign_tx
-from cic_eth.eth.task import create_check_gas_and_send_task
+from cic_eth.eth.task import (
+        sign_tx,
+        create_check_gas_task,
+    )
 
 celery_app = celery.current_app
 logg = logging.getLogger()

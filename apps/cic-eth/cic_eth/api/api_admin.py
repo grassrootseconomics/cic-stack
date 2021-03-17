@@ -10,6 +10,7 @@ from cic_registry import zero_content
 from cic_registry import CICRegistry
 from crypto_dev_signer.eth.web3ext import Web3 as Web3Ext
 from cic_registry.error import UnknownContractError
+from chainlib.eth.address import to_checksum_address
 
 # local imports
 from cic_eth.db.models.base import SessionBase
@@ -93,7 +94,8 @@ class AdminApi:
         :type address_hex: str, 0x-hex
         :raises ValueError: Invalid checksum address
         """
-        if not web3.Web3.isChecksumAddress(address_hex):
+        #if not web3.Web3.isChecksumAddress(address_hex):
+        if not to_checksum_address(address_hex):
             raise ValueError('invalid address')
         session = SessionBase.create_session()
         role = AccountRole.set(tag, address_hex) 

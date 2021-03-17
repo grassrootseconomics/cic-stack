@@ -13,13 +13,18 @@ from chainlib.eth.sign import (
         sign_message,
         )
 from chainlib.eth.address import to_checksum_address
+from chainlib.eth.tx import TxFormat 
+from eth_accounts_index import AccountRegistry
 
 # local import
-from cic_eth.registry import safe_registry
-from cic_eth.eth import RpcClient
+#from cic_eth.registry import safe_registry
+#from cic_eth.eth import RpcClient
+from cic_eth_registry import CICRegistry
 from cic_eth.eth import registry_extra_identifiers
-from cic_eth.eth.task import sign_and_register_tx
-from cic_eth.eth.task import create_check_gas_and_send_task
+from cic_eth.eth.task import (
+        register_tx,
+        create_check_gas_task,
+        )
 from cic_eth.eth.factory import TxFactory
 from cic_eth.db.models.nonce import Nonce
 from cic_eth.db.models.base import SessionBase
@@ -39,6 +44,8 @@ from cic_eth.task import (
 #logg = logging.getLogger(__name__)
 logg = logging.getLogger()
 celery_app = celery.current_app 
+#celery_app.log.setup_task_loggers(loglevel=logging.DEBUG)
+#celery_app.log.redirect_stdouts_to_logger(logg, loglevel=logging.DEBUG)
 
 
 class AccountTxFactory(TxFactory):
@@ -214,7 +221,7 @@ def register(self, account_address, chain_str, writer_address=None):
         raise RoleMissingError(account_address)
 
     logg.debug('adding account address {} to index; writer {}'.format(account_address, writer_address))
-    queue = self.request.delivery_info['routing_key']
+    queue = self.request.delivery_info.get('routing_key')
 
 #    c = RpcClient(chain_spec, holder_address=writer_address)
 #    registry = safe_registry(c.w3)
@@ -222,11 +229,29 @@ def register(self, account_address, chain_str, writer_address=None):
 #    tx_add = txf.add(account_address, chain_spec, self.request.root_id, session=session)
 #    (tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx_add, chain_str, queue, 'cic_eth.eth.account.cache_account_data', session=session)
 
+    # Retrieve account index address
+    rpc = RPCConnection.connect(chain_spec, 'default')
+    reg = CICRegistry(chain_spec, rpc)
+    call_address = AccountRole.get_address('DEFAULT', session=session)
+    account_registry_address = reg.by_name('AccountRegistry', sender_address=call_address)
+   
+    # Generate and sign transaction
+    rpc_signer = RPCConnection.connect(chain_spec, 'signer')
+    nonce_oracle = self.create_nonce_oracle(writer_address, rpc)
+    gas_oracle = self.create_gas_oracle(rpc)
+    account_registry = AccountRegistry(signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
+    (tx_hash_hex, tx_signed_raw_hex) = account_registry.add(account_registry_address, writer_address, account_address, tx_format=TxFormat.RLP_SIGNED)
+    #cache_task = 'cic_eth.eth.account.cache_account_data'
+    cache_task = None
 
+    # add transaction to queue
+    register_tx(tx_hash_hex, tx_signed_raw_hex, chain_str, queue, cache_task=cache_task, session=session)
     session.commit()
     session.close()
 
-    gas_budget = tx_add['gas'] * tx_add['gasPrice']
+    return tx_hash_hex
+
+    #gas_budget = tx_add['gas'] * tx_add['gasPrice']
 
     logg.debug('register user tx {}'.format(tx_hash_hex))
     s = create_check_gas_and_send_task(

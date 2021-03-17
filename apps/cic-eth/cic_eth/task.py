@@ -7,6 +7,9 @@ import uuid
 # external imports
 import celery
 import sqlalchemy
+from chainlib.eth.constant import ZERO_ADDRESS
+from chainlib.eth.nonce import RPCNonceOracle
+from chainlib.eth.gas import RPCGasOracle
 
 # local imports
 from cic_eth.error import (
@@ -23,9 +26,11 @@ celery_app = celery.current_app
 class BaseTask(celery.Task):
 
     session_func = SessionBase.create_session
+    call_address = ZERO_ADDRESS
+    create_nonce_oracle = RPCNonceOracle
+    create_gas_oracle = RPCGasOracle
 
     def create_session(self):
-        logg.warning('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> session from base {}'.format(id(self.session_func)))
         return BaseTask.session_func()
 
     

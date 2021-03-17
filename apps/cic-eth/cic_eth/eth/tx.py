@@ -17,6 +17,7 @@ from chainlib.eth.tx import (
         receipt,
         )
 from chainlib.hash import keccak256_hex_to_hex
+from hexathon import add_0x
 
 
 # local imports
@@ -39,8 +40,11 @@ from cic_eth.queue.tx import get_nonce_tx
 from cic_eth.error import OutOfGasError
 from cic_eth.error import LockedError
 from cic_eth.eth.util import unpack_signed_raw_tx
-from cic_eth.eth.task import sign_and_register_tx, create_check_gas_and_send_task
-from cic_eth.eth.task import sign_tx
+from cic_eth.eth.task import (
+        register_tx,
+        create_check_gas_task,
+        sign_tx,
+        )
 from cic_eth.eth.nonce import NonceOracle
 from cic_eth.error import (
         AlreadyFillingGasError,
@@ -409,13 +413,11 @@ def send(self, txs, chain_str):
     tx_hex = txs[0]
     logg.debug('send transaction {}'.format(tx_hex))
 
-    tx_hash = add_0x(keccak256_hex_to_hex())
-    #tx_hash = web3.Web3.keccak(hexstr=tx_hex)
-    #tx_hash_hex = tx_hash.hex()
+    tx_hash_hex = add_0x(keccak256_hex_to_hex(tx_hex))
 
-    queue = self.request.delivery_info.get('routing_key', None)
+    queue = self.request.delivery_info.get('routing_key')
 
-    c = RpcClient(chain_spec)
+    #c = RpcClient(chain_spec)
     r = None
     s_set_sent = celery.signature(
         'cic_eth.queue.tx.set_sent_status',
@@ -425,6 +427,9 @@ def send(self, txs, chain_str):
             ],
             queue=queue,
         )
+
+    return txs[1:]
+
     try:
         #r = c.w3.eth.send_raw_transaction(tx_hex)
         r = c.w3.eth.sendRawTransaction(tx_hex)

@@ -7,6 +7,7 @@ import celery
 from chainlib.chain import ChainSpec
 from chainlib.eth.sign import sign_transaction
 from chainlib.connection import RPCConnection
+from chainlib.eth.tx import unpack
 from hexathon import (
         strip_0x,
         add_0x,
@@ -52,7 +53,8 @@ def sign_tx(tx, chain_str):
     return (tx_hash_hex, tx_transfer_signed['raw'],)
 
 
-def sign_and_register_tx(tx, chain_str, queue, cache_task=None, session=None):
+#def sign_and_register_tx(tx, chain_str, queue, cache_task=None, session=None):
+def register_tx(tx_hash_hex, tx_signed_raw_hex, chain_str, queue, cache_task=None, session=None):
     """Signs the provided transaction, and adds it to the transaction queue cache (with status PENDING).
 
     :param tx: Standard ethereum transaction data
@@ -67,9 +69,11 @@ def sign_and_register_tx(tx, chain_str, queue, cache_task=None, session=None):
     :returns: Tuple; Transaction hash, signed raw transaction data
     :rtype: tuple
     """
-    (tx_hash_hex, tx_signed_raw_hex) = sign_tx(tx, chain_str)
+    #(tx_hash_hex, tx_signed_raw_hex) = sign_tx(tx, chain_str)
 
     logg.debug('adding queue tx {}'.format(tx_hash_hex))
+    tx_signed_raw = bytes.fromhex(strip_0x(tx_signed_raw_hex))
+    tx = unpack(tx_signed_raw)
 
     queue_create(
         tx['nonce'],
@@ -97,7 +101,7 @@ def sign_and_register_tx(tx, chain_str, queue, cache_task=None, session=None):
 
 
 # TODO: rename as we will not be sending task in the chain, this is the responsibility of the dispatcher
-def create_check_gas_and_send_task(tx_signed_raws_hex, chain_str, holder_address, gas, tx_hashes_hex=None, queue=None):
+def create_check_gas_task(tx_signed_raws_hex, chain_str, holder_address, gas, tx_hashes_hex=None, queue=None):
     """Creates a celery task signature for a check_gas task that adds the task to the outgoing queue to be processed by the dispatcher.
 
     If tx_hashes_hex is not spefified, a preceding task chained to check_gas must supply the transaction hashes as its return value.

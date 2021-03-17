@@ -16,8 +16,10 @@ from cic_eth.db.models.tx import TxCache
 from cic_eth.db.models.base import SessionBase
 from cic_eth.eth import RpcClient
 from cic_eth.error import TokenCountError, PermanentTxError, OutOfGasError, NotLocalTxError
-from cic_eth.eth.task import sign_and_register_tx
-from cic_eth.eth.task import create_check_gas_and_send_task
+from cic_eth.eth.task import (
+        register_tx,
+        create_check_gas_task,
+        )
 from cic_eth.eth.factory import TxFactory
 from cic_eth.eth.util import unpack_signed_raw_tx
 from cic_eth.ext.address import translate_address
