@@ -9,10 +9,10 @@ redis==3.5.3
 alembic==1.4.2
 websockets==8.1
 requests~=2.24.0
-eth_accounts_index~=0.0.10a10
+eth_accounts_index~=0.0.10a11
 erc20-transfer-authorization~=0.3.0a10
 erc20-single-shot-faucet~=0.2.0a6
-rlp==2.0.1
+simple-rlp==0.1.2
 uWSGI==2.0.19.1
 semver==2.13.0
 eth-gas-proxy==0.0.1a4
