@@ -26,6 +26,7 @@ env_out_file=${CIC_DATA_DIR}/.env_seed
 init_level_file=${CIC_DATA_DIR}/.init
 truncate $env_out_file -s 0
 
+pip install --extra-index-url https://pip.grassrootseconomics.net:8433 chainlib==0.0.1a22
 
 set -e
 set -a
@@ -125,6 +126,7 @@ export CIC_TOKEN_INDEX_ADDRESS=$CIC_TOKEN_INDEX_ADDRESS
 >&2 echo "add declarations for sarafu token"
 token_description_one=`sha256sum sarafu_declaration.json | awk '{ print $1; }'`
 token_description_two=0x54686973206973207468652053617261667520746f6b656e0000000000000000
+echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> foo $CIC_DECLARATOR_ADDRESSh"
 >&2 eth-address-declarator-add -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -r $CIC_DECLARATOR_ADDRESS -w $debug $DEV_ETH_SARAFU_TOKEN_ADDRESS $token_description_one
 >&2 eth-address-declarator-add -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -r $CIC_DECLARATOR_ADDRESS -w $debug $DEV_ETH_SARAFU_TOKEN_ADDRESS $token_description_two
 
