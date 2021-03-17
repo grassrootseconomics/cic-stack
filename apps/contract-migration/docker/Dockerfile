@@ -62,7 +62,7 @@ ARG pip_extra_index_url=https://pip.grassrootseconomics.net:8433
 ARG cic_base_version=0.1.1a23
 ARG cic_registry_version=0.5.3a24
 ARG cic_eth_version=0.10.0a41
-ARG chainlib_version=0.0.1a22
+ARG chainlib_version=0.0.1a21
 ARG cic_contracts_version=0.0.2a2
 RUN pip install --user --extra-index-url $pip_extra_index_url cic-base[full_graph]==$cic_base_version \
                                                               cic-registry==$cic_registry_version \
