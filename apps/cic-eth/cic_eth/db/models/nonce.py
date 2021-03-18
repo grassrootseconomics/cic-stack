@@ -122,17 +122,19 @@ class NonceReservation(SessionBase):
 
     __tablename__ = 'nonce_task_reservation'
 
+    address_hex = Column(String(42))
     nonce = Column(Integer)
     key = Column(String)
     date_created = Column(DateTime, default=datetime.datetime.utcnow)
 
 
     @staticmethod
-    def peek(key, session=None):
+    def peek(address, key, session=None):
         session = SessionBase.bind_session(session)
 
         q = session.query(NonceReservation)
         q = q.filter(NonceReservation.key==key)
+        q = q.filter(NonceReservation.address_hex==address)
         o = q.first()
 
         nonce = None
@@ -147,18 +149,19 @@ class NonceReservation(SessionBase):
 
 
     @staticmethod
-    def release(key, session=None):
+    def release(address, key, session=None):
 
         session = SessionBase.bind_session(session)
 
         nonce = NonceReservation.peek(key, session=session)
 
         q = session.query(NonceReservation)
+        q = q.filter(NonceReservation.address_hex==address)
         q = q.filter(NonceReservation.key==key)
         o = q.first()
 
         if o == None:
-            raise IntegrityError('nonce for key {}'.format(nonce))
+            raise IntegrityError('nonce {} for key {} address {}: {}'.format(nonce, key, address))
             SessionBase.release_session(session)
 
         session.delete(o)
@@ -173,14 +176,15 @@ class NonceReservation(SessionBase):
     def next(address, key, session=None):
         session = SessionBase.bind_session(session)
 
-        if NonceReservation.peek(key, session) != None:
-            raise IntegrityError('nonce for key {}'.format(key))
+        if NonceReservation.peek(address, key, session) != None:
+            raise IntegrityError('nonce for key {} address {}'.format(key, address))
 
         nonce = Nonce.next(address, session=session)
 
         o = NonceReservation()
         o.nonce = nonce
         o.key = key
+        o.address_hex = address
         session.add(o)
        
         SessionBase.release_session(session)

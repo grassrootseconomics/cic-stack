@@ -1,9 +1,8 @@
 # standard imports
 import logging
 
-# third-party imports
+# external imports
 import celery
-from cic_registry.chain import ChainSpec
 from erc20_single_shot_faucet import Faucet
 from chainlib.eth.constant import ZERO_ADDRESS
 from hexathon import strip_0x
@@ -14,6 +13,7 @@ from chainlib.eth.sign import (
         )
 from chainlib.eth.address import to_checksum_address
 from chainlib.eth.tx import TxFormat 
+from chainlib.chain import ChainSpec
 from eth_accounts_index import AccountRegistry
 
 # local import
@@ -196,7 +196,7 @@ def create(self, password, chain_str):
 
 
 @celery_app.task(bind=True, throws=(RoleMissingError,), base=CriticalSQLAlchemyAndSignerTask)
-def register(self, account_address, chain_str, writer_address=None):
+def register(self, account_address, chain_spec_dict, writer_address=None):
     """Creates a transaction to add the given address to the accounts index.
 
     :param account_address: Ethereum address to add
@@ -209,7 +209,7 @@ def register(self, account_address, chain_str, writer_address=None):
     :returns: The account_address input param
     :rtype: str, 0x-hex
     """
-    chain_spec = ChainSpec.from_chain_str(chain_str)
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
 
     session = self.create_session()
     #session = SessionBase.create_session()
@@ -223,12 +223,6 @@ def register(self, account_address, chain_str, writer_address=None):
     logg.debug('adding account address {} to index; writer {}'.format(account_address, writer_address))
     queue = self.request.delivery_info.get('routing_key')
 
-#    c = RpcClient(chain_spec, holder_address=writer_address)
-#    registry = safe_registry(c.w3)
-#    txf = AccountTxFactory(writer_address, c, registry=registry)
-#    tx_add = txf.add(account_address, chain_spec, self.request.root_id, session=session)
-#    (tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx_add, chain_str, queue, 'cic_eth.eth.account.cache_account_data', session=session)
-
     # Retrieve account index address
     rpc = RPCConnection.connect(chain_spec, 'default')
     reg = CICRegistry(chain_spec, rpc)
@@ -239,26 +233,27 @@ def register(self, account_address, chain_str, writer_address=None):
     rpc_signer = RPCConnection.connect(chain_spec, 'signer')
     nonce_oracle = self.create_nonce_oracle(writer_address, rpc)
     gas_oracle = self.create_gas_oracle(rpc)
-    account_registry = AccountRegistry(signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
+    account_registry = AccountRegistry(signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle, chain_id=chain_spec.chain_id())
     (tx_hash_hex, tx_signed_raw_hex) = account_registry.add(account_registry_address, writer_address, account_address, tx_format=TxFormat.RLP_SIGNED)
-    #cache_task = 'cic_eth.eth.account.cache_account_data'
+    # TODO: if cache task fails, task chain will not return
+    cache_task = 'cic_eth.eth.account.cache_account_data'
     cache_task = None
 
     # add transaction to queue
-    register_tx(tx_hash_hex, tx_signed_raw_hex, chain_str, queue, cache_task=cache_task, session=session)
+    register_tx(tx_hash_hex, tx_signed_raw_hex, chain_spec, queue, cache_task=cache_task, session=session)
     session.commit()
     session.close()
 
-    return tx_hash_hex
-
     #gas_budget = tx_add['gas'] * tx_add['gasPrice']
 
-    logg.debug('register user tx {}'.format(tx_hash_hex))
-    s = create_check_gas_and_send_task(
+    gas_budget = account_registry.gas(tx_signed_raw_hex)
+    logg.debug('register user tx {} {} {}'.format(tx_hash_hex, queue, gas_budget))
+
+    s = create_check_gas_task(
             [tx_signed_raw_hex],
-            chain_str,
+            chain_spec,
             writer_address,
-            gas_budget,
+            gas=gas_budget,
             tx_hashes_hex=[tx_hash_hex],
             queue=queue,
             )
@@ -305,6 +300,7 @@ def gift(self, account_address, chain_str):
             queue=queue,
             )
     s.apply_async()
+
     return [tx_signed_raw_hex]
 
 

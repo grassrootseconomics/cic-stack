@@ -67,10 +67,10 @@ def test_register_account(
         eth_accounts,
         eth_rpc,
         cic_registry,
-        celery_session_worker,
         eth_empty_accounts,
         custodial_roles,
         call_sender,
+        celery_worker,
         ):
 
     logg.debug('chainspec {}'.format(str(default_chain_spec)))
@@ -79,16 +79,17 @@ def test_register_account(
             'cic_eth.eth.tx.reserve_nonce',
             [
                 eth_empty_accounts[0],
-                eth_accounts[0],
+                custodial_roles['ACCOUNT_REGISTRY_WRITER'],
                 ],
             queue=None,
             )
     s_register = celery.signature(
             'cic_eth.eth.account.register',
             [
-                str(default_chain_spec),
-                eth_accounts[0],
+                default_chain_spec.asdict(),
+                custodial_roles['ACCOUNT_REGISTRY_WRITER'],
                 ],
+            queue=None,
             )
     s_nonce.link(s_register)
     t = s_nonce.apply_async()
@@ -101,13 +102,14 @@ def test_register_account(
     o = session.query(Otx).first()
     tx_signed_hex = o.signed_tx
     session.close()
-    
+   
     s_send = celery.signature(
             'cic_eth.eth.tx.send',
             [
                 [tx_signed_hex],
-                str(default_chain_spec),
+                default_chain_spec.asdict(),
             ],
+            queue=None,
             )
     t = s_send.apply_async()
     address = t.get()

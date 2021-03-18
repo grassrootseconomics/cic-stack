@@ -52,6 +52,7 @@ class CriticalWeb3Task(CriticalTask):
     autoretry_for = (
         requests.exceptions.ConnectionError,
         )
+    safe_gas_threshold_amount = 2000000000 * 60000 * 3
 
 
 class CriticalSQLAlchemyAndWeb3Task(CriticalTask):
@@ -62,6 +63,7 @@ class CriticalSQLAlchemyAndWeb3Task(CriticalTask):
         sqlalchemy.exc.ResourceClosedError,
         EthError,
         )
+    safe_gas_threshold_amount = 2000000000 * 60000 * 3
 
 class CriticalSQLAlchemyAndSignerTask(CriticalTask):
      autoretry_for = (

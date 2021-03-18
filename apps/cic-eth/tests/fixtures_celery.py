@@ -4,7 +4,8 @@ import tempfile
 import logging
 import shutil
 
-logg = logging.getLogger(__name__)
+#logg = logging.getLogger(__name__)
+logg = logging.getLogger()
 
 
 # celery fixtures
@@ -52,7 +53,7 @@ def celery_config():
 @pytest.fixture(scope='session')
 def celery_worker_parameters():
     return {
-#            'queues': ('cic-eth'),
+#            'queues': ('celery'),
             }
 
 @pytest.fixture(scope='session')

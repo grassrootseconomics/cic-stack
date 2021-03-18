@@ -35,7 +35,7 @@ celery_app = celery.current_app
 logg = logging.getLogger()
 
 
-def create(nonce, holder_address, tx_hash, signed_tx, chain_str, obsolete_predecessors=True, session=None):
+def create(nonce, holder_address, tx_hash, signed_tx, chain_spec, obsolete_predecessors=True, session=None):
     """Create a new transaction queue record.
 
     :param nonce: Transaction nonce
@@ -46,13 +46,13 @@ def create(nonce, holder_address, tx_hash, signed_tx, chain_str, obsolete_predec
     :type tx_hash: str, 0x-hex
     :param signed_tx: Signed raw transaction
     :type signed_tx: str, 0x-hex
-    :param chain_str: Chain spec string representation to create transaction for
-    :type chain_str: str
+    :param chain_spec: Chain spec to create transaction for
+    :type chain_spec: ChainSpec
     :returns: transaction hash
     :rtype: str, 0x-hash
     """
     session = SessionBase.bind_session(session)
-    lock = Lock.check_aggregate(chain_str, LockEnum.QUEUE, holder_address, session=session) 
+    lock = Lock.check_aggregate(str(chain_spec), LockEnum.QUEUE, holder_address, session=session) 
     if lock > 0:
         SessionBase.release_session(session)
         raise LockedError(lock)

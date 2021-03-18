@@ -9,7 +9,9 @@ from chainlib.eth.address import to_checksum_address
 # local imports
 from cic_eth.db.models.role import AccountRole
 
-logg = logging.getLogger(__name__)
+#logg = logging.getLogger(__name__)
+# what the actual fuck, debug is not being shown even though explicitly set
+logg = logging.getLogger()
 
 
 @pytest.fixture(scope='function')
@@ -22,6 +24,7 @@ def custodial_roles(
     r.update(contract_roles)
     r.update({
         'DEFAULT': eth_accounts[0],
+        'GAS_GIFTER': eth_accounts[3],
             })
     for k in r.keys():
         role = AccountRole.set(k, r[k])

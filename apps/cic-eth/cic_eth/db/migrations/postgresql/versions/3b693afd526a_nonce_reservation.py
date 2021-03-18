@@ -20,6 +20,7 @@ def upgrade():
     op.create_table(
             'nonce_task_reservation',
         sa.Column('id', sa.Integer, primary_key=True),
+        sa.Column('address_hex', sa.String(42), nullable=False),
         sa.Column('nonce', sa.Integer, nullable=False),
         sa.Column('key', sa.String, nullable=False),
         sa.Column('date_created', sa.DateTime, nullable=False),
