@@ -153,7 +153,7 @@ class NonceReservation(SessionBase):
 
         session = SessionBase.bind_session(session)
 
-        nonce = NonceReservation.peek(key, session=session)
+        nonce = NonceReservation.peek(address, key, session=session)
 
         q = session.query(NonceReservation)
         q = q.filter(NonceReservation.address_hex==address)

@@ -11,6 +11,7 @@ from cic_eth.db.models.role import AccountRole
 
 #logg = logging.getLogger(__name__)
 # what the actual fuck, debug is not being shown even though explicitly set
+logging.basicConfig(level=logging.DEBUG)
 logg = logging.getLogger()
 
 
@@ -29,7 +30,7 @@ def custodial_roles(
     for k in r.keys():
         role = AccountRole.set(k, r[k])
         init_database.add(role)
-        logg.info('adding role {} -> {}'.format(k, r[k]))
+        logg.error('adding role {} -> {}'.format(k, r[k]))
     init_database.commit()
     return r
 

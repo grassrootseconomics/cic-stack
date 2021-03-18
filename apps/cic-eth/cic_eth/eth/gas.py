@@ -2,6 +2,7 @@
 import logging
 
 # external imports
+import celery
 from chainlib.eth.gas import price
 from hexathon import strip_0x
 
@@ -82,3 +83,50 @@ class GasOracle():
         #g = 100
         #return g
         return self.gas_price_current
+
+
+def create_check_gas_task(tx_signed_raws_hex, chain_spec, holder_address, gas=None, tx_hashes_hex=None, queue=None):
+    """Creates a celery task signature for a check_gas task that adds the task to the outgoing queue to be processed by the dispatcher.
+
+    If tx_hashes_hex is not spefified, a preceding task chained to check_gas must supply the transaction hashes as its return value.
+
+    :param tx_signed_raws_hex: Raw signed transaction data
+    :type tx_signed_raws_hex: list of str, 0x-hex
+    :param chain_spec: Chain spec of address to add check gas for
+    :type chain_spec: chainlib.chain.ChainSpec
+    :param holder_address: Address sending the transactions
+    :type holder_address: str, 0x-hex
+    :param gas: Gas budget hint for transactions
+    :type gas: int
+    :param tx_hashes_hex: Transaction hashes
+    :type tx_hashes_hex: list of str, 0x-hex
+    :param queue: Task queue
+    :type queue: str
+    :returns: Signature of task chain
+    :rtype: celery.Signature
+    """
+    s_check_gas = None
+    if tx_hashes_hex != None:
+        s_check_gas = celery.signature(
+                'cic_eth.eth.tx.check_gas',
+                [
+                    tx_hashes_hex,
+                    chain_spec.asdict(),
+                    tx_signed_raws_hex,
+                    holder_address,
+                    gas,
+                    ],
+                queue=queue,
+                )
+    else:
+        s_check_gas = celery.signature(
+                'cic_eth.eth.tx.check_gas',
+                [
+                    chain_spec.asdict(),
+                    tx_signed_raws_hex,
+                    holder_address,
+                    gas,
+                    ],
+                queue=queue,
+                )
+    return s_check_gas

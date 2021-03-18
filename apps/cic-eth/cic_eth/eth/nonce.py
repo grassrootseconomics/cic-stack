@@ -4,7 +4,7 @@ from cic_eth.db.models.nonce import (
         NonceReservation,
         )
 
-class NonceOracle():
+class CustodialTaskNonceOracle():
     """Ensures atomic nonce increments for all transactions across all tasks and threads.
 
     :param address: Address to generate nonces for
@@ -12,20 +12,20 @@ class NonceOracle():
     :param default_nonce: Initial nonce value to use if no nonce cache entry already exists
     :type default_nonce: number
     """
-    def __init__(self, address, default_nonce):
+    def __init__(self, address, uuid, session=None):
         self.address = address
-        self.default_nonce = default_nonce
+        self.uuid = uuid
+        self.session = session
 
 
-    def next(self):
+    def get_nonce(self):
+        return self.next_nonce()
+
+
+    def next_nonce(self):
         """Get next unique nonce.
 
         :returns: Nonce
         :rtype: number
         """
-        raise AttributeError('this should not be called')
-        return Nonce.next(self.address, self.default_nonce)
-
-
-    def next_by_task_uuid(self, uuid, session=None):
-        return NonceReservation.release(uuid, session=session)
+        return NonceReservation.release(self.address, self.uuid, session=self.session)

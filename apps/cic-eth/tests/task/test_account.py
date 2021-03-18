@@ -18,7 +18,6 @@ from cic_eth.db.enum import StatusEnum
 from cic_eth.db.enum import StatusEnum
 from cic_eth.db.models.nonce import Nonce
 from cic_eth.db.models.role import AccountRole
-from cic_eth.eth.account import AccountTxFactory
 
 logg = logging.getLogger()
 
@@ -35,7 +34,7 @@ def test_create_account(
             'cic_eth.eth.account.create',
             [
                 'foo',
-                str(default_chain_spec),
+                default_chain_spec.asdict(),
                 ],
             )
     t = s.apply_async()
@@ -52,7 +51,7 @@ def test_create_account(
             'cic_eth.eth.account.have',
             [
                 r,
-                str(default_chain_spec),
+                default_chain_spec.asdict(),
             ],
             )
     t = s.apply_async()
@@ -72,8 +71,6 @@ def test_register_account(
         call_sender,
         celery_worker,
         ):
-
-    logg.debug('chainspec {}'.format(str(default_chain_spec)))
 
     s_nonce = celery.signature(
             'cic_eth.eth.tx.reserve_nonce',
@@ -95,7 +92,7 @@ def test_register_account(
     t = s_nonce.apply_async()
     address = t.get()
     for r in t.collect():
-        pass
+        logg.debug('r {}'.format(r))
     assert t.successful()
 
     session = SessionBase.create_session()

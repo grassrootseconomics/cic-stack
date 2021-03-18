@@ -53,6 +53,7 @@ class CriticalWeb3Task(CriticalTask):
         requests.exceptions.ConnectionError,
         )
     safe_gas_threshold_amount = 2000000000 * 60000 * 3
+    safe_gas_refill_amount = safe_gas_threshold_amount * 5 
 
 
 class CriticalSQLAlchemyAndWeb3Task(CriticalTask):
@@ -64,6 +65,8 @@ class CriticalSQLAlchemyAndWeb3Task(CriticalTask):
         EthError,
         )
     safe_gas_threshold_amount = 2000000000 * 60000 * 3
+    safe_gas_refill_amount = safe_gas_threshold_amount * 5 
+
 
 class CriticalSQLAlchemyAndSignerTask(CriticalTask):
      autoretry_for = (
@@ -78,6 +81,8 @@ class CriticalWeb3AndSignerTask(CriticalTask):
         requests.exceptions.ConnectionError,
         SignerError,
         )
+    safe_gas_threshold_amount = 2000000000 * 60000 * 3
+    safe_gas_refill_amount = safe_gas_threshold_amount * 5 
 
 
 @celery_app.task(bind=True, base=BaseTask)

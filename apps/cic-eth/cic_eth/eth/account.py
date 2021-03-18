@@ -21,11 +21,10 @@ from eth_accounts_index import AccountRegistry
 #from cic_eth.eth import RpcClient
 from cic_eth_registry import CICRegistry
 from cic_eth.eth import registry_extra_identifiers
-from cic_eth.eth.task import (
-        register_tx,
+from cic_eth.eth.gas import (
         create_check_gas_task,
         )
-from cic_eth.eth.factory import TxFactory
+#from cic_eth.eth.factory import TxFactory
 from cic_eth.db.models.nonce import Nonce
 from cic_eth.db.models.base import SessionBase
 from cic_eth.db.models.role import AccountRole
@@ -40,6 +39,12 @@ from cic_eth.task import (
         CriticalSQLAlchemyAndSignerTask,
         BaseTask,
         )
+from cic_eth.eth.nonce import (
+        CustodialTaskNonceOracle,
+        )
+from cic_eth.queue.tx import (
+        register_tx,
+        )
 
 #logg = logging.getLogger(__name__)
 logg = logging.getLogger()
@@ -48,73 +53,73 @@ celery_app = celery.current_app
 #celery_app.log.redirect_stdouts_to_logger(logg, loglevel=logging.DEBUG)
 
 
-class AccountTxFactory(TxFactory):
-    """Factory for creating account index contract transactions
-    """
-    def add(
-            self,
-            address,
-            chain_spec,
-            uuid,
-            session=None,
-            ):
-        """Register an Ethereum account address with the on-chain account registry
-
-        :param address: Ethereum account address to add
-        :type address: str, 0x-hex
-        :param chain_spec: Chain to build transaction for
-        :type chain_spec: cic_registry.chain.ChainSpec
-        :returns: Unsigned "AccountRegistry.add" transaction in standard Ethereum format
-        :rtype: dict
-        """
-
-        c = self.registry.get_contract(chain_spec, 'AccountRegistry')
-        f = c.function('add')
-        tx_add_buildable = f(
-                address,
-                )
-        gas = c.gas('add')
-        tx_add = tx_add_buildable.buildTransaction({
-            'from': self.address,
-            'gas': gas,
-            'gasPrice': self.gas_price,
-            'chainId': chain_spec.chain_id(),
-            'nonce': self.next_nonce(uuid, session=session),
-            'value': 0,
-            })
-        return tx_add
-
-
-    def gift(
-            self,
-            address,
-            chain_spec,
-            uuid,
-            session=None,
-        ):
-        """Trigger the on-chain faucet to disburse tokens to the provided Ethereum account
-
-        :param address: Ethereum account address to gift to
-        :type address: str, 0x-hex
-        :param chain_spec: Chain to build transaction for
-        :type chain_spec: cic_registry.chain.ChainSpec
-        :returns: Unsigned "Faucet.giveTo" transaction in standard Ethereum format
-        :rtype: dict
-        """
-
-        c = self.registry.get_contract(chain_spec, 'Faucet')
-        f = c.function('giveTo')
-        tx_add_buildable = f(address)
-        gas = c.gas('add')
-        tx_add = tx_add_buildable.buildTransaction({
-            'from': self.address,
-            'gas': gas,
-            'gasPrice': self.gas_price,
-            'chainId': chain_spec.chain_id(),
-            'nonce': self.next_nonce(uuid, session=session),
-            'value': 0,
-            })
-        return tx_add
+#class AccountTxFactory(TxFactory):
+#    """Factory for creating account index contract transactions
+#    """
+#    def add(
+#            self,
+#            address,
+#            chain_spec,
+#            uuid,
+#            session=None,
+#            ):
+#        """Register an Ethereum account address with the on-chain account registry
+#
+#        :param address: Ethereum account address to add
+#        :type address: str, 0x-hex
+#        :param chain_spec: Chain to build transaction for
+#        :type chain_spec: cic_registry.chain.ChainSpec
+#        :returns: Unsigned "AccountRegistry.add" transaction in standard Ethereum format
+#        :rtype: dict
+#        """
+#
+#        c = self.registry.get_contract(chain_spec, 'AccountRegistry')
+#        f = c.function('add')
+#        tx_add_buildable = f(
+#                address,
+#                )
+#        gas = c.gas('add')
+#        tx_add = tx_add_buildable.buildTransaction({
+#            'from': self.address,
+#            'gas': gas,
+#            'gasPrice': self.gas_price,
+#            'chainId': chain_spec.chain_id(),
+#            'nonce': self.next_nonce(uuid, session=session),
+#            'value': 0,
+#            })
+#        return tx_add
+#
+#
+#    def gift(
+#            self,
+#            address,
+#            chain_spec,
+#            uuid,
+#            session=None,
+#        ):
+#        """Trigger the on-chain faucet to disburse tokens to the provided Ethereum account
+#
+#        :param address: Ethereum account address to gift to
+#        :type address: str, 0x-hex
+#        :param chain_spec: Chain to build transaction for
+#        :type chain_spec: cic_registry.chain.ChainSpec
+#        :returns: Unsigned "Faucet.giveTo" transaction in standard Ethereum format
+#        :rtype: dict
+#        """
+#
+#        c = self.registry.get_contract(chain_spec, 'Faucet')
+#        f = c.function('giveTo')
+#        tx_add_buildable = f(address)
+#        gas = c.gas('add')
+#        tx_add = tx_add_buildable.buildTransaction({
+#            'from': self.address,
+#            'gas': gas,
+#            'gasPrice': self.gas_price,
+#            'chainId': chain_spec.chain_id(),
+#            'nonce': self.next_nonce(uuid, session=session),
+#            'value': 0,
+#            })
+#        return tx_add
 
 
 def unpack_register(data):
@@ -231,8 +236,9 @@ def register(self, account_address, chain_spec_dict, writer_address=None):
    
     # Generate and sign transaction
     rpc_signer = RPCConnection.connect(chain_spec, 'signer')
-    nonce_oracle = self.create_nonce_oracle(writer_address, rpc)
-    gas_oracle = self.create_gas_oracle(rpc)
+    #nonce_oracle = self.create_nonce_oracle(writer_address, rpc)
+    nonce_oracle = CustodialTaskNonceOracle(writer_address, self.request.root_id, session=session) #, default_nonce)
+    gas_oracle = self.create_gas_oracle(rpc, AccountRegistry.gas)
     account_registry = AccountRegistry(signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle, chain_id=chain_spec.chain_id())
     (tx_hash_hex, tx_signed_raw_hex) = account_registry.add(account_registry_address, writer_address, account_address, tx_format=TxFormat.RLP_SIGNED)
     # TODO: if cache task fails, task chain will not return
@@ -246,7 +252,8 @@ def register(self, account_address, chain_spec_dict, writer_address=None):
 
     #gas_budget = tx_add['gas'] * tx_add['gasPrice']
 
-    gas_budget = account_registry.gas(tx_signed_raw_hex)
+    gas_pair = gas_oracle.get_gas(tx_signed_raw_hex)
+    gas_budget = gas_pair[0] * gas_pair[1]
     logg.debug('register user tx {} {} {}'.format(tx_hash_hex, queue, gas_budget))
 
     s = create_check_gas_task(
@@ -348,7 +355,7 @@ def cache_gift_data(
     self,
     tx_hash_hex,
     tx_signed_raw_hex,
-    chain_str,
+    chain_spec,
         ):
     """Generates and commits transaction cache metadata for a Faucet.giveTo transaction
 
@@ -394,7 +401,7 @@ def cache_account_data(
     self,
     tx_hash_hex,
     tx_signed_raw_hex,
-    chain_str,
+    chain_spec,
         ):
     """Generates and commits transaction cache metadata for an AccountsIndex.add  transaction
 
@@ -408,11 +415,12 @@ def cache_account_data(
     :rtype: tuple
     """
 
-    chain_spec = ChainSpec.from_chain_str(chain_str)
-    c = RpcClient(chain_spec)
+    #c = RpcClient(chain_spec)
+    return
 
     tx_signed_raw_bytes = bytes.fromhex(tx_signed_raw_hex[2:])
-    tx = unpack_signed_raw_tx(tx_signed_raw_bytes, chain_spec.chain_id())
+    #tx = unpack_signed_raw_tx(tx_signed_raw_bytes, chain_spec.chain_id())
+    tx = unpack(tx_signed_raw_bytes, chain_id=chain_spec.chain_id())
     tx_data = unpack_register(tx['data'])
 
     session = SessionBase.create_session()

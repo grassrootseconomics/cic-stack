@@ -22,8 +22,7 @@ from cic_eth.queue.tx import (
         )
 from cic_eth.queue.tx import create as queue_create
 from cic_eth.eth.util import unpack_signed_raw_tx
-from cic_eth.eth.task import (
-        #sign_tx,
+from cic_eth.eth.gas import (
         create_check_gas_task,
     )
 
