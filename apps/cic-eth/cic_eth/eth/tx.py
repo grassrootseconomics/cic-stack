@@ -215,8 +215,6 @@ def hashes_to_txs(self, tx_hashes):
 
     queue = self.request.delivery_info['routing_key']
 
-    #otxs = ','.format("'{}'".format(tx_hash) for tx_hash in tx_hashes)
-
     session = SessionBase.create_session()
     q = session.query(Otx.signed_tx)
     q = q.filter(Otx.tx_hash.in_(tx_hashes))
@@ -282,16 +280,7 @@ def send(self, txs, chain_spec_dict):
 
     o = raw(tx_hex)
     conn = RPCConnection.connect(chain_spec, 'default')
-    #try:
-        #r = c.w3.eth.send_raw_transaction(tx_hex)
-        #r = c.w3.eth.sendRawTransaction(tx_hex)
     conn.do(o)
-    #except requests.exceptions.ConnectionError as e:
-    #    raise(e)
-#    except Exception as e:
-#        raiser = ParityNodeHandler(chain_spec, queue)
-#        (t, e, m) = raiser.handle(e, tx_hash_hex, tx_hex)
-#        raise e(m)
     s_set_sent.apply_async()
 
     tx_tail = txs[1:]
@@ -320,8 +309,13 @@ def refill_gas(self, recipient_address, chain_spec_dict):
     :returns: Transaction hash.
     :rtype: str, 0x-hex
     """
+    # essentials
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
+    queue = self.request.delivery_info.get('routing_key')
 
+    # Determine value of gas tokens to send
+    # if an uncompleted gas refill for the same recipient already exists, we still need to spend the nonce
+    # however, we will perform a 0-value transaction instead
     zero_amount = False
     session = SessionBase.create_session()
     status_filter = StatusBits.FINAL | StatusBits.NODE_ERROR | StatusBits.NETWORK_ERROR | StatusBits.UNKNOWN_ERROR
@@ -336,56 +330,32 @@ def refill_gas(self, recipient_address, chain_spec_dict):
         zero_amount = True
     session.flush()
 
-    queue = self.request.delivery_info.get('routing_key')
-
-    #c = RpcClient(chain_spec)
-    rpc = RPCConnection.connect(chain_spec, 'default')
-
-    gas_provider = AccountRole.get_address('GAS_GIFTER', session=session)
-    session.flush()
-
-    # Get default nonce to use from network if no nonce has been set
-    # TODO: This step may be redundant as nonce entry is set at account creation time
-    #default_nonce = c.w3.eth.getTransactionCount(c.gas_provider(), 'pending')
-    #o = count_pending(gas_provider)
-    #default_nonce = conn.do(o)
-
-    nonce_oracle = CustodialTaskNonceOracle(gas_provider, self.request.root_id, session=session) #, default_nonce)
-    #nonce = nonce_generator.next(session=session)
-    #nonce = nonce_generator.next_by_task_uuid(self.request.root_id, session=session)
-    rpc_signer = RPCConnection.connect(chain_spec, 'signer')
-    gas_oracle = self.create_gas_oracle(rpc)
-    c = Gas(signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle, chain_id=chain_spec.chain_id())
-    #gas_price = c.gas_price()
-    #gas_limit = c.default_gas_limit
+    # finally determine the value to send
     refill_amount = 0
     if not zero_amount:
         refill_amount = self.safe_gas_refill_amount
 
-    logg.debug('tx send gas amount {} from provider {} to {}'.format(refill_amount, gas_provider, recipient_address))
-#    # create and sign transaction
-#    tx_send_gas = {
-#                'from': c.gas_provider(),
-#                'to': recipient_address,
-#                'gas': gas_limit,
-#                'gasPrice': gas_price,
-#                'chainId': chain_spec.chain_id(),
-#                'nonce': nonce,
-#                'value': refill_amount,
-#                'data': '',
-#            }
-#    #tx_send_gas_signed = c.w3.eth.sign_transaction(tx_send_gas)
-#    #tx_hash = web3.Web3.keccak(hexstr=tx_send_gas_signed['raw'])
-#    #tx_hash_hex = tx_hash.hex()
-#    (tx_hash_hex, tx_send_gas_signed) = sign_tx(tx_send_gas)
-    (tx_hash_hex, tx_signed_raw_hex) = c.create(gas_provider, recipient_address, refill_amount, tx_format=TxFormat.RLP_SIGNED)
+    # determine sender
+    gas_provider = AccountRole.get_address('GAS_GIFTER', session=session)
+    session.flush()
 
-    # TODO: route this through sign_and_register_tx instead
+    # set up evm RPC connection
+    rpc = RPCConnection.connect(chain_spec, 'default')
+
+    # set up transaction builder
+    nonce_oracle = CustodialTaskNonceOracle(gas_provider, self.request.root_id, session=session)
+    gas_oracle = self.create_gas_oracle(rpc)
+    rpc_signer = RPCConnection.connect(chain_spec, 'signer')
+    c = Gas(signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle, chain_id=chain_spec.chain_id())
+
+    # build and add transaction
+    logg.debug('tx send gas amount {} from provider {} to {}'.format(refill_amount, gas_provider, recipient_address))
+    (tx_hash_hex, tx_signed_raw_hex) = c.create(gas_provider, recipient_address, refill_amount, tx_format=TxFormat.RLP_SIGNED)
     logg.debug('adding queue refill gas tx {}'.format(tx_hash_hex))
-    #cache_task = 'cic_eth.eth.tx.cache_gas_refill_data'
     cache_task = 'cic_eth.eth.tx.otx_cache_parse_tx'
     register_tx(tx_hash_hex, tx_signed_raw_hex, chain_spec, queue, cache_task=cache_task, session=session)
 
+    # add transaction to send queue
     s_status = celery.signature(
         'cic_eth.queue.tx.set_ready',
         [

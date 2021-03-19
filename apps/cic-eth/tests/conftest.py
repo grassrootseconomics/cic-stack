@@ -13,3 +13,4 @@ from tests.fixtures_role import *
 from chainlib.eth.pytest import *
 from contract_registry.pytest import *
 from cic_eth_registry.pytest.fixtures_contracts import *
+from cic_eth_registry.pytest.fixtures_tokens import *
