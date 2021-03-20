@@ -46,80 +46,8 @@ from cic_eth.queue.tx import (
         register_tx,
         )
 
-#logg = logging.getLogger(__name__)
 logg = logging.getLogger()
 celery_app = celery.current_app 
-#celery_app.log.setup_task_loggers(loglevel=logging.DEBUG)
-#celery_app.log.redirect_stdouts_to_logger(logg, loglevel=logging.DEBUG)
-
-
-#class AccountTxFactory(TxFactory):
-#    """Factory for creating account index contract transactions
-#    """
-#    def add(
-#            self,
-#            address,
-#            chain_spec,
-#            uuid,
-#            session=None,
-#            ):
-#        """Register an Ethereum account address with the on-chain account registry
-#
-#        :param address: Ethereum account address to add
-#        :type address: str, 0x-hex
-#        :param chain_spec: Chain to build transaction for
-#        :type chain_spec: cic_registry.chain.ChainSpec
-#        :returns: Unsigned "AccountRegistry.add" transaction in standard Ethereum format
-#        :rtype: dict
-#        """
-#
-#        c = self.registry.get_contract(chain_spec, 'AccountRegistry')
-#        f = c.function('add')
-#        tx_add_buildable = f(
-#                address,
-#                )
-#        gas = c.gas('add')
-#        tx_add = tx_add_buildable.buildTransaction({
-#            'from': self.address,
-#            'gas': gas,
-#            'gasPrice': self.gas_price,
-#            'chainId': chain_spec.chain_id(),
-#            'nonce': self.next_nonce(uuid, session=session),
-#            'value': 0,
-#            })
-#        return tx_add
-#
-#
-#    def gift(
-#            self,
-#            address,
-#            chain_spec,
-#            uuid,
-#            session=None,
-#        ):
-#        """Trigger the on-chain faucet to disburse tokens to the provided Ethereum account
-#
-#        :param address: Ethereum account address to gift to
-#        :type address: str, 0x-hex
-#        :param chain_spec: Chain to build transaction for
-#        :type chain_spec: cic_registry.chain.ChainSpec
-#        :returns: Unsigned "Faucet.giveTo" transaction in standard Ethereum format
-#        :rtype: dict
-#        """
-#
-#        c = self.registry.get_contract(chain_spec, 'Faucet')
-#        f = c.function('giveTo')
-#        tx_add_buildable = f(address)
-#        gas = c.gas('add')
-#        tx_add = tx_add_buildable.buildTransaction({
-#            'from': self.address,
-#            'gas': gas,
-#            'gasPrice': self.gas_price,
-#            'chainId': chain_spec.chain_id(),
-#            'nonce': self.next_nonce(uuid, session=session),
-#            'value': 0,
-#            })
-#        return tx_add
 
 
 def unpack_register(data):
@@ -183,16 +111,11 @@ def create(self, password, chain_str):
     o = new_account()
     a = conn.do(o)
 
-    #try:
-    #    a = c.w3.eth.personal.new_account(password)
-    #except FileNotFoundError:
-    #    pass
     if a == None:
         raise SignerError('create account')
     logg.debug('created account {}'.format(a))
 
     # Initialize nonce provider record for account
-    #session = SessionBase.create_session()
     session = self.create_session()
     Nonce.init(a, session=session)
     session.commit()
@@ -217,7 +140,6 @@ def register(self, account_address, chain_spec_dict, writer_address=None):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
 
     session = self.create_session()
-    #session = SessionBase.create_session()
     if writer_address == None:
         writer_address = AccountRole.get_address('ACCOUNT_REGISTRY_WRITER', session=session)
 
@@ -243,7 +165,6 @@ def register(self, account_address, chain_spec_dict, writer_address=None):
     (tx_hash_hex, tx_signed_raw_hex) = account_registry.add(account_registry_address, writer_address, account_address, tx_format=TxFormat.RLP_SIGNED)
     # TODO: if cache task fails, task chain will not return
     cache_task = 'cic_eth.eth.account.cache_account_data'
-    cache_task = None
 
     # add transaction to queue
     register_tx(tx_hash_hex, tx_signed_raw_hex, chain_spec, queue, cache_task=cache_task, session=session)

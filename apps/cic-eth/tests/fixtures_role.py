@@ -18,14 +18,15 @@ logg = logging.getLogger()
 @pytest.fixture(scope='function')
 def custodial_roles(
     contract_roles,
+    token_roles,
     eth_accounts,
     init_database,
     ):
     r = {}
     r.update(contract_roles)
     r.update({
-        'DEFAULT': eth_accounts[0],
-        'GAS_GIFTER': eth_accounts[3],
+        'GAS_GIFTER': eth_accounts[10],
+        'FOO_TOKEN_GIFTER': token_roles['FOO_TOKEN_OWNER'],
             })
     for k in r.keys():
         role = AccountRole.set(k, r[k])

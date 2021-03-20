@@ -10,6 +10,10 @@ from chainlib.chain import ChainSpec
 from chainlib.status import Status as TxStatus
 from chainlib.connection import RPCConnection
 from chainlib.eth.erc20 import ERC20
+from chainlib.eth.tx import (
+        TxFormat,
+        unpack,
+        )
 from cic_eth_registry.erc20 import ERC20Token
 from hexathon import strip_0x
 
@@ -20,15 +24,18 @@ from cic_eth.db.models.base import SessionBase
 from cic_eth.eth import RpcClient
 from cic_eth.error import TokenCountError, PermanentTxError, OutOfGasError, NotLocalTxError
 from cic_eth.queue.tx import register_tx
-from cic_eth.eth.gas import create_check_gas_task
+from cic_eth.eth.gas import (
+        create_check_gas_task,
+        MaxGasOracle,
+        )
 #from cic_eth.eth.factory import TxFactory
-from cic_eth.eth.util import unpack_signed_raw_tx
 from cic_eth.ext.address import translate_address
 from cic_eth.task import (
         CriticalSQLAlchemyTask,
         CriticalWeb3Task,
         CriticalSQLAlchemyAndSignerTask,
     )
+from cic_eth.eth.nonce import CustodialTaskNonceOracle
 
 celery_app = celery.current_app
 logg = logging.getLogger()
@@ -87,7 +94,7 @@ logg = logging.getLogger()
 #    def transfer(
 #        self,
 #        token_address,
-#        receiver_address,
+#        Receiver_address,
 #        value,
 #        chain_spec,
 #        uuid,
@@ -125,68 +132,68 @@ logg = logging.getLogger()
 #        return tx_transfer
 
 
-def unpack_transfer(data):
-    """Verifies that a transaction is an "ERC20.transfer" transaction, and extracts call parameters from it.
-
-    :param data: Raw input data from Ethereum transaction.
-    :type data: str, 0x-hex
-    :raises ValueError: Function signature does not match AccountRegister.add
-    :returns: Parsed parameters
-    :rtype: dict
-    """
-    data = strip_0x(data)
-    f = data[:8]
-    if f != contract_function_signatures['transfer']:
-        raise ValueError('Invalid transfer data ({})'.format(f))
-
-    d = data[8:]
-    return {
-        'to': web3.Web3.toChecksumAddress('0x' + d[64-40:64]),
-        'amount': int(d[64:], 16)
-        }
-
-
-def unpack_transferfrom(data):
-    """Verifies that a transaction is an "ERC20.transferFrom" transaction, and extracts call parameters from it.
-
-    :param data: Raw input data from Ethereum transaction.
-    :type data: str, 0x-hex
-    :raises ValueError: Function signature does not match AccountRegister.add
-    :returns: Parsed parameters
-    :rtype: dict
-    """
-    data = strip_0x(data)
-    f = data[:8]
-    if f != contract_function_signatures['transferfrom']:
-        raise ValueError('Invalid transferFrom data ({})'.format(f))
-
-    d = data[8:]
-    return {
-        'from': web3.Web3.toChecksumAddress('0x' + d[64-40:64]),
-        'to': web3.Web3.toChecksumAddress('0x' + d[128-40:128]),
-        'amount': int(d[128:], 16)
-        }
+#def unpack_transfer(data):
+#    """Verifies that a transaction is an "ERC20.transfer" transaction, and extracts call parameters from it.
+#
+#    :param data: Raw input data from Ethereum transaction.
+#    :type data: str, 0x-hex
+#    :raises ValueError: Function signature does not match AccountRegister.add
+#    :returns: Parsed parameters
+#    :rtype: dict
+#    """
+#    data = strip_0x(data)
+#    f = data[:8]
+#    if f != contract_function_signatures['transfer']:
+#        raise ValueError('Invalid transfer data ({})'.format(f))
+#
+#    d = data[8:]
+#    return {
+#        'to': web3.Web3.toChecksumAddress('0x' + d[64-40:64]),
+#        'amount': int(d[64:], 16)
+#        }
 
 
-def unpack_approve(data):
-    """Verifies that a transaction is an "ERC20.approve" transaction, and extracts call parameters from it.
-
-    :param data: Raw input data from Ethereum transaction.
-    :type data: str, 0x-hex
-    :raises ValueError: Function signature does not match AccountRegister.add
-    :returns: Parsed parameters
-    :rtype: dict
-    """
-    data = strip_0x(data)
-    f = data[:8]
-    if f != contract_function_signatures['approve']:
-        raise ValueError('Invalid approval data ({})'.format(f))
-
-    d = data[8:]
-    return {
-        'to': web3.Web3.toChecksumAddress('0x' + d[64-40:64]),
-        'amount': int(d[64:], 16)
-        }
+#def unpack_transferfrom(data):
+#    """Verifies that a transaction is an "ERC20.transferFrom" transaction, and extracts call parameters from it.
+#
+#    :param data: Raw input data from Ethereum transaction.
+#    :type data: str, 0x-hex
+#    :raises ValueError: Function signature does not match AccountRegister.add
+#    :returns: Parsed parameters
+#    :rtype: dict
+#    """
+#    data = strip_0x(data)
+#    f = data[:8]
+#    if f != contract_function_signatures['transferfrom']:
+#        raise ValueError('Invalid transferFrom data ({})'.format(f))
+#
+#    d = data[8:]
+#    return {
+#        'from': web3.Web3.toChecksumAddress('0x' + d[64-40:64]),
+#        'to': web3.Web3.toChecksumAddress('0x' + d[128-40:128]),
+#        'amount': int(d[128:], 16)
+#        }
+#
+#
+#def unpack_approve(data):
+#    """Verifies that a transaction is an "ERC20.approve" transaction, and extracts call parameters from it.
+#
+#    :param data: Raw input data from Ethereum transaction.
+#    :type data: str, 0x-hex
+#    :raises ValueError: Function signature does not match AccountRegister.add
+#    :returns: Parsed parameters
+#    :rtype: dict
+#    """
+#    data = strip_0x(data)
+#    f = data[:8]
+#    if f != contract_function_signatures['approve']:
+#        raise ValueError('Invalid approval data ({})'.format(f))
+#
+#    d = data[8:]
+#    return {
+#        'to': web3.Web3.toChecksumAddress('0x' + d[64-40:64]),
+#        'amount': int(d[64:], 16)
+#        }
 
 
 @celery_app.task(base=CriticalWeb3Task)
@@ -197,8 +204,8 @@ def balance(tokens, holder_address, chain_spec_dict):
     :type tokens: list of str, 0x-hex
     :param holder_address: Token holder address
     :type holder_address: str, 0x-hex
-    :param chain_str: Chain spec string representation
-    :type chain_str: str
+    :param chain_spec_dict: Chain spec string representation
+    :type chain_spec_dict: str
     :return: List of balances
     :rtype: list of int
     """
@@ -218,7 +225,7 @@ def balance(tokens, holder_address, chain_spec_dict):
 
 
 @celery_app.task(bind=True, base=CriticalSQLAlchemyAndSignerTask)
-def transfer(self, tokens, holder_address, receiver_address, value, chain_str):
+def transfer(self, tokens, holder_address, receiver_address, value, chain_spec_dict):
     """Transfer ERC20 tokens between addresses
 
     First argument is a list of tokens, to enable the task to be chained to the symbol to token address resolver function. However, it accepts only one token as argument.
@@ -242,29 +249,31 @@ def transfer(self, tokens, holder_address, receiver_address, value, chain_str):
     # we only allow one token, one transfer
     if len(tokens) != 1:
         raise TokenCountError
-
-    chain_spec = ChainSpec.from_chain_str(chain_str)
-
-    queue = self.request.delivery_info['routing_key']
-
-    # retrieve the token interface
     t = tokens[0]
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
+    queue = self.request.delivery_info.get('routing_key')
 
-    c = RpcClient(chain_spec, holder_address=holder_address)
-    registry = safe_registry(c.w3)
+    rpc = RPCConnection.connect(chain_spec, 'default')
+    rpc_signer = RPCConnection.connect(chain_spec, 'signer')
 
-    txf = TokenTxFactory(holder_address, c, registry=registry)
-    
-    session = SessionBase.create_session()
-    tx_transfer = txf.transfer(t['address'], receiver_address, value, chain_spec, self.request.root_id, session=session)
-    (tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx_transfer, chain_str, queue, cache_task='cic_eth.eth.token.otx_cache_transfer', session=session)
+    session = self.create_session()
+    nonce_oracle = CustodialTaskNonceOracle(holder_address, self.request.root_id, session=session)
+    gas_oracle = self.create_gas_oracle(rpc, MaxGasOracle.gas)
+    c = ERC20(signer=rpc_signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle, chain_id=chain_spec.chain_id())
+    (tx_hash_hex, tx_signed_raw_hex) = c.transfer(t['address'], holder_address, receiver_address, value, tx_format=TxFormat.RLP_SIGNED)
+    cache_task = 'cic_eth.eth.erc20.cache_transfer_data'
+
+    register_tx(tx_hash_hex, tx_signed_raw_hex, chain_spec, queue, cache_task=cache_task, session=session)
+    session.commit()
     session.close()
     
-    gas_budget = tx_transfer['gas'] * tx_transfer['gasPrice']
+    gas_pair = gas_oracle.get_gas(tx_signed_raw_hex)
+    gas_budget = gas_pair[0] * gas_pair[1]
+    logg.debug('transfer tx {} {} {}'.format(tx_hash_hex, queue, gas_budget))
 
-    s = create_check_gas_and_send_task(
+    s = create_check_gas_task(
              [tx_signed_raw_hex],
-             chain_str,
+             chain_spec,
              holder_address,
              gas_budget,
              [tx_hash_hex],
@@ -275,7 +284,7 @@ def transfer(self, tokens, holder_address, receiver_address, value, chain_str):
 
 
 @celery_app.task(bind=True, base=CriticalSQLAlchemyAndSignerTask)
-def approve(self, tokens, holder_address, spender_address, value, chain_str):
+def approve(self, tokens, holder_address, spender_address, value, chain_spec_dict):
     """Approve ERC20 transfer on behalf of holder address
 
     First argument is a list of tokens, to enable the task to be chained to the symbol to token address resolver function. However, it accepts only one token as argument.
@@ -299,29 +308,30 @@ def approve(self, tokens, holder_address, spender_address, value, chain_str):
     # we only allow one token, one transfer
     if len(tokens) != 1:
         raise TokenCountError
-
-    chain_spec = ChainSpec.from_chain_str(chain_str)
-
-    queue = self.request.delivery_info['routing_key']
-
-    # retrieve the token interface
     t = tokens[0]
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
+    queue = self.request.delivery_info.get('routing_key')
 
-    c = RpcClient(chain_spec, holder_address=holder_address)
-    registry = safe_registry(c.w3)
+    rpc = RPCConnection.connect(chain_spec, 'default')
+    rpc_signer = RPCConnection.connect(chain_spec, 'signer')
 
-    txf = TokenTxFactory(holder_address, c, registry=registry)
+    session = self.create_session()
+    nonce_oracle = CustodialTaskNonceOracle(holder_address, self.request.root_id, session=session)
+    gas_oracle = self.create_gas_oracle(rpc, MaxGasOracle.gas)
+    c = ERC20(signer=rpc_signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle, chain_id=chain_spec.chain_id())
+    (tx_hash_hex, tx_signed_raw_hex) = c.approve(t['address'], holder_address, spender_address, value, tx_format=TxFormat.RLP_SIGNED)
+    cache_task = 'cic_eth.eth.erc20.cache_approve_data'
 
-    session = SessionBase.create_session()
-    tx_transfer = txf.approve(t['address'], spender_address, value, chain_spec, self.request.root_id, session=session)
-    (tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx_transfer, chain_str, queue, cache_task='cic_eth.eth.token.otx_cache_approve', session=session)
+    register_tx(tx_hash_hex, tx_signed_raw_hex, chain_spec, queue, cache_task=cache_task, session=session)
+    session.commit()
     session.close()
     
-    gas_budget = tx_transfer['gas'] * tx_transfer['gasPrice']
+    gas_pair = gas_oracle.get_gas(tx_signed_raw_hex)
+    gas_budget = gas_pair[0] * gas_pair[1]
 
-    s = create_check_gas_and_send_task(
+    s = create_check_gas_task(
              [tx_signed_raw_hex],
-             chain_str,
+             chain_spec,
              holder_address,
              gas_budget,
              [tx_hash_hex],
@@ -357,33 +367,10 @@ def resolve_tokens_by_symbol(token_symbols, chain_str):
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
-def otx_cache_transfer(
-        tx_hash_hex,
-        tx_signed_raw_hex,
-        chain_str,
-        ):
-    """Generates and commits transaction cache metadata for an ERC20.transfer or ERC20.transferFrom transaction
-
-    :param tx_hash_hex: Transaction hash
-    :type tx_hash_hex: str, 0x-hex
-    :param tx_signed_raw_hex: Raw signed transaction
-    :type tx_signed_raw_hex: str, 0x-hex
-    :param chain_str: Chain spec string representation
-    :type chain_str: str
-    :returns: Transaction hash and id of cache element in storage backend, respectively
-    :rtype: tuple
-    """
-    chain_spec = ChainSpec.from_chain_str(chain_str)
-    tx_signed_raw_bytes = bytes.fromhex(tx_signed_raw_hex[2:])
-    tx = unpack_signed_raw_tx(tx_signed_raw_bytes, chain_spec.chain_id())
-    (txc, cache_id) = cache_transfer_data(tx_hash_hex, tx)
-    return txc
-
-
-@celery_app.task(base=CriticalSQLAlchemyTask)
 def cache_transfer_data(
     tx_hash_hex,
-    tx,
+    tx_signed_raw_hex,
+    chain_spec_dict,
         ):
     """Helper function for otx_cache_transfer
 
@@ -394,19 +381,23 @@ def cache_transfer_data(
     :returns: Transaction hash and id of cache element in storage backend, respectively
     :rtype: tuple
     """
-    tx_data = unpack_transfer(tx['data'])
-    logg.debug('tx data {}'.format(tx_data))
-    logg.debug('tx {}'.format(tx))
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
+    tx_signed_raw_bytes = bytes.fromhex(strip_0x(tx_signed_raw_hex))
+    tx = unpack(tx_signed_raw_bytes, chain_spec.chain_id())
+
+    tx_data = ERC20.parse_transfer_request(tx['data'])
+    recipient_address = tx_data[0]
+    token_value = tx_data[1]
 
     session = SessionBase.create_session()
     tx_cache = TxCache(
         tx_hash_hex,
         tx['from'],
-        tx_data['to'],
+        recipient_address,
         tx['to'],
         tx['to'],
-        tx_data['amount'],
-        tx_data['amount'],
+        token_value,
+        token_value,
         session=session,
             )
     session.add(tx_cache)
@@ -417,33 +408,10 @@ def cache_transfer_data(
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
-def otx_cache_approve(
-        tx_hash_hex,
-        tx_signed_raw_hex,
-        chain_str,
-        ):
-    """Generates and commits transaction cache metadata for an ERC20.approve transaction
-
-    :param tx_hash_hex: Transaction hash
-    :type tx_hash_hex: str, 0x-hex
-    :param tx_signed_raw_hex: Raw signed transaction
-    :type tx_signed_raw_hex: str, 0x-hex
-    :param chain_str: Chain spec string representation
-    :type chain_str: str
-    :returns: Transaction hash and id of cache element in storage backend, respectively
-    :rtype: tuple
-    """
-    chain_spec = ChainSpec.from_chain_str(chain_str)
-    tx_signed_raw_bytes = bytes.fromhex(tx_signed_raw_hex[2:])
-    tx = unpack_signed_raw_tx(tx_signed_raw_bytes, chain_spec.chain_id())
-    (txc, cache_id) = cache_approve_data(tx_hash_hex, tx)
-    return txc
-
-
-@celery_app.task(base=CriticalSQLAlchemyTask)
 def cache_approve_data(
     tx_hash_hex,
-    tx,
+    tx_signed_raw_hex,
+    chain_spec_dict,
         ):
     """Helper function for otx_cache_approve
 
@@ -454,19 +422,23 @@ def cache_approve_data(
     :returns: Transaction hash and id of cache element in storage backend, respectively
     :rtype: tuple
     """
-    tx_data = unpack_approve(tx['data'])
-    logg.debug('tx data {}'.format(tx_data))
-    logg.debug('tx {}'.format(tx))
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
+    tx_signed_raw_bytes = bytes.fromhex(strip_0x(tx_signed_raw_hex))
+    tx = unpack(tx_signed_raw_bytes, chain_spec.chain_id())
+
+    tx_data = ERC20.parse_approve_request(tx['data'])
+    recipient_address = tx_data[0]
+    token_value = tx_data[1]
 
     session = SessionBase.create_session()
     tx_cache = TxCache(
         tx_hash_hex,
         tx['from'],
-        tx_data['to'],
+        recipient_address,
         tx['to'],
         tx['to'],
-        tx_data['amount'],
-        tx_data['amount'],
+        token_value,
+        token_value,
         session=session,
             )
     session.add(tx_cache)

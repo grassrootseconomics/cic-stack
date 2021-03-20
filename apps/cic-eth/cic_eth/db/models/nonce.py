@@ -161,7 +161,7 @@ class NonceReservation(SessionBase):
         o = q.first()
 
         if o == None:
-            raise IntegrityError('nonce {} for key {} address {}: {}'.format(nonce, key, address))
+            raise IntegrityError('nonce {} for key {} address {}'.format(nonce, key, address))
             SessionBase.release_session(session)
 
         session.delete(o)
