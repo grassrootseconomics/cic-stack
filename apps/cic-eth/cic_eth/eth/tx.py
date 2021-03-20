@@ -529,81 +529,53 @@ def sync_tx(self, tx_hash_hex, chain_str):
     s.apply_async()
 
 
-
-@celery_app.task(bind=True)
-def resume_tx(self, txpending_hash_hex, chain_str):
-    """Queue a suspended tranaction for (re)sending
-
-    :param txpending_hash_hex: Transaction hash
-    :type txpending_hash_hex: str, 0x-hex
-    :param chain_str: Chain spec, string representation
-    :type chain_str: str
-    :raises NotLocalTxError: Transaction does not exist in the local queue
-    :returns: Transaction hash
-    :rtype: str, 0x-hex
-    """
-
-    chain_spec = ChainSpec.from_chain_str(chain_str)
-
-    session = SessionBase.create_session()
-    q = session.query(Otx.signed_tx)
-    q = q.filter(Otx.tx_hash==txpending_hash_hex)
-    r = q.first()
-    session.close()
-    if r == None:
-        raise NotLocalTxError(txpending_hash_hex)
-
-    tx_signed_raw_hex = r[0]
-    tx_signed_bytes = bytes.fromhex(tx_signed_raw_hex[2:])
-    tx = unpack_signed_raw_tx(tx_signed_bytes, chain_spec.chain_id())
-
-    queue = self.request.delivery_info['routing_key']
-
-    s = create_check_gas_and_send_task(
-            [tx_signed_raw_hex],
-            chain_str,
-            tx['from'],
-            tx['gasPrice'] * tx['gas'],
-            [txpending_hash_hex],
-            queue=queue,
-            )
-    s.apply_async()
-    return txpending_hash_hex
+#
+#@celery_app.task(bind=True)
+#def resume_tx(self, txpending_hash_hex, chain_str):
+#    """Queue a suspended tranaction for (re)sending
+#
+#    :param txpending_hash_hex: Transaction hash
+#    :type txpending_hash_hex: str, 0x-hex
+#    :param chain_str: Chain spec, string representation
+#    :type chain_str: str
+#    :raises NotLocalTxError: Transaction does not exist in the local queue
+#    :returns: Transaction hash
+#    :rtype: str, 0x-hex
+#    """
+#
+#    chain_spec = ChainSpec.from_chain_str(chain_str)
+#
+#    session = SessionBase.create_session()
+#    q = session.query(Otx.signed_tx)
+#    q = q.filter(Otx.tx_hash==txpending_hash_hex)
+#    r = q.first()
+#    session.close()
+#    if r == None:
+#        raise NotLocalTxError(txpending_hash_hex)
+#
+#    tx_signed_raw_hex = r[0]
+#    tx_signed_bytes = bytes.fromhex(tx_signed_raw_hex[2:])
+#    tx = unpack_signed_raw_tx(tx_signed_bytes, chain_spec.chain_id())
+#
+#    queue = self.request.delivery_info['routing_key']
+#
+#    s = create_check_gas_and_send_task(
+#            [tx_signed_raw_hex],
+#            chain_str,
+#            tx['from'],
+#            tx['gasPrice'] * tx['gas'],
+#            [txpending_hash_hex],
+#            queue=queue,
+#            )
+#    s.apply_async()
+#    return txpending_hash_hex
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
-def otx_cache_parse_tx(
+def cache_gas_data(
         tx_hash_hex,
         tx_signed_raw_hex,
         chain_spec_dict,
-        ):
-    """Generates and commits transaction cache metadata for a gas refill transaction
-
-    :param tx_hash_hex: Transaction hash
-    :type tx_hash_hex: str, 0x-hex
-    :param tx_signed_raw_hex: Raw signed transaction
-    :type tx_signed_raw_hex: str, 0x-hex
-    :param chain_str: Chain spec string representation
-    :type chain_str: str
-    :returns: Transaction hash and id of cache element in storage backend, respectively
-    :rtype: tuple
-    """
-
-
-    chain_spec = ChainSpec.from_dict(chain_spec_dict)
-    #c = RpcClient(chain_spec)
-    #tx = unpack_signed_raw_tx(tx_signed_raw_bytes, chain_spec.chain_id())
-    tx_signed_raw_bytes = bytes.fromhex(strip_0x(tx_signed_raw_hex))
-    tx = unpack(tx_signed_raw_bytes, chain_spec.chain_id())
-    (txc, cache_id) = cache_gas_refill_data(tx_hash_hex, tx, chain_spec)
-    return txc
-
-
-#@celery_app.task(base=CriticalSQLAlchemyTask)
-def cache_gas_refill_data(
-        tx_hash_hex,
-        tx,
-        chain_spec,
         ):
     """Helper function for otx_cache_parse_tx
 
@@ -614,6 +586,10 @@ def cache_gas_refill_data(
     :returns: Transaction hash and id of cache element in storage backend, respectively
     :rtype: tuple
     """
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
+    tx_signed_raw_bytes = bytes.fromhex(strip_0x(tx_signed_raw_hex))
+    tx = unpack(tx_signed_raw_bytes, chain_spec.chain_id())
+
     tx_cache = TxCache(
         tx_hash_hex,
         tx['from'],
