@@ -68,13 +68,12 @@ def create(nonce, holder_address, tx_hash, signed_tx, chain_spec, obsolete_prede
     session.flush()
 
     if obsolete_predecessors:
-        # TODO: obsolete previous txs from same holder with same nonce
         q = session.query(Otx)
         q = q.join(TxCache)
         q = q.filter(Otx.nonce==nonce)
         q = q.filter(TxCache.sender==holder_address)
         q = q.filter(Otx.tx_hash!=tx_hash)
-        q = q.filter(Otx.status<=StatusEnum.SENT)
+        q = q.filter(Otx.status.op('&')(StatusBits.FINAL)==0)
 
         for otx in q.all():
             logg.info('otx {} obsoleted by {}'.format(otx.tx_hash, tx_hash))
