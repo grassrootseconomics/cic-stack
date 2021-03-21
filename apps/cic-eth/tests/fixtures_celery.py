@@ -15,7 +15,7 @@ def celery_includes():
 #        'cic_eth.eth.bancor',
         'cic_eth.eth.erc20',
         'cic_eth.eth.tx',
-#        'cic_eth.ext.tx',
+        'cic_eth.ext.tx',
         'cic_eth.queue.tx',
         'cic_eth.queue.balance',
         'cic_eth.admin.ctrl',
