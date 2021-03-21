@@ -37,7 +37,7 @@ def test_transfer_api(
         custodial_roles,
         agent_roles,
         cic_registry,
-        token_registry_load,
+        register_tokens,
         celery_session_worker,
         ):
 
