@@ -352,7 +352,7 @@ def refill_gas(self, recipient_address, chain_spec_dict):
     logg.debug('tx send gas amount {} from provider {} to {}'.format(refill_amount, gas_provider, recipient_address))
     (tx_hash_hex, tx_signed_raw_hex) = c.create(gas_provider, recipient_address, refill_amount, tx_format=TxFormat.RLP_SIGNED)
     logg.debug('adding queue refill gas tx {}'.format(tx_hash_hex))
-    cache_task = 'cic_eth.eth.tx.otx_cache_parse_tx'
+    cache_task = 'cic_eth.eth.tx.cache_gas_data'
     register_tx(tx_hash_hex, tx_signed_raw_hex, chain_spec, queue, cache_task=cache_task, session=session)
 
     # add transaction to send queue

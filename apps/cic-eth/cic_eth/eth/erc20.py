@@ -14,6 +14,7 @@ from chainlib.eth.tx import (
         TxFormat,
         unpack,
         )
+from cic_eth_registry import CICRegistry
 from cic_eth_registry.erc20 import ERC20Token
 from hexathon import strip_0x
 
@@ -21,6 +22,7 @@ from hexathon import strip_0x
 from cic_eth.registry import safe_registry
 from cic_eth.db.models.tx import TxCache
 from cic_eth.db.models.base import SessionBase
+from cic_eth.db.models.role import AccountRole
 from cic_eth.eth import RpcClient
 from cic_eth.error import TokenCountError, PermanentTxError, OutOfGasError, NotLocalTxError
 from cic_eth.queue.tx import register_tx
@@ -39,161 +41,6 @@ from cic_eth.eth.nonce import CustodialTaskNonceOracle
 
 celery_app = celery.current_app
 logg = logging.getLogger()
-
-## TODO: fetch from cic-contracts instead when implemented
-#contract_function_signatures = {
-#        'transfer': 'a9059cbb',
-#        'approve': '095ea7b3',
-#        'transferfrom': '23b872dd',
-#        }
-#
-#
-#class TokenTxFactory(TxFactory):
-#    """Factory for creating ERC20 token transactions.
-#    """
-#    def approve(
-#            self,
-#            token_address,
-#            spender_address,
-#            amount,
-#            chain_spec,
-#            uuid,
-#            session=None,
-#            ):
-#        """Create an ERC20 "approve" transaction
-#
-#        :param token_address: ERC20 contract address
-#        :type token_address: str, 0x-hex
-#        :param spender_address: Address to approve spending for
-#        :type spender_address: str, 0x-hex
-#        :param amount: Amount of tokens to approve
-#        :type amount: int
-#        :param chain_spec: Chain spec
-#        :type chain_spec: cic_registry.chain.ChainSpec
-#        :returns: Unsigned "approve" transaction in standard Ethereum format
-#        :rtype: dict
-#        """
-#        source_token = self.registry.get_address(chain_spec, token_address)
-#        source_token_contract = source_token.contract
-#        tx_approve_buildable = source_token_contract.functions.approve(
-#            spender_address,
-#            amount,
-#        )
-#        source_token_gas = source_token.gas('transfer')
-#
-#        tx_approve = tx_approve_buildable.buildTransaction({
-#            'from': self.address,
-#            'gas': source_token_gas,
-#            'gasPrice': self.gas_price,
-#            'chainId': chain_spec.chain_id(),
-#            'nonce': self.next_nonce(uuid, session=session),
-#            })
-#        return tx_approve
-#
-#
-#    def transfer(
-#        self,
-#        token_address,
-#        Receiver_address,
-#        value,
-#        chain_spec,
-#        uuid,
-#        session=None,
-#        ):
-#        """Create an ERC20 "transfer" transaction
-#
-#        :param token_address: ERC20 contract address
-#        :type token_address: str, 0x-hex
-#        :param receiver_address: Address to send tokens to
-#        :type receiver_address: str, 0x-hex
-#        :param amount: Amount of tokens to send
-#        :type amount: int
-#        :param chain_spec: Chain spec
-#        :type chain_spec: cic_registry.chain.ChainSpec
-#        :returns: Unsigned "transfer" transaction in standard Ethereum format
-#        :rtype: dict
-#        """
-#        source_token = self.registry.get_address(chain_spec, token_address)
-#        source_token_contract = source_token.contract
-#        transfer_buildable = source_token_contract.functions.transfer(
-#                receiver_address,
-#                value,
-#                )
-#        source_token_gas = source_token.gas('transfer')
-#
-#        tx_transfer = transfer_buildable.buildTransaction(
-#                {
-#                    'from': self.address,
-#                    'gas': source_token_gas,
-#                    'gasPrice': self.gas_price,
-#                    'chainId': chain_spec.chain_id(),
-#                    'nonce': self.next_nonce(uuid, session=session),
-#                })
-#        return tx_transfer
-
-
-#def unpack_transfer(data):
-#    """Verifies that a transaction is an "ERC20.transfer" transaction, and extracts call parameters from it.
-#
-#    :param data: Raw input data from Ethereum transaction.
-#    :type data: str, 0x-hex
-#    :raises ValueError: Function signature does not match AccountRegister.add
-#    :returns: Parsed parameters
-#    :rtype: dict
-#    """
-#    data = strip_0x(data)
-#    f = data[:8]
-#    if f != contract_function_signatures['transfer']:
-#        raise ValueError('Invalid transfer data ({})'.format(f))
-#
-#    d = data[8:]
-#    return {
-#        'to': web3.Web3.toChecksumAddress('0x' + d[64-40:64]),
-#        'amount': int(d[64:], 16)
-#        }
-
-
-#def unpack_transferfrom(data):
-#    """Verifies that a transaction is an "ERC20.transferFrom" transaction, and extracts call parameters from it.
-#
-#    :param data: Raw input data from Ethereum transaction.
-#    :type data: str, 0x-hex
-#    :raises ValueError: Function signature does not match AccountRegister.add
-#    :returns: Parsed parameters
-#    :rtype: dict
-#    """
-#    data = strip_0x(data)
-#    f = data[:8]
-#    if f != contract_function_signatures['transferfrom']:
-#        raise ValueError('Invalid transferFrom data ({})'.format(f))
-#
-#    d = data[8:]
-#    return {
-#        'from': web3.Web3.toChecksumAddress('0x' + d[64-40:64]),
-#        'to': web3.Web3.toChecksumAddress('0x' + d[128-40:128]),
-#        'amount': int(d[128:], 16)
-#        }
-#
-#
-#def unpack_approve(data):
-#    """Verifies that a transaction is an "ERC20.approve" transaction, and extracts call parameters from it.
-#
-#    :param data: Raw input data from Ethereum transaction.
-#    :type data: str, 0x-hex
-#    :raises ValueError: Function signature does not match AccountRegister.add
-#    :returns: Parsed parameters
-#    :rtype: dict
-#    """
-#    data = strip_0x(data)
-#    f = data[:8]
-#    if f != contract_function_signatures['approve']:
-#        raise ValueError('Invalid approval data ({})'.format(f))
-#
-#    d = data[8:]
-#    return {
-#        'to': web3.Web3.toChecksumAddress('0x' + d[64-40:64]),
-#        'amount': int(d[64:], 16)
-#        }
 
 
 @celery_app.task(base=CriticalWeb3Task)
@@ -341,8 +188,8 @@ def approve(self, tokens, holder_address, spender_address, value, chain_spec_dic
     return tx_hash_hex
 
 
-@celery_app.task(base=CriticalWeb3Task)
-def resolve_tokens_by_symbol(token_symbols, chain_str):
+@celery_app.task(bind=True, base=CriticalWeb3Task)
+def resolve_tokens_by_symbol(self, token_symbols, chain_spec_dict):
     """Returns contract addresses of an array of ERC20 token symbols
 
     :param token_symbols: Token symbols to resolve
@@ -354,13 +201,17 @@ def resolve_tokens_by_symbol(token_symbols, chain_str):
     :rtype: list of str, 0x-hex
     """
     tokens = []
-    chain_spec = ChainSpec.from_chain_str(chain_str)
-    c = RpcClient(chain_spec)
-    registry = safe_registry(c.w3)
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
+    rpc = RPCConnection.connect(chain_spec, 'default')
+    registry = CICRegistry(chain_spec, rpc)
+    session = self.create_session()
+    sender_address = AccountRole.get_address('DEFAULT', session)
+    session.close()
     for token_symbol in token_symbols:
-        token = registry.get_token(chain_spec, token_symbol)
+        token_address = registry.by_name(token_symbol, sender_address=sender_address)
+        logg.debug('token {}'.format(token_address))
         tokens.append({
-            'address': token.address(),
+            'address': token_address,
             'converters': [],
             })
     return tokens

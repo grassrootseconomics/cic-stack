@@ -11,7 +11,6 @@ logg = logging.getLogger()
 # celery fixtures
 @pytest.fixture(scope='session')
 def celery_includes():
-    logg.debug('foooooooooooo ')
     return [
 #        'cic_eth.eth.bancor',
         'cic_eth.eth.erc20',

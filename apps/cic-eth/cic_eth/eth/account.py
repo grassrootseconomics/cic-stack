@@ -92,7 +92,7 @@ def unpack_gift(data):
 
 # TODO: Separate out nonce initialization task
 @celery_app.task(bind=True, base=CriticalSQLAlchemyAndSignerTask)
-def create(self, password, chain_str):
+def create(self, password, chain_spec_dict):
     """Creates and stores a new ethereum account in the keystore.
 
     The password is passed on to the wallet backend, no encryption is performed in the task worker.
@@ -104,8 +104,7 @@ def create(self, password, chain_str):
     :returns: Ethereum address of newly created account
     :rtype: str, 0x-hex
     """
-    chain_spec = ChainSpec.from_chain_str(chain_str)
-    #c = RpcClient(chain_spec)
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
     a = None
     conn = RPCConnection.connect(chain_spec, 'signer')
     o = new_account()

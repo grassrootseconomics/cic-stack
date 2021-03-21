@@ -4,7 +4,8 @@ import logging
 
 # third-party imports
 import celery
-from cic_registry import zero_address
+from chainlib.eth.constant import ZERO_ADDRESS
+from chainlib.chain import ChainSpec
 
 # local imports
 from cic_eth.db.enum import LockEnum
@@ -19,7 +20,7 @@ celery_app = celery.current_app
 logg = logging.getLogger()
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
-def lock(chained_input, chain_spec_dict, address=zero_address, flags=LockEnum.ALL, tx_hash=None):
+def lock(chained_input, chain_spec_dict, address=ZERO_ADDRESS, flags=LockEnum.ALL, tx_hash=None):
     """Task wrapper to set arbitrary locks
 
     :param chain_str: Chain spec string representation
@@ -38,7 +39,7 @@ def lock(chained_input, chain_spec_dict, address=zero_address, flags=LockEnum.AL
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
-def unlock(chained_input, chain_spec_dict, address=zero_address, flags=LockEnum.ALL):
+def unlock(chained_input, chain_spec_dict, address=ZERO_ADDRESS, flags=LockEnum.ALL):
     """Task wrapper to reset arbitrary locks
 
     :param chain_str: Chain spec string representation
@@ -57,7 +58,7 @@ def unlock(chained_input, chain_spec_dict, address=zero_address, flags=LockEnum.
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
-def lock_send(chained_input, chain_spec_dict, address=zero_address, tx_hash=None):
+def lock_send(chained_input, chain_spec_dict, address=ZERO_ADDRESS, tx_hash=None):
     """Task wrapper to set send lock
 
     :param chain_str: Chain spec string representation
@@ -74,7 +75,7 @@ def lock_send(chained_input, chain_spec_dict, address=zero_address, tx_hash=None
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
-def unlock_send(chained_input, chain_spec_dict, address=zero_address):
+def unlock_send(chained_input, chain_spec_dict, address=ZERO_ADDRESS):
     """Task wrapper to reset send lock
 
     :param chain_str: Chain spec string representation
@@ -91,7 +92,7 @@ def unlock_send(chained_input, chain_spec_dict, address=zero_address):
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
-def lock_queue(chained_input, chain_spec_dict, address=zero_address, tx_hash=None):
+def lock_queue(chained_input, chain_spec_dict, address=ZERO_ADDRESS, tx_hash=None):
     """Task wrapper to set queue direct lock
 
     :param chain_str: Chain spec string representation
@@ -108,7 +109,7 @@ def lock_queue(chained_input, chain_spec_dict, address=zero_address, tx_hash=Non
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
-def unlock_queue(chained_input, chain_spec_dict, address=zero_address):
+def unlock_queue(chained_input, chain_spec_dict, address=ZERO_ADDRESS):
     """Task wrapper to reset queue direct lock
 
     :param chain_str: Chain spec string representation
@@ -128,7 +129,7 @@ def unlock_queue(chained_input, chain_spec_dict, address=zero_address):
 def check_lock(chained_input, chain_spec_dict, lock_flags, address=None):
     chain_str = str(ChainSpec.from_dict(chain_spec_dict))
     session = SessionBase.create_session()
-    r = Lock.check(chain_str, lock_flags, address=zero_address, session=session)
+    r = Lock.check(chain_str, lock_flags, address=ZERO_ADDRESS, session=session)
     if address != None:
         r |= Lock.check(chain_str, lock_flags, address=address, session=session)
     if r > 0:
