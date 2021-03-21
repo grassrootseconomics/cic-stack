@@ -3,10 +3,10 @@ import logging
 
 # third-party imports
 import celery
+from chainlib.chain import ChainSpec
 from hexathon import strip_0x
 
 # local imports
-from cic_registry.chain import ChainSpec
 from cic_eth.db import SessionBase
 from cic_eth.db.models.otx import Otx
 from cic_eth.db.models.tx import TxCache
@@ -21,7 +21,7 @@ celery_app = celery.current_app
 logg = logging.getLogger()
 
 
-def __balance_outgoing_compatible(token_address, holder_address, chain_str):
+def __balance_outgoing_compatible(token_address, holder_address):
     session = SessionBase.create_session()
     q = session.query(TxCache.from_value)
     q = q.join(Otx)
@@ -37,7 +37,7 @@ def __balance_outgoing_compatible(token_address, holder_address, chain_str):
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
-def balance_outgoing(tokens, holder_address, chain_str):
+def balance_outgoing(tokens, holder_address, chain_spec_dict):
     """Retrieve accumulated value of unprocessed transactions sent from the given address.
 
     :param tokens: list of token spec dicts with addresses to retrieve balances for
@@ -49,15 +49,15 @@ def balance_outgoing(tokens, holder_address, chain_str):
     :returns: Tokens dicts with outgoing balance added
     :rtype: dict
     """
-    chain_spec = ChainSpec.from_chain_str(chain_str)
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
     for t in tokens: 
-        b = __balance_outgoing_compatible(t['address'], holder_address, chain_str)
+        b = __balance_outgoing_compatible(t['address'], holder_address)
         t['balance_outgoing'] = b
 
     return tokens
 
 
-def __balance_incoming_compatible(token_address, receiver_address, chain_str):
+def __balance_incoming_compatible(token_address, receiver_address):
     session = SessionBase.create_session()
     q = session.query(TxCache.to_value)
     q = q.join(Otx)
@@ -75,7 +75,7 @@ def __balance_incoming_compatible(token_address, receiver_address, chain_str):
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
-def balance_incoming(tokens, receipient_address, chain_str):
+def balance_incoming(tokens, receipient_address, chain_spec_dict):
     """Retrieve accumulated value of unprocessed transactions to be received by the given address.
 
     :param tokens: list of token spec dicts with addresses to retrieve balances for
@@ -87,9 +87,9 @@ def balance_incoming(tokens, receipient_address, chain_str):
     :returns: Tokens dicts with outgoing balance added
     :rtype: dict
     """
-    chain_spec = ChainSpec.from_chain_str(chain_str)
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
     for t in tokens: 
-        b = __balance_incoming_compatible(t['address'], receipient_address, chain_str)
+        b = __balance_incoming_compatible(t['address'], receipient_address)
         t['balance_incoming'] = b
 
     return tokens
@@ -107,6 +107,7 @@ def assemble_balances(balances_collection):
     :rtype: list of dicts
     """
     tokens = {}
+    logg.debug('received collection {}'.format(balances_collection))
     for c in balances_collection:
         for b in c:
             address = b['address']

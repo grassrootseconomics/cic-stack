@@ -307,16 +307,22 @@ class Api:
             s_balance_incoming.link(s_balance_outgoing)
             last_in_chain = s_balance_outgoing
 
-        one = celery.chain(s_tokens, s_balance)
-        two = celery.chain(s_tokens, s_balance_incoming)
-        three = celery.chain(s_tokens, s_balance_outgoing)
+            one = celery.chain(s_tokens, s_balance)
+            two = celery.chain(s_tokens, s_balance_incoming)
+            three = celery.chain(s_tokens, s_balance_outgoing)
 
-        t = None
-        if self.callback_param != None:
-            s_result.link(self.callback_success).on_error(self.callback_error)
-            t = celery.chord([one, two, three])(s_result)
+            t = None
+            if self.callback_param != None:
+                s_result.link(self.callback_success).on_error(self.callback_error)
+                t = celery.chord([one, two, three])(s_result)
+            else:
+                t = celery.chord([one, two, three])(s_result)
         else:
-            t = celery.chord([one, two, three])(s_result)
+            # TODO: Chord is inefficient with only one chain, but assemble_balances must be able to handle different structures in order to avoid chord
+            one = celery.chain(s_tokens, s_balance)
+            if self.callback_param != None:
+                s_result.link(self.callback_success).on_error(self.callback_error)
+            t = celery.chord([one])(s_result)
     
         return t
 
