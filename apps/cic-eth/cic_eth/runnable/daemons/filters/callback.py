@@ -2,29 +2,19 @@
 import logging
 
 # third-party imports
-import web3
 import celery
-from cic_registry.error import UnknownContractError
+from cic_eth_registry.error import UnknownContractError
 from chainlib.status import Status as TxStatus
-from chainlib.eth.address import to_checksum
+from chainlib.eth.address import to_checksum_address
+from chainlib.eth.error import RequestMismatchException
 from chainlib.eth.constant import ZERO_ADDRESS
 from hexathon import strip_0x
 
 # local imports
 from .base import SyncFilter
-from cic_eth.eth.token import (
-        unpack_transfer,
-        unpack_transferfrom,
-        )
-from cic_eth.eth.account import unpack_gift
-from cic_eth.eth.token import ExtendedTx
-from .base import SyncFilter
+from cic_eth.eth.meta import ExtendedTx
 
-logg = logging.getLogger(__name__)
-
-transfer_method_signature = 'a9059cbb' # keccak256(transfer(address,uint256))
-transferfrom_method_signature = '23b872dd' # keccak256(transferFrom(address,address,uint256))
-giveto_method_signature = '63e4bff4' # keccak256(giveTo(address))
+logg = logging.getLogger().getLogger__name__)
 
 
 class CallbackFilter(SyncFilter):
@@ -63,38 +53,65 @@ class CallbackFilter(SyncFilter):
         return s
 
 
+    def parse_transfer(self, tx):
+        r = ERC20.parse_transfer_request(tx.payload)
+        transfer_data = {}
+        transfer_data['to'] = r[0]
+        transfer_data['value'] = r[1]
+        transfer_data['from'] = tx['from']
+        transfer_data['token_address'] = tx['to']
+        return ('transfer', transfer_data)
+
+
+    def parse_transferfrom(self, tx):
+        r = ERC20.parse_transfer_request(tx.payload)
+        transfer_data = unpack_transferfrom(tx.payload)
+        transfer_data['from'] = r[0]
+        transfer_data['to'] = r[1]
+        transfer_data['value'] = r[2]
+        transfer_data['token_address'] = tx['to']
+        return ('transferfrom', transfer_data)
+
+
+    def parse_giftto(self, tx):
+        # TODO: broken
+        transfer_data = unpack_gift(tx.payload)
+        transfer_data['from'] = tx.inputs[0]
+        transfer_data['value'] = 0
+        transfer_data['token_address'] = ZERO_ADDRESS
+        # TODO: would be better to query the gift amount from the block state
+        for l in tx.logs:
+            topics = l['topics']
+            logg.debug('topixx {}'.format(topics))
+            if strip_0x(topics[0]) == '45c201a59ac545000ead84f30b2db67da23353aa1d58ac522c48505412143ffa':
+                #transfer_data['value'] = web3.Web3.toInt(hexstr=strip_0x(l['data']))
+                transfer_data['value'] = int.from_bytes(bytes.fromhex(strip_0x(l_data)))
+                #token_address_bytes = topics[2][32-20:]
+                token_address = strip_0x(topics[2])[64-40:]
+                transfer_data['token_address'] = to_checksum_address(token_address)
+        return ('tokengift', transfer_data)
+
+
     def parse_data(self, tx):
         transfer_type = None
         transfer_data = None
+        # TODO: what's with the mix of attributes and dict keys
         logg.debug('have payload {}'.format(tx.payload))
         method_signature = tx.payload[:8]
 
         logg.debug('tx status {}'.format(tx.status))
-        if method_signature == transfer_method_signature:
-            transfer_data = unpack_transfer(tx.payload)
-            transfer_data['from'] = tx['from']
-            transfer_data['token_address'] = tx['to']
 
-        elif method_signature == transferfrom_method_signature:
-            transfer_type = 'transferfrom'
-            transfer_data = unpack_transferfrom(tx.payload)
-            transfer_data['token_address'] = tx['to']
+        for parser in [
+                parse_transfer,
+                parse_transfeffrom,
+                parse_giftto,
+                ]:
+            try:
+                (transfer_type, transfer_data) = parser(tx)
+                break
+            except RequestMismatchException:
+                continue
 
-        # TODO: do not rely on logs here
-        elif method_signature == giveto_method_signature:
-            transfer_type = 'tokengift'
-            transfer_data = unpack_gift(tx.payload)
-            transfer_data['from'] = tx.inputs[0]
-            transfer_data['value'] = 0
-            transfer_data['token_address'] = ZERO_ADDRESS
-            for l in tx.logs:
-                topics = l['topics']
-                logg.debug('topixx {}'.format(topics))
-                if strip_0x(topics[0]) == '45c201a59ac545000ead84f30b2db67da23353aa1d58ac522c48505412143ffa':
-                    transfer_data['value'] = web3.Web3.toInt(hexstr=strip_0x(l['data']))
-                    #token_address_bytes = topics[2][32-20:]
-                    token_address = strip_0x(topics[2])[64-40:]
-                    transfer_data['token_address'] = to_checksum(token_address)
 
         logg.debug('resolved method {}'.format(transfer_type))
 
@@ -105,8 +122,6 @@ class CallbackFilter(SyncFilter):
 
 
     def filter(self, conn, block, tx, db_session=None):
-        chain_str = str(self.chain_spec)
-
         transfer_data = None
         transfer_type = None
         try:
@@ -122,11 +137,10 @@ class CallbackFilter(SyncFilter):
         logg.debug('checking callbacks filter input {}'.format(tx.payload[:8]))
 
         if transfer_data != None:
-            logg.debug('wtfoo {}'.format(transfer_data))
             token_symbol = None
             result = None
             try:
-                tokentx = ExtendedTx(tx.hash, self.chain_spec)
+                tokentx = ExtendedTx(conn, tx.hash, self.chain_spec)
                 tokentx.set_actors(transfer_data['from'], transfer_data['to'], self.trusted_addresses)
                 tokentx.set_tokens(transfer_data['token_address'], transfer_data['value'])
                 if transfer_data['status'] == 0:

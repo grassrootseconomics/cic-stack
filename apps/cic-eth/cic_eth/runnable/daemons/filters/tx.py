@@ -13,7 +13,7 @@ from chainsyncer.db.models.base import SessionBase
 from chainlib.status import Status
 from .base import SyncFilter
 
-logg = logging.getLogger(__name__)
+logg = logging.getLogger().getChild(__name__)
 
 
 class TxFilter(SyncFilter):

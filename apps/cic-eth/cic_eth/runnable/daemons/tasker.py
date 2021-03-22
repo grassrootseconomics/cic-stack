@@ -49,7 +49,7 @@ logg = logging.getLogger()
 config_dir = os.path.join('/usr/local/etc/cic-eth')
 
 argparser = argparse.ArgumentParser()
-argparser.add_argument('-p', '--provider', dest='p', type=str, help='web3 provider')
+argparser.add_argument('-p', '--provider', dest='p', type=str, help='rpc provider')
 argparser.add_argument('-c', type=str, default=config_dir, help='config file')
 argparser.add_argument('-q', type=str, default='cic-eth', help='queue name for worker tasks')
 argparser.add_argument('-r', type=str, help='CIC registry address')

@@ -3,7 +3,7 @@ import logging
 
 # third-party imports
 import celery
-from chainlib.eth.address import to_checksum
+from chainlib.eth.address import to_checksum_address
 from hexathon import (
         add_0x,
         strip_0x,
@@ -12,9 +12,9 @@ from hexathon import (
 # local imports
 from .base import SyncFilter
 
-logg = logging.getLogger(__name__)
+logg = logging.getLogger().getChild(__name__)
 
-account_registry_add_log_hash = '0x5ed3bdd47b9af629827a8d129aa39c870b10c03f0153fe9ddb8e84b665061acd' # keccak256(AccountAdded(address,uint256))
+account_registry_add_log_hash = '0x5ed3bdd47b9af629827a8d129aa39c870b10c03f0153fe9ddb8e84b665061acd'
 
 
 class RegistrationFilter(SyncFilter):
@@ -32,7 +32,7 @@ class RegistrationFilter(SyncFilter):
                 # TODO: use abi conversion method instead
 
                 address_hex = strip_0x(l['topics'][1])[64-40:]
-                address = to_checksum(add_0x(address_hex))
+                address = to_checksum_address(add_0x(address_hex))
                 logg.info('request token gift to {}'.format(address))
                 s_nonce = celery.signature(
                     'cic_eth.eth.tx.reserve_nonce',
@@ -44,7 +44,7 @@ class RegistrationFilter(SyncFilter):
                 s_gift = celery.signature(
                     'cic_eth.eth.account.gift',
                     [
-                        str(self.chain_spec),
+                        self.chain_spec.asdict(),
                         ],
                     queue=self.queue,
                     )

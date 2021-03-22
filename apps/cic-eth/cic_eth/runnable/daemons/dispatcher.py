@@ -11,11 +11,10 @@ import datetime
 # third-party imports
 import confini
 import celery
-import web3
-from web3 import HTTPProvider, WebsocketProvider
-from cic_registry import CICRegistry
-from cic_registry.chain import ChainSpec
+from cic_eth_registry import CICRegistry
+from chainlib.chain import ChainSpec
 from chainlib.eth.tx import unpack
+from chainsyncer.error import SyncDone
 from hexathon import strip_0x
 
 # local imports
@@ -31,7 +30,6 @@ from cic_eth.queue.tx import (
         set_dequeue,
         )
 from cic_eth.admin.ctrl import lock_send
-from cic_eth.sync.error import LoopDone
 from cic_eth.eth.tx import send as task_tx_send
 from cic_eth.error import (
         PermanentTxError,
@@ -51,6 +49,7 @@ logging.getLogger('web3.providers.HTTPProvider').setLevel(logging.CRITICAL)
 config_dir = os.path.join('/usr/local/etc/cic-eth')
 
 argparser = argparse.ArgumentParser(description='daemon that monitors transactions in new blocks')
+argparser.add_argument('-p', '--provider', dest='p', type=str, help='rpc provider')
 argparser.add_argument('-c', type=str, default=config_dir, help='config root to use')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
@@ -79,21 +78,9 @@ queue = args.q
 dsn = dsn_from_config(config)
 SessionBase.connect(dsn, debug=config.true('DATABASE_DEBUG'))
 
+chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 
-re_websocket = re.compile('^wss?://')
-re_http = re.compile('^https?://')
-blockchain_provider = config.get('ETH_PROVIDER')
-if re.match(re_websocket, blockchain_provider) != None:
-    blockchain_provider = WebsocketProvider(blockchain_provider)
-elif re.match(re_http, blockchain_provider) != None:
-    blockchain_provider = HTTPProvider(blockchain_provider)
-else:
-    raise ValueError('unknown provider url {}'.format(blockchain_provider))
-
-def web3_constructor():
-    w3 = web3.Web3(blockchain_provider)
-    return (blockchain_provider, w3)
-RpcClient.set_constructor(web3_constructor)
+RPCConnection.registry_location(args.p, chain_spec, tag='default')
 
 run = True
 
@@ -165,17 +152,10 @@ class DispatchSyncer:
 
 
 def main(): 
-
-    chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
-    c = RpcClient(chain_spec)
-
-    CICRegistry.init(c.w3, config.get('CIC_REGISTRY_ADDRESS'), chain_spec)
-    CICRegistry.add_path(config.get('ETH_ABI_DIR'))
-
     syncer = DispatchSyncer(chain_spec)
     try:
         syncer.loop(c.w3, float(config.get('DISPATCHER_LOOP_INTERVAL')))
-    except LoopDone as e:
+    except SyncDone as e:
         sys.stderr.write("dispatcher done at block {}\n".format(e))
 
     sys.exit(0)

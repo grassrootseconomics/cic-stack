@@ -2,7 +2,6 @@
 import logging
 
 # external imports
-from cic_registry.chain import ChainSpec
 from hexathon import add_0x
 
 # local imports
@@ -14,7 +13,7 @@ from cic_eth.queue.tx import get_paused_txs
 from cic_eth.eth.task import create_check_gas_and_send_task
 from .base import SyncFilter
 
-logg = logging.getLogger(__name__)
+logg = logging.getLogger().getLogger(__name__)
 
 
 class GasFilter(SyncFilter):
@@ -47,7 +46,7 @@ class GasFilter(SyncFilter):
             if len(txs) > 0:
                 s = create_check_gas_and_send_task(
                         list(txs.values()),
-                        str(self.chain_spec),
+                        self.chain_spec.asdict(),
                         r[0],
                         0,
                         tx_hashes_hex=list(txs.keys()),

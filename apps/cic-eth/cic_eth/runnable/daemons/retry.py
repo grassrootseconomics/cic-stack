@@ -8,9 +8,8 @@ import datetime
 import web3
 import confini
 import celery
-from web3 import HTTPProvider, WebsocketProvider
-from cic_registry import CICRegistry
-from cic_registry.chain import ChainSpec
+from cic_eth_registry import CICRegistry
+from chainlib.chain import ChainSpec
 
 from cic_eth.db import dsn_from_config
 from cic_eth.db import SessionBase
@@ -25,19 +24,14 @@ from cic_eth.eth.util import unpack_signed_raw_tx_hex
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
-logging.getLogger('websockets.protocol').setLevel(logging.CRITICAL)
-logging.getLogger('web3.RequestManager').setLevel(logging.CRITICAL)
-logging.getLogger('web3.providers.WebsocketProvider').setLevel(logging.CRITICAL)
-logging.getLogger('web3.providers.HTTPProvider').setLevel(logging.CRITICAL)
-
 
 config_dir = os.path.join('/usr/local/etc/cic-eth')
 
 argparser = argparse.ArgumentParser(description='daemon that monitors transactions in new blocks')
+argparser.add_argument('-p', '--provider', dest='p', type=str, help='rpc provider')
 argparser.add_argument('-c', type=str, default=config_dir, help='config root to use')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
 argparser.add_argument('--retry-delay', dest='retry_delay', type=str, help='seconds to wait for retrying a transaction that is marked as sent')
-argparser.add_argument('--abi-dir', dest='abi_dir', type=str, help='Directory containing bytecode and abi')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
 argparser.add_argument('-v', help='be verbose', action='store_true')
@@ -71,31 +65,15 @@ queue = args.q
 
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 
+RPCConnection.registry_location(args.p, chain_spec, tag='default')
+
 dsn = dsn_from_config(config)
 SessionBase.connect(dsn)
-
-
-re_websocket = re.compile('^wss?://')
-re_http = re.compile('^https?://')
-blockchain_provider = config.get('ETH_PROVIDER')
-if re.match(re_websocket, blockchain_provider) != None:
-    blockchain_provider = WebsocketProvider(blockchain_provider)
-elif re.match(re_http, blockchain_provider) != None:
-    blockchain_provider = HTTPProvider(blockchain_provider)
-else:
-    raise ValueError('unknown provider url {}'.format(blockchain_provider))
-
-def web3_constructor():
-    w3 = web3.Web3(blockchain_provider)
-    return (blockchain_provider, w3)
-RpcClient.set_constructor(web3_constructor)
-
 
 straggler_delay = int(config.get('CIC_TX_RETRY_DELAY'))
 
 # TODO: we already have the signed raw tx in get, so its a waste of cycles to get_tx here
-def sendfail_filter(w3, tx_hash, rcpt, chain_str):
-    chain_spec = ChainSpec.from_chain_str(chain_str)
+def sendfail_filter(w3, tx_hash, rcpt, chain_spec):
     tx_dict = get_tx(tx_hash)
     tx = unpack_signed_raw_tx_hex(tx_dict['signed_tx'], chain_spec.chain_id())
     logg.debug('submitting tx {} for retry'.format(tx_hash))
@@ -137,7 +115,7 @@ def sendfail_filter(w3, tx_hash, rcpt, chain_str):
 
 
 # TODO: can we merely use the dispatcher instead?
-def dispatch(chain_str):
+def dispatch(conn, chain_spec):
     txs = get_status_tx(StatusEnum.RETRY, before=datetime.datetime.utcnow())
     if len(txs) == 0:
         logg.debug('no retry state txs found')
@@ -199,11 +177,49 @@ def dispatch(chain_str):
 #    s_send.apply_async()
 
 
-def main(): 
+class RetrySyncer(Syncer):
 
-    c = RpcClient(chain_spec)
-    CICRegistry.init(c.w3, config.get('CIC_REGISTRY_ADDRESS'), chain_spec)
-    CICRegistry.add_path(config.get('ETH_ABI_DIR'))
+    def __init__(self, chain_spec, stalled_grace_seconds, failed_grace_seconds=None, final_func=None):
+        self.chain_spec = chain_spec
+        if failed_grace_seconds == None:
+            failed_grace_seconds = stalled_grace_seconds
+        self.stalled_grace_seconds = stalled_grace_seconds
+        self.failed_grace_seconds = failed_grace_seconds
+        self.final_func = final_func
+
+
+    def get(self):
+#            before = datetime.datetime.utcnow() - datetime.timedelta(seconds=self.failed_grace_seconds)
+#            failed_txs = get_status_tx(
+#                    StatusEnum.SENDFAIL.value,
+#                    before=before,
+#                    )
+            before = datetime.datetime.utcnow() - datetime.timedelta(seconds=self.stalled_grace_seconds)
+            stalled_txs = get_status_tx(
+                    StatusBits.IN_NETWORK.value,
+                    not_status=StatusBits.FINAL | StatusBits.MANUAL | StatusBits.OBSOLETE,
+                    before=before,
+                    )
+       #     return list(failed_txs.keys()) + list(stalled_txs.keys())
+            return stalled_txs
+
+    def process(self, conn, ref):
+        logg.debug('tx {}'.format(ref))
+        for f in self.filter:
+            f(conn, ref, None, str(self.chain_spec))
+
+
+
+    def loop(self, interval):
+        while self.running and Syncer.running_global:
+            rpc = RPCConnection.connect(self.chain_spec, 'default')
+            for tx in self.get():
+                self.process(rpc, tx)
+            if self.final_func != None:
+                self.final_func(rpc, self.chain_spec)
+            time.sleep(interval)
+
+def main(): 
 
     syncer = RetrySyncer(chain_spec, straggler_delay, final_func=dispatch)
     syncer.filter.append(sendfail_filter)
