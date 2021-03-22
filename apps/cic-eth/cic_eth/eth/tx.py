@@ -124,8 +124,10 @@ def check_gas(self, tx_hashes, chain_spec_dict, txs=[], address=None, gas_requir
     try:
         o = balance(address)
         r = conn.do(o)
+        conn.disconnect()
         gas_balance = abi_decode_single(ABIContractType.UINT256, r)
     except EthException as e:
+        conn.disconnect()
         raise EthError('gas_balance call for {}: {}'.format(address, e))
 
     logg.debug('address {} has gas {} needs {}'.format(address, gas_balance, gas_required))

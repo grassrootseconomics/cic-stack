@@ -66,6 +66,7 @@ def balance(tokens, holder_address, chain_spec_dict):
         o = c.balance_of(address, holder_address, sender_address=caller_address)
         r = rpc.do(o)
         t['balance_network'] = c.parse_balance(r)
+    rpc.disconnect()
 
     return tokens
 
@@ -107,6 +108,10 @@ def transfer(self, tokens, holder_address, receiver_address, value, chain_spec_d
     gas_oracle = self.create_gas_oracle(rpc, MaxGasOracle.gas)
     c = ERC20(signer=rpc_signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle, chain_id=chain_spec.chain_id())
     (tx_hash_hex, tx_signed_raw_hex) = c.transfer(t['address'], holder_address, receiver_address, value, tx_format=TxFormat.RLP_SIGNED)
+
+    rpc_signer.disconnect()
+    rpc.disconnect()
+
     cache_task = 'cic_eth.eth.erc20.cache_transfer_data'
 
     register_tx(tx_hash_hex, tx_signed_raw_hex, chain_spec, queue, cache_task=cache_task, session=session)
@@ -166,6 +171,10 @@ def approve(self, tokens, holder_address, spender_address, value, chain_spec_dic
     gas_oracle = self.create_gas_oracle(rpc, MaxGasOracle.gas)
     c = ERC20(signer=rpc_signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle, chain_id=chain_spec.chain_id())
     (tx_hash_hex, tx_signed_raw_hex) = c.approve(t['address'], holder_address, spender_address, value, tx_format=TxFormat.RLP_SIGNED)
+
+    rpc_signer.disconnect()
+    rpc.disconnect()
+
     cache_task = 'cic_eth.eth.erc20.cache_approve_data'
 
     register_tx(tx_hash_hex, tx_signed_raw_hex, chain_spec, queue, cache_task=cache_task, session=session)
@@ -213,6 +222,7 @@ def resolve_tokens_by_symbol(self, token_symbols, chain_spec_dict):
             'address': token_address,
             'converters': [],
             })
+    rpc.disconnect()
     return tokens
 
 

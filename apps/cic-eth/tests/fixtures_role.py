@@ -49,7 +49,7 @@ def custodial_roles(
     for k in r.keys():
         role = AccountRole.set(k, r[k])
         init_database.add(role)
-        logg.error('adding role {} -> {}'.format(k, r[k]))
+        logg.info('adding role {} -> {}'.format(k, r[k]))
     init_database.commit()
     return r
 

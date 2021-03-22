@@ -12,7 +12,10 @@ from chainlib.eth.sign import (
         sign_message,
         )
 from chainlib.eth.address import to_checksum_address
-from chainlib.eth.tx import TxFormat 
+from chainlib.eth.tx import (
+        TxFormat,
+        unpack,
+        )
 from chainlib.chain import ChainSpec
 from eth_accounts_index import AccountRegistry
 
@@ -48,46 +51,6 @@ from cic_eth.queue.tx import (
 
 logg = logging.getLogger()
 celery_app = celery.current_app 
-
-
-def unpack_register(data):
-    """Verifies that a transaction is an "AccountRegister.add" transaction, and extracts call parameters from it.
-
-    :param data: Raw input data from Ethereum transaction.
-    :type data: str, 0x-hex
-    :raises ValueError: Function signature does not match AccountRegister.add
-    :returns: Parsed parameters
-    :rtype: dict
-    """
-    data = strip_0x(data)
-    f = data[:8]
-    if f != '0a3b0a4f':
-        raise ValueError('Invalid account index register data ({})'.format(f))
-
-    d = data[8:]
-    return {
-        'to': to_checksum_address(d[64-40:64]),
-        }
-
-
-def unpack_gift(data):
-    """Verifies that a transaction is a "Faucet.giveTo" transaction, and extracts call parameters from it.
-
-    :param data: Raw input data from Ethereum transaction.
-    :type data: str, 0x-hex
-    :raises ValueError: Function signature does not match AccountRegister.add
-    :returns: Parsed parameters
-    :rtype: dict
-    """
-    data = strip_0x(data)
-    f = data[:8]
-    if f != '63e4bff4':
-        raise ValueError('Invalid gift data ({})'.format(f))
-
-    d = data[8:]
-    return {
-        'to': to_checksum_address(d[64-40:64]),
-        }
      
 
 # TODO: Separate out nonce initialization task
@@ -109,6 +72,7 @@ def create(self, password, chain_spec_dict):
     conn = RPCConnection.connect(chain_spec, 'signer')
     o = new_account()
     a = conn.do(o)
+    conn.disconnect()
 
     if a == None:
         raise SignerError('create account')
@@ -151,9 +115,9 @@ def register(self, account_address, chain_spec_dict, writer_address=None):
 
     # Retrieve account index address
     rpc = RPCConnection.connect(chain_spec, 'default')
-    reg = CICRegistry(chain_spec, rpc)
+    registry = CICRegistry(chain_spec, rpc)
     call_address = AccountRole.get_address('DEFAULT', session=session)
-    account_registry_address = reg.by_name('AccountRegistry', sender_address=call_address)
+    account_registry_address = registry.by_name('AccountRegistry', sender_address=call_address)
    
     # Generate and sign transaction
     rpc_signer = RPCConnection.connect(chain_spec, 'signer')
@@ -162,6 +126,8 @@ def register(self, account_address, chain_spec_dict, writer_address=None):
     gas_oracle = self.create_gas_oracle(rpc, AccountRegistry.gas)
     account_registry = AccountRegistry(signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle, chain_id=chain_spec.chain_id())
     (tx_hash_hex, tx_signed_raw_hex) = account_registry.add(account_registry_address, writer_address, account_address, tx_format=TxFormat.RLP_SIGNED)
+    rpc_signer.disconnect()
+
     # TODO: if cache task fails, task chain will not return
     cache_task = 'cic_eth.eth.account.cache_account_data'
 
@@ -175,6 +141,7 @@ def register(self, account_address, chain_spec_dict, writer_address=None):
     gas_pair = gas_oracle.get_gas(tx_signed_raw_hex)
     gas_budget = gas_pair[0] * gas_pair[1]
     logg.debug('register user tx {} {} {}'.format(tx_hash_hex, queue, gas_budget))
+    rpc.disconnect()
 
     s = create_check_gas_task(
             [tx_signed_raw_hex],
@@ -246,10 +213,17 @@ def have(self, account, chain_str):
     o = sign_message(account, '0x2a')
     try:
         conn = RPCConnection.connect(chain_spec, 'signer')
+    except Exception as e:
+        logg.debug('cannot sign with {}: {}'.format(account, e))
+        return None
+
+    try:
         conn.do(o)
+        conn.disconnect()
         return account
     except Exception as e:
         logg.debug('cannot sign with {}: {}'.format(account, e))
+        conn.disconnect()
         return None
     
 
@@ -292,7 +266,7 @@ def cache_gift_data(
     c = RpcClient(chain_spec)
 
     tx_signed_raw_bytes = bytes.fromhex(tx_signed_raw_hex[2:])
-    tx = unpack_signed_raw_tx(tx_signed_raw_bytes, chain_spec.chain_id())
+    tx = unpack(tx_signed_raw_bytes, chain_spec.chain_id())
     tx_data = unpack_gift(tx['data'])
 
     #session = SessionBase.create_session()
@@ -321,7 +295,7 @@ def cache_account_data(
     self,
     tx_hash_hex,
     tx_signed_raw_hex,
-    chain_spec,
+    chain_spec_dict,
         ):
     """Generates and commits transaction cache metadata for an AccountsIndex.add  transaction
 
@@ -334,13 +308,10 @@ def cache_account_data(
     :returns: Transaction hash and id of cache element in storage backend, respectively
     :rtype: tuple
     """
-
-    #c = RpcClient(chain_spec)
-    return
-
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
     tx_signed_raw_bytes = bytes.fromhex(tx_signed_raw_hex[2:])
-    #tx = unpack_signed_raw_tx(tx_signed_raw_bytes, chain_spec.chain_id())
     tx = unpack(tx_signed_raw_bytes, chain_id=chain_spec.chain_id())
+    raise NotImplementedError('unpack register must be replaced with AccountRegistry parser')
     tx_data = unpack_register(tx['data'])
 
     session = SessionBase.create_session()
