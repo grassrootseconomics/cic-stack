@@ -20,9 +20,7 @@ def init_celery_tasks(
 
 # celery fixtures
 @pytest.fixture(scope='session')
-def celery_includes(
-    contract_roles,
-        ):
+def celery_includes():
     return [
 #        'cic_eth.eth.bancor',
         'cic_eth.eth.erc20',
