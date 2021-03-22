@@ -11,18 +11,15 @@ import re
 import confini
 import celery
 import rlp
-import web3
-from web3 import HTTPProvider, WebsocketProvider
 import cic_base.config
 import cic_base.log
 import cic_base.argparse
 import cic_base.rpc
-from cic_registry import CICRegistry
+from cic_eth_registry import CICRegistry
+from cic_eth_registry.error import UnknownContractError
 from chainlib.chain import ChainSpec
-from cic_registry import zero_address
-from cic_registry.chain import ChainRegistry
-from cic_registry.error import UnknownContractError
-from chainlib.eth.connection import HTTPConnection
+from chainlib.eth.constant import ZERO_ADDRESS
+from chainlib.connection import RPCConnection
 from chainlib.eth.block import (
         block_latest,
         )
@@ -37,11 +34,7 @@ from chainsyncer.driver import (
 from chainsyncer.db.models.base import SessionBase
 
 # local imports
-from cic_eth.registry import init_registry
-from cic_eth.eth import RpcClient
 from cic_eth.db import dsn_from_config
-#from cic_eth.sync import Syncer
-#from cic_eth.sync.error import LoopDone
 from cic_eth.runnable.daemons.filters import (
         CallbackFilter,
         GasFilter,
@@ -64,42 +57,24 @@ config.add(args.q, '_CELERY_QUEUE', True)
 
 cic_base.config.log(config)
 
-
 dsn = dsn_from_config(config)
+
 SessionBase.connect(dsn, pool_size=16, debug=config.true('DATABASE_DEBUG'))
 
-re_websocket = re.compile('^wss?://')
-re_http = re.compile('^https?://')
-blockchain_provider = config.get('ETH_PROVIDER')
-if re.match(re_websocket, blockchain_provider) != None:
-    blockchain_provider = web3.Web3.WebsocketProvider(blockchain_provider)
-elif re.match(re_http, blockchain_provider) != None:
-    blockchain_provider = web3.Web3.HTTPProvider(blockchain_provider)
-else:
-    raise ValueError('unknown provider url {}'.format(blockchain_provider))
+chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 
-def web3_constructor():
-    w3 = web3.Web3(blockchain_provider)
-    return (blockchain_provider, w3)
-RpcClient.set_constructor(web3_constructor)
+RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, 'default')
 
 
 def main():
-    # parse chain spec object
-    chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
-            
     # connect to celery
     celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
-    # set up registry
-    w3 = cic_base.rpc.create(config.get('ETH_PROVIDER')) # replace with HTTPConnection when registry has been so refactored
-    registry = init_registry(config, w3)
-
     # Connect to blockchain with chainlib
-    conn = HTTPConnection(config.get('ETH_PROVIDER'))
+    rpc = RPCConnection.connect(chain_spec, 'default')
 
     o = block_latest()
-    r = conn.do(o)
+    r = rpc.do(o)
     block_offset = int(strip_0x(r), 16) + 1
 
     logg.debug('starting at block {}'.format(block_offset))
@@ -151,7 +126,7 @@ def main():
 
     gas_filter = GasFilter(chain_spec, config.get('_CELERY_QUEUE'))
 
-    transfer_auth_filter = TransferAuthFilter(registry, chain_spec, config.get('_CELERY_QUEUE'))
+    #transfer_auth_filter = TransferAuthFilter(registry, chain_spec, config.get('_CELERY_QUEUE'))
 
     i = 0
     for syncer in syncers:
@@ -160,16 +135,14 @@ def main():
         syncer.add_filter(registration_filter)
         # TODO: the two following filter functions break the filter loop if return uuid. Pro: less code executed. Con: Possibly unintuitive flow break
         syncer.add_filter(tx_filter)
-        syncer.add_filter(transfer_auth_filter)
+        #syncer.add_filter(transfer_auth_filter)
         for cf in callback_filters:
             syncer.add_filter(cf)
 
-        r = syncer.loop(int(config.get('SYNCER_LOOP_INTERVAL')), conn)
+        r = syncer.loop(int(config.get('SYNCER_LOOP_INTERVAL')), rpc)
         sys.stderr.write("sync {} done at block {}\n".format(syncer, r))
 
         i += 1
-
-    sys.exit(0)
 
 
 if __name__ == '__main__':

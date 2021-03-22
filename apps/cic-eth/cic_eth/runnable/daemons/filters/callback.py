@@ -8,13 +8,55 @@ from chainlib.status import Status as TxStatus
 from chainlib.eth.address import to_checksum_address
 from chainlib.eth.error import RequestMismatchException
 from chainlib.eth.constant import ZERO_ADDRESS
+from chainlib.eth.erc20 import ERC20
 from hexathon import strip_0x
 
 # local imports
 from .base import SyncFilter
 from cic_eth.eth.meta import ExtendedTx
 
-logg = logging.getLogger().getLogger__name__)
+logg = logging.getLogger().getChild(__name__)
+
+
+def parse_transfer(tx):
+    r = ERC20.parse_transfer_request(tx.payload)
+    transfer_data = {}
+    transfer_data['to'] = r[0]
+    transfer_data['value'] = r[1]
+    transfer_data['from'] = tx['from']
+    transfer_data['token_address'] = tx['to']
+    return ('transfer', transfer_data)
+
+
+def parse_transferfrom(tx):
+    r = ERC20.parse_transfer_request(tx.payload)
+    transfer_data = unpack_transferfrom(tx.payload)
+    transfer_data['from'] = r[0]
+    transfer_data['to'] = r[1]
+    transfer_data['value'] = r[2]
+    transfer_data['token_address'] = tx['to']
+    return ('transferfrom', transfer_data)
+
+
+def parse_giftto(tx):
+    # TODO: broken
+    logg.error('broken')
+    return
+    transfer_data = unpack_gift(tx.payload)
+    transfer_data['from'] = tx.inputs[0]
+    transfer_data['value'] = 0
+    transfer_data['token_address'] = ZERO_ADDRESS
+    # TODO: would be better to query the gift amount from the block state
+    for l in tx.logs:
+        topics = l['topics']
+        logg.debug('topixx {}'.format(topics))
+        if strip_0x(topics[0]) == '45c201a59ac545000ead84f30b2db67da23353aa1d58ac522c48505412143ffa':
+            #transfer_data['value'] = web3.Web3.toInt(hexstr=strip_0x(l['data']))
+            transfer_data['value'] = int.from_bytes(bytes.fromhex(strip_0x(l_data)))
+            #token_address_bytes = topics[2][32-20:]
+            token_address = strip_0x(topics[2])[64-40:]
+            transfer_data['token_address'] = to_checksum_address(token_address)
+    return ('tokengift', transfer_data)
 
 
 class CallbackFilter(SyncFilter):
@@ -53,45 +95,6 @@ class CallbackFilter(SyncFilter):
         return s
 
 
-    def parse_transfer(self, tx):
-        r = ERC20.parse_transfer_request(tx.payload)
-        transfer_data = {}
-        transfer_data['to'] = r[0]
-        transfer_data['value'] = r[1]
-        transfer_data['from'] = tx['from']
-        transfer_data['token_address'] = tx['to']
-        return ('transfer', transfer_data)
-
-
-    def parse_transferfrom(self, tx):
-        r = ERC20.parse_transfer_request(tx.payload)
-        transfer_data = unpack_transferfrom(tx.payload)
-        transfer_data['from'] = r[0]
-        transfer_data['to'] = r[1]
-        transfer_data['value'] = r[2]
-        transfer_data['token_address'] = tx['to']
-        return ('transferfrom', transfer_data)
-
-
-    def parse_giftto(self, tx):
-        # TODO: broken
-        transfer_data = unpack_gift(tx.payload)
-        transfer_data['from'] = tx.inputs[0]
-        transfer_data['value'] = 0
-        transfer_data['token_address'] = ZERO_ADDRESS
-        # TODO: would be better to query the gift amount from the block state
-        for l in tx.logs:
-            topics = l['topics']
-            logg.debug('topixx {}'.format(topics))
-            if strip_0x(topics[0]) == '45c201a59ac545000ead84f30b2db67da23353aa1d58ac522c48505412143ffa':
-                #transfer_data['value'] = web3.Web3.toInt(hexstr=strip_0x(l['data']))
-                transfer_data['value'] = int.from_bytes(bytes.fromhex(strip_0x(l_data)))
-                #token_address_bytes = topics[2][32-20:]
-                token_address = strip_0x(topics[2])[64-40:]
-                transfer_data['token_address'] = to_checksum_address(token_address)
-        return ('tokengift', transfer_data)
-
-
     def parse_data(self, tx):
         transfer_type = None
         transfer_data = None
@@ -103,7 +106,7 @@ class CallbackFilter(SyncFilter):
 
         for parser in [
                 parse_transfer,
-                parse_transfeffrom,
+                parse_transferfrom,
                 parse_giftto,
                 ]:
             try:

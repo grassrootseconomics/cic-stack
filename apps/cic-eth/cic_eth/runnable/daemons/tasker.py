@@ -143,10 +143,6 @@ def main():
 #    if config.get('SSL_CA_FILE') != '':
 #        Callback.ssl_ca_file = config.get('SSL_CA_FILE')
 
-
-    #if config.get('ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER') != None:
-    #    CICRegistry.add_role(chain_spec, config.get('ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER'), 'AccountRegistry', True)
-
     rpc = RPCConnection.connect(chain_spec, 'default')
     registry = CICRegistry(chain_spec, rpc)
     registry_address = registry.by_name('CICRegistry')
@@ -158,15 +154,7 @@ def main():
     trusted_addresses = trusted_addresses_src.split(',')
     for address in trusted_addresses:
         logg.info('using trusted address {}'.format(address))
-    #oracle = DeclaratorOracleAdapter(declarator.contract, trusted_addresses)
-    #chain_registry.add_oracle(oracle, 'naive_erc20_oracle')
-
-
-    #chain_spec = CICRegistry.default_chain_spec
-    #bancor_registry_contract = CICRegistry.get_contract(chain_spec, 'BancorRegistry', interface='Registry')
-    #bancor_chain_registry = CICRegistry.get_chain_registry(chain_spec)
-    #bancor_registry = BancorRegistryClient(c.w3, bancor_chain_registry, config.get('ETH_ABI_DIR'))
-    #bancor_registry.load(True)
+    
     current_app.worker_main(argv)
 
 
