@@ -1,16 +1,28 @@
-# third-party imports
+# external imports
 import pytest
 import tempfile
 import logging
 import shutil
 
+# local impors
+from cic_eth.task import BaseTask
+
 #logg = logging.getLogger(__name__)
 logg = logging.getLogger()
 
 
+@pytest.fixture(scope='function')
+def init_celery_tasks(
+    contract_roles, 
+        ):
+    BaseTask.call_address = contract_roles['DEFAULT']
+
+
 # celery fixtures
 @pytest.fixture(scope='session')
-def celery_includes():
+def celery_includes(
+    contract_roles,
+        ):
     return [
 #        'cic_eth.eth.bancor',
         'cic_eth.eth.erc20',

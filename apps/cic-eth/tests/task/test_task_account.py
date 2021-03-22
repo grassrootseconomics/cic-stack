@@ -69,7 +69,7 @@ def test_register_account(
         eth_empty_accounts,
         custodial_roles,
         call_sender,
-        celery_worker,
+        celery_session_worker,
         ):
 
     s_nonce = celery.signature(
@@ -123,9 +123,9 @@ def test_register_account(
 
 @pytest.mark.skip()
 def test_role_task(
+    default_chain_spec,
     init_database,
     celery_session_worker,
-    default_chain_spec,
         ):
 
     address = '0x' + os.urandom(20).hex()
