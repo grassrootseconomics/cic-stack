@@ -50,6 +50,7 @@ config = confini.Config(config_dir, args.env_prefix)
 config.process()
 # override args
 args_override = {
+        'ETH_PROVIDER': getattr(args, 'p'),
         'ETH_ABI_DIR': getattr(args, 'abi_dir'),
         'CIC_CHAIN_SPEC': getattr(args, 'i'),
         'CIC_TX_RETRY_DELAY': getattr(args, 'retry_delay'),

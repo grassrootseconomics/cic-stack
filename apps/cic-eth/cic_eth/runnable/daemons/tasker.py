@@ -11,27 +11,17 @@ import websocket
 # external imports
 import celery
 import confini
-#from crypto_dev_signer.eth.web3ext import Web3 as Web3Ext
-from web3 import HTTPProvider, WebsocketProvider
-import web3
-#from gas_proxy.web3 import GasMiddleware
-from chainlib.eth.connection import RPCConnection
+from chainlib.connection import RPCConnection
+from chainlib.chain import ChainSpec
 
 # local imports
-from cic_registry.registry import CICRegistry
-from cic_registry.registry import ChainRegistry
-from cic_registry.registry import ChainSpec
-from cic_registry.helper.declarator import DeclaratorOracleAdapter
+from cic_eth_registry import CICRegistry
 
-from cic_bancor.bancor import BancorRegistryClient
-from cic_eth.eth import bancor
-from cic_eth.eth import token
+from cic_eth.eth import erc20
 from cic_eth.eth import tx
 from cic_eth.eth import account
 from cic_eth.admin import debug
 from cic_eth.admin import ctrl
-from cic_eth.eth.rpc import RpcClient
-from cic_eth.eth.rpc import GasOracle
 from cic_eth.queue import tx
 from cic_eth.queue import balance
 from cic_eth.callbacks import Callback
@@ -124,87 +114,13 @@ else:
         'result_backend': result,
         })
 
-# set up signer
-RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), 'signer')
-
-# set up web3py
-re_websocket = re.compile('^wss?://')
-re_http = re.compile('^https?://')
-blockchain_provider = config.get('ETH_PROVIDER')
-if re.match(re_websocket, blockchain_provider) != None:
-    blockchain_provider = web3.Web3.WebsocketProvider(blockchain_provider)
-elif re.match(re_http, blockchain_provider) != None:
-    blockchain_provider = web3.Web3.HTTPProvider(blockchain_provider)
-else:
-    raise ValueError('unknown provider url {}'.format(blockchain_provider))
-
-def web3_constructor():
-    w3 = web3.Web3(blockchain_provider)
-    return (blockchain_provider, w3)
-RpcClient.set_constructor(web3_constructor)
-
-
-#
-## set up web3
-## TODO: web3 socket wrapping is now a lot of code. factor out
-#class JSONRPCHttpSocketAdapter:
-#
-#    def __init__(self, url):
-#        self.response = None
-#        self.url = url
-#
-#    def send(self, data):
-#        logg.debug('redirecting socket send to jsonrpc http socket adapter {} {}'.format(self.url, data))
-#        req = urllib.request.Request(self.url, method='POST')
-#        req.add_header('Content-type', 'application/json')
-#        req.add_header('Connection', 'close')
-#        res = urllib.request.urlopen(req, data=data.encode('utf-8'))
-#        self.response = res.read().decode('utf-8')
-#        logg.debug('setting jsonrpc http socket adapter response to {}'.format(self.response))
-#
-#    def recv(self, n=0):
-#        return self.response
-#
-#
-#re_websocket = re.compile('^wss?://')
-#re_http = re.compile('^https?://')
-#blockchain_provider = config.get('ETH_PROVIDER')
-#socket_constructor = None
-#if re.match(re_websocket, blockchain_provider) != None:
-#    def socket_constructor_ws():
-#        return websocket.create_connection(config.get('ETH_PROVIDER'))
-#    socket_constructor = socket_constructor_ws
-#    blockchain_provider = WebsocketProvider(blockchain_provider)
-#elif re.match(re_http, blockchain_provider) != None:
-#    def socket_constructor_http():
-#        return JSONRPCHttpSocketAdapter(config.get('ETH_PROVIDER'))
-#    socket_constructor = socket_constructor_http
-#    blockchain_provider = HTTPProvider(blockchain_provider)
-#else:
-#    raise ValueError('unknown provider url {}'.format(blockchain_provider))
-#
-#
-#def web3ext_constructor():
-#    w3 = Web3Ext(blockchain_provider, config.get('SIGNER_SOCKET_PATH'))
-#    #GasMiddleware.socket_constructor = socket_constructor
-#    #w3.middleware_onion.add(GasMiddleware)
-#
-#    def sign_transaction(tx):
-#        r = w3.eth.signTransaction(tx)
-#        d = r.__dict__
-#        for k in d.keys():
-#            if k == 'tx':
-#                d[k] = d[k].__dict__ 
-#            else:
-#                d[k] = d[k].hex()
-#        return d
-#
-#    setattr(w3.eth, 'sign_transaction', sign_transaction)
-#    setattr(w3.eth, 'send_raw_transaction', w3.eth.sendRawTransaction)
-#    return (blockchain_provider, w3)
-#RpcClient.set_constructor(web3ext_constructor) 
+chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
+RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, 'default')
+RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 'signer')
 
 Otx.tracing = config.true('TASKS_TRACE_QUEUE_STATUS')
+
+CICRegistry.address = config.get('CIC_REGISTRY_ADDRESS')
 
 
 def main():
@@ -218,33 +134,23 @@ def main():
     argv.append('-n')
     argv.append(args.q)
 
-    if config.true('SSL_ENABLE_CLIENT'):
-        Callback.ssl = True
-        Callback.ssl_cert_file = config.get('SSL_CERT_FILE')
-        Callback.ssl_key_file = config.get('SSL_KEY_FILE')
-        Callback.ssl_password = config.get('SSL_PASSWORD')
+#    if config.true('SSL_ENABLE_CLIENT'):
+#        Callback.ssl = True
+#        Callback.ssl_cert_file = config.get('SSL_CERT_FILE')
+#        Callback.ssl_key_file = config.get('SSL_KEY_FILE')
+#        Callback.ssl_password = config.get('SSL_PASSWORD')
+#
+#    if config.get('SSL_CA_FILE') != '':
+#        Callback.ssl_ca_file = config.get('SSL_CA_FILE')
 
-    if config.get('SSL_CA_FILE') != '':
-        Callback.ssl_ca_file = config.get('SSL_CA_FILE')
 
-    chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
+    #if config.get('ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER') != None:
+    #    CICRegistry.add_role(chain_spec, config.get('ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER'), 'AccountRegistry', True)
 
-    c = RpcClient(chain_spec)
-    CICRegistry.init(c.w3, config.get('CIC_REGISTRY_ADDRESS'), chain_spec)
-    CICRegistry.add_path(config.get('ETH_ABI_DIR'))
+    rpc = RPCConnection.connect(chain_spec, 'default')
+    registry = CICRegistry(chain_spec, rpc)
+    registry_address = registry.by_name('CICRegistry')
 
-    chain_registry = ChainRegistry(chain_spec)
-    CICRegistry.add_chain_registry(chain_registry, True)
-    try:
-        CICRegistry.get_contract(chain_spec, 'CICRegistry')
-    except Exception as e:
-        logg.exception('Eek, registry failure is baaad juju {}'.format(e))
-        sys.exit(1)
-
-    if config.get('ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER') != None:
-        CICRegistry.add_role(chain_spec, config.get('ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER'), 'AccountRegistry', True)
-
-    declarator = CICRegistry.get_contract(chain_spec, 'AddressDeclarator', interface='Declarator')
     trusted_addresses_src = config.get('CIC_TRUST_ADDRESS')
     if trusted_addresses_src == None:
         logg.critical('At least one trusted address must be declared in CIC_TRUST_ADDRESS')
@@ -252,8 +158,8 @@ def main():
     trusted_addresses = trusted_addresses_src.split(',')
     for address in trusted_addresses:
         logg.info('using trusted address {}'.format(address))
-    oracle = DeclaratorOracleAdapter(declarator.contract, trusted_addresses)
-    chain_registry.add_oracle(oracle, 'naive_erc20_oracle')
+    #oracle = DeclaratorOracleAdapter(declarator.contract, trusted_addresses)
+    #chain_registry.add_oracle(oracle, 'naive_erc20_oracle')
 
 
     #chain_spec = CICRegistry.default_chain_spec
