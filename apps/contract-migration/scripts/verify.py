@@ -68,7 +68,6 @@ if args.v == True:
     logging.getLogger().setLevel(logging.INFO)
 elif args.vv == True:
     logging.getLogger().setLevel(logging.DEBUG)
-verbose = args.vv or args.v
 
 config_dir = os.path.join(args.c)
 os.makedirs(config_dir, 0o777, True)
@@ -314,8 +313,7 @@ def main():
         r = l.split(',')
         try:
             address = to_checksum(r[0])
-            if not verbose:
-                sys.stdout.write('loading balance {} {}'.format(i, address).ljust(200) + "\r")
+            #sys.stdout.write('loading balance {} {}'.format(i, address).ljust(200) + "\r")
             logg.debug('loading balance {} {}'.format(i, address).ljust(200))
         except ValueError:
             break
@@ -330,7 +328,6 @@ def main():
     verifier = Verifier(conn, api, gas_oracle, chain_spec, account_index_address, sarafu_token_address, user_dir, exit_on_error)
 
     user_new_dir = os.path.join(user_dir, 'new')
-    i = 0
     for x in os.walk(user_new_dir):
         for y in x[2]:
             if y[len(y)-5:] != '.json':
@@ -346,8 +343,6 @@ def main():
             f.close()
 
             u = Person.deserialize(o)
-            if not verbose:
-                sys.stdout.write('processing {} {}'.format(i, u.identities['evm']).ljust(200) + "\r")
             logg.debug('data {}'.format(u.identities['evm']))
 
             subchain_str = '{}:{}'.format(chain_spec.common_name(), chain_spec.network_id())
@@ -362,7 +357,6 @@ def main():
             logg.debug('checking {} -> {} = {}'.format(old_address, new_address, balance))
 
             verifier.verify(new_address, balance)
-            i += 1
 
     print(verifier)
 

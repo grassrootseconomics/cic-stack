@@ -3,9 +3,11 @@ import logging
 
 # external imports
 import celery
-from erc20_single_shot_faucet import Faucet
+from erc20_single_shot_faucet import SingleShotFaucet as Faucet
 from chainlib.eth.constant import ZERO_ADDRESS
-from hexathon import strip_0x
+from hexathon import (
+        strip_0x,
+        )
 from chainlib.connection import RPCConnection
 from chainlib.eth.sign import (
         new_account,
@@ -18,6 +20,7 @@ from chainlib.eth.tx import (
         )
 from chainlib.chain import ChainSpec
 from eth_accounts_index import AccountRegistry
+from sarafu_faucet import MinterFaucet as Faucet
 
 # local import
 #from cic_eth.registry import safe_registry
@@ -121,22 +124,17 @@ def register(self, account_address, chain_spec_dict, writer_address=None):
    
     # Generate and sign transaction
     rpc_signer = RPCConnection.connect(chain_spec, 'signer')
-    #nonce_oracle = self.create_nonce_oracle(writer_address, rpc)
     nonce_oracle = CustodialTaskNonceOracle(writer_address, self.request.root_id, session=session) #, default_nonce)
     gas_oracle = self.create_gas_oracle(rpc, AccountRegistry.gas)
     account_registry = AccountRegistry(signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle, chain_id=chain_spec.chain_id())
     (tx_hash_hex, tx_signed_raw_hex) = account_registry.add(account_registry_address, writer_address, account_address, tx_format=TxFormat.RLP_SIGNED)
     rpc_signer.disconnect()
 
-    # TODO: if cache task fails, task chain will not return
-    cache_task = 'cic_eth.eth.account.cache_account_data'
-
     # add transaction to queue
+    cache_task = 'cic_eth.eth.account.cache_account_data'
     register_tx(tx_hash_hex, tx_signed_raw_hex, chain_spec, queue, cache_task=cache_task, session=session)
     session.commit()
     session.close()
-
-    #gas_budget = tx_add['gas'] * tx_add['gasPrice']
 
     gas_pair = gas_oracle.get_gas(tx_signed_raw_hex)
     gas_budget = gas_pair[0] * gas_pair[1]
@@ -156,7 +154,7 @@ def register(self, account_address, chain_spec_dict, writer_address=None):
 
 
 @celery_app.task(bind=True, base=CriticalSQLAlchemyAndSignerTask)
-def gift(self, account_address, chain_str):
+def gift(self, account_address, chain_spec_dict):
     """Creates a transaction to invoke the faucet contract for the given address.
 
     :param account_address: Ethereum address to give to
@@ -166,28 +164,39 @@ def gift(self, account_address, chain_str):
     :returns: Raw signed transaction
     :rtype: list with transaction as only element
     """
-    chain_spec = ChainSpec.from_chain_str(chain_str)
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
 
     logg.debug('gift account address {} to index'.format(account_address))
-    queue = self.request.delivery_info['routing_key']
+    queue = self.request.delivery_info.get('routing_key')
 
-    c = RpcClient(chain_spec, holder_address=account_address)
-    registry = safe_registry(c.w3)
-    txf = AccountTxFactory(account_address, c, registry=registry)
-
-    #session = SessionBase.create_session()
+    # Retrieve account index address
     session = self.create_session()
-    tx_add = txf.gift(account_address, chain_spec, self.request.root_id, session=session)
-    (tx_hash_hex, tx_signed_raw_hex) = sign_and_register_tx(tx_add, chain_str, queue, 'cic_eth.eth.account.cache_gift_data', session=session)
+    rpc = RPCConnection.connect(chain_spec, 'default')
+    registry = CICRegistry(chain_spec, rpc)
+    faucet_address = registry.by_name('Faucet', sender_address=self.call_address)
+
+    # Generate and sign transaction
+    rpc_signer = RPCConnection.connect(chain_spec, 'signer')
+    nonce_oracle = CustodialTaskNonceOracle(account_address, self.request.root_id, session=session) #, default_nonce)
+    gas_oracle = self.create_gas_oracle(rpc, Faucet.gas)
+    faucet = Faucet(signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle, chain_id=chain_spec.chain_id())
+    (tx_hash_hex, tx_signed_raw_hex) = faucet.give_to(faucet_address, account_address, account_address, tx_format=TxFormat.RLP_SIGNED)
+    rpc_signer.disconnect()
+
+    # add transaction to queue
+    cache_task = 'cic_eth.eth.account.cache_gift_data'
+    register_tx(tx_hash_hex, tx_signed_raw_hex, chain_spec, queue, cache_task, session=session)
     session.commit()
     session.close()
 
-    gas_budget = tx_add['gas'] * tx_add['gasPrice']
+    gas_pair = gas_oracle.get_gas(tx_signed_raw_hex)
+    gas_budget = gas_pair[0] * gas_pair[1]
+    logg.debug('register user tx {} {} {}'.format(tx_hash_hex, queue, gas_budget))
+    rpc.disconnect()
 
-    logg.debug('gift user tx {}'.format(tx_hash_hex))
-    s = create_check_gas_and_send_task(
+    s = create_check_gas_task(
             [tx_signed_raw_hex],
-            chain_str,
+            chain_spec,
             account_address,
             gas_budget,
             [tx_hash_hex],
@@ -199,7 +208,7 @@ def gift(self, account_address, chain_str):
 
 
 @celery_app.task(bind=True)
-def have(self, account, chain_str):
+def have(self, account, chain_spec_dict):
     """Check whether the given account exists in keystore
 
     :param account: Account to check
@@ -209,7 +218,7 @@ def have(self, account, chain_str):
     :returns: Account, or None if not exists
     :rtype: Varies
     """
-    chain_spec = ChainSpec.from_chain_str(chain_str)
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
     o = sign_message(account, '0x2a')
     try:
         conn = RPCConnection.connect(chain_spec, 'signer')
@@ -249,7 +258,7 @@ def cache_gift_data(
     self,
     tx_hash_hex,
     tx_signed_raw_hex,
-    chain_spec,
+    chain_spec_dict,
         ):
     """Generates and commits transaction cache metadata for a Faucet.giveTo transaction
 
@@ -262,14 +271,12 @@ def cache_gift_data(
     :returns: Transaction hash and id of cache element in storage backend, respectively
     :rtype: tuple
     """
-    chain_spec = ChainSpec.from_chain_str(chain_str)
-    c = RpcClient(chain_spec)
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
 
-    tx_signed_raw_bytes = bytes.fromhex(tx_signed_raw_hex[2:])
+    tx_signed_raw_bytes = bytes.fromhex(strip_0x(tx_signed_raw_hex))
     tx = unpack(tx_signed_raw_bytes, chain_spec.chain_id())
-    tx_data = unpack_gift(tx['data'])
+    tx_data = Faucet.parse_give_to_request(tx['data'])
 
-    #session = SessionBase.create_session()
     session = self.create_session()
 
     tx_cache = TxCache(
@@ -311,8 +318,7 @@ def cache_account_data(
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
     tx_signed_raw_bytes = bytes.fromhex(tx_signed_raw_hex[2:])
     tx = unpack(tx_signed_raw_bytes, chain_id=chain_spec.chain_id())
-    raise NotImplementedError('unpack register must be replaced with AccountRegistry parser')
-    tx_data = unpack_register(tx['data'])
+    tx_data = AccountRegistry.parse_add_request(tx['data'])
 
     session = SessionBase.create_session()
     tx_cache = TxCache(

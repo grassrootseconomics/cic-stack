@@ -7,6 +7,8 @@ import time
 import pytest
 import celery
 from chainlib.connection import RPCConnection
+from chainlib.eth.nonce import RPCNonceOracle
+from chainlib.eth.tx import receipt
 from eth_accounts_index import AccountRegistry
 from hexathon import strip_0x
 
@@ -22,7 +24,6 @@ from cic_eth.db.models.role import AccountRole
 logg = logging.getLogger()
 
 
-@pytest.mark.skip()
 def test_create_account(
         default_chain_spec,
         eth_rpc,
@@ -121,7 +122,6 @@ def test_register_account(
     assert int(strip_0x(r), 16) == 1
 
 
-@pytest.mark.skip()
 def test_role_task(
     default_chain_spec,
     init_database,
@@ -136,9 +136,53 @@ def test_role_task(
             'cic_eth.eth.account.role',
             [
                 address,
-                str(default_chain_spec), 
+                default_chain_spec.asdict(), 
                 ],
             )
     t = s.apply_async()
     r = t.get()
     assert r == 'foo'
+
+
+
+def test_gift(
+    init_database,
+    default_chain_spec,
+    contract_roles,
+    agent_roles,
+    account_registry,
+    faucet,
+    eth_rpc,
+    eth_signer,
+    init_celery_tasks,
+    cic_registry,
+    celery_session_worker,
+    ):
+
+    nonce_oracle = RPCNonceOracle(contract_roles['ACCOUNT_REGISTRY_WRITER'], eth_rpc)
+    c = AccountRegistry(signer=eth_signer, nonce_oracle=nonce_oracle, chain_id=default_chain_spec.chain_id())
+    (tx_hash_hex, o) = c.add(account_registry, contract_roles['ACCOUNT_REGISTRY_WRITER'], agent_roles['ALICE'])
+    eth_rpc.do(o)
+    o = receipt(tx_hash_hex)
+    r = eth_rpc.do(o)
+    assert r['status'] == 1
+
+    s_nonce = celery.signature(
+            'cic_eth.eth.tx.reserve_nonce',
+            [
+                agent_roles['ALICE'],
+                ],
+            queue=None,
+            )
+
+    s_gift = celery.signature(
+            'cic_eth.eth.account.gift',
+            [
+                default_chain_spec.asdict(),
+                ],
+            queue=None,
+            )
+    s_nonce.link(s_gift)
+    t = s_nonce.apply_async()
+    r = t.get_leaf()
+    assert t.successful()

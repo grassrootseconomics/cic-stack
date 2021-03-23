@@ -7,41 +7,29 @@ from hexathon import (
         strip_0x,
         add_0x,
         )
-from chainlib.eth.address import to_checksum
+from chainlib.eth.address import to_checksum_address
+from chainlib.eth.constant import ZERO_ADDRESS
+from chainlib.eth.contract import (
+        ABIContractType,
+        abi_decode_single,
+        )
+from cic_eth_registry import CICRegistry
+from erc20_transfer_authorization import TransferAuthorization
+
+# local imports
 from .base import SyncFilter
 
 
 logg = logging.getLogger(__name__)
 
-transfer_request_signature = 'ed71262a'
-
-def unpack_create_request(data):
-
-    data = strip_0x(data)
-    cursor = 0
-    f = data[cursor:cursor+8]
-    cursor += 8
-
-    if f != transfer_request_signature:
-        raise ValueError('Invalid create request data ({})'.format(f))
-
-    o = {}
-    o['sender'] = data[cursor+24:cursor+64]
-    cursor += 64
-    o['recipient'] = data[cursor+24:cursor+64]
-    cursor += 64
-    o['token'] = data[cursor+24:cursor+64]
-    cursor += 64
-    o['value'] = int(data[cursor:], 16)
-    return o
-
 
 class TransferAuthFilter(SyncFilter):
 
-    def __init__(self, registry, chain_spec, queue=None):
+    def __init__(self, registry, chain_spec, conn, queue=None, call_address=ZERO_ADDRESS):
         self.queue = queue
         self.chain_spec = chain_spec
-        self.transfer_request_contract = registry.get_contract(self.chain_spec, 'TransferAuthorization')
+        registry = CICRegistry(chain_spec, conn)
+        self.transfer_request_contract = registry.by_name('TransferAuthorization', sender_address=call_address)
 
 
     def filter(self, conn, block, tx, session): #rcpt, chain_str, session=None):
@@ -61,11 +49,13 @@ class TransferAuthFilter(SyncFilter):
             logg.debug('not our transfer auth contract address {}'.format(recipient))
             return False
 
-        o = unpack_create_request(tx.payload) 
+        r = TransferAuthorization.parse_create_request_request(tx.payload) 
            
-        sender = add_0x(to_checksum(o['sender']))
-        recipient = add_0x(to_checksum(recipient))
-        token = add_0x(to_checksum(o['token']))
+        sender = abi_decode_single(ABIContractType.ADDRESS, r[0]) 
+        recipient = abi_decode_single(ABIContractType.ADDRESS, r[1])
+        token = abi_decode_single(ABIContractType.ADDRESS, r[2]) 
+        value = abi_decode_single(ABIContractType.UINT256, r[3])
+
         token_data = {
             'address': token,
             }
@@ -83,8 +73,8 @@ class TransferAuthFilter(SyncFilter):
             [
                 sender,
                 recipient,
-                o['value'],
-                str(self.chain_spec),
+                value,
+                self.chain_spec.asdict(),
                 ],
             queue=self.queue,
             )
