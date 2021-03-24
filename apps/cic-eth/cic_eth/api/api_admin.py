@@ -39,9 +39,8 @@ class AdminApi:
     :param queue: Name of worker queue to submit tasks to
     :type queue: str
     """
-    def __init__(self, rpc_client, queue='cic-eth'):
-        self.rpc_client = rpc_client
-        self.w3 = rpc_client.w3
+    def __init__(self, rpc, queue='cic-eth'):
+        self.rpc = rpc
         self.queue = queue
 
 
@@ -80,7 +79,7 @@ class AdminApi:
         return s_lock.apply_async().get()
 
 
-    def tag_account(self, tag, address_hex):
+    def tag_account(self, tag, address_hex, chain_spec):
         """Persistently associate an address with a plaintext tag.
 
         Some tags are known by the system and is used to resolve addresses to use for certain transactions. 
@@ -91,14 +90,18 @@ class AdminApi:
         :type address_hex: str, 0x-hex
         :raises ValueError: Invalid checksum address
         """
-        #if not web3.Web3.isChecksumAddress(address_hex):
-        if not to_checksum_address(address_hex):
-            raise ValueError('invalid address')
-        session = SessionBase.create_session()
-        role = AccountRole.set(tag, address_hex) 
-        session.add(role)
-        session.commit()
-        session.close()
+        s_tag = celery.signature(
+            'cic_eth.eth.account.set_role',
+            [
+                tag,
+                address_hex,
+                chain_spec.asdict(),
+                ],
+            queue=self.queue,
+            )
+        t = s_tag.apply_async()
+        logg.debug('taaag {}'.format(t))
+        return t.get()
 
 
     def have_account(self, address_hex, chain_str):

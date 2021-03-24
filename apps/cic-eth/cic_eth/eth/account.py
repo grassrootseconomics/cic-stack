@@ -230,10 +230,23 @@ def have(self, account, chain_spec_dict):
         logg.debug('cannot sign with {}: {}'.format(account, e))
         conn.disconnect()
         return None
-    
+   
+
+@celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
+def set_role(self, tag, address, chain_spec_dict):
+    logg.debug('foo fooofoo')
+    if not to_checksum_address(address):
+        raise ValueError('invalid checksum address {}'.format(address))
+    session = SessionBase.create_session()
+    role = AccountRole.set(tag, address, session=session) 
+    session.add(role)
+    session.commit()
+    session.close()
+    return tag
+
 
 @celery_app.task(bind=True, base=BaseTask)
-def role(self, account, chain_str):
+def role(self, address, chain_spec_dict):
     """Return account role for address
 
     :param account: Account to check
@@ -244,7 +257,7 @@ def role(self, account, chain_str):
     :rtype: Varies
     """
     session = self.create_session()
-    role_tag =  AccountRole.role_for(account, session=session)
+    role_tag =  AccountRole.role_for(address, session=session)
     session.close()
     return role_tag
 

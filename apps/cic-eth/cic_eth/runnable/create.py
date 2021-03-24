@@ -7,9 +7,9 @@ import json
 import argparse
 
 # external imports
+import celery
 import confini
 import redis
-import celery
 from xdg.BaseDirectory import xdg_config_home
 
 # local imports
@@ -52,6 +52,7 @@ args_override = {
         'REDIS_DB': getattr(args, 'redis_db'),
         }
 config.dict_override(args_override, 'cli')
+
 celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
 

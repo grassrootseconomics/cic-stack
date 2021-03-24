@@ -5,14 +5,14 @@ import logging
 import argparse
 import re
 
-# third-party imports
-import web3
-from web3 import HTTPProvider, WebsocketProvider
+# external imports
+import celery
 import confini
+from chainlib.chain import ChainSpec
+from xdg.BaseDirectory import xdg_config_home
 
 # local imports
 from cic_eth.api import AdminApi
-from cic_eth.eth import RpcClient
 from cic_eth.db import dsn_from_config
 from cic_eth.db.models.base import SessionBase
 
@@ -48,29 +48,14 @@ config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
 logg.debug('config loaded from {}\n{}'.format(args.c, config))
 
+chain_spec = ChainSpec.from_chain_str(args.i)
 
-dsn = dsn_from_config(config)
-SessionBase.connect(dsn)
+celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
-re_websocket = re.compile('^wss?://')
-re_http = re.compile('^https?://')
-blockchain_provider = config.get('ETH_PROVIDER')
-if re.match(re_websocket, blockchain_provider) != None:
-    blockchain_provider = WebsocketProvider(blockchain_provider)
-elif re.match(re_http, blockchain_provider) != None:
-    blockchain_provider = HTTPProvider(blockchain_provider)
-else:
-    raise ValueError('unknown provider url {}'.format(blockchain_provider))
-
-def web3_constructor():
-    w3 = web3.Web3(blockchain_provider)
-    return (blockchain_provider, w3)
-RpcClient.set_constructor(web3_constructor)
-c = RpcClient(config.get('CIC_CHAIN_SPEC'))
 
 def main():
-    api = AdminApi(c)
-    api.tag_account(args.tag, args.address)
+    api = AdminApi(None)
+    api.tag_account(args.tag, args.address, chain_spec)
 
 
 if __name__ == '__main__':
