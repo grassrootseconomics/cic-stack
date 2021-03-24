@@ -6,7 +6,7 @@ from typing import Optional
 
 # third party imports
 import celery
-from cic_types.models.person import Person
+from sqlalchemy import desc
 from tinydb.table import Document
 
 # local imports
@@ -315,6 +315,16 @@ def process_start_menu(display_key: str, user: User):
     )
 
 
+def retrieve_most_recent_ussd_session(phone_number: str) -> UssdSession:
+    # get last ussd session based on user phone number
+    last_ussd_session = UssdSession.session\
+        .query(UssdSession)\
+        .filter_by(msisdn=phone_number)\
+        .order_by(desc(UssdSession.created))\
+        .first()
+    return last_ussd_session
+
+
 def process_request(user_input: str, user: User, ussd_session: Optional[dict] = None) -> Document:
     """This function assesses a request based on the user from the request comes, the session_id and the user's
     input. It determines whether the request translates to a return to an existing session by checking whether the
@@ -337,7 +347,23 @@ def process_request(user_input: str, user: User, ussd_session: Optional[dict] = 
             return UssdMenu.find_by_name(name=successive_state)
     else:
         if user.has_valid_pin():
-            return UssdMenu.find_by_name(name='start')
+            last_ussd_session = retrieve_most_recent_ussd_session(phone_number=user.phone_number)
+
+            key = create_cached_data_key(
+                identifier=blockchain_address_to_metadata_pointer(blockchain_address=user.blockchain_address),
+                salt='cic.person'
+            )
+            user_metadata = get_cached_data(key=key)
+
+            if last_ussd_session:
+                # get last state
+                last_state = last_ussd_session.state
+                logg.debug(f'LAST USSD SESSION STATE: {last_state}')
+                # if last state is account_creation_prompt and metadata exists, show start menu
+                if last_state == 'account_creation_prompt' and user_metadata is not None:
+                    return UssdMenu.find_by_name(name='start')
+                else:
+                    return UssdMenu.find_by_name(name=last_state)
         else:
             if user.failed_pin_attempts >= 3 and user.get_account_status() == AccountStatus.LOCKED.name:
                 return UssdMenu.find_by_name(name='exit_pin_blocked')

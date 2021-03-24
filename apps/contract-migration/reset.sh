@@ -19,6 +19,12 @@ echo \n
 # pushd /usr/src
 
 init_level_file=${CIC_DATA_DIR}/.init
+if [ ! -f ${CIC_DATA_DIR}/.init ]; then
+  echo "Creating .init file..."
+  mkdir -p $CIC_DATA_DIR
+  touch /tmp/cic/config/.init
+#   touch $init_level_file
+fi
 echo -n 1 > $init_level_file
 
 # Abort on any error (including if wait-for-it fails).
@@ -74,10 +80,10 @@ mkdir -p $CIC_DATA_DIR
 cat << EOF > $CIC_DATA_DIR/.env
 export CIC_REGISTRY_ADDRESS=$CIC_REGISTRY_ADDRESS
 export CIC_TRUST_ADDRESS=$DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER
-
+export CIC_DECLARATOR_ADDRESS=$CIC_DECLARATOR_ADDRESS
 EOF
 
-cat $CIC_DATA_DIR/envlist | bash from_env.sh > $CIC_DATA_DIR/.env_all
+cat ./envlist | bash from_env.sh > $CIC_DATA_DIR/.env_all
 # popd
 
 set +a

@@ -1,54 +1,35 @@
-image: docker:19.03.13
+image:
+  name: gcr.io/kaniko-project/executor:debug
+  entrypoint: [""]
 
 variables:
-    # docker host
-    DOCKER_HOST: tcp://docker:2376
-    # container, thanks to volume mount from config.toml
-    DOCKER_TLS_CERTDIR: "/certs"
-    # These are usually specified by the entrypoint, however the
-    # Kubernetes executor doesn't run entrypoints
-    # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/4125
-    DOCKER_TLS_VERIFY: 1
-    DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
-    # We are building these from the apps dir to easily share the requirements file there.
-    # It would be nicer to build from the app dir context. TODO figure out a nice way to do this in local DOCKER_TLS_VERIFY
-    CONTEXT: apps/
-
-services:
-  - docker:19.03.13-dind
-
-before_script:
-  - docker info
+  KANIKO_CACHE_ARGS: "--cache=true --cache-copy-layers=true --cache-ttl=24h"
+  CONTEXT: $CI_PROJECT_DIR/apps/
 
 .py_build_merge_request:
   stage: build
-  before_script:
-    - cd $CONTEXT
   variables:
-    CI_DEBUG_TRACE: "true"
-    IMAGE_TAG: $APP_NAME:$CI_COMMIT_SHORT_SHA
+    - CI_DEBUG_TRACE: "true"
   script:
-    - docker build -t $IMAGE_TAG -f $DOCKERFILE_PATH .
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > "/kaniko/.docker/config.json"
+    - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --cache-repo $CI_REGISTRY_IMAGE --no-push
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: always
 
 .py_build_push:
-    stage: build
-    before_script:
-      - cd $CONTEXT
-      - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" $CI_REGISTRY --password-stdin
-    variables:
-        CI_DEBUG_TRACE: "true"
-        IMAGE_TAG_BASE: $CI_REGISTRY_IMAGE/$APP_NAME:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
-        LATEST_TAG: $CI_REGISTRY_IMAGE/$APP_NAME:latest
-    script:
-      - export IMAGE_TAG="$IMAGE_TAG_BASE-$(date +%F.%H%M%S)"
-      - docker build -t $IMAGE_TAG -f $DOCKERFILE_PATH .
-      - docker push $IMAGE_TAG
-      - docker tag $IMAGE_TAG $LATEST_TAG
-      - docker push $LATEST_TAG
-    rules:
+  stage: build
+  variables:
+      IMAGE_TAG_BASE: $CI_REGISTRY_IMAGE/$APP_NAME:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
+      LATEST_TAG: $CI_REGISTRY_IMAGE/$APP_NAME:latest
+  script:
+    - export IMAGE_TAG="$IMAGE_TAG_BASE-$(date +%F.%H%M%S)"
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > "/kaniko/.docker/config.json"
+    # - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --destination $IMAGE_TAG
+    - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --destination $IMAGE_TAG --destination $CI_REGISTRY_IMAGE/$APP_NAME:latest
+  rules:
       - if: $CI_COMMIT_BRANCH == "master"
         when: always
 

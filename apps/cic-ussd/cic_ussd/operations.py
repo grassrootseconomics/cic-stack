@@ -14,7 +14,7 @@ from cic_ussd.db.models.user import User
 from cic_ussd.db.models.ussd_session import UssdSession
 from cic_ussd.db.models.task_tracker import TaskTracker
 from cic_ussd.menu.ussd_menu import UssdMenu
-from cic_ussd.processor import custom_display_text, process_request
+from cic_ussd.processor import custom_display_text, process_request, retrieve_most_recent_ussd_session
 from cic_ussd.redis import InMemoryStore
 from cic_ussd.session.ussd_session import UssdSession as InMemoryUssdSession
 from cic_ussd.validator import check_known_user, validate_response_type
@@ -60,7 +60,8 @@ def create_ussd_session(
         phone: str,
         service_code: str,
         user_input: str,
-        current_menu: str) -> InMemoryUssdSession:
+        current_menu: str,
+        session_data: Optional[dict] = None) -> InMemoryUssdSession:
     """
     Creates a new ussd session
     :param external_session_id: Session id value provided by AT
@@ -73,6 +74,8 @@ def create_ussd_session(
     :type user_input: str
     :param current_menu: Menu name that is currently being displayed on the ussd session
     :type current_menu: str
+    :param session_data: Any additional data that was persisted during the user's interaction with the system.
+    :type session_data: dict.
     :return: ussd session object
     :rtype: Session
     """
@@ -81,7 +84,8 @@ def create_ussd_session(
         msisdn=phone,
         user_input=user_input,
         state=current_menu,
-        service_code=service_code
+        service_code=service_code,
+        session_data=session_data
     )
     return session
 
@@ -126,7 +130,9 @@ def create_or_update_session(
             phone=phone,
             service_code=service_code,
             user_input=user_input,
-            current_menu=current_menu)
+            current_menu=current_menu,
+            session_data=session_data
+        )
     return ussd_session
 
 
@@ -338,14 +344,26 @@ def process_menu_interaction_requests(chain_str: str,
                 user_input=user_input
             )
 
-        # create or update the ussd session as appropriate
-        ussd_session = create_or_update_session(
-            external_session_id=external_session_id,
-            phone=phone_number,
-            service_code=service_code,
-            user_input=user_input,
-            current_menu=current_menu.get('name')
-        )
+        last_ussd_session = retrieve_most_recent_ussd_session(phone_number=user.phone_number)
+
+        if last_ussd_session:
+            # create or update the ussd session as appropriate
+            ussd_session = create_or_update_session(
+                external_session_id=external_session_id,
+                phone=phone_number,
+                service_code=service_code,
+                user_input=user_input,
+                current_menu=current_menu.get('name'),
+                session_data=last_ussd_session.session_data
+            )
+        else:
+            ussd_session = create_or_update_session(
+                external_session_id=external_session_id,
+                phone=phone_number,
+                service_code=service_code,
+                user_input=user_input,
+                current_menu=current_menu.get('name')
+            )
 
         # define appropriate response
         response = custom_display_text(

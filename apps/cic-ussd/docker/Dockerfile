@@ -1,4 +1,5 @@
-FROM python:3.8.5-alpine
+# FROM python:3.8.5-alpine
+FROM python:3.8.6-slim-buster
 
 # set working directory
 WORKDIR /usr/src
@@ -6,10 +7,8 @@ WORKDIR /usr/src
 # add args for installing from self-hosted packages
 ARG pip_extra_index_url_flag='--extra-index-url https://pip.grassrootseconomics.net:8433'
 
-# add alpine sys packages
-RUN apk update && \
-        apk add git linux-headers postgresql-dev gnupg bash
-RUN apk add --update musl-dev gcc libffi-dev
+RUN apt-get update && \
+	apt install -y gcc gnupg libpq-dev wget make g++ gnupg bash procps git
 
 # create secrets directory
 RUN mkdir -vp pgp/keys
