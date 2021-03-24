@@ -8,7 +8,7 @@ import logging
 
 # external imports 
 import celery
-from cic_registry import CICRegistry
+from cic_eth_registry import CICRegistry
 from chainlib.chain import ChainSpec
 
 # local imports

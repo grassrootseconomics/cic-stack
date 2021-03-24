@@ -3,8 +3,6 @@ import logging
 
 # external imports
 import celery
-import requests
-import web3
 from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.chain import ChainSpec
 from chainlib.connection import RPCConnection
@@ -18,11 +16,9 @@ from cic_eth_registry.erc20 import ERC20Token
 from hexathon import strip_0x
 
 # local imports
-from cic_eth.registry import safe_registry
 from cic_eth.db.models.tx import TxCache
 from cic_eth.db.models.base import SessionBase
 from cic_eth.db.models.role import AccountRole
-from cic_eth.eth import RpcClient
 from cic_eth.error import TokenCountError, PermanentTxError, OutOfGasError, NotLocalTxError
 from cic_eth.queue.tx import register_tx
 from cic_eth.eth.gas import (

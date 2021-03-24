@@ -32,7 +32,6 @@ from hexathon import (
         )
 
 # local imports
-from .rpc import RpcClient
 from cic_eth.db import (
         Otx,
         SessionBase,
@@ -64,7 +63,6 @@ from cic_eth.error import (
         AlreadyFillingGasError,
         EthError,
         )
-from cic_eth.eth.util import tx_hex_string
 from cic_eth.admin.ctrl import lock_send
 from cic_eth.task import (
         CriticalSQLAlchemyTask,
@@ -269,7 +267,6 @@ def send(self, txs, chain_spec_dict):
 
     queue = self.request.delivery_info.get('routing_key')
 
-    #c = RpcClient(chain_spec)
     r = None
     s_set_sent = celery.signature(
         'cic_eth.queue.tx.set_sent_status',
@@ -399,7 +396,7 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_str, gas=None, default_fa
     c = RpcClient(chain_spec)
 
     tx_signed_raw_bytes = bytes.fromhex(otx.signed_tx[2:])
-    tx = unpack_signed_raw_tx(tx_signed_raw_bytes, chain_spec.chain_id())
+    tx = unpack(tx_signed_raw_bytes, chain_spec.chain_id())
     logg.debug('resend otx {} {}'.format(tx, otx.signed_tx))
 
     queue = self.request.delivery_info['routing_key']
@@ -489,9 +486,7 @@ def sync_tx(self, tx_hash_hex, chain_str):
     queue = self.request.delivery_info['routing_key']
 
     chain_spec = ChainSpec.from_chain_str(chain_str)
-    #c = RpcClient(chain_spec)
 
-    #tx = c.w3.eth.getTransaction(tx_hash_hex)
     conn = RPCConnection.connect()
     o = transaction(tx_hash_hex)
     tx = conn.do(o)

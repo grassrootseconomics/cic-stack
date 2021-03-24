@@ -2,14 +2,13 @@
 import logging
 import sys
 
-# third-party imports
+# external imports
 import celery
-import web3
-from cic_registry import zero_address
-from cic_registry import zero_content
-from cic_registry import CICRegistry
-from crypto_dev_signer.eth.web3ext import Web3 as Web3Ext
-from cic_registry.error import UnknownContractError
+from chainlib.eth.constant import (
+        ZERO_ADDRESS,
+        ZERO_CONTENT,
+        )
+from cic_eth_registry.error import UnknownContractError
 from chainlib.eth.address import to_checksum_address
 
 # local imports
@@ -24,9 +23,7 @@ from cic_eth.db.enum import (
     )
 from cic_eth.error import InitializationError
 from cic_eth.db.error import TxStateChangeError
-from cic_eth.eth.rpc import RpcClient
 from cic_eth.queue.tx import get_tx
-from cic_eth.eth.util import unpack_signed_raw_tx
 
 app = celery.current_app
 

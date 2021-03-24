@@ -23,10 +23,7 @@ from eth_accounts_index import AccountRegistry
 from sarafu_faucet import MinterFaucet as Faucet
 
 # local import
-#from cic_eth.registry import safe_registry
-#from cic_eth.eth import RpcClient
 from cic_eth_registry import CICRegistry
-from cic_eth.eth import registry_extra_identifiers
 from cic_eth.eth.gas import (
         create_check_gas_task,
         )
@@ -35,7 +32,6 @@ from cic_eth.db.models.nonce import Nonce
 from cic_eth.db.models.base import SessionBase
 from cic_eth.db.models.role import AccountRole
 from cic_eth.db.models.tx import TxCache
-from cic_eth.eth.util import unpack_signed_raw_tx
 from cic_eth.error import (
         RoleMissingError,
         SignerError,

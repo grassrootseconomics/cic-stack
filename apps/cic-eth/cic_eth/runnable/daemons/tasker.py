@@ -145,7 +145,7 @@ def main():
 
     rpc = RPCConnection.connect(chain_spec, 'default')
     registry = CICRegistry(chain_spec, rpc)
-    registry_address = registry.by_name('CICRegistry')
+    registry_address = registry.by_name('ContractRegistry')
 
     trusted_addresses_src = config.get('CIC_TRUST_ADDRESS')
     if trusted_addresses_src == None:

@@ -15,7 +15,6 @@ from cic_eth.db.enum import (
         is_error_status,
         )
 from cic_eth.db.error import TxStateChangeError
-#from cic_eth.eth.util import address_hex_from_signed_tx
 
 logg = logging.getLogger()
 

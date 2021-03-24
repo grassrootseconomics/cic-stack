@@ -26,7 +26,6 @@ from cic_eth.db.enum import (
         dead,
         )
 from cic_eth.task import CriticalSQLAlchemyTask
-from cic_eth.eth.util import unpack_signed_raw_tx # TODO: should not be in same sub-path as package that imports queue.tx
 from cic_eth.error import NotLocalTxError
 from cic_eth.error import LockedError
 from cic_eth.db.enum import status_str

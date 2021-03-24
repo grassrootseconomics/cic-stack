@@ -10,8 +10,6 @@ from cic_eth_registry import CICRegistry
 from eth_address_declarator import AddressDeclarator
 
 # local imports
-from cic_eth.eth import RpcClient
-from cic_eth.registry import safe_registry
 from cic_eth.task import BaseTask
 
 celery_app = celery.current_app

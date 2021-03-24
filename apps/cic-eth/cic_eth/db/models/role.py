@@ -1,9 +1,9 @@
 # standard imports
 import logging
 
-# third-party imports
+# external imports
 from sqlalchemy import Column, String, Text
-from cic_registry import zero_address
+from chainlib.eth.constant import ZERO_ADDRESS
 
 # local imports
 from .base import SessionBase
@@ -42,7 +42,7 @@ class AccountRole(SessionBase):
 
         role = AccountRole.__get_role(tag, session)
     
-        r = zero_address
+        r = ZERO_ADDRESS
         if role != None:
             r = role.address_hex
 
@@ -133,4 +133,4 @@ class AccountRole(SessionBase):
 
     def __init__(self, tag):
         self.tag = tag
-        self.address_hex = zero_address
+        self.address_hex = ZERO_ADDRESS

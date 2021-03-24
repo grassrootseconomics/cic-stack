@@ -1,17 +1,19 @@
 #!/usr/bin/python
-#import socket
 import sys
 import os
 import logging
 import uuid
 import json
+import argparse
+
+# external imports
+import confini
+import redis
+import celery
 from xdg.BaseDirectory import xdg_config_home
 
-import celery
+# local imports
 from cic_eth.api import Api
-import confini
-import argparse
-import redis
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger('create_account_script')
