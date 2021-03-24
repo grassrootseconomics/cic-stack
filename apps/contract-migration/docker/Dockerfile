@@ -57,54 +57,12 @@ WORKDIR /home/grassroots
 USER grassroots
 
 ARG pip_extra_index_url=https://pip.grassrootseconomics.net:8433
-ARG cic_base_version=0.1.1a23
-ARG cic_registry_version=0.5.3a24
-ARG cic_eth_version=0.10.0a41
-ARG chainlib_version=0.0.1a21
+ARG cic_base_version=0.1.2a7
+ARG cic_eth_version=0.10.1a5+build.b441abb0
 ARG cic_contracts_version=0.0.2a2
 RUN pip install --user --extra-index-url $pip_extra_index_url cic-base[full_graph]==$cic_base_version \
-                                                              cic-registry==$cic_registry_version \
-                                                              cic-eth==$cic_eth_version \
-                                                              chainlib==$chainlib_version \
-															  cic-contracts==$cic_contracts_version
-
-# ARG cic_bancor_url=https://gitlab.com/grassrootseconomics/cic-bancor.git/
-# ARG cic_bancor_contracts_url=https://github.com/bancorprotocol/contracts-solidity
-# RUN echo Compile and install bancor protocol contracts && \
-# 	git clone --depth 1 $cic_bancor_url cic-bancor && \
-# 	cd cic-bancor
-
-# RUN cd cic-bancor/python && \
-# 	pip install --extra-index-url $pip_extra_index_url .
-
-# This is a temporary solution for building the Bancor contracts using the bancor protocol repository truffle setup
-# We should instead flatten the files ourselves and build them with solc in the first image layer in this file
-# ARG cic_bancor_commit=a04c7ae6882ea515938d852cc861d59a35070094
-# ARG cic_bancor_url=https://gitlab.com/grassrootseconomics/cic-bancor.git/
-# ARG cic_bancor_contracts_url=https://github.com/bancorprotocol/contracts-solidity
-# RUN echo Compile and install bancor protocol contracts && \
-# 	git clone --depth 1 $cic_bancor_url cic-bancor && \
-# 	cd cic-bancor && \
-# 	git fetch --depth 1 origin $cic_bancor_commit && \
-# 	git checkout $cic_bancor_commit && \
-# 	# Apparently the git version here doesn't have set-url as a command. *sigh*
-# 	#if [ ! -z $cic_bancor_contracts_url ]; then
-# 	#	git submodule set-url bancor $cic_bancor_contracts_url
-# 	#fi
-# 	git submodule init && \
-# 	git submodule update
-# RUN cd root && \
-# 	. $NVM_DIR/nvm.sh &&\
-# 	nvm install $BANCOR_NODE_VERSION && \
-# 	nvm use $BANCOR_NODE_VERSION && \
-# 	cd - && \
-# 	cd cic-bancor/bancor && \
-# 	npm install --python=/usr/bin/python2 && \
-# 	node_modules/truffle/build/cli.bundled.js compile && \
-# 	mkdir -vp /usr/local/share/cic/bancor/solidity/build  && \
-# 	cp -vR solidity/build/contracts /usr/local/share/cic/bancor/solidity/build/
-# RUN cd cic-bancor/python && \
-# 	pip install --extra-index-url $pip_extra_index_url .
+	cic-eth==$cic_eth_version \
+	cic-contracts==$cic_contracts_version
 
 FROM python:3.8.6-slim-buster as runtime-image
 
@@ -124,16 +82,18 @@ COPY contract-migration/testdata/pgp testdata/pgp
 COPY contract-migration/sarafu_declaration.json sarafu_declaration.json
 COPY contract-migration/keystore keystore
 COPY contract-migration/envlist .
-COPY contract-migration/*.sh ./
 
 # RUN chown grassroots:grassroots .local/
-RUN chown grassroots:grassroots -R .
-RUN chmod gu+x *.sh
 
 RUN mkdir -p /tmp/cic/config
 RUN chown grassroots:grassroots /tmp/cic/config
 # A shared output dir for environment configs
 RUN chmod a+rwx /tmp/cic/config 
+
+COPY contract-migration/*.sh ./
+RUN chown grassroots:grassroots -R .
+RUN chmod gu+x *.sh
+
 
 USER grassroots
 
