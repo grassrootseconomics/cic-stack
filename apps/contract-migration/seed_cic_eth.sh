@@ -26,7 +26,7 @@ env_out_file=${CIC_DATA_DIR}/.env_seed
 init_level_file=${CIC_DATA_DIR}/.init
 truncate $env_out_file -s 0
 
-pip install --extra-index-url https://pip.grassrootseconomics.net:8433 chainlib==0.0.1a22
+#pip install --extra-index-url https://pip.grassrootseconomics.net:8433 chainlib==0.0.1a22
 
 set -e
 set -a
@@ -35,17 +35,17 @@ set -a
 old_gas_provider=$DEV_ETH_ACCOUNT_GAS_PROVIDER
 DEV_ETH_ACCOUNT_GAS_GIFTER=`cic-eth-create $debug --redis-host-callback=$REDIS_HOST --redis-port-callback=$REDIS_PORT --no-register`
 echo DEV_ETH_ACCOUNT_GAS_GIFTER=$DEV_ETH_ACCOUNT_GAS_GIFTER >> $env_out_file
-cic-eth-tag GAS_GIFTER $DEV_ETH_ACCOUNT_GAS_GIFTER
+cic-eth-tag -i $CIC_CHAIN_SPEC GAS_GIFTER $DEV_ETH_ACCOUNT_GAS_GIFTER
 
 >&2 echo "create account for sarafu gifter"
 DEV_ETH_ACCOUNT_SARAFU_GIFTER=`cic-eth-create $debug --redis-host-callback=$REDIS_HOST --redis-port-callback=$REDIS_PORT --no-register`
 echo DEV_ETH_ACCOUNT_SARAFU_GIFTER=$DEV_ETH_ACCOUNT_SARAFU_GIFTER >> $env_out_file
-cic-eth-tag SARAFU_GIFTER $DEV_ETH_ACCOUNT_SARAFU_GIFTER
+cic-eth-tag -i $CIC_CHAIN_SPEC SARAFU_GIFTER $DEV_ETH_ACCOUNT_SARAFU_GIFTER
 
 >&2 echo "create account for approval escrow owner"
 DEV_ETH_ACCOUNT_TRANSFER_AUTHORIZATION_OWNER=`cic-eth-create $debug --redis-host-callback=$REDIS_HOST --redis-port-callback=$REDIS_PORT --no-register`
 echo DEV_ETH_ACCOUNT_TRANSFER_AUTHORIZATION_OWNER=$DEV_ETH_ACCOUNT_TRANSFER_AUTHORIZATION_OWNER >> $env_out_file
-cic-eth-tag TRANSFER_AUTHORIZATION_OWNER $DEV_ETH_ACCOUNT_TRANSFER_AUTHORIZATION_OWNER 
+cic-eth-tag -i $CIC_CHAIN_SPEC TRANSFER_AUTHORIZATION_OWNER $DEV_ETH_ACCOUNT_TRANSFER_AUTHORIZATION_OWNER 
 
 #>&2 echo "create account for faucet owner"
 #DEV_ETH_ACCOUNT_FAUCET_OWNER=`cic-eth-create $debug --redis-host-callback=$REDIS_HOST --redis-port-callback=$REDIS_PORT --no-register`
@@ -55,8 +55,7 @@ cic-eth-tag TRANSFER_AUTHORIZATION_OWNER $DEV_ETH_ACCOUNT_TRANSFER_AUTHORIZATION
 >&2 echo "create account for accounts index writer"
 DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER=`cic-eth-create $debug --redis-host-callback=$REDIS_HOST --redis-port-callback=$REDIS_PORT --no-register`
 echo DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER=$DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER >> $env_out_file
-cic-eth-tag ACCOUNTS_INDEX_WRITER $DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER
-
+cic-eth-tag -i $CIC_CHAIN_SPEC ACCOUNTS_INDEX_WRITER $DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER
 
 # Transfer gas to custodial gas provider adddress
 >&2 echo gift gas to gas gifter
@@ -75,7 +74,6 @@ cic-eth-tag ACCOUNTS_INDEX_WRITER $DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER
 # Send token to token gifter
 >&2 echo "gift tokens to keystore address"
 >&2 giftable-token-gift -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_ETH_RESERVE_ADDRESS --recipient $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER -w $debug $token_amount
-
 
 >&2 echo "set sarafu token to reserve token (temporarily while bancor contracts are not connected)"
 echo DEV_ETH_SARAFU_TOKEN_ADDRESS=$DEV_ETH_RESERVE_ADDRESS >> $env_out_file
