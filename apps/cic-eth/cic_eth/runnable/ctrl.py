@@ -3,34 +3,28 @@ import argparse
 import sys
 import os
 import logging
-import re
 
 # third-party imports
 import confini
 import celery
-import web3
-from cic_registry.chain import ChainSpec
-from cic_registry import zero_address
+from chainlib.chain import ChainSpec
+from chainlib.eth.constant import ZERO_ADDRESS
+from chainlib.eth.address import is_checksum_address
 
 # local imports
 from cic_eth.api import AdminApi
-from cic_eth.eth.rpc import RpcClient
 from cic_eth.db.enum import LockEnum
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
-logging.getLogger('web3').setLevel(logging.WARNING)
-logging.getLogger('urllib3').setLevel(logging.WARNING)
-
-
-default_abi_dir = '/usr/share/local/cic/solidity/abi'
+default_format = 'terminal'
 default_config_dir = os.environ.get('CONFINI_DIR', '/usr/local/etc/cic')
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument('-p', '--provider', dest='p', default='http://localhost:8545', type=str, help='Web3 provider url (http only)')
 argparser.add_argument('-r', '--registry-address', type=str, help='CIC registry address')
-argparser.add_argument('-f', '--format', dest='f', default='terminal', type=str, help='Output format')
+argparser.add_argument('-f', '--format', dest='f', default=default_format, type=str, help='Output format')
 argparser.add_argument('-c', type=str, default=default_config_dir, help='config root to use')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
 argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
@@ -40,7 +34,7 @@ argparser.add_argument('-vv', help='be more verbose', action='store_true')
 
 def process_lock_args(argparser):
     argparser.add_argument('flags', type=str, help='Flags to manipulate')
-    argparser.add_argument('address', default=zero_address, nargs='?', type=str, help='Ethereum address to unlock,')
+    argparser.add_argument('address', default=ZERO_ADDRESS, nargs='?', type=str, help='Ethereum address to unlock,')
 
 sub = argparser.add_subparsers()
 sub.dest = "command"
@@ -69,30 +63,12 @@ config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
 logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
 
-re_websocket = re.compile('^wss?://')
-re_http = re.compile('^https?://')
-blockchain_provider = config.get('ETH_PROVIDER')
-if re.match(re_websocket, blockchain_provider) != None:
-    blockchain_provider = web3.Web3.WebsocketProvider(blockchain_provider)
-elif re.match(re_http, blockchain_provider) != None:
-    blockchain_provider = web3.Web3.HTTPProvider(blockchain_provider)
-else:
-    raise ValueError('unknown provider url {}'.format(blockchain_provider))
-
-def web3_constructor():
-    w3 = web3.Web3(blockchain_provider)
-    return (blockchain_provider, w3)
-RpcClient.set_constructor(web3_constructor)
-
-
 celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
 queue = args.q
 
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
-chain_str = str(chain_spec)
-c = RpcClient(chain_spec)
-admin_api = AdminApi(c)
+admin_api = AdminApi(None)
 
 
 def lock_names_to_flag(s):
@@ -108,14 +84,14 @@ def lock_names_to_flag(s):
 def main():
     if args.command == 'unlock':
         flags = lock_names_to_flag(args.flags)
-        if not web3.Web3.isChecksumAddress(args.address):
+        if not is_checksum_address(args.address):
             raise ValueError('Invalid checksum address {}'.format(args.address))
 
         s = celery.signature(
             'cic_eth.admin.ctrl.unlock',
             [
                 None,
-                chain_str,
+                chain_spec.asdict(),
                 args.address,
                 flags,
                 ],
@@ -127,14 +103,14 @@ def main():
 
     if args.command == 'lock':
         flags = lock_names_to_flag(args.flags)
-        if not web3.Web3.isChecksumAddress(args.address):
+        if not is_checksum_address(args.address):
             raise ValueError('Invalid checksum address {}'.format(args.address))
 
         s = celery.signature(
             'cic_eth.admin.ctrl.lock',
             [
                 None,
-                chain_str,
+                chain_spec.asdict(),
                 args.address,
                 flags,
                 ],
