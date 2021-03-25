@@ -37,6 +37,7 @@ def custodial_roles(
     token_roles,
     agent_roles,
     eth_accounts,
+    eth_keystore,
     init_database,
     ):
     r = {}

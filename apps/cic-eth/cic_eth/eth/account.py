@@ -234,7 +234,6 @@ def have(self, account, chain_spec_dict):
 
 @celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
 def set_role(self, tag, address, chain_spec_dict):
-    logg.debug('foo fooofoo')
     if not to_checksum_address(address):
         raise ValueError('invalid checksum address {}'.format(address))
     session = SessionBase.create_session()

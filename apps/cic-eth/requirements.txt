@@ -18,7 +18,7 @@ semver==2.13.0
 websocket-client==0.57.0
 moolb~=0.1.1b2
 eth-address-index~=0.1.1a4
-chainlib~=0.0.1a32
+chainlib~=0.0.1a33
 hexathon~=0.0.1a5
 chainsyncer~=0.0.1a20
 pysha3==1.0.2
