@@ -1,4 +1,4 @@
-cic-base~=0.1.2a19
+cic-base~=0.1.2a20
 web3==5.12.2
 celery==4.4.7
 crypto-dev-signer~=0.4.14a8
@@ -17,8 +17,8 @@ uWSGI==2.0.19.1
 semver==2.13.0
 websocket-client==0.57.0
 moolb~=0.1.1b2
-eth-address-index~=0.1.1a2
-chainlib~=0.0.1a31
+eth-address-index~=0.1.1a3
+chainlib~=0.0.1a32
 hexathon~=0.0.1a5
 chainsyncer~=0.0.1a20
 pysha3==1.0.2
