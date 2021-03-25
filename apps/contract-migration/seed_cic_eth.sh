@@ -12,6 +12,7 @@ source ${CIC_DATA_DIR}/.env_all
 DEV_PIP_EXTRA_INDEX_URL=${DEV_PIP_EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
 DEV_DATABASE_NAME_CIC_ETH=${DEV_DATABASE_NAME_CIC_ETH:-"cic-eth"}
 CIC_DATA_DIR=${CIC_DATA_DIR:-/tmp/cic} 
+ETH_PASSPHRASE=''
 
 # Debug flag
 DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER=0xEb3907eCad74a0013c259D5874AE7f22DcBcC95C
@@ -26,10 +27,11 @@ env_out_file=${CIC_DATA_DIR}/.env_seed
 init_level_file=${CIC_DATA_DIR}/.init
 truncate $env_out_file -s 0
 
-#pip install --extra-index-url https://pip.grassrootseconomics.net:8433 chainlib==0.0.1a22
-
 set -e
 set -a
+
+#pip install --extra-index-url https://pip.grassrootseconomics.net:8433 chainlib==0.0.1a22
+pip install --extra-index-url https://pip.grassrootseconomics.net:8433 eth-address-index==0.1.1a4 chainlib==0.0.1a33
 
 # get required addresses from registries
 DEV_TOKEN_INDEX_ADDRESS=`eth-contract-registry-list -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -r $CIC_REGISTRY_ADDRESS -f brief TokenRegistry`
@@ -63,13 +65,13 @@ cic-eth-tag -i $CIC_CHAIN_SPEC ACCOUNTS_INDEX_WRITER $DEV_ETH_ACCOUNT_ACCOUNTS_I
 
 # Transfer gas to custodial gas provider adddress
 >&2 echo gift gas to gas gifter
->&2 eth-gas -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug $DEV_ETH_ACCOUNT_GAS_GIFTER $gas_amount
+>&2 eth-gas --send -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug $DEV_ETH_ACCOUNT_GAS_GIFTER $gas_amount
 
 >&2 echo gift gas to sarafu token owner
->&2 eth-gas -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug $DEV_ETH_ACCOUNT_SARAFU_GIFTER $gas_amount
+>&2 eth-gas --send -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug $DEV_ETH_ACCOUNT_SARAFU_GIFTER $gas_amount
 
 >&2 echo gift gas to account index owner
->&2 eth-gas -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug $DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER $gas_amount
+>&2 eth-gas --send -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug $DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER $gas_amount
 
 
 # Send token to token creator
@@ -86,7 +88,7 @@ export DEV_ETH_SARAFU_TOKEN_ADDRESS=$DEV_ETH_RESERVE_ADDRESS
 
 # Transfer tokens to gifter address
 >&2 echo "transfer sarafu tokens to token gifter address"
->&2 eth-transfer -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER --token-address $DEV_ETH_SARAFU_TOKEN_ADDRESS --abi-dir $abi_dir -w $debug $DEV_ETH_ACCOUNT_SARAFU_GIFTER ${token_amount:0:-1}
+>&2 eth-transfer -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER --token-address $DEV_RESERVE_ADDRESS -w $debug $DEV_ETH_ACCOUNT_SARAFU_GIFTER ${token_amount:0:-1}
 
 #echo -n 0 > $init_level_file
 
