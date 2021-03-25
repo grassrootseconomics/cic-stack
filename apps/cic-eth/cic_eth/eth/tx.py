@@ -568,6 +568,7 @@ def sync_tx(self, tx_hash_hex, chain_str):
 #    return txpending_hash_hex
 
 
+# TODO: Move to cic_eth.eth.gas
 @celery_app.task(base=CriticalSQLAlchemyTask)
 def cache_gas_data(
         tx_hash_hex,

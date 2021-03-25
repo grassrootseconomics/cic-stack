@@ -16,9 +16,8 @@ import random
 # external imports
 import vobject
 import celery
-import web3
 from faker import Faker
-import cic_registry
+import cic_eth_registry
 import confini
 from cic_eth.api import Api
 from cic_types.models.person import (
@@ -26,7 +25,7 @@ from cic_types.models.person import (
         generate_vcard_from_contact_data,
         get_contact_data_from_vcard,
         )
-from chainlib.eth.address import to_checksum
+from chainlib.eth.address import to_checksum_address
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -142,7 +141,7 @@ def genDob():
 
 def gen():
     old_blockchain_address = '0x' + os.urandom(20).hex()
-    old_blockchain_checksum_address = to_checksum(old_blockchain_address)
+    old_blockchain_checksum_address = to_checksum_address(old_blockchain_address)
     gender = random.choice(['female', 'male', 'other'])
     phone = genPhone()
     city = fake.city_name()
