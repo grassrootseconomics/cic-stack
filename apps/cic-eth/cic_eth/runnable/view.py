@@ -11,18 +11,17 @@ import sys
 import re
 import datetime
 
-# third-party imports
+# external imports
 import confini
 import celery
-import web3
-from cic_registry import CICRegistry
-from cic_registry.chain import ChainSpec
-from cic_registry.chain import ChainRegistry
+from cic_eth_registry import CICRegistry
+from cic_eth_registry.lookup.declarator import AddressDeclaratorLookup
+from chainlib.chain import ChainSpec
+from chainlib.eth.connection import EthHTTPConnection
 from hexathon import add_0x
 
 # local imports
 from cic_eth.api import AdminApi
-from cic_eth.eth.rpc import RpcClient
 from cic_eth.db.enum import (
     StatusEnum,
     status_str,
@@ -32,18 +31,14 @@ from cic_eth.db.enum import (
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
-logging.getLogger('web3').setLevel(logging.WARNING)
-logging.getLogger('urllib3').setLevel(logging.WARNING)
-
-
-default_abi_dir = '/usr/share/local/cic/solidity/abi'
+default_format = 'terminal'
 default_config_dir = os.environ.get('CONFINI_DIR', '/usr/local/etc/cic')
 
 argparser = argparse.ArgumentParser()
-argparser.add_argument('-p', '--provider', dest='p', type=str, help='Web3 provider url (http only)')
+argparser.add_argument('-p', '--provider', dest='p', default='http://localhost:8545', type=str, help='Web3 provider url (http only)')
 argparser.add_argument('-r', '--registry-address', dest='r', type=str, help='CIC registry address')
-argparser.add_argument('-f', '--format', dest='f', default='terminal', type=str, help='Output format')
-argparser.add_argument('--status-raw', dest='status_raw', action='store_true', help='Output statis bit enum names only')
+argparser.add_argument('-f', '--format', dest='f', default=default_format, type=str, help='Output format')
+argparser.add_argument('--status-raw', dest='status_raw', action='store_true', help='Output status bit enum names only')
 argparser.add_argument('-c', type=str, default=default_config_dir, help='config root to use')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
 argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
@@ -74,38 +69,30 @@ config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
 logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
 
-config.add(add_0x(args.query), '_QUERY', True)
-
-re_websocket = re.compile('^wss?://')
-re_http = re.compile('^https?://')
-blockchain_provider = config.get('ETH_PROVIDER')
-if re.match(re_websocket, blockchain_provider) != None:
-    blockchain_provider = web3.Web3.WebsocketProvider(blockchain_provider)
-elif re.match(re_http, blockchain_provider) != None:
-    blockchain_provider = web3.Web3.HTTPProvider(blockchain_provider)
-else:
-    raise ValueError('unknown provider url {}'.format(blockchain_provider))
-
-def web3_constructor():
-    w3 = web3.Web3(blockchain_provider)
-    return (blockchain_provider, w3)
-RpcClient.set_constructor(web3_constructor)
-
+try:
+    config.add(add_0x(args.query), '_QUERY', True)
+except:
+    config.add(args.query, '_QUERY', True)
 
 celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
 queue = args.q
 
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
-chain_str = str(chain_spec)
-c = RpcClient(chain_spec)
-admin_api = AdminApi(c)
 
-CICRegistry.init(c.w3, config.get('CIC_REGISTRY_ADDRESS'), chain_spec)
-chain_registry = ChainRegistry(chain_spec)
-CICRegistry.add_chain_registry(chain_registry)
-CICRegistry.add_path(config.get('ETH_ABI_DIR'))
-CICRegistry.load_for(chain_spec)
+rpc = EthHTTPConnection(args.p)
+
+registry_address = args.r
+
+admin_api = AdminApi(rpc)
+
+trusted_addresses_src = config.get('CIC_TRUST_ADDRESS')
+if trusted_addresses_src == None:
+    logg.critical('At least one trusted address must be declared in CIC_TRUST_ADDRESS')
+    sys.exit(1)
+trusted_addresses = trusted_addresses_src.split(',')
+for address in trusted_addresses:
+    logg.info('using trusted address {}'.format(address))
 
 fmt = 'terminal'
 if args.f[:1] == 'j':
@@ -155,19 +142,33 @@ def render_lock(o, **kwargs):
 
     return s
 
+
+def connect_registry(registry_address, chain_spec, rpc):
+    CICRegistry.address = registry_address
+    registry = CICRegistry(chain_spec, rpc)
+    declarator_address = registry.by_name('AddressDeclarator')
+    lookup = AddressDeclaratorLookup(declarator_address, trusted_addresses)
+    registry.add_lookup(lookup)
+    return registry
+
+
 # TODO: move each command to submodule
 def main():
     txs  = []
     renderer = render_tx
     if len(config.get('_QUERY')) > 66:
+        registry = connect_registry(registry_address, chain_spec, rpc)
         txs = [admin_api.tx(chain_spec, tx_raw=config.get('_QUERY'))]
     elif len(config.get('_QUERY')) > 42:
+        registry = connect_registry(registry_address, chain_spec, rpc)
         txs = [admin_api.tx(chain_spec, tx_hash=config.get('_QUERY'))]
     elif len(config.get('_QUERY')) == 42:
+        registry = connect_registry(registry_address, chain_spec, rpc)
         txs = admin_api.account(chain_spec, config.get('_QUERY'), include_recipient=False)
         renderer = render_account
     elif len(config.get('_QUERY')) >= 4 and config.get('_QUERY')[:4] == 'lock':
-        txs = admin_api.get_lock()
+        t = admin_api.get_lock()
+        txs = t.get()
         renderer = render_lock
     else:
         raise ValueError('cannot parse argument {}'.format(config.get('_QUERY')))

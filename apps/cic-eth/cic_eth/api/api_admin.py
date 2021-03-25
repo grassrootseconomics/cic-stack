@@ -313,7 +313,7 @@ class AdminApi:
 
 
     # TODO: Add exception upon non-existent tx aswell as invalid tx data to docstring 
-    def tx(self, chain_spec, tx_hash=None, tx_raw=None):
+    def tx(self, chain_spec, tx_hash=None, tx_raw=None, registry=None):
         """Output local and network details about a given transaction with local origin.
 
         If the transaction hash is given, the raw trasnaction data will be retrieved from the local transaction queue backend. Otherwise the raw transaction data must be provided directly. Only one of transaction hash and transaction data can be passed.
@@ -365,7 +365,6 @@ class AdminApi:
         tx['sender_description'] = 'Custodial account'
         tx['recipient_description'] = 'Custodial account'
 
-        registry = CICRegistry(chain_spec, self.rpc)
         o = code(tx['sender'])
         r = self.rpc.do(o)
         if len(strip_0x(r, allow_empty=True)) > 0:

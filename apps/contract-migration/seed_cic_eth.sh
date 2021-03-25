@@ -30,9 +30,6 @@ truncate $env_out_file -s 0
 set -e
 set -a
 
-#pip install --extra-index-url https://pip.grassrootseconomics.net:8433 chainlib==0.0.1a22
-pip install --extra-index-url https://pip.grassrootseconomics.net:8433 eth-address-index==0.1.1a4 chainlib==0.0.1a33
-
 # get required addresses from registries
 DEV_TOKEN_INDEX_ADDRESS=`eth-contract-registry-list -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -r $CIC_REGISTRY_ADDRESS -f brief TokenRegistry`
 DEV_RESERVE_ADDRESS=`eth-token-index-list -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_TOKEN_INDEX_ADDRESS -f brief SRF`
