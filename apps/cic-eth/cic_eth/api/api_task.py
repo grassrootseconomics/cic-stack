@@ -361,7 +361,7 @@ class Api:
             s_nonce = celery.signature(
                 'cic_eth.eth.tx.reserve_nonce',
                 [
-                    'ACCOUNTS_INDEX_WRITER',
+                    'ACCOUNTS_REGISTRY_WRITER',
                     ],
                 queue=self.queue,
                 )

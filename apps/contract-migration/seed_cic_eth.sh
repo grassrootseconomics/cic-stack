@@ -58,7 +58,7 @@ cic-eth-tag -i $CIC_CHAIN_SPEC TRANSFER_AUTHORIZATION_OWNER $DEV_ETH_ACCOUNT_TRA
 >&2 echo "create account for accounts index writer"
 DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER=`cic-eth-create $debug --redis-host-callback=$REDIS_HOST --redis-port-callback=$REDIS_PORT --no-register`
 echo DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER=$DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER >> $env_out_file
-cic-eth-tag -i $CIC_CHAIN_SPEC ACCOUNTS_INDEX_WRITER $DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER
+cic-eth-tag -i $CIC_CHAIN_SPEC ACCOUNTS_REGISTRY_WRITER $DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER
 
 # Transfer gas to custodial gas provider adddress
 >&2 echo gift gas to gas gifter
