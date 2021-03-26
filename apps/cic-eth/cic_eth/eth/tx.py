@@ -474,7 +474,7 @@ def reserve_nonce(self, chained_input, signer_address=None):
 
 
 @celery_app.task(bind=True, throws=(NotFoundEthException,), base=CriticalWeb3Task)
-def sync_tx(self, tx_hash_hex, chain_str):
+def sync_tx(self, tx_hash_hex, chain_spec_dict):
     """Force update of network status of a simgle transaction
 
     :param tx_hash_hex: Transaction hash
@@ -483,11 +483,11 @@ def sync_tx(self, tx_hash_hex, chain_str):
     :type chain_str: str
     """
 
-    queue = self.request.delivery_info['routing_key']
+    queue = self.request.delivery_info.get('routing_key')
 
-    chain_spec = ChainSpec.from_chain_str(chain_str)
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
 
-    conn = RPCConnection.connect()
+    conn = RPCConnection.connect(chain_spec, 'default')
     o = transaction(tx_hash_hex)
     tx = conn.do(o)
 
@@ -495,8 +495,7 @@ def sync_tx(self, tx_hash_hex, chain_str):
     try:
         o = receipt(tx_hash_hex)
         rcpt = conn.do(o)
-        #rcpt = c.w3.eth.getTransactionReceipt(tx_hash_hex)
-    except NotFoundEthException as e: #web3.exceptions.TransactionNotFound as e:
+    except NotFoundEthException as e:
         pass
 
     if rcpt != None:

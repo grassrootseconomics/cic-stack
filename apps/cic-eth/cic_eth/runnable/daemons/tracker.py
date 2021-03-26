@@ -63,7 +63,8 @@ SessionBase.connect(dsn, pool_size=16, debug=config.true('DATABASE_DEBUG'))
 
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 
-RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, 'default')
+#RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, 'default')
+cic_base.rpc.setup(chain_spec, config.get('ETH_PROVIDER'))
 
 
 def main():

@@ -19,6 +19,7 @@ from cic_eth.eth.tx import cache_gas_data
 logg = logging.getLogger()
 
 
+@pytest.mark.skip()
 def test_tx_send(
         init_database,
         default_chain_spec,
@@ -26,7 +27,7 @@ def test_tx_send(
         eth_signer,
         agent_roles,
         contract_roles,
-        celery_worker,
+        celery_session_worker,
         ):
 
     chain_id = default_chain_spec.chain_id()
@@ -56,3 +57,12 @@ def test_tx_send(
     o = receipt(tx_hash_hex)
     rcpt = eth_rpc.do(o)
     assert rcpt['status'] == 1
+
+
+def test_sync_tx(
+        default_chain_spec,
+        eth_rpc,
+        eth_signer,
+        celery_worker,
+        ):
+    pass
