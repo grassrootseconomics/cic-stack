@@ -23,12 +23,13 @@ RUN echo "copying root req file ${root_requirement_file}"
 #COPY $root_requirement_file .
 #RUN pip install -r $root_requirement_file $pip_extra_index_url_flag
 RUN /usr/local/bin/python -m pip install --upgrade pip
-RUN git clone https://gitlab.com/grassrootseconomics/cic-base.git && \
-	cd cic-base && \
-	git checkout 7ae1f02efc206b13a65873567b0f6d1c3b7f9bc0 && \
-	python merge_requirements.py | tee merged_requirements.txt 
-RUN cd cic-base && \
-	pip install $pip_extra_index_url_flag -r ./merged_requirements.txt 
+#RUN git clone https://gitlab.com/grassrootseconomics/cic-base.git && \
+#	cd cic-base && \
+#	git checkout 7ae1f02efc206b13a65873567b0f6d1c3b7f9bc0 && \
+#	python merge_requirements.py | tee merged_requirements.txt 
+#RUN cd cic-base && \
+#	pip install $pip_extra_index_url_flag -r ./merged_requirements.txt 
+RUN pip install $pip_extra_index_url_flag cic-base[full_graph]==0.1.2a31
 
 COPY cic-eth/scripts/ scripts/
 COPY cic-eth/setup.cfg cic-eth/setup.py ./
