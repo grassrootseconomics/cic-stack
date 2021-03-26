@@ -56,9 +56,9 @@ cic-eth-tag -i $CIC_CHAIN_SPEC TRANSFER_AUTHORIZATION_OWNER $DEV_ETH_ACCOUNT_TRA
 #cic-eth-tag FAUCET_GIFTER $DEV_ETH_ACCOUNT_FAUCET_OWNER
 
 >&2 echo "create account for accounts index writer"
-DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER=`cic-eth-create $debug --redis-host-callback=$REDIS_HOST --redis-port-callback=$REDIS_PORT --no-register`
-echo DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER=$DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER >> $env_out_file
-cic-eth-tag -i $CIC_CHAIN_SPEC ACCOUNTS_REGISTRY_WRITER $DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER
+DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER=`cic-eth-create $debug --redis-host-callback=$REDIS_HOST --redis-port-callback=$REDIS_PORT --no-register`
+echo DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER=$DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER >> $env_out_file
+cic-eth-tag -i $CIC_CHAIN_SPEC ACCOUNT_REGISTRY_WRITER $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER
 
 # Transfer gas to custodial gas provider adddress
 >&2 echo gift gas to gas gifter
@@ -68,7 +68,7 @@ cic-eth-tag -i $CIC_CHAIN_SPEC ACCOUNTS_REGISTRY_WRITER $DEV_ETH_ACCOUNT_ACCOUNT
 >&2 eth-gas --send -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug $DEV_ETH_ACCOUNT_SARAFU_GIFTER $gas_amount
 
 >&2 echo gift gas to account index owner
->&2 eth-gas --send -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug $DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER $gas_amount
+>&2 eth-gas --send -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER $gas_amount
 
 
 # Send token to token creator
