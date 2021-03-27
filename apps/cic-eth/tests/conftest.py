@@ -16,7 +16,7 @@ from tests.fixtures_database import *
 from tests.fixtures_celery import *
 from tests.fixtures_role import *
 from chainlib.eth.pytest import *
-from contract_registry.pytest import *
+from eth_contract_registry.pytest import *
 from cic_eth_registry.pytest.fixtures_contracts import *
 from cic_eth_registry.pytest.fixtures_tokens import *
 

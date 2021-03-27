@@ -1,8 +1,8 @@
 cic-base~=0.1.2a30
 celery==4.4.7
-crypto-dev-signer~=0.4.14a11
+crypto-dev-signer~=0.4.14a14
 confini~=0.3.6rc3
-cic-eth-registry~=0.5.4a6
+cic-eth-registry~=0.5.4a7
 #cic-bancor~=0.0.6
 redis==3.5.3
 alembic==1.4.2
@@ -17,8 +17,8 @@ semver==2.13.0
 websocket-client==0.57.0
 moolb~=0.1.1b2
 eth-address-index~=0.1.1a5
-chainlib~=0.0.1a36
-hexathon~=0.0.1a6
+chainlib~=0.0.1a42
+hexathon~=0.0.1a7
 chainsyncer~=0.0.1a20
 pysha3==1.0.2
 coincurve==15.0.0

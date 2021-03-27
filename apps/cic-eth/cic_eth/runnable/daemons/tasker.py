@@ -12,6 +12,7 @@ import websocket
 import celery
 import confini
 from chainlib.connection import RPCConnection
+from chainlib.eth.connection import EthUnixSignerConnection
 from chainlib.chain import ChainSpec
 
 # local imports
@@ -116,7 +117,7 @@ else:
 
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, 'default')
-RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 'signer')
+RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 'signer', constructor=EthUnixSignerConnection)
 
 Otx.tracing = config.true('TASKS_TRACE_QUEUE_STATUS')
 

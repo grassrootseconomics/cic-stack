@@ -2,6 +2,7 @@
 import logging
 
 # external imports
+import pytest
 import celery
 from chainlib.eth.gas import Gas
 from chainlib.eth.nonce import RPCNonceOracle
