@@ -30,8 +30,6 @@ echo -n 1 > $init_level_file
 # Abort on any error (including if wait-for-it fails).
 set -e
 
-echo wtf
-
 # Wait for the backend to be up, if we know where it is.
 if [[ -n "${ETH_PROVIDER}" ]]; then
 	echo "waiting for ${ETH_PROVIDER}..."
