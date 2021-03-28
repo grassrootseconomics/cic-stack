@@ -101,7 +101,7 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379}
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis:6379}
       DEV_PIP_EXTRA_INDEX_URL: ${DEV_PIP_EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
-      RUN_MASK: 2 #0: noop 1: contract migrations 2: seed data
+      RUN_MASK: 3 #0: noop 1: contract migrations 2: seed data
     command: ["./run_job.sh"]
         #command: ["./reset.sh"]
     depends_on:

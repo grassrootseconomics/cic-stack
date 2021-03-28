@@ -46,7 +46,7 @@ class GasFilter(SyncFilter):
             if len(txs) > 0:
                 s = create_check_gas_task(
                         list(txs.values()),
-                        self.chain_spec.asdict(),
+                        self.chain_spec,
                         r[0],
                         0,
                         tx_hashes_hex=list(txs.keys()),

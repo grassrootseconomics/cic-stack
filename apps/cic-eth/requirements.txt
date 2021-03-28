@@ -1,4 +1,4 @@
-cic-base~=0.1.2a45
+cic-base~=0.1.2a46
 celery==4.4.7
 crypto-dev-signer~=0.4.14a16
 confini~=0.3.6rc3
@@ -10,7 +10,6 @@ websockets==8.1
 requests~=2.24.0
 eth_accounts_index~=0.0.11a3
 erc20-transfer-authorization~=0.3.1a2
-erc20-single-shot-faucet~=0.2.0a8
 #simple-rlp==0.1.2
 uWSGI==2.0.19.1
 semver==2.13.0
@@ -22,4 +21,4 @@ hexathon~=0.0.1a7
 chainsyncer~=0.0.1a20
 pysha3==1.0.2
 coincurve==15.0.0
-sarafu-faucet==0.0.2a11
+sarafu-faucet==0.0.2a12
