@@ -34,6 +34,11 @@ set -a
 DEV_TOKEN_INDEX_ADDRESS=`eth-contract-registry-list -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -r $CIC_REGISTRY_ADDRESS -f brief TokenRegistry`
 DEV_ACCOUNTS_INDEX_ADDRESS=`eth-contract-registry-list -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -r $CIC_REGISTRY_ADDRESS -f brief AccountRegistry`
 DEV_RESERVE_ADDRESS=`eth-token-index-list -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_TOKEN_INDEX_ADDRESS -f brief SRF`
+cat <<EOF
+Token registry: $DEV_TOKEN_INDEX_ADDRESS
+Account reigstry: $DEV_ACCOUNTS_INDEX_ADDRESS
+Reserve address: $DEV_RESERVE_ADDRESS
+EOF
 
 >&2 echo "create account for gas gifter"
 old_gas_provider=$DEV_ETH_ACCOUNT_GAS_PROVIDER
@@ -60,7 +65,8 @@ cic-eth-tag -i $CIC_CHAIN_SPEC TRANSFER_AUTHORIZATION_OWNER $DEV_ETH_ACCOUNT_TRA
 DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER=`cic-eth-create $debug --redis-host-callback=$REDIS_HOST --redis-port-callback=$REDIS_PORT --no-register`
 echo DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER=$DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER >> $env_out_file
 cic-eth-tag -i $CIC_CHAIN_SPEC ACCOUNT_REGISTRY_WRITER $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER
-eth-accounts-index-writer -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_ACCOUNTS_INDEX_ADDRESS $debug $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER
+>&2 echo "add acccounts index writer account as writer on contract"
+eth-accounts-index-writer -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_ACCOUNTS_INDEX_ADDRESS -ww $debug $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER
 
 # Transfer gas to custodial gas provider adddress
 >&2 echo gift gas to gas gifter

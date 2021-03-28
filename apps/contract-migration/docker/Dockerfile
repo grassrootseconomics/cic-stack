@@ -57,7 +57,7 @@ WORKDIR /home/grassroots
 USER grassroots
 
 ARG pip_extra_index_url=https://pip.grassrootseconomics.net:8433
-ARG cic_base_version=0.1.2a43
+ARG cic_base_version=0.1.2a45
 ARG cic_eth_version=0.10.1a5+build.47c9f168
 ARG sarafu_faucet_version=0.0.2a11
 ARG cic_contracts_version=0.0.2a2

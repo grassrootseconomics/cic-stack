@@ -261,9 +261,10 @@ def send(self, txs, chain_spec_dict):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
 
     tx_hex = txs[0]
-    logg.debug('send transaction {}'.format(tx_hex))
 
     tx_hash_hex = add_0x(keccak256_hex_to_hex(tx_hex))
+
+    logg.debug('send transaction {} -> {}'.format(tx_hash_hex, tx_hex))
 
     queue = self.request.delivery_info.get('routing_key')
 

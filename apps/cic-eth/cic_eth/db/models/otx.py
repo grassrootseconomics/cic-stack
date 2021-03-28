@@ -355,10 +355,10 @@ class Otx(SessionBase):
 
         if self.status & StatusBits.FINAL:
             SessionBase.release_session(session)
-            raise TxStateChangeError('SENDFAIL cannot be set on an entry with FINAL state set ({})'.format(status_str(self.status)))
+            raise TxStateChangeError('QUEUED cannot be unset on an entry with FINAL state set ({})'.format(status_str(self.status)))
         if self.status & StatusBits.IN_NETWORK:
             SessionBase.release_session(session)
-            raise TxStateChangeError('SENDFAIL cannot be set on an entry with IN_NETWORK state set ({})'.format(status_str(self.status)))
+            raise TxStateChangeError('QUEUED cannot be unset on an entry with IN_NETWORK state set ({})'.format(status_str(self.status)))
 
         self.__reset_status(StatusBits.QUEUED, session)
 

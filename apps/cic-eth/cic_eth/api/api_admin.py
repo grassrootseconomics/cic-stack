@@ -463,7 +463,7 @@ class AdminApi:
             o = transaction(tx_hash)
             r = self.rpc.do(o)
         except Exception as e:
-            logg.warning('too permissive exception handler, please fix!')
+            logg.warning('(too permissive exception handler, please fix!) {}'.format(e))
             tx['network_status'] = 'Mempool'
 
         if r != None:
