@@ -137,15 +137,15 @@ class NonceReservation(SessionBase):
         q = q.filter(NonceReservation.address_hex==address)
         o = q.first()
 
-        nonce = None
+        r = None
         if o != None:
-            nonce = o.nonce
+            r = (o.key, o.nonce)
 
         session.flush()
 
         SessionBase.release_session(session)
 
-        return nonce
+        return r
 
 
     @staticmethod
@@ -153,31 +153,33 @@ class NonceReservation(SessionBase):
 
         session = SessionBase.bind_session(session)
 
-        nonce = NonceReservation.peek(address, key, session=session)
-
-        q = session.query(NonceReservation)
-        q = q.filter(NonceReservation.address_hex==address)
-        q = q.filter(NonceReservation.key==key)
-        o = q.first()
+        o = NonceReservation.peek(address, key, session=session)
 
         if o == None:
-            raise IntegrityError('nonce {} for key {} address {}'.format(nonce, key, address))
             SessionBase.release_session(session)
+            raise IntegrityError('"release" called on key {} address {} which does not exists'.format(key, address))
+
+        q = session.query(NonceReservation)
+        q = q.filter(NonceReservation.key==key)
+        q = q.filter(NonceReservation.address_hex==address)
+        o = q.first()
+        r = (o.key, o.nonce)
 
         session.delete(o)
         session.flush()
 
         SessionBase.release_session(session)
 
-        return nonce
+        return r
 
 
     @staticmethod
     def next(address, key, session=None):
         session = SessionBase.bind_session(session)
 
-        if NonceReservation.peek(address, key, session) != None:
-            raise IntegrityError('nonce for key {} address {}'.format(key, address))
+        o = NonceReservation.peek(address, key, session)
+        if o != None:
+            raise IntegrityError('"next" called on nonce for key {} address {} during active key {}'.format(key, address, o[0]))
 
         nonce = Nonce.next(address, session=session)
 
@@ -186,7 +188,8 @@ class NonceReservation(SessionBase):
         o.key = key
         o.address_hex = address
         session.add(o)
+        r = (key, nonce)
        
         SessionBase.release_session(session)
 
-        return nonce
+        return r

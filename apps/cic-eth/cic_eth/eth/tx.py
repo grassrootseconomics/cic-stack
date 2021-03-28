@@ -445,6 +445,8 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_str, gas=None, default_fa
 @celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
 def reserve_nonce(self, chained_input, signer_address=None):
 
+    self.log_banner()
+
     session = SessionBase.create_session()
 
     address = None
@@ -464,7 +466,8 @@ def reserve_nonce(self, chained_input, signer_address=None):
         raise ValueError('invalid result when resolving address for nonce {}'.format(address))
 
     root_id = self.request.root_id
-    nonce = NonceReservation.next(address, root_id)
+    r = NonceReservation.next(address, root_id)
+    logg.debug('nonce {} reserved for address {} task {}'.format(r[1], address, r[0]))
 
     session.commit()
 

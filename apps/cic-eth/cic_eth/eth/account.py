@@ -107,7 +107,7 @@ def register(self, account_address, chain_spec_dict, writer_address=None):
 
     if writer_address == ZERO_ADDRESS:
         session.close()
-        raise RoleMissingError(account_address)
+        raise RoleMissingError('writer address for regsistering {}'.format(account_address))
 
     logg.debug('adding account address {} to index; writer {}'.format(account_address, writer_address))
     queue = self.request.delivery_info.get('routing_key')
@@ -116,6 +116,9 @@ def register(self, account_address, chain_spec_dict, writer_address=None):
     rpc = RPCConnection.connect(chain_spec, 'default')
     registry = CICRegistry(chain_spec, rpc)
     call_address = AccountRole.get_address('DEFAULT', session=session)
+    if writer_address == ZERO_ADDRESS:
+        session.close()
+        raise RoleMissingError('call address for resgistering {}'.format(account_address))
     account_registry_address = registry.by_name('AccountRegistry', sender_address=call_address)
    
     # Generate and sign transaction

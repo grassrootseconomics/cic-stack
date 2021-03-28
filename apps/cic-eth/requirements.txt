@@ -1,6 +1,6 @@
-cic-base~=0.1.2a41
+cic-base~=0.1.2a42
 celery==4.4.7
-crypto-dev-signer~=0.4.14a14
+crypto-dev-signer~=0.4.14a16
 confini~=0.3.6rc3
 cic-eth-registry~=0.5.4a7
 #cic-bancor~=0.0.6

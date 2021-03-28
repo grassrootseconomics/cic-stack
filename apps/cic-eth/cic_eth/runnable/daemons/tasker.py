@@ -61,12 +61,12 @@ config = confini.Config(args.c, args.env_prefix)
 config.process()
 # override args
 args_override = {
-        'ETH_ABI_DIR': getattr(args, 'abi_dir'),
         'CIC_CHAIN_SPEC': getattr(args, 'i'),
         'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
         'ETH_PROVIDER': getattr(args, 'p'),
         'TASKS_TRACE_QUEUE_STATUS': getattr(args, 'trace_queue_status'),
         }
+config.add(args.q, '_CELERY_QUEUE', True)
 config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')

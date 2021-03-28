@@ -16,7 +16,11 @@ from chainlib.eth.tx import (
         receipt,
         unpack,
         )
-from hexathon import strip_0x
+from chainlib.hash import keccak256_hex_to_hex
+from hexathon import (
+        strip_0x,
+        add_0x,
+        )
 from chainlib.eth.gas import balance
 
 # local imports
@@ -207,12 +211,12 @@ class AdminApi:
                 blocking_nonce = tx['nonce']
             nonce_otx = tx['nonce']
 
-        #nonce_cache = Nonce.get(address)
-        nonce_w3 = self.w3.eth.getTransactionCount(address, 'pending') 
+        nonce_cache = Nonce.get(address)
+        #nonce_w3 = self.w3.eth.getTransactionCount(address, 'pending') 
         
         return {
             'nonce': {
-                'network': nonce_w3,
+                'network': nonce_cache,
                 'queue': nonce_otx,
                 #'cache': nonce_cache,
                 'blocking': blocking_nonce,
@@ -334,7 +338,8 @@ class AdminApi:
             ValueError('Specify only one of hash or raw tx')
 
         if tx_raw != None:
-            tx_hash = self.w3.keccak(hexstr=tx_raw).hex()
+            tx_hash = add_0x(keccak256_hex_to_hex(tx_raw))
+            #tx_hash = self.w3.keccak(hexstr=tx_raw).hex()
 
         s = celery.signature(
             'cic_eth.queue.tx.get_tx_cache',
@@ -347,19 +352,21 @@ class AdminApi:
         source_token = None
         if tx['source_token'] != ZERO_ADDRESS:
             try:
-                source_token = CICRegistry.get_address(chain_spec, tx['source_token']).contract
+                source_token = registry.by_address(tx['source_token'])
+                #source_token = CICRegistry.get_address(chain_spec, tx['source_token']).contract
             except UnknownContractError:
-                source_token_contract = self.w3.eth.contract(abi=CICRegistry.abi('ERC20'), address=tx['source_token'])
-                source_token = CICRegistry.add_token(chain_spec, source_token_contract)
+                #source_token_contract = self.w3.eth.contract(abi=CICRegistry.abi('ERC20'), address=tx['source_token'])
+                #source_token = CICRegistry.add_token(chain_spec, source_token_contract)
                 logg.warning('unknown source token contract {}'.format(tx['source_token']))
 
         destination_token = None
         if tx['source_token'] != ZERO_ADDRESS:
             try:
-                destination_token = CICRegistry.get_address(chain_spec, tx['destination_token'])
+                #destination_token = CICRegistry.get_address(chain_spec, tx['destination_token'])
+                destination_token = registry.by_address(tx['destination_token'])
             except UnknownContractError:
-                destination_token_contract = self.w3.eth.contract(abi=CICRegistry.abi('ERC20'), address=tx['source_token'])
-                destination_token = CICRegistry.add_token(chain_spec, destination_token_contract)
+                #destination_token_contract = self.w3.eth.contract(abi=CICRegistry.abi('ERC20'), address=tx['source_token'])
+                #destination_token = CICRegistry.add_token(chain_spec, destination_token_contract)
                 logg.warning('unknown destination token contract {}'.format(tx['destination_token']))
 
         tx['sender_description'] = 'Custodial account'
@@ -371,7 +378,7 @@ class AdminApi:
             try:
                 #sender_contract = CICRegistry.get_address(chain_spec, tx['sender'])
                 sender_contract = registry.by_address(tx['sender'], sender_address=self.call_address)
-                tx['sender_description'] = 'Contract {}'.format(sender_contract.identifier())
+                tx['sender_description'] = 'Contract at {}'.format(tx['sender']) #sender_contract)
             except UnknownContractError:
                 tx['sender_description'] = 'Unknown contract'
             except KeyError as e:
@@ -407,8 +414,9 @@ class AdminApi:
         r = self.rpc.do(o)
         if len(strip_0x(r, allow_empty=True)) > 0:
             try:
-                recipient_contract = CICRegistry.get_address(chain_spec, tx['recipient'])
-                tx['recipient_description'] = 'Contract {}'.format(recipient_contract.identifier())
+                #recipient_contract = CICRegistry.by_address(tx['recipient'])
+                recipient_contract = registry.by_address(tx['recipient'])
+                tx['recipient_description'] = 'Contract at {}'.format(tx['recipient']) #recipient_contract)
             except UnknownContractError as e:
                 tx['recipient_description'] = 'Unknown contract'
             except KeyError as e:

@@ -14,12 +14,12 @@ import celery
 from cic_eth_registry import CICRegistry
 from chainlib.chain import ChainSpec
 from chainlib.eth.tx import unpack
+from chainlib.connection import RPCConnection
 from chainsyncer.error import SyncDone
 from hexathon import strip_0x
 
 # local imports
 import cic_eth
-from cic_eth.eth import RpcClient
 from cic_eth.db import SessionBase
 from cic_eth.db.enum import StatusEnum
 from cic_eth.db.enum import StatusBits
@@ -40,17 +40,14 @@ from cic_eth.error import (
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
-logging.getLogger('websockets.protocol').setLevel(logging.CRITICAL)
-logging.getLogger('web3.RequestManager').setLevel(logging.CRITICAL)
-logging.getLogger('web3.providers.WebsocketProvider').setLevel(logging.CRITICAL)
-logging.getLogger('web3.providers.HTTPProvider').setLevel(logging.CRITICAL)
 
 
 config_dir = os.path.join('/usr/local/etc/cic-eth')
 
 argparser = argparse.ArgumentParser(description='daemon that monitors transactions in new blocks')
-argparser.add_argument('-p', '--provider', dest='p', type=str, help='rpc provider')
+argparser.add_argument('-p', '--provider', default='http://localhost:8545', dest='p', type=str, help='rpc provider')
 argparser.add_argument('-c', type=str, default=config_dir, help='config root to use')
+argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
 argparser.add_argument('-v', help='be verbose', action='store_true')
@@ -67,6 +64,11 @@ os.makedirs(config_dir, 0o777, True)
 config = confini.Config(config_dir, args.env_prefix)
 config.process()
 # override args
+args_override = {
+        'CIC_CHAIN_SPEC': getattr(args, 'i'),
+        'ETH_PROVIDER': getattr(args, 'p'),
+        }
+config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
 logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
@@ -80,10 +82,9 @@ SessionBase.connect(dsn, debug=config.true('DATABASE_DEBUG'))
 
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 
-RPCConnection.registry_location(args.p, chain_spec, tag='default')
+RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, tag='default')
 
 run = True
-
 
 class DispatchSyncer:
 
@@ -104,7 +105,6 @@ class DispatchSyncer:
         chain_str = str(self.chain_spec)
         for k in txs.keys():
             tx_raw = txs[k]
-            #tx = unpack_signed_raw_tx_hex(tx_raw, self.chain_spec.chain_id())
             tx_raw_bytes = bytes.fromhex(strip_0x(tx_raw))
             tx = unpack(tx_raw_bytes, self.chain_spec.chain_id())
             
@@ -118,7 +118,7 @@ class DispatchSyncer:
                 'cic_eth.admin.ctrl.check_lock',
                 [
                     [tx_raw],
-                    chain_str,
+                    self.chain_spec.asdict(),
                     LockEnum.QUEUE,
                     tx['from'],
                     ],
@@ -127,7 +127,7 @@ class DispatchSyncer:
             s_send = celery.signature(
                     'cic_eth.eth.tx.send',
                     [
-                        chain_str,      
+                        self.chain_spec.asdict(),
                         ], 
                     queue=queue,
                     )
@@ -153,8 +153,9 @@ class DispatchSyncer:
 
 def main(): 
     syncer = DispatchSyncer(chain_spec)
+    conn = RPCConnection.connect(chain_spec, 'default')
     try:
-        syncer.loop(c.w3, float(config.get('DISPATCHER_LOOP_INTERVAL')))
+        syncer.loop(conn, float(config.get('DISPATCHER_LOOP_INTERVAL')))
     except SyncDone as e:
         sys.stderr.write("dispatcher done at block {}\n".format(e))
 

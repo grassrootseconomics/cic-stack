@@ -596,7 +596,7 @@ def get_nonce_tx(nonce, sender, chain_id):
     txs = {}
     for r in q.all():
         tx_signed_bytes = bytes.fromhex(r.signed_tx[2:])
-        tx = unpack_signed_raw_tx(tx_signed_bytes, chain_id)
+        tx = unpack(tx_signed_bytes, chain_id)
         if sender == None or tx['from'] == sender:
             txs[r.tx_hash] = r.signed_tx
 
@@ -641,7 +641,7 @@ def get_paused_txs(status=None, sender=None, chain_id=0, session=None):
 
     for r in q.all():
         tx_signed_bytes = bytes.fromhex(r.signed_tx[2:])
-        tx = unpack_signed_raw_tx(tx_signed_bytes, chain_id)
+        tx = unpack(tx_signed_bytes, chain_id)
         if sender == None or tx['from'] == sender:
             #gas += tx['gas'] * tx['gasPrice']
             txs[r.tx_hash] = r.signed_tx
@@ -747,7 +747,7 @@ def get_upcoming_tx(status=StatusEnum.READYSEND, recipient=None, before=None, ch
             continue
 
         tx_signed_bytes = bytes.fromhex(o.signed_tx[2:])
-        tx = unpack_signed_raw_tx(tx_signed_bytes, chain_id)
+        tx = unpack(tx_signed_bytes, chain_id)
         txs[o.tx_hash] = o.signed_tx
         
         q = session.query(TxCache)

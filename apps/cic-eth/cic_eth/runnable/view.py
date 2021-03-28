@@ -82,7 +82,7 @@ chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 
 rpc = EthHTTPConnection(args.p)
 
-registry_address = args.r
+registry_address = config.get('CIC_REGISTRY_ADDRESS')
 
 admin_api = AdminApi(rpc)
 
@@ -158,10 +158,10 @@ def main():
     renderer = render_tx
     if len(config.get('_QUERY')) > 66:
         registry = connect_registry(registry_address, chain_spec, rpc)
-        txs = [admin_api.tx(chain_spec, tx_raw=config.get('_QUERY'))]
+        txs = [admin_api.tx(chain_spec, tx_raw=config.get('_QUERY'), registry=registry)]
     elif len(config.get('_QUERY')) > 42:
         registry = connect_registry(registry_address, chain_spec, rpc)
-        txs = [admin_api.tx(chain_spec, tx_hash=config.get('_QUERY'))]
+        txs = [admin_api.tx(chain_spec, tx_hash=config.get('_QUERY'), registry=registry)]
     elif len(config.get('_QUERY')) == 42:
         registry = connect_registry(registry_address, chain_spec, rpc)
         txs = admin_api.account(chain_spec, config.get('_QUERY'), include_recipient=False)

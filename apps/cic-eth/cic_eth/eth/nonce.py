@@ -28,4 +28,5 @@ class CustodialTaskNonceOracle():
         :returns: Nonce
         :rtype: number
         """
-        return NonceReservation.release(self.address, self.uuid, session=self.session)
+        r = NonceReservation.release(self.address, self.uuid, session=self.session)
+        return r[1]

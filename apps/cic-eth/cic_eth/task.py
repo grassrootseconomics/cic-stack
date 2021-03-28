@@ -33,6 +33,11 @@ class BaseTask(celery.Task):
     def create_session(self):
         return BaseTask.session_func()
 
+
+    def log_banner(self):
+        logg.debug('task {} root uuid {}'.format(self.__class__.__name__, self.request.root_id))
+        return
+
     
 class CriticalTask(BaseTask):
     retry_jitter = True
