@@ -21,4 +21,4 @@ hexathon~=0.0.1a7
 chainsyncer~=0.0.1a20
 pysha3==1.0.2
 coincurve==15.0.0
-sarafu-faucet==0.0.2a12
+sarafu-faucet==0.0.2a13
