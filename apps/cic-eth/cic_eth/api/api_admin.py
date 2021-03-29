@@ -470,7 +470,8 @@ class AdminApi:
             try:
                 o = receipt(tx_hash)
                 r = self.rpc.do(o)
-                if r['status'] == 1:
+                logg.debug('h {} o {}'.format(tx_hash, o))
+                if int(strip_0x(r['status'])) == 1:
                     tx['network_status'] = 'Confirmed'
                 else:
                     tx['network_status'] = 'Reverted'
