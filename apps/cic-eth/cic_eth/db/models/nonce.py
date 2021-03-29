@@ -56,6 +56,20 @@ class Nonce(SessionBase):
 
 
     @staticmethod
+    def __inc(conn, address):
+        #conn.execute("UPDATE nonce set nonce = nonce + 1 WHERE address_hex = '{}'".format(address))
+        q = conn.query(Nonce)
+        q = q.filter(Nonce.address_hex==address)
+        q = q.with_for_update()
+        o = q.first()
+        nonce =  o.nonce
+        o.nonce += 1
+        conn.add(o)
+        conn.flush()
+        return nonce
+
+
+    @staticmethod
     def __init(conn, address, nonce):
         conn.execute("INSERT INTO nonce (nonce, address_hex) VALUES ({}, '{}')".format(nonce, address))
 
@@ -107,7 +121,7 @@ class Nonce(SessionBase):
             #Nonce.__init(conn, address, nonce)
             Nonce.__init(session, address, nonce)
         #Nonce.__set(conn, address, nonce+1)
-        Nonce.__set(session, address, nonce + 1)
+        nonce = Nonce.__inc(session, address)
         #if Nonce.transactional:
             #conn.execute('COMMIT')
         #    logg.debug('unlocking nonce table for address {}'.format(address))

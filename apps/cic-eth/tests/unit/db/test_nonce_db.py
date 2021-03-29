@@ -48,7 +48,7 @@ def test_nonce_reserve(
     uu = uuid.uuid4()
     nonce = NonceReservation.next(eth_empty_accounts[0], str(uu), session=init_database)
     init_database.commit()
-    assert nonce == 42
+    assert nonce == (str(uu), 42)
 
     q = init_database.query(Nonce)
     q = q.filter(Nonce.address_hex==eth_empty_accounts[0])
@@ -57,7 +57,7 @@ def test_nonce_reserve(
 
     nonce = NonceReservation.release(eth_empty_accounts[0], str(uu))
     init_database.commit()
-    assert nonce == 42
+    assert nonce == (str(uu), 42)
 
     q = init_database.query(NonceReservation)
     q = q.filter(NonceReservation.key==str(uu))
