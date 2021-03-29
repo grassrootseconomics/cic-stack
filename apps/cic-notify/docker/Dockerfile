@@ -6,10 +6,7 @@ RUN apt-get update && \
 WORKDIR /usr/src/cic-notify
 
 ARG pip_extra_index_url_flag='--index https://pypi.org/simple --extra-index-url https://pip.grassrootseconomics.net:8433'
-ARG root_requirement_file='requirements.txt'
-RUN echo "copying root req file ${root_requirement_file}"
-COPY $root_requirement_file .
-RUN pip install -r $root_requirement_file $pip_extra_index_url_flag
+RUN pip install $pip_extra_index_url_flag cic-base[full_graph]==0.1.2a44
 
 COPY cic-notify/setup.cfg \
 	 cic-notify/setup.py \
