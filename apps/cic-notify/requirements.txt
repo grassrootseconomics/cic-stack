@@ -1,5 +1,1 @@
-alembic~=1.4.2
-celery~=4.4.7
-confini~=0.3.6rc3
-redis~=3.5.3
-semver==2.13.0
+cic_base[full_graph]~=0.1.2a46
