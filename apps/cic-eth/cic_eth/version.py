@@ -10,7 +10,7 @@ version = (
         0,
         10,
         1,
-        'rc.1',
+        'beta.1',
         )
 
 version_object = semver.VersionInfo(
