@@ -116,12 +116,16 @@ def render_tx(o, **kwargs):
     return content
 
 def render_account(o, **kwargs):
-    return '{} {} {} {}'.format(
+    s = '{} {} {} {}'.format(
             o['date_updated'],
             o['nonce'],
             o['tx_hash'],
             o['status'],
             )
+    if len(o['errors']) > 0:
+        s += ' !{}'.format(','.join(o['errors']))
+
+    return s
 
 
 def render_lock(o, **kwargs):
@@ -158,29 +162,25 @@ def main():
     renderer = render_tx
     if len(config.get('_QUERY')) > 66:
         registry = connect_registry(registry_address, chain_spec, rpc)
-        txs = [admin_api.tx(chain_spec, tx_raw=config.get('_QUERY'), registry=registry)]
+        admin_api.tx(chain_spec, tx_raw=config.get('_QUERY'), registry=registry, renderer=renderer)
     elif len(config.get('_QUERY')) > 42:
         registry = connect_registry(registry_address, chain_spec, rpc)
-        txs = [admin_api.tx(chain_spec, tx_hash=config.get('_QUERY'), registry=registry)]
+        admin_api.tx(chain_spec, tx_hash=config.get('_QUERY'), registry=registry, renderer=renderer)
+
     elif len(config.get('_QUERY')) == 42:
         registry = connect_registry(registry_address, chain_spec, rpc)
-        txs = admin_api.account(chain_spec, config.get('_QUERY'), include_recipient=False)
+        txs = admin_api.account(chain_spec, config.get('_QUERY'), include_recipient=False, renderer=render_account)
         renderer = render_account
     elif len(config.get('_QUERY')) >= 4 and config.get('_QUERY')[:4] == 'lock':
         t = admin_api.get_lock()
         txs = t.get()
         renderer = render_lock
+        for tx in txs:
+            r = renderer(txs)
+            sys.stdout.write(r + '\n')
     else:
         raise ValueError('cannot parse argument {}'.format(config.get('_QUERY')))
+                   
 
-    if len(txs) == 0:
-        logg.info('no matches found')
-    else:
-        if fmt == 'json':
-            sys.stdout.write(json.dumps(txs))
-        else:
-            m = map(renderer, txs)
-            print(*m, sep="\n")
-                    
 if __name__ == '__main__':
     main()

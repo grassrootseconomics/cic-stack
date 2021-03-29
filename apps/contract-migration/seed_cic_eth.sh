@@ -22,7 +22,7 @@ abi_dir=${ETH_ABI_DIR:-/usr/local/share/cic/solidity/abi}
 gas_amount=100000000000000000000000
 token_amount=${gas_amount}
 #faucet_amount=1000000000
-faucet_amount=0
+faucet_amount=${DEV_FAUCET_AMOUNT:-0}
 env_out_file=${CIC_DATA_DIR}/.env_seed
 init_level_file=${CIC_DATA_DIR}/.init
 truncate $env_out_file -s 0

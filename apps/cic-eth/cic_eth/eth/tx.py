@@ -281,6 +281,7 @@ def send(self, txs, chain_spec_dict):
     o = raw(tx_hex)
     conn = RPCConnection.connect(chain_spec, 'default')
     conn.do(o)
+
     s_set_sent.apply_async()
 
     tx_tail = txs[1:]

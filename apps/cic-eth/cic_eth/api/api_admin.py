@@ -31,7 +31,10 @@ from cic_eth.db.models.tx import TxCache
 from cic_eth.db.models.nonce import Nonce
 from cic_eth.db.enum import (
         StatusEnum,
+        StatusBits,
         is_alive,
+        is_error_status,
+        status_str,
     )
 from cic_eth.error import InitializationError
 from cic_eth.db.error import TxStateChangeError
@@ -41,6 +44,8 @@ app = celery.current_app
 
 #logg = logging.getLogger(__file__)
 logg = logging.getLogger()
+
+local_fail = StatusBits.LOCAL_ERROR | StatusBits.NODE_ERROR | StatusBits.UNKNOWN_ERROR
 
 
 class AdminApi:
@@ -195,6 +200,7 @@ class AdminApi:
         blocking_tx = None
         blocking_nonce = None
         nonce_otx = 0
+        last_nonce = -1
         for k in txs.keys():
             s_get_tx = celery.signature(
                     'cic_eth.queue.tx.get_tx',
@@ -205,18 +211,25 @@ class AdminApi:
                     )
             tx = s_get_tx.apply_async().get()
             #tx = get_tx(k)
-            logg.debug('checking nonce {}'.format(tx['nonce']))
-            if tx['status'] in [StatusEnum.REJECTED, StatusEnum.FUBAR]:
-                blocking_tx = k
-                blocking_nonce = tx['nonce']
+            logg.debug('checking nonce {} (previous {})'.format(tx['nonce'], last_nonce))
             nonce_otx = tx['nonce']
+            if not is_alive(tx['status']) and tx['status'] & local_fail > 0:
+                logg.info('permanently errored {} nonce {} status {}'.format(k, nonce_otx, status_str(tx['status'])))
+                blocking_tx = k
+                blocking_nonce = nonce_otx
+            elif nonce_otx - last_nonce > 1:
+                logg.error('nonce gap; {} followed {}'.format(nonce_otx, last_nonce))
+                blocking_tx = k
+                blocking_nonce = nonce_otx
+                break
+            last_nonce = nonce_otx
 
-        nonce_cache = Nonce.get(address)
+        #nonce_cache = Nonce.get(address)
         #nonce_w3 = self.w3.eth.getTransactionCount(address, 'pending') 
         
         return {
             'nonce': {
-                'network': nonce_cache,
+                #'network': nonce_cache,
                 'queue': nonce_otx,
                 #'cache': nonce_cache,
                 'blocking': blocking_nonce,
@@ -270,16 +283,15 @@ class AdminApi:
 #        self.w3.eth.sign(addr, text='666f6f')
 
 
-    def account(self, chain_spec, address, cols=['tx_hash', 'sender', 'recipient', 'nonce', 'block', 'tx_index', 'status', 'network_status', 'date_created'], include_sender=True, include_recipient=True):
+    def account(self, chain_spec, address, include_sender=True, include_recipient=True, renderer=None, w=sys.stdout):
         """Lists locally originated transactions for the given Ethereum address.
 
         Performs a synchronous call to the Celery task responsible for performing the query.
 
         :param address: Ethereum address to return transactions for
         :type address: str, 0x-hex
-        :param cols: Data columns to include
-        :type cols: list of str
         """
+        last_nonce = -1
         s = celery.signature(
                 'cic_eth.queue.tx.get_account_tx',
                 [
@@ -291,33 +303,45 @@ class AdminApi:
 
         tx_dict_list = []
         for tx_hash in txs.keys():
+            errors = []
             s = celery.signature(
                     'cic_eth.queue.tx.get_tx_cache',
                     [tx_hash],
                     queue=self.queue,
                     )
             tx_dict = s.apply_async().get()
-            if tx_dict['sender'] == address and not include_sender:
-                logg.debug('skipping sender tx {}'.format(tx_dict['tx_hash']))
-                continue
+            if tx_dict['sender'] == address:
+                if tx_dict['nonce'] - last_nonce > 1:
+                    logg.error('nonce gap; {} followed {} for tx {}'.format(tx_dict['nonce'], last_nonce, tx_dict['hash']))
+                    errors.append('nonce')
+                elif tx_dict['nonce'] == last_nonce:
+                    logg.warning('nonce {} duplicate in tx {}'.format(tx_dict['nonce'], tx_dict['hash']))
+                last_nonce = tx_dict['nonce']
+                if not include_sender:
+                    logg.debug('skipping sender tx {}'.format(tx_dict['tx_hash']))
+                    continue
             elif tx_dict['recipient'] == address and not include_recipient:
                 logg.debug('skipping recipient tx {}'.format(tx_dict['tx_hash']))
                 continue
 
-            logg.debug(tx_dict)
             o = {
                 'nonce': tx_dict['nonce'], 
                 'tx_hash': tx_dict['tx_hash'],
                 'status': tx_dict['status'],
                 'date_updated': tx_dict['date_updated'],
+                'errors': errors,
                     }
-            tx_dict_list.append(o)
+            if renderer != None:
+                r = renderer(o)
+                w.write(r + '\n')
+            else:
+                tx_dict_list.append(o)
 
         return tx_dict_list
 
 
     # TODO: Add exception upon non-existent tx aswell as invalid tx data to docstring 
-    def tx(self, chain_spec, tx_hash=None, tx_raw=None, registry=None):
+    def tx(self, chain_spec, tx_hash=None, tx_raw=None, registry=None, renderer=None, w=sys.stdout):
         """Output local and network details about a given transaction with local origin.
 
         If the transaction hash is given, the raw trasnaction data will be retrieved from the local transaction queue backend. Otherwise the raw transaction data must be provided directly. Only one of transaction hash and transaction data can be passed.
@@ -511,4 +535,9 @@ class AdminApi:
             for p in problems:
                 sys.stderr.write('!!!{}\n'.format(p))
 
-        return tx
+        if renderer == None:
+            return tx
+
+        r = renderer(tx)
+        w.write(r + '\n')
+        return None

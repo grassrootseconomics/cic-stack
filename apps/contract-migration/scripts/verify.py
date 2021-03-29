@@ -32,7 +32,10 @@ from chainlib.eth.block import (
 from chainlib.eth.hash import keccak256_string_to_hex
 from chainlib.eth.address import to_checksum_address
 from chainlib.eth.erc20 import ERC20
-from chainlib.eth.gas import OverrideGasOracle
+from chainlib.eth.gas import (
+        OverrideGasOracle,
+        balance,
+        )
 from chainlib.eth.tx import TxFactory
 from chainlib.eth.rpc import jsonrpc_template
 from chainlib.eth.error import EthException
@@ -41,6 +44,7 @@ from cic_types.models.person import (
         Person,
         generate_metadata_pointer,
         )
+from erc20_single_shot_faucet import SingleShotFaucet
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -127,17 +131,19 @@ class VerifierError(Exception):
 class Verifier:
 
     # TODO: what an awful function signature
-    def __init__(self, conn, cic_eth_api, gas_oracle, chain_spec, index_address, token_address, data_dir, exit_on_error=False):
+    def __init__(self, conn, cic_eth_api, gas_oracle, chain_spec, index_address, token_address, faucet_address, data_dir, exit_on_error=False):
         self.conn = conn
         self.gas_oracle = gas_oracle
         self.chain_spec = chain_spec
         self.index_address = index_address
         self.token_address = token_address
+        self.faucet_address = faucet_address
         self.erc20_tx_factory = ERC20(chain_id=chain_spec.chain_id(), gas_oracle=gas_oracle)
         self.tx_factory = TxFactory(chain_id=chain_spec.chain_id(), gas_oracle=gas_oracle)
         self.api = cic_eth_api
         self.data_dir = data_dir
         self.exit_on_error = exit_on_error
+        self.faucet_tx_factory = SingleShotFaucet(chain_id=chain_spec.chain_id(), gas_oracle=gas_oracle)
 
         verifymethods = []
         for k in dir(self):
@@ -182,6 +188,21 @@ class Verifier:
             raise VerifierError((address, r), 'local key')
 
 
+    def verify_gas(self, address, balance_token=None):
+        o = balance(address)
+        r = self.conn.do(o)
+        actual_balance = int(strip_0x(r), 16)
+        if actual_balance == 0:
+            raise VerifierError((address, actual_balance), 'gas')
+
+
+    def verify_faucet(self, address, balance_token=None):
+        o = self.faucet_tx_factory.usable_for(self.faucet_address, address)
+        r = self.conn.do(o)
+        if self.faucet_tx_factory.parse_usable_for(r):
+            raise VerifierError((address, r), 'faucet')
+
+
     def verify_metadata(self, address, balance=None):
         k = generate_metadata_pointer(bytes.fromhex(strip_0x(address)), ':cic.person')
         url = os.path.join(meta_url, k)
@@ -220,6 +241,8 @@ class Verifier:
                 'accounts_index',
                 'balance',
                 'metadata',
+                'gas',
+                'faucet',
                 ]
 
         for k in methods:
@@ -257,6 +280,7 @@ def main():
     txf = TxFactory(signer=None, gas_oracle=gas_oracle, nonce_oracle=None, chain_id=chain_spec.chain_id())
     tx = txf.template(ZERO_ADDRESS, config.get('CIC_REGISTRY_ADDRESS'))
 
+    # TODO: replace with cic-eth-registry
     registry_addressof_method = keccak256_string_to_hex('addressOf(bytes32)')[:8]
     data = add_0x(registry_addressof_method)
     data += eth_abi.encode_single('bytes32', b'TokenRegistry').hex()
@@ -282,6 +306,18 @@ def main():
     r = conn.do(o)
     account_index_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     logg.info('found account index address {}'.format(account_index_address))
+
+    data = add_0x(registry_addressof_method)
+    data += eth_abi.encode_single('bytes32', b'Faucet').hex()
+    txf.set_code(tx, data)
+    
+    o = jsonrpc_template()
+    o['method'] = 'eth_call'
+    o['params'].append(txf.normalize(tx))
+    o['params'].append('latest')
+    r = conn.do(o)
+    faucet_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
+    logg.info('found faucet {}'.format(faucet_address))
 
 
     # Get Sarafu token address
@@ -323,7 +359,7 @@ def main():
 
     api = AdminApi(MockClient())
 
-    verifier = Verifier(conn, api, gas_oracle, chain_spec, account_index_address, sarafu_token_address, user_dir, exit_on_error)
+    verifier = Verifier(conn, api, gas_oracle, chain_spec, account_index_address, sarafu_token_address, faucet_address, user_dir, exit_on_error)
 
     user_new_dir = os.path.join(user_dir, 'new')
     for x in os.walk(user_new_dir):
