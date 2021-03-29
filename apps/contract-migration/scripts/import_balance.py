@@ -19,23 +19,23 @@ from hexathon import (
         )
 from chainsyncer.backend import MemBackend
 from chainsyncer.driver import HeadSyncer
-from chainlib.eth.connection import HTTPConnection
+from chainlib.eth.connection import EthHTTPConnection
 from chainlib.eth.block import (
         block_latest,
         block_by_number,
         Block,
         )
 from chainlib.eth.hash import keccak256_string_to_hex
-from chainlib.eth.address import to_checksum
-from chainlib.eth.erc20 import ERC20TxFactory
-from chainlib.eth.gas import DefaultGasOracle
-from chainlib.eth.nonce import DefaultNonceOracle
+from chainlib.eth.address import to_checksum_address
+from chainlib.eth.erc20 import ERC20
+from chainlib.eth.gas import OverrideGasOracle
+from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.tx import TxFactory
 from chainlib.eth.rpc import jsonrpc_template
 from chainlib.eth.error import EthException
 from chainlib.chain import ChainSpec
 from crypto_dev_signer.eth.signer import ReferenceSigner as EIP155Signer
-from crypto_dev_signer.keystore import DictKeystore
+from crypto_dev_signer.keystore.dict import DictKeystore
 from cic_types.models.person import Person
 
 
@@ -117,7 +117,7 @@ class Handler:
         self.user_dir = user_dir
         self.balances = balances
         self.chain_spec = chain_spec
-        self.tx_factory = ERC20TxFactory(signer, gas_oracle, nonce_oracle, chain_spec.network_id())
+        self.tx_factory = ERC20(signer, gas_oracle, nonce_oracle, chain_spec.network_id())
 
 
     def name(self):
@@ -131,7 +131,7 @@ class Handler:
 
         if tx.payload[:8] == self.account_index_add_signature:
             recipient = eth_abi.decode_single('address', bytes.fromhex(tx.payload[-64:]))
-            #original_address = to_checksum(self.addresses[to_checksum(recipient)])
+            #original_address = to_checksum_address(self.addresses[to_checksum_address(recipient)])
             user_file = 'new/{}/{}/{}.json'.format(
                     recipient[2:4].upper(),
                     recipient[4:6].upper(),
@@ -159,7 +159,7 @@ class Handler:
             balance_full = balance * multiplier
             logg.info('registered {} originally {} ({}) tx hash {} balance {}'.format(recipient, original_address, u, tx.hash, balance_full))
 
-            (tx_hash_hex, o) = self.tx_factory.erc20_transfer(self.token_address, signer_address, recipient, balance_full)
+            (tx_hash_hex, o) = self.tx_factory.transfer(self.token_address, signer_address, recipient, balance_full)
             logg.info('submitting erc20 transfer tx {} for recipient {}'.format(tx_hash_hex, recipient))
             r = conn.do(o)
 #        except TypeError as e:
@@ -178,7 +178,7 @@ class BlockGetter:
 
     def __init__(self, conn, gas_oracle, nonce_oracle, chain_id):
         self.conn = conn
-        self.tx_factory = ERC20TxFactory(signer=signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle, chain_id=chain_id)
+        self.tx_factory = ERC20(signer=signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle, chain_id=chain_id)
 
 
     def get(self, n):
@@ -203,9 +203,9 @@ def progress_callback(block_number, tx_index, s):
 def main():
     global chain_str, block_offset, user_dir
     
-    conn = HTTPConnection(config.get('ETH_PROVIDER'))
-    gas_oracle = DefaultGasOracle(conn)
-    nonce_oracle = DefaultNonceOracle(signer_address, conn)
+    conn = EthHTTPConnection(config.get('ETH_PROVIDER'))
+    gas_oracle = OverrideGasOracle(conn=conn, limit=8000000)
+    nonce_oracle = RPCNonceOracle(signer_address, conn)
 
     # Get Token registry address
     txf = TxFactory(signer=signer, gas_oracle=gas_oracle, nonce_oracle=None, chain_id=chain_spec.network_id())
@@ -221,7 +221,7 @@ def main():
     o['params'].append(txf.normalize(tx))
     o['params'].append('latest')
     r = conn.do(o)
-    token_index_address = to_checksum(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
+    token_index_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     logg.info('found token index address {}'.format(token_index_address))
 
 
@@ -239,7 +239,7 @@ def main():
     o['params'].append('latest')
     r = conn.do(o)
     try:
-        sarafu_token_address = to_checksum(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
+        sarafu_token_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     except ValueError as e:
         logg.critical('lookup failed for token {}: {}'.format(token_symbol, e))
         sys.exit(1)
@@ -279,7 +279,7 @@ def main():
             break
         r = l.split(',')
         try:
-            address = to_checksum(r[0])
+            address = to_checksum_address(r[0])
             sys.stdout.write('loading balance {} {} {}'.format(i, address, r[1]).ljust(200) + "\r")
         except ValueError:
             break

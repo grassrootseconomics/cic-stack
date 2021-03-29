@@ -22,7 +22,7 @@ from hexathon import (
 from chainsyncer.backend import MemBackend
 from chainsyncer.driver import HeadSyncer
 from chainlib.chain import ChainSpec
-from chainlib.eth.connection import HTTPConnection
+from chainlib.eth.connection import EthHTTPConnection
 from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.eth.block import (
         block_latest,
@@ -30,15 +30,12 @@ from chainlib.eth.block import (
         Block,
         )
 from chainlib.eth.hash import keccak256_string_to_hex
-from chainlib.eth.address import to_checksum
-from chainlib.eth.erc20 import ERC20TxFactory
-from chainlib.eth.gas import DefaultGasOracle
-from chainlib.eth.nonce import DefaultNonceOracle
+from chainlib.eth.address import to_checksum_address
+from chainlib.eth.erc20 import ERC20
+from chainlib.eth.gas import OverrideGasOracle
 from chainlib.eth.tx import TxFactory
 from chainlib.eth.rpc import jsonrpc_template
 from chainlib.eth.error import EthException
-from crypto_dev_signer.eth.signer import ReferenceSigner as EIP155Signer
-from crypto_dev_signer.keystore import DictKeystore
 from cic_eth.api.api_admin import AdminApi
 from cic_types.models.person import (
         Person,
@@ -136,7 +133,7 @@ class Verifier:
         self.chain_spec = chain_spec
         self.index_address = index_address
         self.token_address = token_address
-        self.erc20_tx_factory = ERC20TxFactory(chain_id=chain_spec.chain_id(), gas_oracle=gas_oracle)
+        self.erc20_tx_factory = ERC20(chain_id=chain_spec.chain_id(), gas_oracle=gas_oracle)
         self.tx_factory = TxFactory(chain_id=chain_spec.chain_id(), gas_oracle=gas_oracle)
         self.api = cic_eth_api
         self.data_dir = data_dir
@@ -168,7 +165,7 @@ class Verifier:
 
 
     def verify_balance(self, address, balance):
-        o = self.erc20_tx_factory.erc20_balance(self.token_address, address)
+        o = self.erc20_tx_factory.balance(self.token_address, address)
         r = self.conn.do(o)
         actual_balance = int(strip_0x(r), 16)
         balance = int(balance / 1000000) * 1000000
@@ -178,7 +175,8 @@ class Verifier:
 
 
     def verify_local_key(self, address, balance=None):
-        r = self.api.have_account(address, str(self.chain_spec))
+        t = self.api.have_account(address, self.chain_spec)
+        r = t.get()
         logg.debug('verify local key result {}'.format(r))
         if r != address:
             raise VerifierError((address, r), 'local key')
@@ -252,8 +250,8 @@ class MockClient:
 def main():
     global chain_str, block_offset, user_dir
     
-    conn = HTTPConnection(config.get('ETH_PROVIDER'))
-    gas_oracle = DefaultGasOracle(conn)
+    conn = EthHTTPConnection(config.get('ETH_PROVIDER'))
+    gas_oracle = OverrideGasOracle(conn=conn, limit=8000000)
 
     # Get Token registry address
     txf = TxFactory(signer=None, gas_oracle=gas_oracle, nonce_oracle=None, chain_id=chain_spec.chain_id())
@@ -270,7 +268,7 @@ def main():
     o['params'].append('latest')
     r = conn.do(o)
     print('r {}'.format(r))
-    token_index_address = to_checksum(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
+    token_index_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     logg.info('found token index address {}'.format(token_index_address))
 
     data = add_0x(registry_addressof_method)
@@ -282,7 +280,7 @@ def main():
     o['params'].append(txf.normalize(tx))
     o['params'].append('latest')
     r = conn.do(o)
-    account_index_address = to_checksum(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
+    account_index_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     logg.info('found account index address {}'.format(account_index_address))
 
 
@@ -300,7 +298,7 @@ def main():
     o['params'].append('latest')
     r = conn.do(o)
     print('r {}'.format(r))
-    sarafu_token_address = to_checksum(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
+    sarafu_token_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     logg.info('found token address {}'.format(sarafu_token_address))
 
     balances = {}
@@ -312,7 +310,7 @@ def main():
             break
         r = l.split(',')
         try:
-            address = to_checksum(r[0])
+            address = to_checksum_address(r[0])
             #sys.stdout.write('loading balance {} {}'.format(i, address).ljust(200) + "\r")
             logg.debug('loading balance {} {}'.format(i, address).ljust(200))
         except ValueError:
