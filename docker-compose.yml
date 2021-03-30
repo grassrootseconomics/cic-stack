@@ -317,8 +317,8 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
       TASKS_TRANSFER_CALLBACKS: $TASKS_TRANSFER_CALLBACKS
-        #DATABASE_DEBUG: ${DATABASE_DEBUG:-false}
-      DATABASE_DEBUG: 1
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-false}
+        #DATABASE_DEBUG: 1
 
     depends_on:
       - eth

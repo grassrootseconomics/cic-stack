@@ -189,7 +189,7 @@ def dispatch(conn, chain_spec):
 #    s_send.apply_async()
 
 
-class FooFilter:
+class StragglerFilter:
 
     def __init__(self, chain_spec, queue='cic-eth'):
         self.chain_spec = chain_spec
@@ -198,14 +198,14 @@ class FooFilter:
 
     def filter(self, conn, block, tx, db_session=None):
         s_send = celery.signature(
-                'cic_eth.eth.resend_with_higher_gas',
+                'cic_eth.eth.tx.resend_with_higher_gas',
                 [
-                    [tx],
+                    tx,
                     self.chain_spec.asdict(),
                 ],
                 queue=self.queue,
         )
-        s_send.apply_async()
+        return s_send.apply_async()
 
 
 class RetrySyncer(HeadSyncer):
@@ -254,7 +254,7 @@ def main():
     #block = conn.do(o)
     syncer = RetrySyncer(conn, chain_spec, straggler_delay)
     syncer.backend.set(0, 0)
-    syncer.add_filter(FooFilter(chain_spec, queue=queue))
+    syncer.add_filter(StragglerFilter(chain_spec, queue=queue))
     syncer.loop(float(straggler_delay), conn)
 
 
