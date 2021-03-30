@@ -134,7 +134,8 @@ class AdminApi:
         return s_have.apply_async()
 
 
-    def resend(self, tx_hash_hex, chain_str, in_place=True, unlock=False):
+    def resend(self, tx_hash_hex, chain_spec, in_place=True, unlock=False):
+
         logg.debug('resend {}'.format(tx_hash_hex))
         s_get_tx_cache = celery.signature(
             'cic_eth.queue.tx.get_tx_cache',
@@ -156,7 +157,7 @@ class AdminApi:
         s = celery.signature(
             'cic_eth.eth.tx.resend_with_higher_gas',
             [
-                chain_str,
+                chain_spec.asdict(),
                 None,
                 1.01,
                 ],
@@ -176,7 +177,7 @@ class AdminApi:
             s_gas = celery.signature(
                 'cic_eth.admin.ctrl.unlock_send',
                 [
-                    chain_str,
+                    chain_spec.asdict(),
                     tx_dict['sender'],
                 ],
                 queue=self.queue,
@@ -486,9 +487,10 @@ class AdminApi:
         try:
             o = transaction(tx_hash)
             r = self.rpc.do(o)
+            if r != None:
+                tx['network_status'] = 'Mempool'
         except Exception as e:
             logg.warning('(too permissive exception handler, please fix!) {}'.format(e))
-            tx['network_status'] = 'Mempool'
 
         if r != None:
             try:
