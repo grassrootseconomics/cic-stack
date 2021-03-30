@@ -8,7 +8,7 @@ WORKDIR /usr/src
 ARG pip_extra_index_url_flag='--extra-index-url https://pip.grassrootseconomics.net:8433'
 
 RUN apt-get update && \
-	apt install -y gcc gnupg libpq-dev wget make g++ gnupg bash procps git python-pycurl
+	apt install -y gcc gnupg libpq-dev wget make g++ gnupg bash procps git python-pycurl libcurl4-openssl-dev libssl-dev
 
 # create secrets directory
 RUN mkdir -vp pgp/keys
