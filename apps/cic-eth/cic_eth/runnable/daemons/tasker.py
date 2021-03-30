@@ -34,6 +34,7 @@ from cic_eth.ext import tx
 from cic_eth.registry import (
         connect as connect_registry,
         connect_declarator,
+        connect_token_registry,
         )
 
 logging.basicConfig(level=logging.WARNING)
@@ -156,6 +157,7 @@ def main():
     for address in trusted_addresses:
         logg.info('using trusted address {}'.format(address))
     connect_declarator(rpc, chain_spec, trusted_addresses)
+    connect_token_registry(rpc, chain_spec)
     
     current_app.worker_main(argv)
 
