@@ -2,3 +2,4 @@ cic_base[full_graph]~=0.1.2a46
 cic-eth~=0.10.1b1
 cic-notify~=0.4.0a3
 cic-types~=0.1.0a8
+pyresttest==1.7.1
