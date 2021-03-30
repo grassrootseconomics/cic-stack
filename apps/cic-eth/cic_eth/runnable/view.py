@@ -14,8 +14,6 @@ import datetime
 # external imports
 import confini
 import celery
-from cic_eth_registry import CICRegistry
-from cic_eth_registry.lookup.declarator import AddressDeclaratorLookup
 from chainlib.chain import ChainSpec
 from chainlib.eth.connection import EthHTTPConnection
 from hexathon import add_0x
@@ -27,6 +25,7 @@ from cic_eth.db.enum import (
     status_str,
     LockEnum,
 )
+from cic_eth.registry import connect as connect_registry
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -147,28 +146,19 @@ def render_lock(o, **kwargs):
     return s
 
 
-def connect_registry(registry_address, chain_spec, rpc):
-    CICRegistry.address = registry_address
-    registry = CICRegistry(chain_spec, rpc)
-    declarator_address = registry.by_name('AddressDeclarator')
-    lookup = AddressDeclaratorLookup(declarator_address, trusted_addresses)
-    registry.add_lookup(lookup)
-    return registry
-
-
 # TODO: move each command to submodule
 def main():
     txs  = []
     renderer = render_tx
     if len(config.get('_QUERY')) > 66:
-        registry = connect_registry(registry_address, chain_spec, rpc)
+        registry = connect_registry(rpc, chain_spec, registry_address)
         admin_api.tx(chain_spec, tx_raw=config.get('_QUERY'), registry=registry, renderer=renderer)
     elif len(config.get('_QUERY')) > 42:
-        registry = connect_registry(registry_address, chain_spec, rpc)
+        registry = connect_registry(rpc, chain_spec, registry_address)
         admin_api.tx(chain_spec, tx_hash=config.get('_QUERY'), registry=registry, renderer=renderer)
 
     elif len(config.get('_QUERY')) == 42:
-        registry = connect_registry(registry_address, chain_spec, rpc)
+        registry = connect_registry(rpc, chain_spec, registry_address)
         txs = admin_api.account(chain_spec, config.get('_QUERY'), include_recipient=False, renderer=render_account)
         renderer = render_account
     elif len(config.get('_QUERY')) >= 4 and config.get('_QUERY')[:4] == 'lock':

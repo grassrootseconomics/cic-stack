@@ -16,8 +16,6 @@ from chainlib.eth.connection import EthUnixSignerConnection
 from chainlib.chain import ChainSpec
 
 # local imports
-from cic_eth_registry import CICRegistry
-
 from cic_eth.eth import erc20
 from cic_eth.eth import tx
 from cic_eth.eth import account
@@ -33,6 +31,10 @@ from cic_eth.db.models.base import SessionBase
 from cic_eth.db.models.otx import Otx
 from cic_eth.db import dsn_from_config
 from cic_eth.ext import tx
+from cic_eth.registry import (
+        connect as connect_registry,
+        connect_declarator,
+        )
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -121,8 +123,6 @@ RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 's
 
 Otx.tracing = config.true('TASKS_TRACE_QUEUE_STATUS')
 
-CICRegistry.address = config.get('CIC_REGISTRY_ADDRESS')
-
 
 def main():
     argv = ['worker']
@@ -145,8 +145,8 @@ def main():
 #        Callback.ssl_ca_file = config.get('SSL_CA_FILE')
 
     rpc = RPCConnection.connect(chain_spec, 'default')
-    registry = CICRegistry(chain_spec, rpc)
-    registry_address = registry.by_name('ContractRegistry')
+
+    connect_registry(rpc, chain_spec, config.get('CIC_REGISTRY_ADDRESS'))
 
     trusted_addresses_src = config.get('CIC_TRUST_ADDRESS')
     if trusted_addresses_src == None:
@@ -155,6 +155,7 @@ def main():
     trusted_addresses = trusted_addresses_src.split(',')
     for address in trusted_addresses:
         logg.info('using trusted address {}'.format(address))
+    connect_declarator(rpc, chain_spec, trusted_addresses)
     
     current_app.worker_main(argv)
 
