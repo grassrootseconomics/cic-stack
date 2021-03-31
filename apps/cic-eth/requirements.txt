@@ -1,4 +1,4 @@
-cic-base~=0.1.2a49
+cic-base~=0.1.2a51
 celery==4.4.7
 crypto-dev-signer~=0.4.14a16
 confini~=0.3.6rc3
@@ -21,4 +21,4 @@ hexathon~=0.0.1a7
 chainsyncer~=0.0.1a20
 pysha3==1.0.2
 coincurve==15.0.0
-sarafu-faucet==0.0.2a14
+sarafu-faucet~=0.0.2a15
