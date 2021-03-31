@@ -25,8 +25,11 @@ from chainsyncer.error import NoBlockForYou
 # local imports
 from cic_eth.db import dsn_from_config
 from cic_eth.db import SessionBase
-from cic_eth.queue.tx import get_status_tx
-from cic_eth.queue.tx import get_tx
+from cic_eth.queue.tx import (
+        get_status_tx,
+        get_tx,
+#        get_upcoming_tx,
+        )
 from cic_eth.admin.ctrl import lock_send
 from cic_eth.db.enum import (
         StatusEnum,
@@ -43,6 +46,7 @@ argparser = argparse.ArgumentParser(description='daemon that monitors transactio
 argparser.add_argument('-p', '--provider', dest='p', type=str, help='rpc provider')
 argparser.add_argument('-c', type=str, default=config_dir, help='config root to use')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
+argparser.add_argument('--batch-size', dest='batch_size', type=int, default=50, help='max amount of txs to resend per iteration')
 argparser.add_argument('--retry-delay', dest='retry_delay', type=int, help='seconds to wait for retrying a transaction that is marked as sent')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
@@ -70,6 +74,7 @@ config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
 logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
+config.add(args.batch_size, '_BATCH_SIZE', True)
 
 app = celery.Celery(backend=config.get('CELERY_RESULT_URL'),  broker=config.get('CELERY_BROKER_URL'))
 
@@ -80,7 +85,7 @@ chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, tag='default')
 
 dsn = dsn_from_config(config)
-SessionBase.connect(dsn)
+SessionBase.connect(dsn, debug=config.true('DATABASE_DEBUG'))
 
 straggler_delay = int(config.get('CIC_TX_RETRY_DELAY'))
 
@@ -197,6 +202,7 @@ class StragglerFilter:
 
 
     def filter(self, conn, block, tx, db_session=None):
+        logg.debug('tx {}'.format(tx))
         s_send = celery.signature(
                 'cic_eth.eth.tx.resend_with_higher_gas',
                 [
@@ -206,6 +212,11 @@ class StragglerFilter:
                 queue=self.queue,
         )
         return s_send.apply_async()
+        #return s_send
+
+
+    def __str__(self):
+        return 'stragglerfilter'
 
 
 class RetrySyncer(HeadSyncer):
@@ -243,6 +254,12 @@ class RetrySyncer(HeadSyncer):
                 before=before,
                 limit=self.batch_size,
                 )
+#        stalled_txs = get_upcoming_tx(
+#                status=StatusBits.IN_NETWORK.value, 
+#                not_status=StatusBits.FINAL | StatusBits.MANUAL | StatusBits.OBSOLETE,
+#                before=before,
+#                limit=self.batch_size,
+#                )
         for tx in stalled_txs:
             self.filter.apply(self.conn, block, tx)
         self.backend.set(block.number, 0)
@@ -252,7 +269,7 @@ def main():
     #o = block_latest()
     conn = RPCConnection.connect(chain_spec, 'default')
     #block = conn.do(o)
-    syncer = RetrySyncer(conn, chain_spec, straggler_delay)
+    syncer = RetrySyncer(conn, chain_spec, straggler_delay, batch_size=config.get('_BATCH_SIZE'))
     syncer.backend.set(0, 0)
     syncer.add_filter(StragglerFilter(chain_spec, queue=queue))
     syncer.loop(float(straggler_delay), conn)

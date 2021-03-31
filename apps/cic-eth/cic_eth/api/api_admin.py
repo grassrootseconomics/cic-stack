@@ -219,7 +219,7 @@ class AdminApi:
                 blocking_tx = k
                 blocking_nonce = nonce_otx
             elif nonce_otx - last_nonce > 1:
-                logg.error('nonce gap; {} followed {}'.format(nonce_otx, last_nonce))
+                logg.error('nonce gap; {} followed {} for account {}'.format(nonce_otx, last_nonce, tx['from']))
                 blocking_tx = k
                 blocking_nonce = nonce_otx
                 break
@@ -313,10 +313,10 @@ class AdminApi:
             tx_dict = s.apply_async().get()
             if tx_dict['sender'] == address:
                 if tx_dict['nonce'] - last_nonce > 1:
-                    logg.error('nonce gap; {} followed {} for tx {}'.format(tx_dict['nonce'], last_nonce, tx_dict['hash']))
+                    logg.error('nonce gap; {} followed {} for address {} tx {}'.format(tx_dict['nonce'], last_nonce, tx_dict['sender'], tx_hash))
                     errors.append('nonce')
                 elif tx_dict['nonce'] == last_nonce:
-                    logg.warning('nonce {} duplicate in tx {}'.format(tx_dict['nonce'], tx_dict['hash']))
+                    logg.info('nonce {} duplicate for address {} in tx {}'.format(tx_dict['nonce'], tx_dict['sender'], tx_hash))
                 last_nonce = tx_dict['nonce']
                 if not include_sender:
                     logg.debug('skipping sender tx {}'.format(tx_dict['tx_hash']))
@@ -481,7 +481,8 @@ class AdminApi:
             tx['destination_token_symbol'] = destination_token.symbol()
             tx['recipient_token_balance'] = source_token.function('balanceOf')(tx['recipient']).call()
 
-        tx['network_status'] = 'Not submitted'
+        # TODO: this can mean either not subitted or culled, need to check other txs with same nonce to determine which
+        tx['network_status'] = 'Not in node' 
 
         r = None
         try:
