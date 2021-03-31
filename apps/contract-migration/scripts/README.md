@@ -44,7 +44,7 @@ Monitors a folder for output from the `import_users.py` script, adding the metad
 
 (Only if you used the `--gift-threshold` option above)
 
-`python -c config -i <newchain:id> -r <cic_registry_address> -p <eth_provider> --head -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c <datadir>` 
+`python import_balance.py -c config -i <newchain:id> -r <cic_registry_address> -p <eth_provider> --head -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c <datadir>` 
 
 This will monitor new mined blocks and send balances to the newly created accounts.
 
