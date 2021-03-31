@@ -21,9 +21,13 @@ Make sure the following is running in the cluster:
 	* eth
 	* postgres
 	* redis
+	* cic-meta-server
+
+
+If using the _custodial_ alternative for user imports, also run:
 	* cic-eth-tasker
 	* cic-eth-dispatcher
-	* cic-eth-manager-head
+	* cic-eth-tracker
 
 
 You will want to run these in sequence:
