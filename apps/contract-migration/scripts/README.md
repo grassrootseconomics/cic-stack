@@ -47,12 +47,25 @@ This will monitor new mined blocks and send balances to the newly created accoun
 
 ### 3. Users
 
+Only use **one** of the following
+
+#### Custodial
+
+This alternative generates accounts using the `cic-eth` custodial engine
+
 Without any modifications to the cluster and config files:
 
 `python import_users.py -c config --redis-host-callback redis <datadir>`
 
 ** A note on the The callback**:  The script uses a redis callback to retrieve the newly generated custodial address. This is the redis server _from the perspective of the cic-eth component_.
 
+#### Sovereign
+
+This alternative generates keystore files, while  registering corresponding addresses in the accounts registry directly
+
+`python import_sovereign_users.py -c config -i <newchain:id> -r <cic_registry_address> -p <eth_provider> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c <datadir>`
+
+A `keystore` sub-directory in the data path is created, with ethereum keystore files for all generated private keys. Passphrase is set to empty string for all of them.
 
 ## VERIFY
 
