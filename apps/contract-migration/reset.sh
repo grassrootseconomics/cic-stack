@@ -40,7 +40,10 @@ if [[ -n "${ETH_PROVIDER}" ]]; then
 
 	#BANCOR_REGISTRY_ADDRESS=`cic-bancor-deploy --bancor-dir /usr/local/share/cic/bancor -z $DEV_ETH_RESERVE_ADDRESS -p $ETH_PROVIDER -o $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER`
 
+	>&2 echo "deploy account index contract"
 	DEV_ACCOUNT_INDEX_ADDRESS=`eth-accounts-index-deploy -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -y $keystore_file -vv -w`
+	>&2 echo "add deployer address as account index writer"
+	eth-accounts-index-writer -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_ACCOUNT_INDEX_ADDRESS -ww $debug $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER
 
 	CIC_REGISTRY_ADDRESS=`eth-contract-registry-deploy -i $CIC_CHAIN_SPEC -y $keystore_file --identifier BancorRegistry --identifier AccountRegistry --identifier TokenRegistry --identifier AddressDeclarator --identifier Faucet --identifier TransferAuthorization -p $ETH_PROVIDER -vv -w`
 	eth-contract-registry-set -w -y $keystore_file -r $CIC_REGISTRY_ADDRESS -i $CIC_CHAIN_SPEC  -p $ETH_PROVIDER -vv ContractRegistry $CIC_REGISTRY_ADDRESS

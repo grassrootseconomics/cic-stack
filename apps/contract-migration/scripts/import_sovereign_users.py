@@ -92,22 +92,26 @@ CICRegistry.address = config.get('CIC_REGISTRY_ADDRESS')
 registry = CICRegistry(chain_spec, rpc)
 account_registry_address = registry.by_name('AccountRegistry')
 
-keyfile_dir = os.makedirs(os.path.join(config.get('_USERDIR'), 'keystore'))
+keyfile_dir = os.path.join(config.get('_USERDIR'), 'keystore')
+os.makedirs(keyfile_dir)
 
 def register_eth(i, u):
 
-    address = keystore.new()
+    address_hex = keystore.new()
+    address = add_0x(to_checksum_address(address_hex))
 
     gas_oracle = RPCGasOracle(rpc, code_callback=AccountRegistry.gas)
     c = AccountRegistry(signer=signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle, chain_id=chain_spec.chain_id())
     (tx_hash_hex, o) = c.add(account_registry_address, signer_address, address)
-    r = rpc.wait(o)
+    logg.debug('o {}'.format(o))
+    rpc.do(o)
+    #r = rpc.wait(tx_hash_hex)
 
     pk = keystore.get(address)
-    keyfile_content = keyfile.to_keyfile_dict()
+    keyfile_content = to_keyfile_dict(pk, '')
     keyfile_path = os.path.join(keyfile_dir, '{}.json'.format(address))
     f = open(keyfile_path, 'w')
-    f.write(keyfile_content)
+    json.dump(keyfile_content, f)
     f.close()
 
     logg.debug('[{}] register eth {} {} tx {} keyfile {}'.format(i, u, address, tx_hash_hex, keyfile_path))
