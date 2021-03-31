@@ -105,7 +105,6 @@ def register_eth(i, u):
     (tx_hash_hex, o) = c.add(account_registry_address, signer_address, address)
     logg.debug('o {}'.format(o))
     rpc.do(o)
-    #r = rpc.wait(tx_hash_hex)
 
     pk = keystore.get(address)
     keyfile_content = to_keyfile_dict(pk, '')
@@ -165,8 +164,6 @@ if __name__ == '__main__':
             f.write(json.dumps(o))
             f.close()
 
-            #old_address = to_checksum_address(add_0x(y[:len(y)-5]))
-            #fi.write('{},{}\n'.format(new_address, old_address))
             meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), 'cic.person')
             meta_filepath = os.path.join(meta_dir, '{}.json'.format(new_address_clean.upper()))
             os.symlink(os.path.realpath(filepath), meta_filepath)
