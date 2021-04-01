@@ -39,7 +39,6 @@ from chainlib.eth.gas import (
 from chainlib.eth.tx import TxFactory
 from chainlib.eth.rpc import jsonrpc_template
 from chainlib.eth.error import EthException
-from cic_eth.api.api_admin import AdminApi
 from cic_types.models.person import (
         Person,
         generate_metadata_pointer,
@@ -51,12 +50,27 @@ logg = logging.getLogger()
 
 config_dir = '/usr/local/etc/cic-syncer'
 
+custodial_tests = [
+        'local_key',
+        ]
+
+all_tests = custodial_tests + [
+        'accounts_index',
+        'balance',
+        'metadata',
+        'gas',
+        'faucet',
+        ]
+
 argparser = argparse.ArgumentParser(description='daemon that monitors transactions in new blocks')
 argparser.add_argument('-p', '--provider', dest='p', type=str, help='chain rpc provider address')
 argparser.add_argument('-c', type=str, default=config_dir, help='config root to use')
 argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:oldchain:1', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
 argparser.add_argument('--meta-provider', type=str, dest='meta_provider', default='http://localhost:63380', help='cic-meta url')
+argparser.add_argument('--skip-custodial', dest='skip_custodial', action='store_true', help='skip all custodial verifications')
+argparser.add_argument('--exclude', action='append', type=str, default=[], help='skip specified verification')
+argparser.add_argument('--include', action='append', type=str, default=all_tests, help='include specified verification')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-x', '--exit-on-error', dest='x', action='store_true', help='Halt exection on error')
@@ -94,6 +108,32 @@ old_chain_str = str(old_chain_spec)
 user_dir = args.user_dir # user_out_dir from import_users.py
 meta_url = args.meta_provider
 exit_on_error = args.x
+
+active_tests = []
+exclude = []
+for t in args.exclude:
+    if t not in all_tests:
+        raise ValueError('Cannot exclude unknown verification "{}"'.format(t))
+    exclude.append(t)
+if args.skip_custodial:
+    logg.info('will skip all custodial verifications ({})'.format(','.join(custodial_tests)))
+    for t in custodial_tests:
+        if t not in exclude:
+            exclude.append(t)
+for t in args.include:
+    if t not in all_tests:
+        raise ValueError('Cannot include unknown verification "{}"'.format(t))
+    if t not in exclude:
+        active_tests.append(t)
+        logg.info('will perform verification "{}"'.format(t))
+
+api = None
+for t in custodial_tests:
+    if t in active_tests:
+        from cic_eth.api.api_admin import AdminApi
+        api = AdminApi(None)
+        logg.info('activating custodial module'.format(t))
+        break
 
 
 class VerifierState:
@@ -148,7 +188,7 @@ class Verifier:
         verifymethods = []
         for k in dir(self):
             if len(k) > 7 and k[:7] == 'verify_':
-                logg.info('adding verify method {}'.format(k))
+                logg.debug('verifier has verify method {}'.format(k))
                 verifymethods.append(k[7:])
 
         self.state = VerifierState(verifymethods)
@@ -236,23 +276,10 @@ class Verifier:
     def verify(self, address, balance):
         logg.debug('verify {} {}'.format(address, balance))
   
-        methods = [
-                'local_key',
-                'accounts_index',
-                'balance',
-                'metadata',
-                'gas',
-                'faucet',
-                ]
-
-        for k in methods:
+        for k in active_tests:
             try:
                 m = getattr(self, 'verify_{}'.format(k))
                 m(address, balance)
-#            self.verify_local_key(address)
-#            self.verify_accounts_index(address)
-#            self.verify_balance(address, balance)
-#            self.verify_metadata(address)
             except VerifierError as e:
                 logline = 'verification {} failed for {}: {}'.format(k, address, str(e))
                 if self.exit_on_error:
@@ -265,10 +292,6 @@ class Verifier:
     def __str__(self):
         return str(self.state)
 
-
-class MockClient:
-
-    w3 = None
 
 def main():
     global chain_str, block_offset, user_dir
@@ -291,7 +314,6 @@ def main():
     o['params'].append(txf.normalize(tx))
     o['params'].append('latest')
     r = conn.do(o)
-    print('r {}'.format(r))
     token_index_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     logg.info('found token index address {}'.format(token_index_address))
 
@@ -333,7 +355,6 @@ def main():
     o['params'].append(txf.normalize(tx))
     o['params'].append('latest')
     r = conn.do(o)
-    print('r {}'.format(r))
     sarafu_token_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     logg.info('found token address {}'.format(sarafu_token_address))
 
@@ -356,8 +377,6 @@ def main():
         i += 1
 
     f.close()
-
-    api = AdminApi(MockClient())
 
     verifier = Verifier(conn, api, gas_oracle, chain_spec, account_index_address, sarafu_token_address, faucet_address, user_dir, exit_on_error)
 
