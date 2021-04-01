@@ -145,7 +145,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        /usr/local/bin/cic-cache-trackerd -vv
+        /usr/local/bin/cic-cache-trackerd -vv -c /usr/local/etc/cic-cache
     volumes:
       - contract-config:/tmp/cic/config/:ro
 
