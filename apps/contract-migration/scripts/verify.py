@@ -10,6 +10,7 @@ import hashlib
 import csv
 import json
 import urllib
+import copy
 
 # external imports
 import celery
@@ -39,7 +40,6 @@ from chainlib.eth.gas import (
 from chainlib.eth.tx import TxFactory
 from chainlib.eth.rpc import jsonrpc_template
 from chainlib.eth.error import EthException
-from cic_eth.api.api_admin import AdminApi
 from cic_types.models.person import (
         Person,
         generate_metadata_pointer,
@@ -51,12 +51,27 @@ logg = logging.getLogger()
 
 config_dir = '/usr/local/etc/cic-syncer'
 
+custodial_tests = [
+        'local_key',
+        'gas',
+        'faucet',
+        ]
+
+all_tests = custodial_tests + [
+        'accounts_index',
+        'balance',
+        'metadata',
+        ]
+
 argparser = argparse.ArgumentParser(description='daemon that monitors transactions in new blocks')
 argparser.add_argument('-p', '--provider', dest='p', type=str, help='chain rpc provider address')
 argparser.add_argument('-c', type=str, default=config_dir, help='config root to use')
 argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:oldchain:1', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
 argparser.add_argument('--meta-provider', type=str, dest='meta_provider', default='http://localhost:63380', help='cic-meta url')
+argparser.add_argument('--skip-custodial', dest='skip_custodial', action='store_true', help='skip all custodial verifications')
+argparser.add_argument('--exclude', action='append', type=str, default=[], help='skip specified verification')
+argparser.add_argument('--include', action='append', type=str, help='include specified verification')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-x', '--exit-on-error', dest='x', action='store_true', help='Halt exection on error')
@@ -95,14 +110,61 @@ user_dir = args.user_dir # user_out_dir from import_users.py
 meta_url = args.meta_provider
 exit_on_error = args.x
 
+active_tests = []
+exclude = []
+include = args.include
+if args.include == None:
+    include = all_tests
+for t in args.exclude:
+    if t not in all_tests:
+        raise ValueError('Cannot exclude unknown verification "{}"'.format(t))
+    exclude.append(t)
+if args.skip_custodial:
+    logg.info('will skip all custodial verifications ({})'.format(','.join(custodial_tests)))
+    for t in custodial_tests:
+        if t not in exclude:
+            exclude.append(t)
+for t in include:
+    if t not in all_tests:
+        raise ValueError('Cannot include unknown verification "{}"'.format(t))
+    if t not in exclude:
+        active_tests.append(t)
+        logg.info('will perform verification "{}"'.format(t))
+
+api = None
+for t in custodial_tests:
+    if t in active_tests:
+        from cic_eth.api.api_admin import AdminApi
+        api = AdminApi(None)
+        logg.info('activating custodial module'.format(t))
+        break
+
+cols = os.get_terminal_size().columns
+
+
+def to_terminalwidth(s):
+    ss = s.ljust(int(cols)-1)
+    ss += "\r"
+    return ss
+
+def default_outfunc(s):
+    ss = to_terminalwidth(s)
+    sys.stdout.write(ss)
+outfunc = default_outfunc
+if logg.isEnabledFor(logging.DEBUG):
+    outfunc = logg.debug
+
 
 class VerifierState:
 
-    def __init__(self, item_keys):
+    def __init__(self, item_keys, active_tests=None):
         self.items = {}
         for k in item_keys:
-            logg.info('k {}'.format(k))
             self.items[k] = 0
+        if active_tests == None:
+            self.active_tests = copy.copy(item_keys)
+        else:
+            self.active_tests = copy.copy(active_tests)
 
 
     def poke(self, item_key):
@@ -112,7 +174,10 @@ class VerifierState:
     def __str__(self):
         r = ''
         for k in self.items.keys():
-            r += '{}: {}\n'.format(k, self.items[k])
+            if k in self.active_tests:
+                r += '{}: {}\n'.format(k, self.items[k])
+            else:
+                r += '{}: skipped\n'.format(k)
         return r
 
 
@@ -148,10 +213,10 @@ class Verifier:
         verifymethods = []
         for k in dir(self):
             if len(k) > 7 and k[:7] == 'verify_':
-                logg.info('adding verify method {}'.format(k))
+                logg.debug('verifier has verify method {}'.format(k))
                 verifymethods.append(k[7:])
 
-        self.state = VerifierState(verifymethods)
+        self.state = VerifierState(verifymethods, active_tests=active_tests)
 
 
     def verify_accounts_index(self, address, balance=None):
@@ -233,26 +298,14 @@ class Verifier:
             raise VerifierError(o_retrieved, 'metadata (person)')
 
 
-    def verify(self, address, balance):
-        logg.debug('verify {} {}'.format(address, balance))
+    def verify(self, address, balance, debug_stem=None):
   
-        methods = [
-                'local_key',
-                'accounts_index',
-                'balance',
-                'metadata',
-                'gas',
-                'faucet',
-                ]
-
-        for k in methods:
+        for k in active_tests:
+            s = '{} {}'.format(debug_stem, k)
+            outfunc(s)
             try:
                 m = getattr(self, 'verify_{}'.format(k))
                 m(address, balance)
-#            self.verify_local_key(address)
-#            self.verify_accounts_index(address)
-#            self.verify_balance(address, balance)
-#            self.verify_metadata(address)
             except VerifierError as e:
                 logline = 'verification {} failed for {}: {}'.format(k, address, str(e))
                 if self.exit_on_error:
@@ -265,10 +318,6 @@ class Verifier:
     def __str__(self):
         return str(self.state)
 
-
-class MockClient:
-
-    w3 = None
 
 def main():
     global chain_str, block_offset, user_dir
@@ -291,7 +340,6 @@ def main():
     o['params'].append(txf.normalize(tx))
     o['params'].append('latest')
     r = conn.do(o)
-    print('r {}'.format(r))
     token_index_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     logg.info('found token index address {}'.format(token_index_address))
 
@@ -320,6 +368,7 @@ def main():
     logg.info('found faucet {}'.format(faucet_address))
 
 
+
     # Get Sarafu token address
     tx = txf.template(ZERO_ADDRESS, token_index_address)
     data = add_0x(registry_addressof_method)
@@ -333,7 +382,6 @@ def main():
     o['params'].append(txf.normalize(tx))
     o['params'].append('latest')
     r = conn.do(o)
-    print('r {}'.format(r))
     sarafu_token_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     logg.info('found token address {}'.format(sarafu_token_address))
 
@@ -348,7 +396,7 @@ def main():
         try:
             address = to_checksum_address(r[0])
             #sys.stdout.write('loading balance {} {}'.format(i, address).ljust(200) + "\r")
-            logg.debug('loading balance {} {}'.format(i, address).ljust(200))
+            outfunc('loading balance {} {}'.format(i, address)) #.ljust(200))
         except ValueError:
             break
         balance = int(r[1].rstrip())
@@ -357,11 +405,10 @@ def main():
 
     f.close()
 
-    api = AdminApi(MockClient())
-
     verifier = Verifier(conn, api, gas_oracle, chain_spec, account_index_address, sarafu_token_address, faucet_address, user_dir, exit_on_error)
 
     user_new_dir = os.path.join(user_dir, 'new')
+    i = 0
     for x in os.walk(user_new_dir):
         for y in x[2]:
             if y[len(y)-5:] != '.json':
@@ -377,7 +424,7 @@ def main():
             f.close()
 
             u = Person.deserialize(o)
-            logg.debug('data {}'.format(u.identities['evm']))
+            #logg.debug('data {}'.format(u.identities['evm']))
 
             subchain_str = '{}:{}'.format(chain_spec.common_name(), chain_spec.network_id())
             new_address = u.identities['evm'][subchain_str][0]
@@ -388,9 +435,11 @@ def main():
                 balance = balances[old_address]
             except KeyError:
                 logg.info('no old balance found for {}, assuming 0'.format(old_address))
-            logg.debug('checking {} -> {} = {}'.format(old_address, new_address, balance))
 
-            verifier.verify(new_address, balance)
+            s = 'checking {}: {} -> {} = {}'.format(i, old_address, new_address, balance)
+
+            verifier.verify(new_address, balance, debug_stem=s)
+            i += 1
 
     print(verifier)
 
