@@ -88,7 +88,7 @@ run = True
 
 class DispatchSyncer:
 
-    yield_delay = 0.005
+    yield_delay = 0.0005
 
     def __init__(self, chain_spec):
         self.chain_spec = chain_spec

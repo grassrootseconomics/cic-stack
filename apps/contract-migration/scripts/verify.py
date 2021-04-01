@@ -139,6 +139,21 @@ for t in custodial_tests:
         logg.info('activating custodial module'.format(t))
         break
 
+cols = os.get_terminal_size().columns
+
+
+def to_terminalwidth(s):
+    ss = s.ljust(int(cols)-1)
+    ss += "\r"
+    return ss
+
+def default_outfunc(s):
+    ss = to_terminalwidth(s)
+    sys.stdout.write(ss)
+outfunc = default_outfunc
+if logg.isEnabledFor(logging.DEBUG):
+    outfunc = logg.debug
+
 
 class VerifierState:
 
@@ -283,10 +298,11 @@ class Verifier:
             raise VerifierError(o_retrieved, 'metadata (person)')
 
 
-    def verify(self, address, balance):
-        logg.debug('verify {} {}'.format(address, balance))
+    def verify(self, address, balance, debug_stem=None):
   
         for k in active_tests:
+            s = '{} {}'.format(debug_stem, k)
+            outfunc(s)
             try:
                 m = getattr(self, 'verify_{}'.format(k))
                 m(address, balance)
@@ -352,6 +368,7 @@ def main():
     logg.info('found faucet {}'.format(faucet_address))
 
 
+
     # Get Sarafu token address
     tx = txf.template(ZERO_ADDRESS, token_index_address)
     data = add_0x(registry_addressof_method)
@@ -379,7 +396,7 @@ def main():
         try:
             address = to_checksum_address(r[0])
             #sys.stdout.write('loading balance {} {}'.format(i, address).ljust(200) + "\r")
-            logg.debug('loading balance {} {}'.format(i, address).ljust(200))
+            outfunc('loading balance {} {}'.format(i, address)) #.ljust(200))
         except ValueError:
             break
         balance = int(r[1].rstrip())
@@ -391,6 +408,7 @@ def main():
     verifier = Verifier(conn, api, gas_oracle, chain_spec, account_index_address, sarafu_token_address, faucet_address, user_dir, exit_on_error)
 
     user_new_dir = os.path.join(user_dir, 'new')
+    i = 0
     for x in os.walk(user_new_dir):
         for y in x[2]:
             if y[len(y)-5:] != '.json':
@@ -406,7 +424,7 @@ def main():
             f.close()
 
             u = Person.deserialize(o)
-            logg.debug('data {}'.format(u.identities['evm']))
+            #logg.debug('data {}'.format(u.identities['evm']))
 
             subchain_str = '{}:{}'.format(chain_spec.common_name(), chain_spec.network_id())
             new_address = u.identities['evm'][subchain_str][0]
@@ -417,9 +435,11 @@ def main():
                 balance = balances[old_address]
             except KeyError:
                 logg.info('no old balance found for {}, assuming 0'.format(old_address))
-            logg.debug('checking {} -> {} = {}'.format(old_address, new_address, balance))
 
-            verifier.verify(new_address, balance)
+            s = 'checking {}: {} -> {} = {}'.format(i, old_address, new_address, balance)
+
+            verifier.verify(new_address, balance, debug_stem=s)
+            i += 1
 
     print(verifier)
 

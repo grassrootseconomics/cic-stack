@@ -373,7 +373,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_retry.sh -v
+        ./start_retry.sh -vv
     # command: "/root/start_retry.sh -q cic-eth -vv"
 
 
