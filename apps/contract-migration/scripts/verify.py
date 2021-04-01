@@ -240,7 +240,7 @@ class Verifier:
                 'local_key',
                 'accounts_index',
                 'balance',
-                'metadata',
+#                'metadata',
                 'gas',
                 'faucet',
                 ]
