@@ -17,9 +17,7 @@ import random
 import vobject
 import celery
 from faker import Faker
-import cic_eth_registry
 import confini
-from cic_eth.api import Api
 from cic_types.models.person import (
         Person,
         generate_vcard_from_contact_data,
@@ -61,8 +59,6 @@ ts_now = int(dt_now.timestamp())
 ts_then = int(dt_then.timestamp())
 
 celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
-
-api = Api(config.get('CIC_CHAIN_SPEC'))
 
 gift_max = args.gift_threshold or 0
 gift_factor = (10**6)
