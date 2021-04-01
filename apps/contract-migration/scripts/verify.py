@@ -52,14 +52,14 @@ config_dir = '/usr/local/etc/cic-syncer'
 
 custodial_tests = [
         'local_key',
+        'gas',
+        'faucet',
         ]
 
 all_tests = custodial_tests + [
         'accounts_index',
         'balance',
         'metadata',
-        'gas',
-        'faucet',
         ]
 
 argparser = argparse.ArgumentParser(description='daemon that monitors transactions in new blocks')
@@ -70,7 +70,7 @@ argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spe
 argparser.add_argument('--meta-provider', type=str, dest='meta_provider', default='http://localhost:63380', help='cic-meta url')
 argparser.add_argument('--skip-custodial', dest='skip_custodial', action='store_true', help='skip all custodial verifications')
 argparser.add_argument('--exclude', action='append', type=str, default=[], help='skip specified verification')
-argparser.add_argument('--include', action='append', type=str, default=all_tests, help='include specified verification')
+argparser.add_argument('--include', action='append', type=str, help='include specified verification')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-x', '--exit-on-error', dest='x', action='store_true', help='Halt exection on error')
@@ -111,6 +111,9 @@ exit_on_error = args.x
 
 active_tests = []
 exclude = []
+include = args.include
+if args.include == None:
+    include = all_tests
 for t in args.exclude:
     if t not in all_tests:
         raise ValueError('Cannot exclude unknown verification "{}"'.format(t))
@@ -120,7 +123,7 @@ if args.skip_custodial:
     for t in custodial_tests:
         if t not in exclude:
             exclude.append(t)
-for t in args.include:
+for t in include:
     if t not in all_tests:
         raise ValueError('Cannot include unknown verification "{}"'.format(t))
     if t not in exclude:
@@ -141,7 +144,6 @@ class VerifierState:
     def __init__(self, item_keys):
         self.items = {}
         for k in item_keys:
-            logg.info('k {}'.format(k))
             self.items[k] = 0
 
 
