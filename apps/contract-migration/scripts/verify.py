@@ -10,6 +10,7 @@ import hashlib
 import csv
 import json
 import urllib
+import copy
 
 # external imports
 import celery
@@ -141,10 +142,14 @@ for t in custodial_tests:
 
 class VerifierState:
 
-    def __init__(self, item_keys):
+    def __init__(self, item_keys, active_tests=None):
         self.items = {}
         for k in item_keys:
             self.items[k] = 0
+        if active_tests == None:
+            self.active_tests = copy.copy(item_keys)
+        else:
+            self.active_tests = copy.copy(active_tests)
 
 
     def poke(self, item_key):
@@ -154,7 +159,10 @@ class VerifierState:
     def __str__(self):
         r = ''
         for k in self.items.keys():
-            r += '{}: {}\n'.format(k, self.items[k])
+            if k in self.active_tests:
+                r += '{}: {}\n'.format(k, self.items[k])
+            else:
+                r += '{}: skipped\n'.format(k)
         return r
 
 
@@ -193,7 +201,7 @@ class Verifier:
                 logg.debug('verifier has verify method {}'.format(k))
                 verifymethods.append(k[7:])
 
-        self.state = VerifierState(verifymethods)
+        self.state = VerifierState(verifymethods, active_tests=active_tests)
 
 
     def verify_accounts_index(self, address, balance=None):
