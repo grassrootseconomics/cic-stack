@@ -23,7 +23,7 @@ from chainlib.eth.gas import RPCGasOracle
 from chainlib.eth.nonce import RPCNonceOracle
 from cic_types.processor import generate_metadata_pointer
 from eth_accounts_index import AccountRegistry
-from cic_eth_registry import CICRegistry
+from contract_registry import Registry
 from crypto_dev_signer.keystore.dict import DictKeystore
 from crypto_dev_signer.eth.signer.defaultsigner import ReferenceSigner as EIP155Signer
 from crypto_dev_signer.keystore.keyfile import to_dict as to_keyfile_dict
@@ -88,9 +88,11 @@ signer = EIP155Signer(keystore)
 
 nonce_oracle = RPCNonceOracle(signer_address, rpc)
 
-CICRegistry.address = config.get('CIC_REGISTRY_ADDRESS')
-registry = CICRegistry(chain_spec, rpc)
-account_registry_address = registry.by_name('AccountRegistry')
+registry = Registry()
+o = registry.address_of(config.get('CIC_REGISTRY_ADDRESS'), 'AccountRegistry')
+r = rpc.do(o)
+account_registry_address = registry.parse_address_of(r)
+logg.info('using account registry {}'.format(account_registry_address))
 
 keyfile_dir = os.path.join(config.get('_USERDIR'), 'keystore')
 os.makedirs(keyfile_dir)
