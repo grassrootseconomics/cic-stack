@@ -3,13 +3,13 @@ import logging
 
 # external imports
 from hexathon import add_0x
+from chainqueue.db.enum import StatusBits
+from chainqueue.db.models.tx import TxCache
+from chainqueue.db.models.otx import Otx
+from chainqueue.query import get_paused_tx_cache as get_paused_tx
 
 # local imports
-from cic_eth.db.enum import StatusBits
 from cic_eth.db.models.base import SessionBase
-from cic_eth.db.models.tx import TxCache
-from cic_eth.db.models.otx import Otx
-from cic_eth.queue.tx import get_paused_txs
 from cic_eth.eth.gas import create_check_gas_task
 from .base import SyncFilter
 
@@ -38,7 +38,7 @@ class GasFilter(SyncFilter):
                 SessionBase.release_session(session)
                 return
 
-            txs = get_paused_txs(StatusBits.GAS_ISSUES, r[0], self.chain_spec.chain_id(), session=session)
+            txs = get_paused_tx(self.chain_spec, StatusBits.GAS_ISSUES, r[0], self.chain_spec.chain_id(), session=session)
 
             SessionBase.release_session(session)
 

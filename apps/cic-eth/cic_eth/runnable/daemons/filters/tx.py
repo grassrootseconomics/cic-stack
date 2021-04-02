@@ -1,16 +1,16 @@
 # standard imports
 import logging
 
-# third-party imports
+# external imports
 import celery
 from hexathon import (
         add_0x,
         )
+from chainsyncer.db.models.base import SessionBase
+from chainqueue.db.models.otx import Otx
+from chainlib.status import Status
 
 # local imports
-from cic_eth.db.models.otx import Otx
-from chainsyncer.db.models.base import SessionBase
-from chainlib.status import Status
 from .base import SyncFilter
 
 logg = logging.getLogger().getChild(__name__)
