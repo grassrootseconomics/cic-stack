@@ -1,15 +1,147 @@
 - config:
-    - testset: "Test account creation sequence"
+    - testset: "account tests"
 
 - test:
-    - group: "Accounts"
-    - name: "First dial in"
+    - group: "accounts"
+    - name: "create account"
     - url: "/"
     - method: "POST"
-    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+2547876545", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek000", "text": ""}'
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+2547876548", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek020", "text": ""}'
     - headers: {'Content-Type': 'application/json'}
     - expected_status: [200]
     - validators:
         - compare: {"header": "content-type", "comparator": "str_eq", "expected":"text/plain"}
         - compare: {"header": "content-length", "comparator": "str_eq", "expected":"175"}
         - compare: {"raw_body":"", "comparator":"contains", expected: "END Your account is being created. You will receive an SMS when your account is ready.\nAkaunti yako ya Sarafu inatayarishwa. Utapokea ujumbe wa SMS akaunti yako ikiwa tayari.\n" }
+
+
+- test:
+    - group: "accounts"
+    - name: "select preferred language prompt"
+    - url: "/"
+    - method: "POST"
+    - delay: 5 # delay to allow celery tasks to run to create account
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+2547876548", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek021", "text": ""}'
+    - headers: {'Content-Type': 'application/json'}
+    - expected_status: [200]
+    - validators:
+        - compare: {"header": "content-type", "comparator": "str_eq", "expected":"text/plain"}
+        - compare: {"header": "content-length", "comparator": "str_eq", "expected":"53"}
+        - compare: {"raw_body":"", "comparator":"str_eq", expected: "CON Welcome to Sarafu\n1. English\n2. Kiswahili\n3. Help"}
+
+
+- test:
+    - group: "accounts"
+    - name: "pin entry"
+    - url: "/"
+    - delay: 2 # delay
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+2547876548", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek021", "text": "1"}'
+    - headers: {'Content-Type': 'application/json'}
+    - expected_status: [200]
+    - validators:
+        - compare: {"header": "content-type", "comparator": "str_eq", "expected":"text/plain"}
+        - compare: {"header": "content-length", "comparator": "str_eq", "expected":"54"}
+        - compare: {"raw_body":"", "comparator":"str_eq", expected: "CON Please enter a PIN to manage your account.\n0. Back"}
+
+
+- test:
+    - group: "accounts"
+    - name: "pin entry confirmation"
+    - url: "/"
+    - delay: 2 # delay
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+2547876548", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek021", "text": "1*0000"}'
+    - headers: {'Content-Type': 'application/json'}
+    - expected_status: [200]
+    - validators:
+        - compare: {"header": "content-type", "comparator": "str_eq", "expected":"text/plain"}
+        - compare: {"header": "content-length", "comparator": "str_eq", "expected":"32"}
+        - compare: {"raw_body":"", "comparator":"str_eq", expected: "CON Enter your PIN again\n0. Back"}
+
+
+- test:
+    - group: "accounts"
+    - name: "given names entry"
+    - url: "/"
+    - delay: 3 # delay
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+2547876548", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek021", "text": "1*0000*0000"}'
+    - headers: {'Content-Type': 'application/json'}
+    - expected_status: [200]
+    - validators:
+        - compare: {"header": "content-type", "comparator": "str_eq", "expected":"text/plain"}
+        - compare: {"header": "content-length", "comparator": "str_eq", "expected":"28"}
+        - compare: {"raw_body":"", "comparator":"str_eq", expected: "CON Enter first name\n0. Back"}
+
+- test:
+    - group: "accounts"
+    - name: "family name entry"
+    - url: "/"
+    - delay: 2 # delay
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+2547876548", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek021", "text": "1*0000*0000*Kimani"}'
+    - headers: {'Content-Type': 'application/json'}
+    - expected_status: [200]
+    - validators:
+        - compare: {"header": "content-type", "comparator": "str_eq", "expected":"text/plain"}
+        - compare: {"header": "content-length", "comparator": "str_eq", "expected":"27"}
+        - compare: {"raw_body":"", "comparator":"str_eq", expected: "CON Enter last name\n0. Back"}
+
+
+- test:
+    - group: "accounts"
+    - name: "gender selection"
+    - url: "/"
+    - delay: 2 # delay
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+2547876548", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek021", "text": "1*0000*0000*Kimani*Omollo"}'
+    - headers: {'Content-Type': 'application/json'}
+    - expected_status: [200]
+    - validators:
+        - compare: {"header": "content-type", "comparator": "str_eq", "expected":"text/plain"}
+        - compare: {"header": "content-length", "comparator": "str_eq", "expected":"42"}
+        - compare: {"raw_body":"", "comparator":"str_eq", expected: "CON Enter gender\n1. Male\n2. Female\n0. Back"}
+
+
+- test:
+    - group: "accounts"
+    - name: "location entry"
+    - url: "/"
+    - delay: 2 # delay
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+2547876548", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek021", "text": "1*0000*0000*Kimani*Omollo*1"}'
+    - headers: {'Content-Type': 'application/json'}
+    - expected_status: [200]
+    - validators:
+        - compare: {"header": "content-type", "comparator": "str_eq", "expected":"text/plain"}
+        - compare: {"header": "content-length", "comparator": "str_eq", "expected":"26"}
+        - compare: {"raw_body":"", "comparator":"str_eq", expected: "CON Enter location\n0. Back"}
+
+- test:
+    - group: "accounts"
+    - name: "product entry"
+    - url: "/"
+    - delay: 2 # delay
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+2547876548", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek021", "text": "1*0000*0000*Kimani*Omollo*1*Kangemi"}'
+    - headers: {'Content-Type': 'application/json'}
+    - expected_status: [200]
+    - validators:
+        - compare: {"header": "content-type", "comparator": "str_eq", "expected":"text/plain"}
+        - compare: {"header": "content-length", "comparator": "str_eq", "expected":"55"}
+        - compare: {"raw_body":"", "comparator":"str_eq", expected: "CON Please enter a product or service you offer\n0. Back"}
+
+- test:
+    - group: "accounts"
+    - name: "start menu"
+    - url: "/"
+    - delay: 2 # delay
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+2547876548", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek021", "text": "1*0000*0000*Kimani*Omollo*1*Kangemi*Potatoes"}'
+    - headers: {'Content-Type': 'application/json'}
+    - expected_status: [200]
+    - validators:
+        - compare: {"header": "content-type", "comparator": "str_eq", "expected":"text/plain"}
+        - compare: {"header": "content-length", "comparator": "str_eq", "expected":"51"}
+        - compare: {"raw_body":"", "comparator":"str_eq", expected: "CON Balance 50.00 SRF\n1. Send\n2. My Account\n3. Help"}
