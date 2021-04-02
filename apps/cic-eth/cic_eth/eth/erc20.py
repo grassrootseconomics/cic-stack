@@ -14,18 +14,22 @@ from chainlib.eth.tx import (
 from cic_eth_registry import CICRegistry
 from cic_eth_registry.erc20 import ERC20Token
 from hexathon import strip_0x
+from chainqueue.db.models.tx import TxCache
+from chainqueue.error import NotLocalTxError
 
 # local imports
-from cic_eth.db.models.tx import TxCache
 from cic_eth.db.models.base import SessionBase
 from cic_eth.db.models.role import AccountRole
-from cic_eth.error import TokenCountError, PermanentTxError, OutOfGasError, NotLocalTxError
+from cic_eth.error import (
+        TokenCountError,
+        PermanentTxError,
+        OutOfGasError,
+        )
 from cic_eth.queue.tx import register_tx
 from cic_eth.eth.gas import (
         create_check_gas_task,
         MaxGasOracle,
         )
-#from cic_eth.eth.factory import TxFactory
 from cic_eth.ext.address import translate_address
 from cic_eth.task import (
         CriticalSQLAlchemyTask,
@@ -90,6 +94,7 @@ def transfer(self, tokens, holder_address, receiver_address, value, chain_spec_d
     :rtype: str, 0x-hex
     """
     # we only allow one token, one transfer
+    logg.debug('tokens {}'.format(tokens))
     if len(tokens) != 1:
         raise TokenCountError
     t = tokens[0]

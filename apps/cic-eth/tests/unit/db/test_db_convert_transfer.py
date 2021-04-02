@@ -3,7 +3,7 @@ import logging
 
 import pytest
 
-from cic_eth.db import TxConvertTransfer
+from cic_eth.db.models.convert import TxConvertTransfer
 from cic_eth.db.error import UnknownConvertError
 
 logg = logging.getLogger()

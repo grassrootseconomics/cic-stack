@@ -16,27 +16,24 @@ from hexathon import (
         strip_0x,
         add_0x,
         )
+from chainqueue.db.models.otx import Otx
+from chainqueue.db.models.tx import TxCache
+from chainqueue.db.enum import (
+        StatusEnum,
+        StatusBits,
+        status_str,
+        )
+from chainqueue.query import get_tx
 
 # local imports
 from cic_eth.api import AdminApi
 from cic_eth.db.models.role import AccountRole
-from cic_eth.db.models.otx import Otx
-from cic_eth.db.models.tx import TxCache
-from cic_eth.db.enum import (
-        StatusEnum,
-        StatusBits,
-        status_str,
-        LockEnum,
-        )
+from cic_eth.db.enum import LockEnum
 from cic_eth.error import InitializationError
 from cic_eth.eth.tx import (
         cache_gas_data,
         )
-#from cic_eth.eth.gas import cache_gas_tx
-from cic_eth.queue.tx import (
-        create as queue_create,
-        get_tx,
-        )
+from cic_eth.queue.tx import queue_create
 
 logg = logging.getLogger()
 
@@ -278,7 +275,7 @@ def test_tx(
     eth_signer,
     agent_roles,
     contract_roles,
-    celery_session_worker,
+    celery_worker,
     ):
 
     chain_id = default_chain_spec.chain_id()
@@ -286,7 +283,7 @@ def test_tx(
     c = Gas(signer=eth_signer, nonce_oracle=nonce_oracle, chain_id=chain_id)
     (tx_hash_hex, tx_signed_raw_hex) = c.create(agent_roles['ALICE'], agent_roles['BOB'], 1024, tx_format=TxFormat.RLP_SIGNED)
     tx = unpack(bytes.fromhex(strip_0x(tx_signed_raw_hex)), chain_id)
-    queue_create(tx['nonce'], agent_roles['ALICE'], tx_hash_hex, tx_signed_raw_hex, default_chain_spec, session=init_database)
+    queue_create(default_chain_spec, tx['nonce'], agent_roles['ALICE'], tx_hash_hex, tx_signed_raw_hex)
     cache_gas_data(tx_hash_hex, tx_signed_raw_hex, default_chain_spec.asdict())
 
     api = AdminApi(eth_rpc, queue=None, call_address=contract_roles['DEFAULT'])

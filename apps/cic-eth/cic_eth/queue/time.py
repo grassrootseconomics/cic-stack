@@ -18,7 +18,10 @@ celery_app = celery.current_app
 logg = logging.getLogger()
 
 
-def tx_times(tx_hash, chain_spec):
+def tx_times(tx_hash, chain_spec, session=None):
+
+    session = SessionBase.bind_session(session)
+
     rpc = RPCConnection.connect(chain_spec, 'default')
     time_pair = {
             'network': None,
@@ -35,8 +38,10 @@ def tx_times(tx_hash, chain_spec):
         logg.debug('error with getting timestamp details for {}: {}'.format(tx_hash, e))
         pass
 
-    otx = Otx.load(tx_hash)
+    otx = Otx.load(tx_hash, session=session)
     if otx != None:
         time_pair['queue'] = int(otx['date_created'].timestamp())
+
+    SessionBase.release_session(session)
 
     return time_pair

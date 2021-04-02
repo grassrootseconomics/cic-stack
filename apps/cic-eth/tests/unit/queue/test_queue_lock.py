@@ -3,12 +3,12 @@ import os
 
 # third-party imports
 import pytest
-from chainqueue.tx import create as queue_create
 
 # local imports
 from cic_eth.db.models.lock import Lock
 from cic_eth.db.enum import LockEnum
 from cic_eth.error import LockedError
+from cic_eth.queue.tx import queue_create
 
 
 def test_queue_lock(
@@ -25,41 +25,41 @@ def test_queue_lock(
     Lock.set(chain_str, LockEnum.QUEUE)
     with pytest.raises(LockedError):
         queue_create(
+                default_chain_spec,
                 0,
                 address, 
                 tx_hash,
                 tx_raw,
-                chain_str
                 )
 
     Lock.set(chain_str, LockEnum.QUEUE, address=address)
     with pytest.raises(LockedError):
         queue_create(
+                default_chain_spec,
                 0,
                 address, 
                 tx_hash,
                 tx_raw,
-                chain_str
                 )
 
     Lock.reset(chain_str, LockEnum.QUEUE)
     with pytest.raises(LockedError):
         queue_create(
+                default_chain_spec,
                 0,
                 address, 
                 tx_hash,
                 tx_raw,
-                chain_str
                 )
 
     Lock.set(chain_str, LockEnum.QUEUE, address=address, tx_hash=tx_hash)
     with pytest.raises(LockedError):
         queue_create(
+                default_chain_spec,
                 0,
                 address, 
                 tx_hash,
                 tx_raw,
-                chain_str
                 )
 
 

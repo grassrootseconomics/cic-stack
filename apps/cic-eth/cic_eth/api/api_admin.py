@@ -22,23 +22,21 @@ from hexathon import (
         add_0x,
         )
 from chainlib.eth.gas import balance
-
-# local imports
-from cic_eth.db.models.base import SessionBase
-from cic_eth.db.models.role import AccountRole
-from cic_eth.db.models.otx import Otx
-from cic_eth.db.models.tx import TxCache
-from cic_eth.db.models.nonce import Nonce
-from cic_eth.db.enum import (
+from chainqueue.db.enum import (
         StatusEnum,
         StatusBits,
         is_alive,
         is_error_status,
         status_str,
     )
+from chainqueue.error import TxStateChangeError
+
+# local imports
+from cic_eth.db.models.base import SessionBase
+from cic_eth.db.models.role import AccountRole
+from cic_eth.db.models.nonce import Nonce
 from cic_eth.error import InitializationError
-from cic_eth.db.error import TxStateChangeError
-from cic_eth.queue.tx import get_tx
+from cic_eth.queue.query import get_tx
 
 app = celery.current_app
 
@@ -138,8 +136,9 @@ class AdminApi:
 
         logg.debug('resend {}'.format(tx_hash_hex))
         s_get_tx_cache = celery.signature(
-            'cic_eth.queue.tx.get_tx_cache',
+            'cic_eth.queue.query.get_tx_cache',
             [
+                chain_spec.asdict(),
                 tx_hash_hex,
                 ],
             queue=self.queue,
@@ -188,8 +187,9 @@ class AdminApi:
                         
     def check_nonce(self, address):
         s = celery.signature(
-                'cic_eth.queue.tx.get_account_tx',
+                'cic_eth.queue.query.get_account_tx',
                 [
+                    chain_spec.asdict(),
                     address,
                     True,
                     False,
@@ -204,8 +204,9 @@ class AdminApi:
         last_nonce = -1
         for k in txs.keys():
             s_get_tx = celery.signature(
-                    'cic_eth.queue.tx.get_tx',
+                    'cic_eth.queue.query.get_tx',
                     [
+                    chain_spec.asdict(),
                         k,
                         ],
                     queue=self.queue,
@@ -243,8 +244,9 @@ class AdminApi:
 
     def fix_nonce(self, address, nonce, chain_spec):
         s = celery.signature(
-                'cic_eth.queue.tx.get_account_tx',
+                'cic_eth.queue.query.get_account_tx',
                 [
+                    chain_spec.asdict(),
                     address,
                     True,
                     False,
@@ -294,8 +296,9 @@ class AdminApi:
         """
         last_nonce = -1
         s = celery.signature(
-                'cic_eth.queue.tx.get_account_tx',
+                'cic_eth.queue.query.get_account_tx',
                 [
+                    chain_spec.asdict(),
                     address,
                     ],
                 queue=self.queue,
@@ -306,8 +309,11 @@ class AdminApi:
         for tx_hash in txs.keys():
             errors = []
             s = celery.signature(
-                    'cic_eth.queue.tx.get_tx_cache',
-                    [tx_hash],
+                    'cic_eth.queue.query.get_tx_cache',
+                    [
+                        chain_spec.asdict(),
+                        tx_hash,
+                        ],
                     queue=self.queue,
                     )
             tx_dict = s.apply_async().get()
@@ -367,12 +373,16 @@ class AdminApi:
             #tx_hash = self.w3.keccak(hexstr=tx_raw).hex()
 
         s = celery.signature(
-            'cic_eth.queue.tx.get_tx_cache',
-            [tx_hash],
+            'cic_eth.queue.query.get_tx_cache',
+            [
+                chain_spec.asdict(),
+                tx_hash,
+                ],
             queue=self.queue,
             )
     
-        tx = s.apply_async().get()
+        t = s.apply_async()
+        tx = t.get()
   
         source_token = None
         if tx['source_token'] != ZERO_ADDRESS:
@@ -524,8 +534,9 @@ class AdminApi:
         tx['data'] = tx_unpacked['data']
 
         s = celery.signature(
-            'cic_eth.queue.tx.get_state_log',
+            'cic_eth.queue.state.get_state_log',
             [
+                chain_spec.asdict(),
                 tx_hash,
                 ],
             queue=self.queue,

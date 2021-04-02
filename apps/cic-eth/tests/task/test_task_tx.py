@@ -13,16 +13,15 @@ from chainlib.eth.tx import (
         receipt,
         )
 from hexathon import strip_0x
+from chainqueue.db.models.otx import Otx
 
 # local imports
 from cic_eth.queue.tx import register_tx
 from cic_eth.eth.tx import cache_gas_data
-from cic_eth.db.models.otx import Otx
 
 logg = logging.getLogger()
 
 
-@pytest.mark.skip()
 def test_tx_send(
         init_database,
         default_chain_spec,
@@ -62,12 +61,11 @@ def test_tx_send(
     assert rcpt['status'] == 1
 
 
-@pytest.mark.skip()
 def test_sync_tx(
         default_chain_spec,
         eth_rpc,
         eth_signer,
-        celery_worker,
+        celery_session_worker,
         ):
     pass
 
@@ -78,7 +76,7 @@ def test_resend_with_higher_gas(
         eth_rpc,
         eth_signer,
         agent_roles,
-        celery_worker,
+        celery_session_worker,
         ):
 
     chain_id = default_chain_spec.chain_id()
@@ -102,7 +100,7 @@ def test_resend_with_higher_gas(
     r = t.get_leaf()
 
     q = init_database.query(Otx)
-    q = q.filter(Otx.tx_hash==r)
+    q = q.filter(Otx.tx_hash==strip_0x(r))
     otx = q.first()
     if otx == None:
         raise NotLocalTxError(r)

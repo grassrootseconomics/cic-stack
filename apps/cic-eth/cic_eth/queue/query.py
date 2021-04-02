@@ -1,37 +1,63 @@
+# standard imports
+import datetime
+
 # external imports
+import celery
 from chainlib.chain import ChainSpec
 from chainlib.eth.tx import unpack
 import chainqueue.query
+from chainqueue.db.enum import (
+        StatusEnum,
+        is_alive,
+        )
 from sqlalchemy import func
 from sqlalchemy import or_
+from chainqueue.db.models.tx import TxCache
+from chainqueue.db.models.otx import Otx
 
 # local imports
+from cic_eth.db.enum import LockEnum
 from cic_eth.task import CriticalSQLAlchemyTask
 from cic_eth.db.models.lock import Lock
+from cic_eth.db.models.base import SessionBase
+
+celery_app = celery.current_app
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
 def get_tx_cache(chain_spec_dict, tx_hash):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
-    return chainqueue.query.get_tx_cache(chain_spec, tx_hash)
+    session = SessionBase.create_session()
+    r = chainqueue.query.get_tx_cache(chain_spec, tx_hash, session=session)
+    session.close()
+    return r
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
 def get_tx(chain_spec_dict, tx_hash):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
-    return chainqueue.query.get_tx(chain_spec, tx_hash)
+    session = SessionBase.create_session()
+    r =  chainqueue.query.get_tx(chain_spec, tx_hash)
+    session.close()
+    return r
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
 def get_account_tx(chain_spec_dict, address, as_sender=True, as_recipient=True, counterpart=None):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
-    return chainqueue.query.get_account_tx(chain_spec, address, as_sender=True, as_recipient=True, counterpart=None)
+    session = SessionBase.create_session()
+    r = chainqueue.query.get_account_tx(chain_spec, address, as_sender=True, as_recipient=True, counterpart=None, session=session)
+    session.close()
+    return r
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
 def get_upcoming_tx_nolock(chain_spec_dict, status=StatusEnum.READYSEND, not_status=None, recipient=None, before=None, limit=0, session=None):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
-    return chainqueue.query.get_upcoming_tx(chain_spec, status, not_status=not_status, recipient=recipient, before=before, limit=limit, session=session, decoder=unpack):
+    session = SessionBase.create_session()
+    r = chainqueue.query.get_upcoming_tx(chain_spec, status, not_status=not_status, recipient=recipient, before=before, limit=limit, session=session, decoder=unpack)
+    session.close()
+    return r
 
 
 def get_status_tx(chain_spec, status, not_status=None, before=None, exact=False, limit=0, session=None):
@@ -43,10 +69,10 @@ def get_paused_tx(chain_spec, status=None, sender=None, session=None, decoder=No
 
 
 def get_nonce_tx(chain_spec, nonce, sender):
-    return get_nonce_tx_cache(chain_spec, nonce, sender, decoder=unpack):
+    return get_nonce_tx_cache(chain_spec, nonce, sender, decoder=unpack)
 
 
-def get_upcoming_tx(status=StatusEnum.READYSEND, not_status=None, recipient=None, before=None, limit=0, chain_id=0, session=None):
+def get_upcoming_tx(chain_spec, status=StatusEnum.READYSEND, not_status=None, recipient=None, before=None, limit=0, session=None):
     """Returns the next pending transaction, specifically the transaction with the lowest nonce, for every recipient that has pending transactions.
 
     Will omit addresses that have the LockEnum.SEND bit in Lock set.
@@ -65,6 +91,7 @@ def get_upcoming_tx(status=StatusEnum.READYSEND, not_status=None, recipient=None
     :returns: Transactions
     :rtype: dict, with transaction hash as key, signed raw transaction as value
     """
+    chain_id = chain_spec.chain_id()
     session = SessionBase.bind_session(session)
     q_outer = session.query(
             TxCache.sender,
@@ -109,7 +136,7 @@ def get_upcoming_tx(status=StatusEnum.READYSEND, not_status=None, recipient=None
         if o == None:
             continue
 
-        tx_signed_bytes = bytes.fromhex(o.signed_tx[2:])
+        tx_signed_bytes = bytes.fromhex(o.signed_tx)
         tx = unpack(tx_signed_bytes, chain_id)
         txs[o.tx_hash] = o.signed_tx
         

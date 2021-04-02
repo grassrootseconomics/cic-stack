@@ -105,6 +105,7 @@ def test_erc20_transfer_task(
         'cic_eth.eth.tx.reserve_nonce',
         [
             [token_object],
+            default_chain_spec.asdict(),
             custodial_roles['FOO_TOKEN_GIFTER'],
             ],
         queue=None,
@@ -146,6 +147,7 @@ def test_erc20_approve_task(
         'cic_eth.eth.tx.reserve_nonce',
         [
             [token_object],
+            default_chain_spec.asdict(),
             custodial_roles['FOO_TOKEN_GIFTER'],
             ],
         queue=None,

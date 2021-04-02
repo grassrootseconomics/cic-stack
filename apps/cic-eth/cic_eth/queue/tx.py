@@ -22,6 +22,7 @@ from chainqueue.db.enum import (
         is_alive,
         dead,
         )
+from chainqueue.tx import create
 from chainqueue.error import NotLocalTxError
 from chainqueue.db.enum import status_str
 
@@ -34,6 +35,21 @@ from cic_eth.error import LockedError
 
 celery_app = celery.current_app
 logg = logging.getLogger()
+
+
+def queue_create(chain_spec, nonce, holder_address, tx_hash, signed_tx, session=None):
+    session = SessionBase.bind_session(session)
+
+    lock = Lock.check_aggregate(str(chain_spec), LockEnum.QUEUE, holder_address, session=session) 
+    if lock > 0:
+        SessionBase.release_session(session)
+        raise LockedError(lock)
+
+    tx_hash = create(chain_spec, nonce, holder_address, tx_hash, signed_tx, chain_spec, session=session)
+   
+    SessionBase.release_session(session)
+
+    return tx_hash
 
 
 def register_tx(tx_hash_hex, tx_signed_raw_hex, chain_spec, queue, cache_task=None, session=None):
@@ -55,12 +71,12 @@ def register_tx(tx_hash_hex, tx_signed_raw_hex, chain_spec, queue, cache_task=No
     tx_signed_raw = bytes.fromhex(strip_0x(tx_signed_raw_hex))
     tx = unpack(tx_signed_raw, chain_id=chain_spec.chain_id())
 
-    create(
+    tx_hash = queue_create(
+        chain_spec,
         tx['nonce'],
         tx['from'],
         tx_hash_hex,
         tx_signed_raw_hex,
-        chain_spec,
         session=session,
     )        
 

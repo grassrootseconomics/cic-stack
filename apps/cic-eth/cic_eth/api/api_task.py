@@ -93,7 +93,9 @@ class Api:
                 )
         s_nonce = celery.signature(
                 'cic_eth.eth.tx.reserve_nonce',
-                [],
+                [
+                    self.chain_spec.asdict(),
+                    ],
                 queue=self.queue,
                 )
         s_tokens = celery.signature(
@@ -155,7 +157,9 @@ class Api:
                 )
         s_nonce = celery.signature(
                 'cic_eth.eth.tx.reserve_nonce',
-                [],
+                [
+                    self.chain_spec.asdict(),
+                    ],
                 queue=self.queue,
                 )
         s_tokens = celery.signature(
@@ -215,6 +219,7 @@ class Api:
         s_nonce = celery.signature(
                 'cic_eth.eth.tx.reserve_nonce',
                 [
+                    self.chain_spec.asdict(),
                     from_address,
                     ],
                 queue=self.queue,
@@ -361,6 +366,7 @@ class Api:
             s_nonce = celery.signature(
                 'cic_eth.eth.tx.reserve_nonce',
                 [
+                    self.chain_spec.asdict(),
                     'ACCOUNT_REGISTRY_WRITER',
                     ],
                 queue=self.queue,
@@ -399,6 +405,7 @@ class Api:
         s_nonce = celery.signature(
                 'cic_eth.eth.tx.reserve_nonce',
                 [
+                    self.chain_spec.asdict(),
                     'GAS_GIFTER',
                     ],
                 queue=self.queue,
@@ -439,8 +446,9 @@ class Api:
         """
         offset = 0
         s_local = celery.signature(
-            'cic_eth.queue.tx.get_account_tx',
+            'cic_eth.queue.query.get_account_tx',
             [
+                self.chain_spec.asdict(),
                 address,
                 ],
             queue=self.queue,

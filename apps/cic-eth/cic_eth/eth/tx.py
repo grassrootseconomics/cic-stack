@@ -37,29 +37,29 @@ from hexathon import (
         add_0x,
         strip_0x,
         )
+from chainqueue.db.models.tx import Otx
+from chainqueue.db.models.tx import TxCache
+from chainqueue.db.enum import StatusBits
 
 # local imports
-from cic_eth.db import (
-        Otx,
-        SessionBase,
-        )
-from cic_eth.db.models.tx import TxCache
+from cic_eth.db import SessionBase
 from cic_eth.db.models.nonce import NonceReservation
 from cic_eth.db.models.lock import Lock
 from cic_eth.db.models.role import AccountRole
 from cic_eth.db.enum import (
         LockEnum,
-        StatusBits,
         )
 from cic_eth.error import PermanentTxError
 from cic_eth.error import TemporaryTxError
 from cic_eth.error import NotLocalTxError
 #from cic_eth.queue.tx import create as queue_create
-from cic_eth.queue.tx import (
+from cic_eth.queue.query import (
         get_tx,
-        register_tx,
         get_nonce_tx,
-        create as queue_create,
+        )
+from cic_eth.queue.tx import (
+        queue_create,
+        register_tx,
         )
 from cic_eth.error import OutOfGasError
 from cic_eth.error import LockedError
@@ -145,6 +145,7 @@ def check_gas(self, tx_hashes, chain_spec_dict, txs=[], address=None, gas_requir
         s_nonce = celery.signature(
             'cic_eth.eth.tx.reserve_nonce',
             [
+                chain_spec_dict,
                 address,
                 gas_provider,
                 ],
@@ -164,6 +165,7 @@ def check_gas(self, tx_hashes, chain_spec_dict, txs=[], address=None, gas_requir
             s = celery.signature(
                 'cic_eth.queue.state.set_waitforgas',
                 [
+                    chain_spec_dict,
                     tx_hash,
                     ],
                 queue=queue,
@@ -177,6 +179,7 @@ def check_gas(self, tx_hashes, chain_spec_dict, txs=[], address=None, gas_requir
         s_nonce = celery.signature(
             'cic_eth.eth.tx.reserve_nonce',
             [
+                chain_spec_dict,
                 address,
                 gas_provider,
                 ],
@@ -197,6 +200,7 @@ def check_gas(self, tx_hashes, chain_spec_dict, txs=[], address=None, gas_requir
         s = celery.signature(
             'cic_eth.queue.state.set_ready',
             [
+                chain_spec_dict,
                 tx_hash,
                 ],
             queue=queue,
@@ -368,6 +372,7 @@ def refill_gas(self, recipient_address, chain_spec_dict):
     s_status = celery.signature(
         'cic_eth.queue.state.set_ready',
         [
+            chain_spec.asdict(),
             tx_hash_hex,
             ],
         queue=queue,
@@ -395,16 +400,14 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_spec_dict, gas=None, defa
     """
     session = SessionBase.create_session()
 
-    q = session.query(Otx)
-    q = q.filter(Otx.tx_hash==txold_hash_hex)
-    otx = q.first()
+    otx = Otx.load(txold_hash_hex, session)
     if otx == None:
         session.close()
         raise NotLocalTxError(txold_hash_hex)
 
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
 
-    tx_signed_raw_bytes = bytes.fromhex(otx.signed_tx[2:])
+    tx_signed_raw_bytes = bytes.fromhex(otx.signed_tx)
     tx = unpack(tx_signed_raw_bytes, chain_spec.chain_id())
     logg.debug('resend otx {} {}'.format(tx, otx.signed_tx))
 
@@ -438,11 +441,11 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_spec_dict, gas=None, defa
     tx['gasPrice'] = new_gas_price
     (tx_hash_hex, tx_signed_raw_hex) = c.build_raw(tx)
     queue_create(
+        chain_spec,
         tx['nonce'],
         tx['from'],
         tx_hash_hex,
         tx_signed_raw_hex,
-        chain_spec,
         session=session,
             )
     TxCache.clone(txold_hash_hex, tx_hash_hex, session=session)
@@ -462,7 +465,7 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_spec_dict, gas=None, defa
 
 
 @celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
-def reserve_nonce(self, chained_input, signer_address=None):
+def reserve_nonce(self, chained_input, chain_spec_dict, signer_address=None):
 
     self.log_banner()
 
@@ -473,7 +476,6 @@ def reserve_nonce(self, chained_input, signer_address=None):
         address = chained_input
         logg.debug('non-explicit address for reserve nonce, using arg head {}'.format(chained_input))
     else:
-        #if web3.Web3.isChecksumAddress(signer_address):
         if is_checksum_address(signer_address):
             address = signer_address
             logg.debug('explicit address for reserve nonce {}'.format(signer_address))
@@ -485,7 +487,7 @@ def reserve_nonce(self, chained_input, signer_address=None):
         raise ValueError('invalid result when resolving address for nonce {}'.format(address))
 
     root_id = self.request.root_id
-    r = NonceReservation.next(address, root_id)
+    r = NonceReservation.next(address, root_id, session=session)
     logg.debug('nonce {} reserved for address {} task {}'.format(r[1], address, r[0]))
 
     session.commit()
@@ -609,6 +611,8 @@ def cache_gas_data(
     tx_signed_raw_bytes = bytes.fromhex(strip_0x(tx_signed_raw_hex))
     tx = unpack(tx_signed_raw_bytes, chain_spec.chain_id())
 
+    session = SessionBase.create_session()
+
     tx_cache = TxCache(
         tx_hash_hex,
         tx['from'],
@@ -617,9 +621,9 @@ def cache_gas_data(
         ZERO_ADDRESS,
         tx['value'],
         tx['value'],
+        session=session,
             )
 
-    session = SessionBase.create_session()
     session.add(tx_cache)
     session.commit()
     cache_id = tx_cache.id

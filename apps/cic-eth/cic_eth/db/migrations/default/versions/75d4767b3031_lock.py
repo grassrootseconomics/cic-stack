@@ -24,7 +24,7 @@ def upgrade():
             sa.Column('blockchain', sa.String),
             sa.Column("flags", sa.BIGINT(), nullable=False, default=0),
             sa.Column("date_created", sa.DateTime, nullable=False),
-            sa.Column("otx_id", sa.Integer, nullable=True),
+            sa.Column("otx_id", sa.Integer, sa.ForeignKey('otx.id'), nullable=True),
             )
     op.create_index('idx_chain_address', 'lock', ['blockchain', 'address'], unique=True)
 

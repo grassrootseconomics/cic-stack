@@ -11,13 +11,12 @@ from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.tx import receipt
 from eth_accounts_index import AccountRegistry
 from hexathon import strip_0x
+from chainqueue.db.enum import StatusEnum
+from chainqueue.db.models.otx import Otx
 
 # local imports
 from cic_eth.error import OutOfGasError
-from cic_eth.db.models.otx import Otx
 from cic_eth.db.models.base import SessionBase
-from cic_eth.db.enum import StatusEnum
-from cic_eth.db.enum import StatusEnum
 from cic_eth.db.models.nonce import Nonce
 from cic_eth.db.models.role import AccountRole
 
@@ -77,6 +76,7 @@ def test_register_account(
             'cic_eth.eth.tx.reserve_nonce',
             [
                 eth_empty_accounts[0],
+                default_chain_spec.asdict(),
                 custodial_roles['ACCOUNT_REGISTRY_WRITER'],
                 ],
             queue=None,
@@ -171,6 +171,7 @@ def test_gift(
             'cic_eth.eth.tx.reserve_nonce',
             [
                 agent_roles['ALICE'],
+                default_chain_spec.asdict(),
                 ],
             queue=None,
             )

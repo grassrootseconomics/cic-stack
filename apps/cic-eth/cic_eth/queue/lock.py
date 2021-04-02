@@ -7,6 +7,8 @@ from cic_eth.task import CriticalSQLAlchemyTask
 from cic_eth.db import SessionBase
 from cic_eth.db.models.lock import Lock
 
+celery_app = celery.current_app
+
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
 def get_lock(address=None):

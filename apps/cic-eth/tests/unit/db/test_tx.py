@@ -18,10 +18,8 @@ from hexathon import (
         add_0x,
         strip_0x,
         )
-
-# local imports
-from cic_eth.db.models.tx import TxCache
-from cic_eth.db.models.otx import Otx
+from chainqueue.db.models.tx import TxCache
+from chainqueue.db.models.otx import Otx
 
 # test imports
 from tests.util.gas import StaticGasOracle
@@ -46,7 +44,6 @@ def test_set(
 
     otx = Otx(
         tx['nonce'],
-        tx['from'],
         tx_hash_hex,
         tx_signed_raw_hex,
         )
@@ -66,6 +63,7 @@ def test_set(
         to_value,
         666,
         13,
+        session=init_database,
             )
     init_database.add(txc)
     init_database.commit()
@@ -112,7 +110,6 @@ def test_clone(
         tx_dict = unpack(bytes.fromhex(strip_0x(tx_signed_raw_hex)), chain_id)
         otx = Otx(
             tx_dict['nonce'],
-            tx_dict['from'],
             tx_hash_hex,
             tx_signed_raw_hex,
             )
@@ -130,15 +127,16 @@ def test_clone(
         ZERO_ADDRESS,
         txs[0]['value'],
         txs[0]['value'],
+        session=init_database,
             )
     init_database.add(txc)
     init_database.commit()
 
-    TxCache.clone(txs[0]['hash'], txs[1]['hash'])
+    TxCache.clone(txs[0]['hash'], txs[1]['hash'], session=init_database)
 
     q = init_database.query(TxCache)
     q = q.join(Otx)
-    q = q.filter(Otx.tx_hash==txs[1]['hash'])
+    q = q.filter(Otx.tx_hash==strip_0x(txs[1]['hash']))
     txc_clone = q.first()
     
     assert txc_clone != None
