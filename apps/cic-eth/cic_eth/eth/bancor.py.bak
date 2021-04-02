@@ -222,7 +222,7 @@ def convert_with_default_reserve(self, tokens, from_address, source_amount, mini
 #            )
 #
 #    s_set_sent = celery.signature(
-#            'cic_eth.queue.tx.set_sent_status',
+#            'cic_eth.queue.state.set_sent_status',
 #            [False],
 #            )
 #    s_send.link(s_set_sent)

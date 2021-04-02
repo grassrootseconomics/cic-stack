@@ -113,7 +113,7 @@ def sendfail_filter(w3, tx_hash, rcpt, chain_spec):
 #            )
     
 #    s_retry_status = celery.signature(
-#            'cic_eth.queue.tx.set_ready',
+#            'cic_eth.queue.state.set_ready',
 #            [],
 #            queue=queue,
 #    )

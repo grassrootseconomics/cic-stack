@@ -162,7 +162,7 @@ def check_gas(self, tx_hashes, chain_spec_dict, txs=[], address=None, gas_requir
         wait_tasks = []
         for tx_hash in tx_hashes:
             s = celery.signature(
-                'cic_eth.queue.tx.set_waitforgas',
+                'cic_eth.queue.state.set_waitforgas',
                 [
                     tx_hash,
                     ],
@@ -195,7 +195,7 @@ def check_gas(self, tx_hashes, chain_spec_dict, txs=[], address=None, gas_requir
     ready_tasks = []
     for tx_hash in tx_hashes:
         s = celery.signature(
-            'cic_eth.queue.tx.set_ready',
+            'cic_eth.queue.state.set_ready',
             [
                 tx_hash,
                 ],
@@ -278,7 +278,7 @@ def send(self, txs, chain_spec_dict):
 
     r = None
     s_set_sent = celery.signature(
-        'cic_eth.queue.tx.set_sent_status',
+        'cic_eth.queue.state.set_sent_status',
         [
             tx_hash_hex,
             False
@@ -366,7 +366,7 @@ def refill_gas(self, recipient_address, chain_spec_dict):
 
     # add transaction to send queue
     s_status = celery.signature(
-        'cic_eth.queue.tx.set_ready',
+        'cic_eth.queue.state.set_ready',
         [
             tx_hash_hex,
             ],
@@ -525,7 +525,7 @@ def sync_tx(self, tx_hash_hex, chain_spec_dict):
         logg.debug('sync tx {} mined block {} success {}'.format(tx_hash_hex, rcpt['blockNumber'], success))
 
         s = celery.signature(
-            'cic_eth.queue.tx.set_final_status',
+            'cic_eth.queue.state.set_final_status',
             [
                 tx_hash_hex,
                 rcpt['blockNumber'],
@@ -537,7 +537,7 @@ def sync_tx(self, tx_hash_hex, chain_spec_dict):
         logg.debug('sync tx {} mempool'.format(tx_hash_hex))
 
         s = celery.signature(
-            'cic_eth.queue.tx.set_sent_status',
+            'cic_eth.queue.state.set_sent_status',
             [
                 tx_hash_hex,
                 ],

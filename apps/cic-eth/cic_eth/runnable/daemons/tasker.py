@@ -14,6 +14,7 @@ import confini
 from chainlib.connection import RPCConnection
 from chainlib.eth.connection import EthUnixSignerConnection
 from chainlib.chain import ChainSpec
+from chainqueue.db.models.otx import Otx
 
 # local imports
 from cic_eth.eth import erc20
@@ -21,14 +22,14 @@ from cic_eth.eth import tx
 from cic_eth.eth import account
 from cic_eth.admin import debug
 from cic_eth.admin import ctrl
-from cic_eth.queue import tx
+from cic_eth.queue import state
+from cic_eth.queue import query
 from cic_eth.queue import balance
 from cic_eth.callbacks import Callback
 from cic_eth.callbacks import http
 from cic_eth.callbacks import tcp
 from cic_eth.callbacks import redis
 from cic_eth.db.models.base import SessionBase
-from cic_eth.db.models.otx import Otx
 from cic_eth.db import dsn_from_config
 from cic_eth.ext import tx
 from cic_eth.registry import (

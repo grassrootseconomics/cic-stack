@@ -2,12 +2,12 @@
 import os
 import logging
 
-# third-party imports
+# external imports
 import pytest
+from chainqueue.db.models.otx import Otx
+from chainqueue.db.models.tx import TxCache
 
 # local imports
-from cic_eth.db.models.otx import Otx
-from cic_eth.db.models.tx import TxCache
 from cic_eth.queue.balance import (
         balance_outgoing,
         balance_incoming,

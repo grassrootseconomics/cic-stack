@@ -1,8 +1,8 @@
-"""Add account lock
+"""Lock
 
-Revision ID: 89e1e9baa53c
-Revises: 2a07b543335e
-Create Date: 2021-01-27 19:57:36.793882
+Revision ID: 75d4767b3031
+Revises: 1f1b3b641d08
+Create Date: 2021-04-02 18:41:20.864265
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '89e1e9baa53c'
-down_revision = '2a07b543335e'
+revision = '75d4767b3031'
+down_revision = '1f1b3b641d08'
 branch_labels = None
 depends_on = None
 
@@ -27,6 +27,7 @@ def upgrade():
             sa.Column("otx_id", sa.Integer, nullable=True),
             )
     op.create_index('idx_chain_address', 'lock', ['blockchain', 'address'], unique=True)
+
 
 def downgrade():
     op.drop_index('idx_chain_address')

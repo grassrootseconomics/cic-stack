@@ -92,7 +92,7 @@ class AdminApi:
 
     def get_lock(self):
         s_lock = celery.signature(
-            'cic_eth.queue.tx.get_lock',
+            'cic_eth.queue.lock.get_lock',
             [],
             queue=self.queue,
             )
@@ -165,7 +165,7 @@ class AdminApi:
             )
 
         s_manual = celery.signature(
-            'cic_eth.queue.tx.set_manual',
+            'cic_eth.queue.state.set_manual',
             [
                 tx_hash_hex,
                 ],

@@ -7,10 +7,10 @@ from chainlib.chain import ChainSpec
 from chainlib.connection import RPCConnection
 from chainlib.eth.block import block_by_hash
 from chainlib.eth.tx import receipt
+from chainqueue.db.models.otx import Otx
+from chainqueue.error import NotLocalTxError
 
 # local imports
-from cic_eth.db.models.otx import Otx
-from cic_eth.error import NotLocalTxError
 from cic_eth.task import CriticalSQLAlchemyAndWeb3Task
 
 celery_app = celery.current_app

@@ -34,7 +34,7 @@ class TxFilter(SyncFilter):
         db_session.flush()
         SessionBase.release_session(db_session)
         s = celery.signature(
-                'cic_eth.queue.tx.set_final_status',
+                'cic_eth.queue.state.set_final_status',
                 [
                     add_0x(tx_hash_hex),
                     tx.block.number,

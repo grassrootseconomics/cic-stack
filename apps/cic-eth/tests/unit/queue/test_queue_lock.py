@@ -3,9 +3,9 @@ import os
 
 # third-party imports
 import pytest
+from chainqueue.tx import create as queue_create
 
 # local imports
-from cic_eth.queue.tx import create as queue_create
 from cic_eth.db.models.lock import Lock
 from cic_eth.db.enum import LockEnum
 from cic_eth.error import LockedError

@@ -5,15 +5,15 @@ import logging
 import celery
 from chainlib.chain import ChainSpec
 from hexathon import strip_0x
-
-# local imports
-from cic_eth.db import SessionBase
-from cic_eth.db.models.otx import Otx
-from cic_eth.db.models.tx import TxCache
-from cic_eth.db.enum import (
+from chainqueue.db.models.otx import Otx
+from chainqueue.db.models.tx import TxCache
+from chainqueue.db.enum import (
         StatusBits,
         dead,
         )
+
+# local imports
+from cic_eth.db import SessionBase
 from cic_eth.task import CriticalSQLAlchemyTask
 
 celery_app = celery.current_app
