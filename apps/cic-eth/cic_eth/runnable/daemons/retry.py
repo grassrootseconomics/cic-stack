@@ -1,3 +1,4 @@
+# standard imports
 import os
 import sys
 import logging
@@ -5,22 +6,36 @@ import argparse
 import re
 import datetime
 
-import web3
+# external imports
 import confini
 import celery
 from cic_eth_registry import CICRegistry
 from chainlib.chain import ChainSpec
+from chainlib.eth.tx import unpack
+from chainlib.connection import RPCConnection
+from chainlib.eth.block import (
+        block_latest,
+        block_by_number,
+        Block,
+        )
+from chainsyncer.driver import HeadSyncer
+from chainsyncer.backend import MemBackend
+from chainsyncer.error import NoBlockForYou
 
+# local imports
 from cic_eth.db import dsn_from_config
 from cic_eth.db import SessionBase
-from cic_eth.eth import RpcClient
-from cic_eth.sync.retry import RetrySyncer
-from cic_eth.queue.tx import get_status_tx
-from cic_eth.queue.tx import get_tx
+from cic_eth.queue.tx import (
+        get_status_tx,
+        get_tx,
+#        get_upcoming_tx,
+        )
 from cic_eth.admin.ctrl import lock_send
-from cic_eth.db.enum import StatusEnum
-from cic_eth.db.enum import LockEnum
-from cic_eth.eth.util import unpack_signed_raw_tx_hex
+from cic_eth.db.enum import (
+        StatusEnum,
+        StatusBits,
+        LockEnum,
+        )
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -31,7 +46,8 @@ argparser = argparse.ArgumentParser(description='daemon that monitors transactio
 argparser.add_argument('-p', '--provider', dest='p', type=str, help='rpc provider')
 argparser.add_argument('-c', type=str, default=config_dir, help='config root to use')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
-argparser.add_argument('--retry-delay', dest='retry_delay', type=str, help='seconds to wait for retrying a transaction that is marked as sent')
+argparser.add_argument('--batch-size', dest='batch_size', type=int, default=50, help='max amount of txs to resend per iteration')
+argparser.add_argument('--retry-delay', dest='retry_delay', type=int, help='seconds to wait for retrying a transaction that is marked as sent')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
 argparser.add_argument('-v', help='be verbose', action='store_true')
@@ -51,7 +67,6 @@ config.process()
 # override args
 args_override = {
         'ETH_PROVIDER': getattr(args, 'p'),
-        'ETH_ABI_DIR': getattr(args, 'abi_dir'),
         'CIC_CHAIN_SPEC': getattr(args, 'i'),
         'CIC_TX_RETRY_DELAY': getattr(args, 'retry_delay'),
         }
@@ -59,6 +74,7 @@ config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
 logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
+config.add(args.batch_size, '_BATCH_SIZE', True)
 
 app = celery.Celery(backend=config.get('CELERY_RESULT_URL'),  broker=config.get('CELERY_BROKER_URL'))
 
@@ -66,10 +82,10 @@ queue = args.q
 
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 
-RPCConnection.registry_location(args.p, chain_spec, tag='default')
+RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, tag='default')
 
 dsn = dsn_from_config(config)
-SessionBase.connect(dsn)
+SessionBase.connect(dsn, debug=config.true('DATABASE_DEBUG'))
 
 straggler_delay = int(config.get('CIC_TX_RETRY_DELAY'))
 
@@ -178,53 +194,85 @@ def dispatch(conn, chain_spec):
 #    s_send.apply_async()
 
 
-class RetrySyncer(Syncer):
+class StragglerFilter:
 
-    def __init__(self, chain_spec, stalled_grace_seconds, failed_grace_seconds=None, final_func=None):
+    def __init__(self, chain_spec, queue='cic-eth'):
+        self.chain_spec = chain_spec
+        self.queue = queue
+
+
+    def filter(self, conn, block, tx, db_session=None):
+        logg.debug('tx {}'.format(tx))
+        s_send = celery.signature(
+                'cic_eth.eth.tx.resend_with_higher_gas',
+                [
+                    tx,
+                    self.chain_spec.asdict(),
+                ],
+                queue=self.queue,
+        )
+        return s_send.apply_async()
+        #return s_send
+
+
+    def __str__(self):
+        return 'stragglerfilter'
+
+
+class RetrySyncer(HeadSyncer):
+
+    def __init__(self, conn, chain_spec, stalled_grace_seconds, batch_size=50, failed_grace_seconds=None):
+        backend = MemBackend(chain_spec, None)
+        super(RetrySyncer, self).__init__(backend)
         self.chain_spec = chain_spec
         if failed_grace_seconds == None:
             failed_grace_seconds = stalled_grace_seconds
         self.stalled_grace_seconds = stalled_grace_seconds
         self.failed_grace_seconds = failed_grace_seconds
-        self.final_func = final_func
+        self.batch_size = batch_size
+        self.conn = conn
 
 
-    def get(self):
-#            before = datetime.datetime.utcnow() - datetime.timedelta(seconds=self.failed_grace_seconds)
-#            failed_txs = get_status_tx(
-#                    StatusEnum.SENDFAIL.value,
-#                    before=before,
-#                    )
-            before = datetime.datetime.utcnow() - datetime.timedelta(seconds=self.stalled_grace_seconds)
-            stalled_txs = get_status_tx(
-                    StatusBits.IN_NETWORK.value,
-                    not_status=StatusBits.FINAL | StatusBits.MANUAL | StatusBits.OBSOLETE,
-                    before=before,
-                    )
-       #     return list(failed_txs.keys()) + list(stalled_txs.keys())
-            return stalled_txs
-
-    def process(self, conn, ref):
-        logg.debug('tx {}'.format(ref))
-        for f in self.filter:
-            f(conn, ref, None, str(self.chain_spec))
+    def get(self, conn):
+        o = block_latest()
+        r = conn.do(o)
+        (pair, flags) = self.backend.get()
+        n = int(r, 16)
+        if n == pair[0]:
+            raise NoBlockForYou('block {} already checked'.format(n))
+        o = block_by_number(n)
+        r = conn.do(o)
+        b = Block(r)
+        return b
 
 
+    def process(self, conn, block):
+        before = datetime.datetime.utcnow() - datetime.timedelta(seconds=self.stalled_grace_seconds)
+        stalled_txs = get_status_tx(
+                StatusBits.IN_NETWORK.value,
+                not_status=StatusBits.FINAL | StatusBits.MANUAL | StatusBits.OBSOLETE,
+                before=before,
+                limit=self.batch_size,
+                )
+#        stalled_txs = get_upcoming_tx(
+#                status=StatusBits.IN_NETWORK.value, 
+#                not_status=StatusBits.FINAL | StatusBits.MANUAL | StatusBits.OBSOLETE,
+#                before=before,
+#                limit=self.batch_size,
+#                )
+        for tx in stalled_txs:
+            self.filter.apply(self.conn, block, tx)
+        self.backend.set(block.number, 0)
 
-    def loop(self, interval):
-        while self.running and Syncer.running_global:
-            rpc = RPCConnection.connect(self.chain_spec, 'default')
-            for tx in self.get():
-                self.process(rpc, tx)
-            if self.final_func != None:
-                self.final_func(rpc, self.chain_spec)
-            time.sleep(interval)
 
 def main(): 
-
-    syncer = RetrySyncer(chain_spec, straggler_delay, final_func=dispatch)
-    syncer.filter.append(sendfail_filter)
-    syncer.loop(float(straggler_delay))
+    #o = block_latest()
+    conn = RPCConnection.connect(chain_spec, 'default')
+    #block = conn.do(o)
+    syncer = RetrySyncer(conn, chain_spec, straggler_delay, batch_size=config.get('_BATCH_SIZE'))
+    syncer.backend.set(0, 0)
+    syncer.add_filter(StragglerFilter(chain_spec, queue=queue))
+    syncer.loop(float(straggler_delay), conn)
 
 
 if __name__ == '__main__':

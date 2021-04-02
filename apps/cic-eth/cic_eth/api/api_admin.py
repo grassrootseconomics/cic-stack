@@ -134,7 +134,8 @@ class AdminApi:
         return s_have.apply_async()
 
 
-    def resend(self, tx_hash_hex, chain_str, in_place=True, unlock=False):
+    def resend(self, tx_hash_hex, chain_spec, in_place=True, unlock=False):
+
         logg.debug('resend {}'.format(tx_hash_hex))
         s_get_tx_cache = celery.signature(
             'cic_eth.queue.tx.get_tx_cache',
@@ -156,7 +157,7 @@ class AdminApi:
         s = celery.signature(
             'cic_eth.eth.tx.resend_with_higher_gas',
             [
-                chain_str,
+                chain_spec.asdict(),
                 None,
                 1.01,
                 ],
@@ -176,7 +177,7 @@ class AdminApi:
             s_gas = celery.signature(
                 'cic_eth.admin.ctrl.unlock_send',
                 [
-                    chain_str,
+                    chain_spec.asdict(),
                     tx_dict['sender'],
                 ],
                 queue=self.queue,
@@ -218,7 +219,7 @@ class AdminApi:
                 blocking_tx = k
                 blocking_nonce = nonce_otx
             elif nonce_otx - last_nonce > 1:
-                logg.error('nonce gap; {} followed {}'.format(nonce_otx, last_nonce))
+                logg.error('nonce gap; {} followed {} for account {}'.format(nonce_otx, last_nonce, tx['from']))
                 blocking_tx = k
                 blocking_nonce = nonce_otx
                 break
@@ -312,10 +313,10 @@ class AdminApi:
             tx_dict = s.apply_async().get()
             if tx_dict['sender'] == address:
                 if tx_dict['nonce'] - last_nonce > 1:
-                    logg.error('nonce gap; {} followed {} for tx {}'.format(tx_dict['nonce'], last_nonce, tx_dict['hash']))
+                    logg.error('nonce gap; {} followed {} for address {} tx {}'.format(tx_dict['nonce'], last_nonce, tx_dict['sender'], tx_hash))
                     errors.append('nonce')
                 elif tx_dict['nonce'] == last_nonce:
-                    logg.warning('nonce {} duplicate in tx {}'.format(tx_dict['nonce'], tx_dict['hash']))
+                    logg.info('nonce {} duplicate for address {} in tx {}'.format(tx_dict['nonce'], tx_dict['sender'], tx_hash))
                 last_nonce = tx_dict['nonce']
                 if not include_sender:
                     logg.debug('skipping sender tx {}'.format(tx_dict['tx_hash']))
@@ -480,15 +481,17 @@ class AdminApi:
             tx['destination_token_symbol'] = destination_token.symbol()
             tx['recipient_token_balance'] = source_token.function('balanceOf')(tx['recipient']).call()
 
-        tx['network_status'] = 'Not submitted'
+        # TODO: this can mean either not subitted or culled, need to check other txs with same nonce to determine which
+        tx['network_status'] = 'Not in node' 
 
         r = None
         try:
             o = transaction(tx_hash)
             r = self.rpc.do(o)
+            if r != None:
+                tx['network_status'] = 'Mempool'
         except Exception as e:
             logg.warning('(too permissive exception handler, please fix!) {}'.format(e))
-            tx['network_status'] = 'Mempool'
 
         if r != None:
             try:

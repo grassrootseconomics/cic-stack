@@ -676,6 +676,7 @@ def get_status_tx(status, not_status=None, before=None, exact=False, limit=0, se
         q = q.filter(Otx.status.op('&')(status)>0)
         if not_status != None:
             q = q.filter(Otx.status.op('&')(not_status)==0)
+    q = q.order_by(Otx.nonce.asc(), Otx.date_created.asc())
     i = 0
     for o in q.all():
         if limit > 0 and i == limit:
@@ -687,7 +688,7 @@ def get_status_tx(status, not_status=None, before=None, exact=False, limit=0, se
 
 
 # TODO: move query to model
-def get_upcoming_tx(status=StatusEnum.READYSEND, recipient=None, before=None, chain_id=0, session=None):
+def get_upcoming_tx(status=StatusEnum.READYSEND, not_status=None, recipient=None, before=None, limit=0, chain_id=0, session=None):
     """Returns the next pending transaction, specifically the transaction with the lowest nonce, for every recipient that has pending transactions.
 
     Will omit addresses that have the LockEnum.SEND bit in Lock set.
@@ -721,7 +722,10 @@ def get_upcoming_tx(status=StatusEnum.READYSEND, recipient=None, before=None, ch
     if status == StatusEnum.PENDING:
         q_outer = q_outer.filter(Otx.status==status.value)
     else:
-        q_outer = q_outer.filter(Otx.status.op('&')(status.value)==status.value)
+        q_outer = q_outer.filter(Otx.status.op('&')(status)==status)
+
+    if not_status != None:
+        q_outer = q_outer.filter(Otx.status.op('&')(not_status)==0)
 
     if recipient != None:
         q_outer = q_outer.filter(TxCache.recipient==recipient)
@@ -730,6 +734,7 @@ def get_upcoming_tx(status=StatusEnum.READYSEND, recipient=None, before=None, ch
 
     txs = {}
 
+    i = 0
     for r in q_outer.all():
         q = session.query(Otx)
         q = q.join(TxCache)
@@ -757,6 +762,10 @@ def get_upcoming_tx(status=StatusEnum.READYSEND, recipient=None, before=None, ch
         o.date_checked = datetime.datetime.now()
         session.add(o)
         session.commit()
+
+        i += 1
+        if limit > 0 and limit == i:
+            break
 
     SessionBase.release_session(session)
 

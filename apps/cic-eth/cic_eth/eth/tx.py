@@ -7,7 +7,10 @@ import requests
 from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.chain import ChainSpec
 from chainlib.eth.address import is_checksum_address
-from chainlib.eth.gas import balance
+from chainlib.eth.gas import (
+        balance,
+        price,
+        )
 from chainlib.eth.error import (
         EthException,
         NotFoundEthException,
@@ -17,11 +20,15 @@ from chainlib.eth.tx import (
         receipt,
         raw,
         TxFormat,
+        TxFactory,
         unpack,
         )
 from chainlib.connection import RPCConnection
 from chainlib.hash import keccak256_hex_to_hex
-from chainlib.eth.gas import Gas
+from chainlib.eth.gas import (
+        Gas,
+        OverrideGasOracle,
+        )
 from chainlib.eth.contract import (
         abi_decode_single,
         ABIContractType,
@@ -52,6 +59,7 @@ from cic_eth.queue.tx import (
         get_tx,
         register_tx,
         get_nonce_tx,
+        create as queue_create,
         )
 from cic_eth.error import OutOfGasError
 from cic_eth.error import LockedError
@@ -370,7 +378,7 @@ def refill_gas(self, recipient_address, chain_spec_dict):
 
 
 @celery_app.task(bind=True, base=CriticalSQLAlchemyAndSignerTask)
-def resend_with_higher_gas(self, txold_hash_hex, chain_str, gas=None, default_factor=1.1):
+def resend_with_higher_gas(self, txold_hash_hex, chain_spec_dict, gas=None, default_factor=1.1):
     """Create a new transaction from an existing one with same nonce and higher gas price.
 
     :param txold_hash_hex: Transaction to re-create
@@ -394,46 +402,55 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_str, gas=None, default_fa
         session.close()
         raise NotLocalTxError(txold_hash_hex)
 
-    chain_spec = ChainSpec.from_chain_str(chain_str)
-    c = RpcClient(chain_spec)
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
 
     tx_signed_raw_bytes = bytes.fromhex(otx.signed_tx[2:])
     tx = unpack(tx_signed_raw_bytes, chain_spec.chain_id())
     logg.debug('resend otx {} {}'.format(tx, otx.signed_tx))
 
-    queue = self.request.delivery_info['routing_key']
+    queue = self.request.delivery_info.get('routing_key')
 
     logg.debug('before {}'.format(tx))
-    if gas != None:
-        tx['gasPrice'] = gas
-    else:
-        gas_price = c.gas_price()
-        if tx['gasPrice'] > gas_price:
-            logg.info('Network gas price {} is lower than overdue tx gas price {}'.format(gas_price, tx['gasPrice']))
+
+    rpc = RPCConnection.connect(chain_spec, 'default')
+    new_gas_price = gas
+    if new_gas_price == None:
+        o = price()
+        r = rpc.do(o)
+        current_gas_price = int(r, 16)
+        if tx['gasPrice'] > current_gas_price:
+            logg.info('Network gas price {} is lower than overdue tx gas price {}'.format(curent_gas_price, tx['gasPrice']))
             #tx['gasPrice'] = int(tx['gasPrice'] * default_factor)
-            tx['gasPrice'] += 1
+            new_gas_price = tx['gasPrice'] + 1
         else:
             new_gas_price = int(tx['gasPrice'] * default_factor)
-            if gas_price > new_gas_price:
-                tx['gasPrice'] = gas_price
-            else:
-                tx['gasPrice'] = new_gas_price
+            #if gas_price > new_gas_price:
+            #    tx['gasPrice'] = gas_price
+            #else:
+            #    tx['gasPrice'] = new_gas_price
 
-    (tx_hash_hex, tx_signed_raw_hex) = sign_tx(tx, chain_str)
+
+    rpc_signer = RPCConnection.connect(chain_spec, 'signer')
+    gas_oracle = OverrideGasOracle(price=new_gas_price, conn=rpc)
+
+    c = TxFactory(signer=rpc_signer, gas_oracle=gas_oracle, chain_id=chain_spec.chain_id())
+    logg.debug('change gas price from old {} to new {} for tx {}'.format(tx['gasPrice'], new_gas_price, tx))
+    tx['gasPrice'] = new_gas_price
+    (tx_hash_hex, tx_signed_raw_hex) = c.build_raw(tx)
     queue_create(
         tx['nonce'],
         tx['from'],
         tx_hash_hex,
         tx_signed_raw_hex,
-        chain_str,
+        chain_spec,
         session=session,
             )
     TxCache.clone(txold_hash_hex, tx_hash_hex, session=session)
     session.close()
 
-    s = create_check_gas_and_send_task(
+    s = create_check_gas_task(
             [tx_signed_raw_hex],
-            chain_str, 
+            chain_spec, 
             tx['from'],
             tx['gasPrice'] * tx['gas'],
             [tx_hash_hex],

@@ -7,13 +7,10 @@ import os
 # third-party imports
 import celery
 import confini
-import web3
-from cic_registry import CICRegistry
-from cic_registry.chain import ChainSpec
-from cic_registry.chain import ChainRegistry
+from chainlib.chain import ChainSpec
+from chainlib.eth.connection import EthHTTPConnection
 
 # local imports
-from cic_eth.eth.rpc import RpcClient
 from cic_eth.api.api_admin import AdminApi
 
 logging.basicConfig(level=logging.WARNING)
@@ -55,41 +52,20 @@ args_override = {
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
 logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
+config.add(args.tx_hash, '_TX_HASH', True)
+config.add(args.unlock, '_UNLOCK', True)
 
 chain_spec = ChainSpec.from_chain_str(args.i)
-chain_str = str(chain_spec)
 
-re_websocket = re.compile('^wss?://')
-re_http = re.compile('^https?://')
-blockchain_provider = config.get('ETH_PROVIDER')
-if re.match(re_websocket, blockchain_provider) != None:
-    blockchain_provider = web3.Web3.WebsocketProvider(blockchain_provider)
-elif re.match(re_http, blockchain_provider) != None:
-    blockchain_provider = web3.Web3.HTTPProvider(blockchain_provider)
-else:
-    raise ValueError('unknown provider url {}'.format(blockchain_provider))
-
-def web3_constructor():
-    w3 = web3.Web3(blockchain_provider)
-    return (blockchain_provider, w3)
-RpcClient.set_constructor(web3_constructor)
+rpc = EthHTTPConnection(config.get('ETH_PROVIDER'))
 
 celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
-c = RpcClient(chain_spec)
-
-CICRegistry.init(c.w3, config.get('CIC_REGISTRY_ADDRESS'), chain_spec)
-chain_registry = ChainRegistry(chain_spec)
-CICRegistry.add_chain_registry(chain_registry)
-CICRegistry.add_path(config.get('ETH_ABI_DIR'))
-CICRegistry.load_for(chain_spec)
-
-
 def main():
-    api = AdminApi(c)
+    api = AdminApi(rpc)
     tx_details = api.tx(chain_spec, args.tx_hash)
-    t = api.resend(args.tx_hash, chain_str, unlock=True)
-
+    t = api.resend(args.tx_hash, chain_spec, unlock=config.get('_UNLOCK'))
+    print(t.get_leaf())
 
 if __name__ == '__main__':
     main()

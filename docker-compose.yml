@@ -317,8 +317,8 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
       TASKS_TRANSFER_CALLBACKS: $TASKS_TRANSFER_CALLBACKS
-        #DATABASE_DEBUG: ${DATABASE_DEBUG:-false}
-      DATABASE_DEBUG: 1
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-false}
+        #DATABASE_DEBUG: 1
 
     depends_on:
       - eth
@@ -359,6 +359,8 @@ services:
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
       TASKS_TRANSFER_CALLBACKS: $TASKS_TRANSFER_CALLBACKS
       CIC_TX_RETRY_DELAY: 15
+      BATCH_SIZE: ${RETRIER_BATCH_SIZE:-50}
+        #DATABASE_DEBUG: 1
     depends_on:
       - eth
       - postgres
@@ -373,7 +375,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_retry.sh -v
+        ./start_retry.sh -vv 
     # command: "/root/start_retry.sh -q cic-eth -vv"
 
 
