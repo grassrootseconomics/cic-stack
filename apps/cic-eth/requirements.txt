@@ -1,6 +1,6 @@
-cic-base~=0.1.2a53
+cic-base~=0.1.2a55
 celery==4.4.7
-crypto-dev-signer~=0.4.14a16
+crypto-dev-signer~=0.4.14a17
 confini~=0.3.6rc3
 cic-eth-registry~=0.5.4a9
 #cic-bancor~=0.0.6
@@ -16,7 +16,7 @@ semver==2.13.0
 websocket-client==0.57.0
 moolb~=0.1.1b2
 eth-address-index~=0.1.1a5
-chainlib~=0.0.1a43
+chainlib~=0.0.1a46
 hexathon~=0.0.1a7
 chainsyncer~=0.0.1a20
 chainqueue~=0.0.1a1
