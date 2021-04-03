@@ -1,4 +1,4 @@
-cic-base[full_graph]==0.1.2a52
+cic-base[full_graph]==0.1.2a55
 sarafu-faucet==0.0.2a15
 cic-eth==0.10.1b2+build.9c750e70
 cic-types==0.1.0a8
