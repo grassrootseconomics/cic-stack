@@ -103,7 +103,7 @@ def register_eth(i, u):
     address = add_0x(to_checksum_address(address_hex))
 
     gas_oracle = RPCGasOracle(rpc, code_callback=AccountRegistry.gas)
-    c = AccountRegistry(signer=signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle, chain_id=chain_spec.chain_id())
+    c = AccountRegistry(chain_spec, signer=signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
     (tx_hash_hex, o) = c.add(account_registry_address, signer_address, address)
     logg.debug('o {}'.format(o))
     rpc.do(o)

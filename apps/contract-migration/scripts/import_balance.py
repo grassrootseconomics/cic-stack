@@ -174,25 +174,25 @@ class Handler:
         #    logg.error('key record not found in imports: {}'.format(e).ljust(200))
 
 
-class BlockGetter:
-
-    def __init__(self, conn, gas_oracle, nonce_oracle, chain_id):
-        self.conn = conn
-        self.tx_factory = ERC20(signer=signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle, chain_id=chain_id)
-
-
-    def get(self, n):
-        o = block_by_number(n)
-        r = self.conn.do(o)
-        b = None
-        try:
-            b = Block(r)
-        except TypeError as e:
-            if r == None:
-                logg.debug('block not found {}'.format(n))
-            else:
-                logg.error('block retrieve error {}'.format(e))
-        return b
+#class BlockGetter:
+#
+#    def __init__(self, conn, gas_oracle, nonce_oracle, chain_spec):
+#        self.conn = conn
+#        self.tx_factory = ERC20(signer=signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle, chain_id=chain_id)
+#
+#
+#    def get(self, n):
+#        o = block_by_number(n)
+#        r = self.conn.do(o)
+#        b = None
+#        try:
+#            b = Block(r)
+#        except TypeError as e:
+#            if r == None:
+#                logg.debug('block not found {}'.format(n))
+#            else:
+#                logg.error('block retrieve error {}'.format(e))
+#        return b
 
 
 def progress_callback(block_number, tx_index, s):
@@ -208,7 +208,7 @@ def main():
     nonce_oracle = RPCNonceOracle(signer_address, conn)
 
     # Get Token registry address
-    txf = TxFactory(signer=signer, gas_oracle=gas_oracle, nonce_oracle=None, chain_id=chain_spec.network_id())
+    txf = TxFactory(chain_spec, signer=signer, gas_oracle=gas_oracle, nonce_oracle=None)
     tx = txf.template(signer_address, config.get('CIC_REGISTRY_ADDRESS'))
 
     registry_addressof_method = keccak256_string_to_hex('addressOf(bytes32)')[:8]

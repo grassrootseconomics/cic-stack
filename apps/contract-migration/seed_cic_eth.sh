@@ -30,6 +30,8 @@ truncate $env_out_file -s 0
 set -e
 set -a
 
+#pip install --extra-index-url $DEV_PIP_EXTRA_INDEX_URL  eth-address-index==0.1.1a7
+
 # get required addresses from registries
 DEV_TOKEN_INDEX_ADDRESS=`eth-contract-registry-list -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -r $CIC_REGISTRY_ADDRESS -f brief TokenRegistry`
 DEV_ACCOUNT_INDEX_ADDRESS=`eth-contract-registry-list -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -r $CIC_REGISTRY_ADDRESS -f brief AccountRegistry`

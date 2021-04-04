@@ -203,12 +203,12 @@ class Verifier:
         self.index_address = index_address
         self.token_address = token_address
         self.faucet_address = faucet_address
-        self.erc20_tx_factory = ERC20(chain_id=chain_spec.chain_id(), gas_oracle=gas_oracle)
-        self.tx_factory = TxFactory(chain_id=chain_spec.chain_id(), gas_oracle=gas_oracle)
+        self.erc20_tx_factory = ERC20(chain_spec, gas_oracle=gas_oracle)
+        self.tx_factory = TxFactory(chain_spec, gas_oracle=gas_oracle)
         self.api = cic_eth_api
         self.data_dir = data_dir
         self.exit_on_error = exit_on_error
-        self.faucet_tx_factory = SingleShotFaucet(chain_id=chain_spec.chain_id(), gas_oracle=gas_oracle)
+        self.faucet_tx_factory = SingleShotFaucet(chain_spec, gas_oracle=gas_oracle)
 
         verifymethods = []
         for k in dir(self):
@@ -326,7 +326,7 @@ def main():
     gas_oracle = OverrideGasOracle(conn=conn, limit=8000000)
 
     # Get Token registry address
-    txf = TxFactory(signer=None, gas_oracle=gas_oracle, nonce_oracle=None, chain_id=chain_spec.chain_id())
+    txf = TxFactory(chain_spec, signer=None, gas_oracle=gas_oracle, nonce_oracle=None)
     tx = txf.template(ZERO_ADDRESS, config.get('CIC_REGISTRY_ADDRESS'))
 
     # TODO: replace with cic-eth-registry
