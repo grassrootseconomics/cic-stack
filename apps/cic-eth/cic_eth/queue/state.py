@@ -11,19 +11,19 @@ celery_app = celery.current_app
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
-def set_sent_status(chain_spec_dict, tx_hash, fail=False):
+def set_sent(chain_spec_dict, tx_hash, fail=False):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
     session = SessionBase.create_session()
-    r = chainqueue.state.set_sent_status(chain_spec, tx_hash, fail, session=session)
+    r = chainqueue.state.set_sent(chain_spec, tx_hash, fail, session=session)
     session.close()
     return r
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
-def set_final_status(chain_spec_dict, tx_hash, block=None, fail=False):
+def set_final(chain_spec_dict, tx_hash, block=None, fail=False):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
     session = SessionBase.create_session()
-    r = chainqueue.state.set_final_status(chain_spec, tx_hash, block, fail, session=session)
+    r = chainqueue.state.set_final(chain_spec, tx_hash, block, fail, session=session)
     session.close()
     return r
 

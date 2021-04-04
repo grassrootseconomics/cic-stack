@@ -46,8 +46,8 @@ def shift_nonce(self, chain_str, tx_hash_orig_hex, delta=1):
 
     chain_spec = ChainSpec.from_chain_str(chain_str)
     tx_brief = get_tx(tx_hash_orig_hex)
-    tx_raw = bytes.fromhex(tx_brief['signed_tx'][2:])
-    tx = unpack(tx_raw, chain_spec.chain_id())
+    tx_raw = bytes.fromhex(strip_0x(tx_brief['signed_tx'][2:]))
+    tx = unpack(tx_raw, chain_spec)
     nonce = tx_brief['nonce']
     address = tx['from']
 
@@ -67,8 +67,8 @@ def shift_nonce(self, chain_str, tx_hash_orig_hex, delta=1):
     tx_hashes = []
     txs = []
     for otx in otxs:
-        tx_raw = bytes.fromhex(otx.signed_tx[2:])
-        tx_new = unpack(tx_raw, chain_spec.chain_id())
+        tx_raw = bytes.fromhex(strip_0x(otx.signed_tx))
+        tx_new = unpack(tx_raw, chain_spec)
 
         tx_previous_hash_hex = tx_new['hash']
         tx_previous_nonce = tx_new['nonce']

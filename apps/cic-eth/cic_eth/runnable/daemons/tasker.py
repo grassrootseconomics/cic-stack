@@ -17,18 +17,31 @@ from chainlib.chain import ChainSpec
 from chainqueue.db.models.otx import Otx
 
 # local imports
-from cic_eth.eth import erc20
-from cic_eth.eth import tx
-from cic_eth.eth import account
-from cic_eth.admin import debug
-from cic_eth.admin import ctrl
-from cic_eth.queue import state
-from cic_eth.queue import query
-from cic_eth.queue import balance
-from cic_eth.callbacks import Callback
-from cic_eth.callbacks import http
-from cic_eth.callbacks import tcp
-from cic_eth.callbacks import redis
+from cic_eth.eth import (
+        erc20,
+        tx,
+        account,
+        nonce,
+        gas,
+        )
+from cic_eth.admin import (
+        debug,
+        ctrl,
+        )
+from cic_eth.queue import (
+        query,
+        balance,
+        state,
+        tx,
+        lock,
+        time,
+        )
+from cic_eth.callbacks import (
+        Callback,
+        http,
+        #tcp,
+        redis,
+        )
 from cic_eth.db.models.base import SessionBase
 from cic_eth.db import dsn_from_config
 from cic_eth.ext import tx
@@ -161,6 +174,11 @@ def main():
     connect_token_registry(rpc, chain_spec)
     
     current_app.worker_main(argv)
+
+
+@celery.signals.eventlet_pool_postshutdown.connect
+def shutdown(sender=None, headers=None, body=None, **kwargs):
+    logg.warning('in shudown event hook')
 
 
 if __name__ == '__main__':

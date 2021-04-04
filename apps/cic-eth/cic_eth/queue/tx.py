@@ -69,7 +69,7 @@ def register_tx(tx_hash_hex, tx_signed_raw_hex, chain_spec, queue, cache_task=No
     """
     logg.debug('adding queue tx {}:{} -> {}'.format(chain_spec, tx_hash_hex, tx_signed_raw_hex))
     tx_signed_raw = bytes.fromhex(strip_0x(tx_signed_raw_hex))
-    tx = unpack(tx_signed_raw, chain_id=chain_spec.chain_id())
+    tx = unpack(tx_signed_raw, chain_spec)
 
     tx_hash = queue_create(
         chain_spec,

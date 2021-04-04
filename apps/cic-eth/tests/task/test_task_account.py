@@ -73,7 +73,7 @@ def test_register_account(
         ):
 
     s_nonce = celery.signature(
-            'cic_eth.eth.tx.reserve_nonce',
+            'cic_eth.eth.nonce.reserve_nonce',
             [
                 eth_empty_accounts[0],
                 default_chain_spec.asdict(),
@@ -160,7 +160,7 @@ def test_gift(
     ):
 
     nonce_oracle = RPCNonceOracle(contract_roles['ACCOUNT_REGISTRY_WRITER'], eth_rpc)
-    c = AccountRegistry(signer=eth_signer, nonce_oracle=nonce_oracle, chain_id=default_chain_spec.chain_id())
+    c = AccountRegistry(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle)
     (tx_hash_hex, o) = c.add(account_registry, contract_roles['ACCOUNT_REGISTRY_WRITER'], agent_roles['ALICE'])
     eth_rpc.do(o)
     o = receipt(tx_hash_hex)
@@ -168,7 +168,7 @@ def test_gift(
     assert r['status'] == 1
 
     s_nonce = celery.signature(
-            'cic_eth.eth.tx.reserve_nonce',
+            'cic_eth.eth.nonce.reserve_nonce',
             [
                 agent_roles['ALICE'],
                 default_chain_spec.asdict(),

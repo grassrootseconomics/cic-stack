@@ -107,7 +107,7 @@ def transfer(self, tokens, holder_address, receiver_address, value, chain_spec_d
     session = self.create_session()
     nonce_oracle = CustodialTaskNonceOracle(holder_address, self.request.root_id, session=session)
     gas_oracle = self.create_gas_oracle(rpc, MaxGasOracle.gas)
-    c = ERC20(signer=rpc_signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle, chain_id=chain_spec.chain_id())
+    c = ERC20(chain_spec, signer=rpc_signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle)
     (tx_hash_hex, tx_signed_raw_hex) = c.transfer(t['address'], holder_address, receiver_address, value, tx_format=TxFormat.RLP_SIGNED)
 
     rpc_signer.disconnect()
@@ -170,7 +170,7 @@ def approve(self, tokens, holder_address, spender_address, value, chain_spec_dic
     session = self.create_session()
     nonce_oracle = CustodialTaskNonceOracle(holder_address, self.request.root_id, session=session)
     gas_oracle = self.create_gas_oracle(rpc, MaxGasOracle.gas)
-    c = ERC20(signer=rpc_signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle, chain_id=chain_spec.chain_id())
+    c = ERC20(chain_spec, signer=rpc_signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle)
     (tx_hash_hex, tx_signed_raw_hex) = c.approve(t['address'], holder_address, spender_address, value, tx_format=TxFormat.RLP_SIGNED)
 
     rpc_signer.disconnect()
@@ -244,7 +244,7 @@ def cache_transfer_data(
     """
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
     tx_signed_raw_bytes = bytes.fromhex(strip_0x(tx_signed_raw_hex))
-    tx = unpack(tx_signed_raw_bytes, chain_spec.chain_id())
+    tx = unpack(tx_signed_raw_bytes, chain_spec)
 
     tx_data = ERC20.parse_transfer_request(tx['data'])
     recipient_address = tx_data[0]
@@ -285,7 +285,7 @@ def cache_approve_data(
     """
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
     tx_signed_raw_bytes = bytes.fromhex(strip_0x(tx_signed_raw_hex))
-    tx = unpack(tx_signed_raw_bytes, chain_spec.chain_id())
+    tx = unpack(tx_signed_raw_bytes, chain_spec)
 
     tx_data = ERC20.parse_approve_request(tx['data'])
     recipient_address = tx_data[0]

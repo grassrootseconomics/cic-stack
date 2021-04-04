@@ -15,7 +15,7 @@ from cic_eth.db.enum import LockEnum
 from cic_eth.db.models.lock import Lock
 from cic_eth.queue.query import get_upcoming_tx
 from cic_eth.queue.tx import register_tx
-from cic_eth.eth.tx import cache_gas_data
+from cic_eth.eth.gas import cache_gas_data
 
 # test imports
 from tests.util.nonce import StaticNonceOracle
@@ -32,7 +32,7 @@ def test_upcoming_with_lock(
     rpc = RPCConnection.connect(default_chain_spec, 'default')
     nonce_oracle = StaticNonceOracle(42)
     gas_oracle = RPCGasOracle(eth_rpc)
-    c = Gas(signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle, chain_id=default_chain_spec.chain_id())
+    c = Gas(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
 
     (tx_hash_hex, tx_rpc) = c.create(agent_roles['ALICE'], agent_roles['BOB'], 100 * (10 ** 6))
     tx_signed_raw_hex = tx_rpc['params'][0]

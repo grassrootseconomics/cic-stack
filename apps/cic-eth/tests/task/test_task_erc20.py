@@ -28,7 +28,7 @@ def test_otx_cache_transfer(
         celery_session_worker,
         ):
     nonce_oracle = RPCNonceOracle(token_roles['FOO_TOKEN_OWNER'], eth_rpc)
-    c = ERC20(signer=eth_signer, nonce_oracle=nonce_oracle, chain_id=default_chain_spec.chain_id())
+    c = ERC20(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle)
     transfer_value = 100 * (10**6)
     (tx_hash_hex, tx_signed_raw_hex) = c.transfer(foo_token, token_roles['FOO_TOKEN_OWNER'], agent_roles['ALICE'], transfer_value, tx_format=TxFormat.RLP_SIGNED)
     register_tx(tx_hash_hex, tx_signed_raw_hex, default_chain_spec, None, session=init_database)
@@ -59,7 +59,7 @@ def test_erc20_balance_task(
         ):
 
     nonce_oracle = RPCNonceOracle(token_roles['FOO_TOKEN_OWNER'], eth_rpc)
-    c = ERC20(signer=eth_signer, nonce_oracle=nonce_oracle, chain_id=default_chain_spec.chain_id())
+    c = ERC20(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle)
     transfer_value = 100 * (10**6)
     (tx_hash_hex, o) = c.transfer(foo_token, token_roles['FOO_TOKEN_OWNER'], agent_roles['ALICE'], transfer_value)
     eth_rpc.do(o)
@@ -102,7 +102,7 @@ def test_erc20_transfer_task(
     transfer_value = 100 * (10 ** 6)
 
     s_nonce = celery.signature(
-        'cic_eth.eth.tx.reserve_nonce',
+        'cic_eth.eth.nonce.reserve_nonce',
         [
             [token_object],
             default_chain_spec.asdict(),
@@ -144,7 +144,7 @@ def test_erc20_approve_task(
     transfer_value = 100 * (10 ** 6)
 
     s_nonce = celery.signature(
-        'cic_eth.eth.tx.reserve_nonce',
+        'cic_eth.eth.nonce.reserve_nonce',
         [
             [token_object],
             default_chain_spec.asdict(),

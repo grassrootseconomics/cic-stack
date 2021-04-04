@@ -18,13 +18,12 @@ def test_unpack(
         agent_roles,
         ):
 
-    chain_id = default_chain_spec.chain_id()
     rpc = RPCConnection.connect(default_chain_spec, 'default')
     nonce_oracle = RPCNonceOracle(agent_roles['ALICE'], eth_rpc)
     gas_oracle = RPCGasOracle(eth_rpc)
-    c = Gas(signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle, chain_id=default_chain_spec.chain_id())
+    c = Gas(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
     (tx_hash_hex, tx_signed_raw_hex) = c.create(agent_roles['ALICE'], agent_roles['BOB'], 100 * (10 ** 6), tx_format=TxFormat.RLP_SIGNED)
 
-    tx = unpack(bytes.fromhex(strip_0x(tx_signed_raw_hex)), chain_id=chain_id)
+    tx = unpack(bytes.fromhex(strip_0x(tx_signed_raw_hex)), default_chain_spec)
 
     assert tx_hash_hex == tx['hash']

@@ -177,7 +177,7 @@ def tx_collate(tx_batches, chain_spec_dict, offset, limit, newest_first=True):
             k = None
             try:
                 hx = strip_0x(v)
-                tx = unpack(bytes.fromhex(hx), chain_spec.chain_id())
+                tx = unpack(bytes.fromhex(hx), chain_spec)
                 txc = get_tx_cache(chain_spec, tx['hash'], session)
                 txc['timestamp'] = int(txc['date_created'].timestamp())
                 txc['hash'] = txc['tx_hash']

@@ -30,9 +30,7 @@ from cic_eth.api import AdminApi
 from cic_eth.db.models.role import AccountRole
 from cic_eth.db.enum import LockEnum
 from cic_eth.error import InitializationError
-from cic_eth.eth.tx import (
-        cache_gas_data,
-        )
+from cic_eth.eth.gas import cache_gas_data
 from cic_eth.queue.tx import queue_create
 
 logg = logging.getLogger()
@@ -53,7 +51,7 @@ logg = logging.getLogger()
 #    gas_provider = c.gas_provider()
 #
 #    s_nonce = celery.signature(
-#        'cic_eth.eth.tx.reserve_nonce',
+#        'cic_eth.eth.nonce.reserve_nonce',
 #        [
 #            init_w3.eth.accounts[0],
 #            gas_provider,
@@ -61,7 +59,7 @@ logg = logging.getLogger()
 #        queue=None,
 #        )
 #    s_refill = celery.signature(
-#        'cic_eth.eth.tx.refill_gas',
+#        'cic_eth.eth.gas.refill_gas',
 #        [
 #            chain_str,
 #            ],
@@ -80,7 +78,7 @@ logg = logging.getLogger()
 #    o = q.first()
 #    tx_raw = o.signed_tx
 #
-#    tx_dict = unpack_signed_raw_tx(bytes.fromhex(tx_raw[2:]), default_chain_spec.chain_id())
+#    tx_dict = unpack(bytes.fromhex(tx_raw), default_chain_spec)
 #    gas_price_before = tx_dict['gasPrice'] 
 #
 #    s = celery.signature(
@@ -106,7 +104,7 @@ logg = logging.getLogger()
 #  
 #    tx_raw_new = get_tx(tx_hash_new_hex) 
 #    logg.debug('get {}'.format(tx_raw_new))
-#    tx_dict_new = unpack_signed_raw_tx(bytes.fromhex(tx_raw_new['signed_tx'][2:]), default_chain_spec.chain_id())
+#    tx_dict_new = unpack(bytes.fromhex(tx_raw_new['signed_tx']), default_chain_spec)
 #    assert tx_hash_new_hex != tx_dict['hash']
 #    assert tx_dict_new['gasPrice'] > gas_price_before
 #
@@ -130,7 +128,7 @@ logg = logging.getLogger()
 #    sigs = []
 #    for i in range(5):
 #        s = celery.signature(
-#            'cic_eth.eth.tx.refill_gas',
+#            'cic_eth.eth.gas.refill_gas',
 #            [
 #                eth_empty_accounts[i],
 #                chain_str,
@@ -278,11 +276,10 @@ def test_tx(
     celery_worker,
     ):
 
-    chain_id = default_chain_spec.chain_id()
     nonce_oracle = RPCNonceOracle(agent_roles['ALICE'], eth_rpc)
-    c = Gas(signer=eth_signer, nonce_oracle=nonce_oracle, chain_id=chain_id)
+    c = Gas(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle)
     (tx_hash_hex, tx_signed_raw_hex) = c.create(agent_roles['ALICE'], agent_roles['BOB'], 1024, tx_format=TxFormat.RLP_SIGNED)
-    tx = unpack(bytes.fromhex(strip_0x(tx_signed_raw_hex)), chain_id)
+    tx = unpack(bytes.fromhex(strip_0x(tx_signed_raw_hex)), default_chain_spec)
     queue_create(default_chain_spec, tx['nonce'], agent_roles['ALICE'], tx_hash_hex, tx_signed_raw_hex)
     cache_gas_data(tx_hash_hex, tx_signed_raw_hex, default_chain_spec.asdict())
 

@@ -154,7 +154,7 @@ class AdminApi:
             raise NotImplementedError('resend as new not yet implemented')
 
         s = celery.signature(
-            'cic_eth.eth.tx.resend_with_higher_gas',
+            'cic_eth.eth.gas.resend_with_higher_gas',
             [
                 chain_spec.asdict(),
                 None,

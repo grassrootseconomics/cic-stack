@@ -91,7 +91,6 @@ def get_upcoming_tx(chain_spec, status=StatusEnum.READYSEND, not_status=None, re
     :returns: Transactions
     :rtype: dict, with transaction hash as key, signed raw transaction as value
     """
-    chain_id = chain_spec.chain_id()
     session = SessionBase.bind_session(session)
     q_outer = session.query(
             TxCache.sender,
@@ -137,7 +136,7 @@ def get_upcoming_tx(chain_spec, status=StatusEnum.READYSEND, not_status=None, re
             continue
 
         tx_signed_bytes = bytes.fromhex(o.signed_tx)
-        tx = unpack(tx_signed_bytes, chain_id)
+        tx = unpack(tx_signed_bytes, chain_spec)
         txs[o.tx_hash] = o.signed_tx
         
         q = session.query(TxCache)

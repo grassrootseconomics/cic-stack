@@ -209,7 +209,7 @@ def convert_with_default_reserve(self, tokens, from_address, source_amount, mini
 #    s_queue.apply_async()
 #
 #    s_check_gas = celery.signature(
-#            'cic_eth.eth.tx.check_gas',
+#            'cic_eth.eth.gas.check_gas',
 #            [
 #                c['address'],
 #                [c['signed_tx']],
@@ -222,7 +222,7 @@ def convert_with_default_reserve(self, tokens, from_address, source_amount, mini
 #            )
 #
 #    s_set_sent = celery.signature(
-#            'cic_eth.queue.state.set_sent_status',
+#            'cic_eth.queue.state.set_sent',
 #            [False],
 #            )
 #    s_send.link(s_set_sent)
@@ -364,7 +364,7 @@ def otx_cache_convert(
 
     chain_spec = ChainSpec.from_chain_str(chain_str)
     tx_signed_raw_bytes = bytes.fromhex(tx_signed_raw_hex[2:])
-    tx = unpack_signed_raw_tx(tx_signed_raw_bytes, chain_spec.chain_id())
+    tx = unpack(tx_signed_raw_bytes, chain_spec)
     tx_data = unpack_convert(tx['data'])
     logg.debug('tx data {}'.format(tx_data))
 

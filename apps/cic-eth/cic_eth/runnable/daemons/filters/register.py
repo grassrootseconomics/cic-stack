@@ -35,9 +35,10 @@ class RegistrationFilter(SyncFilter):
                 address = to_checksum_address(add_0x(address_hex))
                 logg.info('request token gift to {}'.format(address))
                 s_nonce = celery.signature(
-                    'cic_eth.eth.tx.reserve_nonce',
+                    'cic_eth.eth.nonce.reserve_nonce',
                     [
                         address,
+                        self.chain_spec.asdict(),
                         ],
                     queue=self.queue,
                     )

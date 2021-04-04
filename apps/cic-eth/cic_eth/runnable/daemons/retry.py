@@ -92,7 +92,7 @@ straggler_delay = int(config.get('CIC_TX_RETRY_DELAY'))
 # TODO: we already have the signed raw tx in get, so its a waste of cycles to get_tx here
 def sendfail_filter(w3, tx_hash, rcpt, chain_spec):
     tx_dict = get_tx(tx_hash)
-    tx = unpack_signed_raw_tx_hex(tx_dict['signed_tx'], chain_spec.chain_id())
+    tx = unpack(tx_dict['signed_tx'], chain_spec)
     logg.debug('submitting tx {} for retry'.format(tx_hash))
     s_check = celery.signature(
             'cic_eth.admin.ctrl.check_lock',
@@ -118,7 +118,7 @@ def sendfail_filter(w3, tx_hash, rcpt, chain_spec):
 #            queue=queue,
 #    )
     s_resend = celery.signature(
-            'cic_eth.eth.tx.resend_with_higher_gas',
+            'cic_eth.eth.gas.resend_with_higher_gas',
             [
                 chain_str,
                 ],
@@ -143,7 +143,7 @@ def dispatch(conn, chain_spec):
     for k in txs.keys():
         #tx_cache = get_tx_cache(k)
         tx_raw = txs[k]
-        tx = unpack_signed_raw_tx_hex(tx_raw, chain_spec.chain_id())
+        tx = unpack(tx_raw, chain_spec)
 
         s_check = celery.signature(
             'cic_eth.admin.ctrl.check_lock',
@@ -184,7 +184,7 @@ def dispatch(conn, chain_spec):
 #    txs = list(txs.keys())
 #    logg.debug('straggler txs {} chain {}'.format(signed_txs, chain_str))
 #    s_send = celery.signature(
-#            'cic_eth.eth.resend_with_higher_gas',
+#            'cic_eth.eth.gas.resend_with_higher_gas',
 #            [
 #                txs,
 #                chain_str,
@@ -204,7 +204,7 @@ class StragglerFilter:
     def filter(self, conn, block, tx, db_session=None):
         logg.debug('tx {}'.format(tx))
         s_send = celery.signature(
-                'cic_eth.eth.tx.resend_with_higher_gas',
+                'cic_eth.eth.gas.resend_with_higher_gas',
                 [
                     tx,
                     self.chain_spec.asdict(),

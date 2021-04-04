@@ -1,5 +1,5 @@
-cic-base[full_graph]==0.1.2a55
-sarafu-faucet==0.0.2a15
-cic-eth==0.10.1b2+build.9c750e70
+cic-base[full_graph]==0.1.2a56
+sarafu-faucet==0.0.2a16
+cic-eth==0.11.0a2
 cic-types==0.1.0a8
 crypto-dev-signer==0.4.14a17

@@ -13,7 +13,7 @@ def connect_token_registry(rpc, chain_spec):
     registry = CICRegistry(chain_spec, rpc)
     token_registry_address = registry.by_name('TokenRegistry')
     logg.debug('using token registry address {}'.format(token_registry_address))
-    lookup = TokenIndexLookup(token_registry_address)
+    lookup = TokenIndexLookup(chain_spec, token_registry_address)
     CICRegistry.add_lookup(lookup)
 
 
@@ -21,7 +21,7 @@ def connect_declarator(rpc, chain_spec, trusted_addresses):
     registry = CICRegistry(chain_spec, rpc)
     declarator_address = registry.by_name('AddressDeclarator')
     logg.debug('using declarator address {}'.format(declarator_address))
-    lookup = AddressDeclaratorLookup(declarator_address, trusted_addresses)
+    lookup = AddressDeclaratorLookup(chain_spec, declarator_address, trusted_addresses)
     CICRegistry.add_lookup(lookup)
 
 

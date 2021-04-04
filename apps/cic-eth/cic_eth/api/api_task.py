@@ -92,7 +92,7 @@ class Api:
                 queue=self.queue,
                 )
         s_nonce = celery.signature(
-                'cic_eth.eth.tx.reserve_nonce',
+                'cic_eth.eth.nonce.reserve_nonce',
                 [
                     self.chain_spec.asdict(),
                     ],
@@ -156,7 +156,7 @@ class Api:
                 queue=self.queue,
                 )
         s_nonce = celery.signature(
-                'cic_eth.eth.tx.reserve_nonce',
+                'cic_eth.eth.nonce.reserve_nonce',
                 [
                     self.chain_spec.asdict(),
                     ],
@@ -217,7 +217,7 @@ class Api:
                 queue=self.queue,
                 )
         s_nonce = celery.signature(
-                'cic_eth.eth.tx.reserve_nonce',
+                'cic_eth.eth.nonce.reserve_nonce',
                 [
                     self.chain_spec.asdict(),
                     from_address,
@@ -364,7 +364,7 @@ class Api:
 
         if register:
             s_nonce = celery.signature(
-                'cic_eth.eth.tx.reserve_nonce',
+                'cic_eth.eth.nonce.reserve_nonce',
                 [
                     self.chain_spec.asdict(),
                     'ACCOUNT_REGISTRY_WRITER',
@@ -403,7 +403,7 @@ class Api:
                 queue=self.queue,
                 )
         s_nonce = celery.signature(
-                'cic_eth.eth.tx.reserve_nonce',
+                'cic_eth.eth.nonce.reserve_nonce',
                 [
                     self.chain_spec.asdict(),
                     'GAS_GIFTER',
@@ -411,7 +411,7 @@ class Api:
                 queue=self.queue,
                 )
         s_refill = celery.signature(
-                'cic_eth.eth.tx.refill_gas',
+                'cic_eth.eth.gas.refill_gas',
                 [
                     self.chain_spec.asdict(),
                     ],
