@@ -36,7 +36,7 @@ argparser.add_argument('--redis-port', dest='redis_port', type=int, help='redis 
 argparser.add_argument('--redis-db', dest='redis_db', type=int, help='redis db to use for task submission and callback')
 argparser.add_argument('--redis-host-callback', dest='redis_host_callback', default='localhost', type=str, help='redis host to use for callback')
 argparser.add_argument('--redis-port-callback', dest='redis_port_callback', default=6379, type=int, help='redis port to use for callback')
-argparser.add_argument('--batch-size', dest='batch_size', default=80, type=int, help='burst size of sending transactions to node')
+argparser.add_argument('--batch-size', dest='batch_size', default=100, type=int, help='burst size of sending transactions to node') # batch size should be slightly below cumulative gas limit worth, eg 80000 gas txs with 8000000 limit is a bit less than 100 batch size
 argparser.add_argument('--batch-delay', dest='batch_delay', default=2, type=int, help='seconds delay between batches')
 argparser.add_argument('--timeout', default=60.0, type=float, help='Callback timeout')
 argparser.add_argument('-q', type=str, default='cic-eth', help='Task queue')

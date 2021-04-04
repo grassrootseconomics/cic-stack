@@ -256,6 +256,7 @@ class Verifier:
     def verify_gas(self, address, balance_token=None):
         o = balance(address)
         r = self.conn.do(o)
+        logg.debug('wtf {}'.format(r))
         actual_balance = int(strip_0x(r), 16)
         if actual_balance == 0:
             raise VerifierError((address, actual_balance), 'gas')

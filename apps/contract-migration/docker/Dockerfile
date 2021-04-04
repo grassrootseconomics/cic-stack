@@ -57,8 +57,8 @@ WORKDIR /home/grassroots
 USER grassroots
 
 ARG pip_extra_index_url=https://pip.grassrootseconomics.net:8433
-ARG cic_base_version=0.1.2a57
-ARG cic_eth_version=0.11.0a3
+ARG cic_base_version=0.1.2a58
+ARG cic_eth_version=0.11.0a4
 ARG sarafu_faucet_version=0.0.2a16
 ARG cic_contracts_version=0.0.2a2
 RUN pip install --user --extra-index-url $pip_extra_index_url cic-base[full_graph]==$cic_base_version \

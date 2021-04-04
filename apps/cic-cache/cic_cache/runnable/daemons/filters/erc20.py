@@ -32,7 +32,7 @@ class ERC20TransferFilter(SyncFilter):
         logg.debug('filter {} {}'.format(block, tx))
         token = None
         try:
-            token = ERC20Token(conn, tx.inputs[0])
+            token = ERC20Token(self.chain_spec, conn, tx.inputs[0])
         except NotAContractError:
             logg.debug('not a contract {}'.format(tx.inputs[0]))
             return False

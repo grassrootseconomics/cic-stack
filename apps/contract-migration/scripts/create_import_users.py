@@ -96,7 +96,6 @@ def genId(addr, typ):
 
 def genDate():
 
-    logg.info(ts_then)
     ts = random.randint(ts_then, ts_now)
     return datetime.datetime.fromtimestamp(ts).timestamp()
 

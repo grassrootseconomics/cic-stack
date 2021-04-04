@@ -17,7 +17,7 @@ RUN apt-get update && \
 
 # Copy shared requirements from top of mono-repo
 RUN echo "copying root req file ${root_requirement_file}"
-RUN pip install $pip_extra_index_url_flag cic-base[full_graph]==0.1.2a53
+RUN pip install $pip_extra_index_url_flag cic-base[full_graph]==0.1.2a58
 
 COPY cic-cache/requirements.txt ./
 COPY cic-cache/setup.cfg \

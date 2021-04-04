@@ -117,7 +117,7 @@ class Handler:
         self.user_dir = user_dir
         self.balances = balances
         self.chain_spec = chain_spec
-        self.tx_factory = ERC20(signer, gas_oracle, nonce_oracle, chain_spec.network_id())
+        self.tx_factory = ERC20(chain_spec, signer, gas_oracle, nonce_oracle)
 
 
     def name(self):

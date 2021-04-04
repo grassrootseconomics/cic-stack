@@ -528,7 +528,7 @@ class AdminApi:
         r = self.rpc.do(o)
         tx['recipient_gas_balance'] = r
 
-        tx_unpacked = unpack(bytes.fromhex(tx['signed_tx'][2:]), chain_spec.chain_id())
+        tx_unpacked = unpack(bytes.fromhex(strip_0x(tx['signed_tx'])), chain_spec)
         tx['gas_price'] = tx_unpacked['gasPrice']
         tx['gas_limit'] = tx_unpacked['gas']
         tx['data'] = tx_unpacked['data']
