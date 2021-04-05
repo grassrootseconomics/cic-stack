@@ -387,7 +387,7 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_spec_dict, gas=None, defa
         r = rpc.do(o)
         current_gas_price = int(r, 16)
         if tx['gasPrice'] > current_gas_price:
-            logg.info('Network gas price {} is lower than overdue tx gas price {}'.format(curent_gas_price, tx['gasPrice']))
+            logg.info('Network gas price {} is lower than overdue tx gas price {}'.format(current_gas_price, tx['gasPrice']))
             #tx['gasPrice'] = int(tx['gasPrice'] * default_factor)
             new_gas_price = tx['gasPrice'] + 1
         else:

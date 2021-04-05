@@ -37,7 +37,7 @@ class Api:
         self.callback_param = callback_param
         self.callback_task = callback_task
         self.queue = queue
-        logg.info('api using queue {}'.format(self.queue))
+        logg.debug('api using queue {}'.format(self.queue))
         self.callback_success = None
         self.callback_error = None
         if callback_queue == None:

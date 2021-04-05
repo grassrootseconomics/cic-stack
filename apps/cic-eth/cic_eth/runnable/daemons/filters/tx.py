@@ -33,7 +33,7 @@ class TxFilter(SyncFilter):
         logg.info('tx filter match on {}'.format(otx.tx_hash))
         db_session.flush()
         SessionBase.release_session(db_session)
-        s = celery.signature(
+        s_final_state = celery.signature(
                 'cic_eth.queue.state.set_final',
                 [
                     self.chain_spec.asdict(),
@@ -43,7 +43,18 @@ class TxFilter(SyncFilter):
                     ],
                 queue=self.queue,
                 )
-        t = s.apply_async()
+        s_obsolete_state = celery.signature(
+                'cic_eth.queue.state.obsolete',
+                [
+                    self.chain_spec.asdict(),
+                    add_0x(tx_hash_hex),
+                    True,
+                    ],
+                queue=self.queue,
+                )
+        #s_final_state.link(s_obsolete_state)
+        t = celery.group(s_obsolete_state, s_final_state)()
+
         return t
 
 

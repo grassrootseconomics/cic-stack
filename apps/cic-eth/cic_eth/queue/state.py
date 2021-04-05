@@ -98,3 +98,12 @@ def get_state_log(chain_spec_dict, tx_hash):
     r = chainqueue.state.get_state_log(chain_spec, tx_hash, session=session)
     session.close()
     return r
+
+
+@celery_app.task(base=CriticalSQLAlchemyTask)
+def obsolete(chain_spec_dict, tx_hash, final):
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
+    session = SessionBase.create_session()
+    r = chainqueue.state.obsolete_by_cache(chain_spec, tx_hash, final, session=session)
+    session.close()
+    return r

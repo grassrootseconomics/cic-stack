@@ -21,21 +21,22 @@ from chainlib.eth.block import (
 from chainsyncer.driver import HeadSyncer
 from chainsyncer.backend import MemBackend
 from chainsyncer.error import NoBlockForYou
+from chainqueue.db.enum import (
+        StatusEnum,
+        StatusBits,
+        )
+from chainqueue.state import obsolete_by_cache
 
 # local imports
 from cic_eth.db import dsn_from_config
 from cic_eth.db import SessionBase
-from cic_eth.queue.tx import (
+from cic_eth.queue.query import (
         get_status_tx,
         get_tx,
 #        get_upcoming_tx,
         )
 from cic_eth.admin.ctrl import lock_send
-from cic_eth.db.enum import (
-        StatusEnum,
-        StatusBits,
-        LockEnum,
-        )
+from cic_eth.db.enum import LockEnum
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -203,6 +204,7 @@ class StragglerFilter:
 
     def filter(self, conn, block, tx, db_session=None):
         logg.debug('tx {}'.format(tx))
+        obsolete_by_cache(self.chain_spec, tx.hash, False, session=db_session)
         s_send = celery.signature(
                 'cic_eth.eth.gas.resend_with_higher_gas',
                 [
@@ -248,12 +250,16 @@ class RetrySyncer(HeadSyncer):
 
     def process(self, conn, block):
         before = datetime.datetime.utcnow() - datetime.timedelta(seconds=self.stalled_grace_seconds)
+        session = SessionBase.create_session()
         stalled_txs = get_status_tx(
+                self.chain_spec,
                 StatusBits.IN_NETWORK.value,
                 not_status=StatusBits.FINAL | StatusBits.MANUAL | StatusBits.OBSOLETE,
                 before=before,
                 limit=self.batch_size,
+                session=session,
                 )
+        session.close()
 #        stalled_txs = get_upcoming_tx(
 #                status=StatusBits.IN_NETWORK.value, 
 #                not_status=StatusBits.FINAL | StatusBits.MANUAL | StatusBits.OBSOLETE,
