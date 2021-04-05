@@ -80,7 +80,7 @@ straggler_delay = int(config.get('CIC_TX_RETRY_DELAY'))
 #    logg.debug('submitting tx {} for retry'.format(tx_hash))
 #    s_check = celery.signature(
 #            'cic_eth.admin.ctrl.check_lock',
-#            [
+            [
 #                tx_hash,
 #                chain_str,
 #                LockEnum.QUEUE,
@@ -113,7 +113,6 @@ straggler_delay = int(config.get('CIC_TX_RETRY_DELAY'))
 #    #s_check.link(s_resume)
 #    s_check.link(s_resend)
 #    s_check.apply_async()
-
 
 
 def main(): 

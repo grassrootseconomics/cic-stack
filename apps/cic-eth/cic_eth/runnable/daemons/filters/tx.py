@@ -52,7 +52,6 @@ class TxFilter(SyncFilter):
                     ],
                 queue=self.queue,
                 )
-        #s_final_state.link(s_obsolete_state)
         t = celery.group(s_obsolete_state, s_final_state)()
 
         return t
