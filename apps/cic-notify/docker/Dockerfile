@@ -1,4 +1,4 @@
-FROM python:3.8.6
+FROM python:3.8.6-slim-buster
 
 RUN apt-get update && \
 	apt install -y gcc gnupg libpq-dev wget make g++ gnupg bash procps
@@ -6,7 +6,7 @@ RUN apt-get update && \
 WORKDIR /usr/src/cic-notify
 
 ARG pip_extra_index_url_flag='--index https://pypi.org/simple --extra-index-url https://pip.grassrootseconomics.net:8433'
-RUN pip install $pip_extra_index_url_flag cic-base[full_graph]==0.1.2a44
+RUN pip install $pip_extra_index_url_flag cic-base[full_graph]==0.1.2a61
 
 COPY cic-notify/setup.cfg \
 	 cic-notify/setup.py \

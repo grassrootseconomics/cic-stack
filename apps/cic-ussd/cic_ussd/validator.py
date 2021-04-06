@@ -1,6 +1,7 @@
 # standard imports
 import logging
 import re
+import ipaddress
 
 # third-party imports
 from confini import Config
@@ -20,7 +21,14 @@ def check_ip(config: Config, env: dict):
     :return: Request IP validity
     :rtype: boolean
     """
-    return env.get('REMOTE_ADDR') == config.get('APP_ALLOWED_IP')
+    # TODO: do once at boot time
+    actual_ip = ipaddress.ip_network(env.get('REMOTE_ADDR') + '/32')
+    for allowed_net_src in config.get('APP_ALLOWED_IP').split(','):
+        allowed_net = ipaddress.ip_network(allowed_net_src)
+        if actual_ip.subnet_of(allowed_net):
+            return True
+
+    return False
 
 
 def check_request_content_length(config: Config, env: dict):
