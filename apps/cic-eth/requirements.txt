@@ -19,7 +19,7 @@ eth-address-index~=0.1.1a7
 chainlib~=0.0.2a4
 hexathon~=0.0.1a7
 chainsyncer~=0.0.1a21
-chainqueue~=0.0.1a6
+chainqueue~=0.0.1a7
 pysha3==1.0.2
 coincurve==15.0.0
-sarafu-faucet~=0.0.2a16
+sarafu-faucet~=0.0.2a19

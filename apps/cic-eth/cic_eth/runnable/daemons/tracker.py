@@ -66,7 +66,6 @@ chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 #RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, 'default')
 cic_base.rpc.setup(chain_spec, config.get('ETH_PROVIDER'))
 
-
 def main():
     # connect to celery
     celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
@@ -76,7 +75,10 @@ def main():
 
     o = block_latest()
     r = rpc.do(o)
-    block_offset = int(strip_0x(r), 16) + 1
+    block_current = int(r, 16)
+    block_offset = block_current + 1
+
+    stat = init_chain_stat(rpc, block_current)
 
     logg.debug('starting at block {}'.format(block_offset))
 
