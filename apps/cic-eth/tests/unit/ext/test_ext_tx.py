@@ -43,7 +43,7 @@ def test_filter_process(
     nonce_oracle = RPCNonceOracle(agent_roles['ALICE'], eth_rpc)
 
     init_eth_tester.mine_blocks(13)
-    c = ERC20(signer=eth_signer, nonce_oracle=nonce_oracle)
+    c = ERC20(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle)
     (tx_hash_hex, o) = c.transfer(foo_token, agent_roles['ALICE'], agent_roles['BOB'], 1024)
     eth_rpc.do(o)
     o = receipt(tx_hash_hex)
@@ -56,7 +56,7 @@ def test_filter_process(
 
     # external tx
     init_eth_tester.mine_blocks(28)
-    c = ERC20(signer=eth_signer, nonce_oracle=nonce_oracle)
+    c = ERC20(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle)
     (tx_hash_hex, o) = c.transfer(foo_token, agent_roles['ALICE'], agent_roles['BOB'], 512)
     eth_rpc.do(o)
     o = receipt(tx_hash_hex)

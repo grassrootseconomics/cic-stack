@@ -20,10 +20,10 @@ def set_sent(chain_spec_dict, tx_hash, fail=False):
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
-def set_final(chain_spec_dict, tx_hash, block=None, fail=False):
+def set_final(chain_spec_dict, tx_hash, block=None, tx_index=None, fail=False):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
     session = SessionBase.create_session()
-    r = chainqueue.state.set_final(chain_spec, tx_hash, block, fail, session=session)
+    r = chainqueue.state.set_final(chain_spec, tx_hash, block=block, tx_index=tx_index, fail=fail, session=session)
     session.close()
     return r
 

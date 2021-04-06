@@ -171,6 +171,7 @@ def sync_tx(self, tx_hash_hex, chain_spec_dict):
     except NotFoundEthException as e:
         pass
 
+    # TODO: apply receipt in tx object to validate and normalize input
     if rcpt != None:
         success = rcpt['status'] == 1
         logg.debug('sync tx {} mined block {} success {}'.format(tx_hash_hex, rcpt['blockNumber'], success))
@@ -180,6 +181,7 @@ def sync_tx(self, tx_hash_hex, chain_spec_dict):
             [
                 tx_hash_hex,
                 rcpt['blockNumber'],
+                rcpt['transactionIndex'],
                 not success,
                 ],
                 queue=queue,

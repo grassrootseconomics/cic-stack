@@ -39,6 +39,7 @@ class TxFilter(SyncFilter):
                     self.chain_spec.asdict(),
                     add_0x(tx_hash_hex),
                     tx.block.number,
+                    tx.index,
                     tx.status == Status.ERROR,
                     ],
                 queue=self.queue,

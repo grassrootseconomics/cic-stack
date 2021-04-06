@@ -61,8 +61,8 @@ def balance(tokens, holder_address, chain_spec_dict):
 
     for t in tokens:
         address = t['address']
-        token = ERC20Token(rpc, address)
-        c = ERC20()
+        token = ERC20Token(chain_spec, rpc, address)
+        c = ERC20(chain_spec)
         o = c.balance_of(address, holder_address, sender_address=caller_address)
         r = rpc.do(o)
         t['balance_network'] = c.parse_balance(r)

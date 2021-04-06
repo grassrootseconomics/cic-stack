@@ -124,10 +124,6 @@ def register_eth(i, u):
     return address
    
 
-def register_ussd(u):
-    pass
-
-
 if __name__ == '__main__':
 
     #fi = open(os.path.join(user_out_dir, 'addresses.csv'), 'a')
@@ -154,8 +150,6 @@ if __name__ == '__main__':
                 u.identities['evm'] = {}
             sub_chain_str = '{}:{}'.format(chain_spec.common_name(), chain_spec.network_id())
             u.identities['evm'][sub_chain_str] = [new_address]
-
-            register_ussd(u)
 
             new_address_clean = strip_0x(new_address)
             filepath = os.path.join(

@@ -116,7 +116,7 @@ def test_register_account(
 
     init_eth_tester.mine_block()
 
-    c = AccountRegistry()
+    c = AccountRegistry(default_chain_spec)
     o = c.have(account_registry, eth_empty_accounts[0], sender_address=call_sender)
     r = eth_rpc.do(o)
     assert int(strip_0x(r), 16) == 1
