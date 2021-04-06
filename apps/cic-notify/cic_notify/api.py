@@ -33,7 +33,6 @@ def get_sms_queue_tasks(app, task_prefix='cic_notify.tasks.sms.'):
         i = Inspect(app=app, destination=[host])
         for tasks in i.registered_tasks().values():
             for task in tasks:
-                logg.debug('q {}'.format(task))
                 if len(task) >= task_prefix_len and task[:task_prefix_len] == task_prefix:
                     queue_tasks.append((queue, task,))
     
