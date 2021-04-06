@@ -78,8 +78,6 @@ def main():
     block_current = int(r, 16)
     block_offset = block_current + 1
 
-    stat = init_chain_stat(rpc, block_current)
-
     logg.debug('starting at block {}'.format(block_offset))
 
     syncers = []
