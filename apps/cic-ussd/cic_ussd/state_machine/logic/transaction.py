@@ -78,9 +78,10 @@ def save_recipient_phone_to_session_data(state_machine_data: Tuple[str, dict, Us
     :type state_machine_data: str
     """
     user_input, ussd_session, user = state_machine_data
-    session_data = {
-        'recipient_phone_number': user_input
-    }
+
+    session_data = ussd_session.get('session_data') or {}
+    session_data['recipient_phone_number'] = user_input
+
     save_to_in_memory_ussd_session_data(queue='cic-ussd', session_data=session_data, ussd_session=ussd_session)
 
 
@@ -109,9 +110,10 @@ def save_transaction_amount_to_session_data(state_machine_data: Tuple[str, dict,
     :type state_machine_data: str
     """
     user_input, ussd_session, user = state_machine_data
-    session_data = {
-        'transaction_amount': user_input
-    }
+
+    session_data = ussd_session.get('session_data') or {}
+    session_data['transaction_amount'] = user_input
+
     save_to_in_memory_ussd_session_data(queue='cic-ussd', session_data=session_data, ussd_session=ussd_session)
 
 

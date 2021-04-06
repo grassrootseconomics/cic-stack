@@ -56,7 +56,7 @@ sw:
       5. Angalia wasifu wako
       0. Nyuma
     display_user_metadata: |-
-      END Wasifu wako una maelezo yafuatayo:
+      CON Wasifu wako una maelezo yafuatayo:
         Jina: %{full_name}
         Jinsia: %{gender}
         Eneo: %{location}

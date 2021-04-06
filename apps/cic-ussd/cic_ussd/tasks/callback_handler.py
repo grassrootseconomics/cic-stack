@@ -143,14 +143,18 @@ def define_transaction_action_tag(
         # check preferred language
         if preferred_language == 'en':
             action_tag = 'SENT'
+            direction = 'TO'
         else:
             action_tag = 'ULITUMA'
+            direction = 'KWA'
     else:
         if preferred_language == 'en':
             action_tag = 'RECEIVED'
+            direction = 'FROM'
         else:
             action_tag = 'ULIPOKEA'
-    return action_tag
+            direction = 'KUTOKA'
+    return action_tag, direction
 
 
 @celery_app.task
@@ -175,15 +179,17 @@ def process_statement_callback(result, param: str, status_code: int):
 
                 # check if sender is in the system
                 sender: User = session.query(User).filter_by(blockchain_address=sender_blockchain_address).first()
+                owner: User = session.query(User).filter_by(blockchain_address=param).first()
                 if sender:
                     processed_transaction['sender_phone_number'] = sender.phone_number
 
-                    action_tag = define_transaction_action_tag(
-                        preferred_language=sender.preferred_language,
+                    action_tag, direction = define_transaction_action_tag(
+                        preferred_language=owner.preferred_language,
                         sender_blockchain_address=sender_blockchain_address,
                         param=param
                     )
                     processed_transaction['action_tag'] = action_tag
+                    processed_transaction['direction'] = direction
 
                 else:
                     processed_transaction['sender_phone_number'] = 'GRASSROOTS ECONOMICS'
@@ -197,8 +203,8 @@ def process_statement_callback(result, param: str, status_code: int):
                     logg.warning(f'Tx with recipient not found in cic-ussd')
 
                 # add transaction values
-                processed_transaction['to_value'] = from_wei(value=transaction.get('to_value'))
-                processed_transaction['from_value'] = from_wei(value=transaction.get('from_value'))
+                processed_transaction['to_value'] = from_wei(value=transaction.get('to_value')).__str__()
+                processed_transaction['from_value'] = from_wei(value=transaction.get('from_value')).__str__()
 
                 raw_timestamp = transaction.get('timestamp')
                 timestamp = datetime.utcfromtimestamp(raw_timestamp).strftime('%d/%m/%y, %H:%M')

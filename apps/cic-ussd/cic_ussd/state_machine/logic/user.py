@@ -192,7 +192,7 @@ def edit_user_metadata_attribute(state_machine_data: Tuple[str, dict, User]):
     # validate user metadata
     person = Person()
     user_metadata = json.loads(user_metadata)
-    deserialized_person = person.deserialize(metadata=user_metadata)
+    deserialized_person = person.deserialize(person_data=user_metadata)
 
     # edit specific metadata attribute
     if given_name:

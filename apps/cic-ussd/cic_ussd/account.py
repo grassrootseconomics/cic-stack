@@ -27,7 +27,7 @@ def define_account_tx_metadata(user: User):
     if account_metadata:
         account_metadata = json.loads(account_metadata)
         person = Person()
-        deserialized_person = person.deserialize(metadata=account_metadata)
+        deserialized_person = person.deserialize(person_data=account_metadata)
         given_name = deserialized_person.given_name
         family_name = deserialized_person.family_name
         phone_number = deserialized_person.tel
@@ -46,4 +46,4 @@ def retrieve_account_statement(blockchain_address: str):
         callback_task='cic_ussd.tasks.callback_handler.process_statement_callback',
         callback_param=blockchain_address
     )
-    result = cic_eth_api.list(address=blockchain_address, limit=9)
+    cic_eth_api.list(address=blockchain_address, limit=9)

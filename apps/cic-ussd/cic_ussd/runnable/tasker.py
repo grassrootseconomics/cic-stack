@@ -16,6 +16,7 @@ from cic_ussd.metadata.signer import Signer
 from cic_ussd.metadata.user import UserMetadata
 from cic_ussd.redis import InMemoryStore
 from cic_ussd.session.ussd_session import UssdSession as InMemoryUssdSession
+from cic_ussd.validator import validate_presence
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -65,9 +66,15 @@ InMemoryUssdSession.redis_cache = InMemoryStore.cache
 UserMetadata.base_url = config.get('CIC_META_URL')
 
 # define signer values
-Signer.gpg_path = config.get('PGP_EXPORT_DIR')
+export_dir = config.get('PGP_EXPORT_DIR')
+if export_dir:
+    validate_presence(path=export_dir)
+Signer.gpg_path = export_dir
 Signer.gpg_passphrase = config.get('PGP_PASSPHRASE')
-Signer.key_file_path = f"{config.get('PGP_KEYS_PATH')}{config.get('PGP_PRIVATE_KEYS')}"
+key_file_path = f"{config.get('PGP_KEYS_PATH')}{config.get('PGP_PRIVATE_KEYS')}"
+if key_file_path:
+    validate_presence(path=key_file_path)
+Signer.key_file_path = key_file_path
 
 # set up celery
 current_app = celery.Celery(__name__)

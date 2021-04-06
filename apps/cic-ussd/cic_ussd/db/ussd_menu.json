@@ -128,8 +128,8 @@
         },
         "22": {
             "description": "Pin entry menu.",
-            "display_key": "ussd.kenya.standard_pin_authorization",
-            "name": "standard_pin_authorization",
+            "display_key": "ussd.kenya.display_metadata_pin_authorization",
+            "name": "display_metadata_pin_authorization",
             "parent": "start"
         },
         "23": {
@@ -230,9 +230,22 @@
         },
         "39": {
             "description": "Menu to instruct users to call the office.",
-            "display_key": "ussd.key.help",
+            "display_key": "ussd.kenya.help",
             "name": "help",
             "parent": null
+        },
+        "40": {
+            "description": "Menu to display a user's entire profile",
+            "display_key": "ussd.kenya.display_user_metadata",
+            "name": "display_user_metadata",
+            "parent": "account_management"
+        },
+        "41": {
+            "description": "The recipient is not in the system",
+            "display_key": "ussd.kenya.exit_invalid_recipient",
+            "name": "exit_invalid_recipient",
+            "parent": null
         }
+
     }
 }

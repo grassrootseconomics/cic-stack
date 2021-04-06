@@ -35,7 +35,8 @@ from cic_ussd.requests import (get_request_endpoint,
                                process_pin_reset_requests)
 from cic_ussd.session.ussd_session import UssdSession as InMemoryUssdSession
 from cic_ussd.state_machine import UssdStateMachine
-from cic_ussd.validator import check_ip, check_request_content_length, check_service_code, validate_phone_number
+from cic_ussd.validator import check_ip, check_request_content_length, check_service_code, validate_phone_number, \
+    validate_presence
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -101,9 +102,15 @@ InMemoryUssdSession.redis_cache = InMemoryStore.cache
 UserMetadata.base_url = config.get('CIC_META_URL')
 
 # define signer values
-Signer.gpg_path = config.get('PGP_EXPORT_DIR')
+export_dir = config.get('PGP_EXPORT_DIR')
+if export_dir:
+    validate_presence(path=export_dir)
+Signer.gpg_path = export_dir
 Signer.gpg_passphrase = config.get('PGP_PASSPHRASE')
-Signer.key_file_path = f"{config.get('PGP_KEYS_PATH')}{config.get('PGP_PRIVATE_KEYS')}"
+key_file_path = f"{config.get('PGP_KEYS_PATH')}{config.get('PGP_PRIVATE_KEYS')}"
+if key_file_path:
+    validate_presence(path=key_file_path)
+Signer.key_file_path = key_file_path
 
 # initialize celery app
 celery.Celery(backend=config.get('CELERY_RESULT_URL'), broker=config.get('CELERY_BROKER_URL'))

@@ -82,7 +82,7 @@ def test_format_user_metadata(create_activated_user,
     from cic_types.models.person import Person
     formatted_user_metadata = format_user_metadata(metadata=complete_user_metadata, user=create_activated_user)
     person = Person()
-    user_metadata = person.deserialize(metadata=formatted_user_metadata)
+    user_metadata = person.deserialize(person_data=formatted_user_metadata)
     assert formatted_user_metadata == user_metadata.serialize()
 
 

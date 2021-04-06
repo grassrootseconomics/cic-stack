@@ -92,7 +92,7 @@ class UserMetadata:
 
                 # validate data
                 person = Person()
-                deserialized_person = person.deserialize(metadata=json.loads(data))
+                deserialized_person = person.deserialize(person_data=json.loads(data))
 
                 cache_data(key=self.metadata_pointer, data=json.dumps(deserialized_person.serialize()))
             elif status == 404:
