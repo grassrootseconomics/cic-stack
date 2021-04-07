@@ -142,12 +142,6 @@ def main():
     argv = ['worker', '-Q', 'cic-import-ussd', '--loglevel=DEBUG']
     celery_app.worker_main(argv)
 
-#    syncer_backend.set(block_offset, 0)
-#    syncer = HeadSyncer(syncer_backend, progress_callback=progress_callback)
-#    handler = Handler(conn, chain_spec, user_dir, balances, sarafu_token_address, signer, gas_oracle, nonce_oracle)
-#    syncer.add_filter(handler)
-#    syncer.loop(1, conn)
-    
 
 if __name__ == '__main__':
     main()
