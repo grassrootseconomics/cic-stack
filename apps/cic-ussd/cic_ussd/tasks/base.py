@@ -5,6 +5,7 @@ import celery
 import sqlalchemy
 
 # local imports
+from cic_ussd.error import MetadataStoreError
 
 
 class CriticalTask(celery.Task):
@@ -17,4 +18,10 @@ class CriticalSQLAlchemyTask(CriticalTask):
     autoretry_for = (
         sqlalchemy.exc.DatabaseError,
         sqlalchemy.exc.TimeoutError,
+    )
+
+
+class CriticalMetadataTask(CriticalTask):
+    autoretry_for = (
+        MetadataStoreError,
     )
