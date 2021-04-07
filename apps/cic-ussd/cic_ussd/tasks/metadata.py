@@ -52,6 +52,6 @@ def edit_user_metadata(blockchain_address: str, data: bytes, engine: str):
 
 @celery_app.task(bind=True, base=CriticalMetadataTask)
 def add_phone_pointer(blockchain_address: str, phone: str, engine: str):
-    identifier = blockchain_address_to_metadata_pointer(blockchain_address=blockchain_address)
-    phone_metadata_client = PhonePointerMetadata(identifier=identifier, engine=engine)
-    phone_metadata_client.create(data=phone)
+    stripped_address = strip_0x(blockchain_address)
+    phone_metadata_client = PhonePointerMetadata(identifier=phone, engine=engine)
+    phone_metadata_client.create(data=stripped_address)
