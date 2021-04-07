@@ -83,7 +83,7 @@ user_count = args.user_count
 def genPhoneIndex(phone):
     h = hashlib.new('sha256')
     h.update(phone.encode('utf-8'))
-    h.update(b'cic.msisdn')
+    h.update(b'cic.phone')
     return h.digest().hex()
 
 
@@ -101,7 +101,8 @@ def genDate():
 
 
 def genPhone():
-    return fake.msisdn()
+    #return fake.msisdn()
+    return '+254' + str(random.randint(100000000, 999999999))
 
 
 def genPersonal(phone):

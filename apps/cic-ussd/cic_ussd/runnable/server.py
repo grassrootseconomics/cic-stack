@@ -174,6 +174,7 @@ def application(env, start_response):
 
         # validate phone number
         if not validate_phone_number(phone_number):
+            logg.error('invalid phone number {}'.format(phone_number))
             start_response('400 Invalid phone number format', errors_headers)
             return []
 
