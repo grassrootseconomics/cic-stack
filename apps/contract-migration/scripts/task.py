@@ -3,6 +3,7 @@ import logging
 import urllib.parse
 import urllib.error
 import urllib.request
+import json
 
 # external imports
 import celery
@@ -23,7 +24,8 @@ class MetadataTask(celery.Task):
             urllib.error.HTTPError,
             )
     retry_kwargs = {
-        'countdown': 1,
+        'countdown': 3,
+        'max_retries': 100,
             }
 
     @classmethod
@@ -40,4 +42,11 @@ def resolve_phone(self, phone):
     url = urllib.parse.urljoin(self.meta_url(), identifier)
     logg.debug('attempt getting phone pointer at {}'.format(url))
     r = urllib.request.urlopen(url)
-    logg.debug('phone pointer result {}'.format(r))
+    address = json.load(r)
+    logg.debug('address {} for phone {}'.format(address, phone))
+
+
+@celery_app.task(bind=True, base=MetadataTask)
+def transfer_opening_balance(self, phone, address):
+    pass
+
