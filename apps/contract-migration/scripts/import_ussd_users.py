@@ -145,6 +145,19 @@ if __name__ == '__main__':
 
             new_address = register_ussd(i, u)
 
+            phone_object = phonenumbers.parse(u.tel)
+            phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
+
+            s = celery.signature(
+                    'task.resolve_phone',
+                    [
+                        phone,
+                        ],
+                    queue='cic-import-ussd',
+                    )
+            s.apply_async()
+
+
 #            if u.identities.get('evm') == None:
 #                u.identities['evm'] = {}
 #            sub_chain_str = '{}:{}'.format(chain_spec.common_name(), chain_spec.network_id())

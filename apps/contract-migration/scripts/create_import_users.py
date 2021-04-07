@@ -206,7 +206,7 @@ if __name__ == '__main__':
         f.close()
 
         pidx = genPhoneIndex(phone)
-        d = prepareLocalFilePath(os.path.join(user_dir, 'phone'), uid)
+        d = prepareLocalFilePath(os.path.join(user_dir, 'phone'), pidx)
         f = open('{}/{}'.format(d, pidx), 'w')
         f.write(eth)
         f.close()

@@ -10,7 +10,7 @@ import hashlib
 import csv
 import json
 
-# third-party impotts
+# external imports
 import eth_abi
 import confini
 from hexathon import (
@@ -42,7 +42,7 @@ from cic_types.models.person import Person
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
-config_dir = '/usr/local/etc/cic-syncer'
+config_dir = './config'
 
 argparser = argparse.ArgumentParser(description='daemon that monitors transactions in new blocks')
 argparser.add_argument('-p', '--provider', dest='p', type=str, help='chain rpc provider address')
