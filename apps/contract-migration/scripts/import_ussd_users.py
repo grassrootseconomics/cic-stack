@@ -148,15 +148,34 @@ if __name__ == '__main__':
             phone_object = phonenumbers.parse(u.tel)
             phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
 
-            s = celery.signature(
-                    'task.resolve_phone',
+            s_phone = celery.signature(
+                    'import_task.resolve_phone',
                     [
                         phone,
                         ],
                     queue='cic-import-ussd',
                     )
-            s.apply_async()
 
+            s_meta = celery.signature(
+                    'import_task.generate_metadata',
+                    [
+                        phone,
+                        ],
+                    queue='cic-import-ussd',
+                    )
+
+            s_balance = celery.signature(
+                    'import_task.transfer_opening_balance',
+                    [
+                        phone,
+                        i,
+                        ],
+                    queue='cic-import-ussd',
+                    )
+
+            s_meta.link(s_balance)
+            s_phone.link(s_meta)
+            s_phone.apply_async()
 
 #            if u.identities.get('evm') == None:
 #                u.identities['evm'] = {}

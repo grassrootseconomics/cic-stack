@@ -21,8 +21,8 @@ from crypto_dev_signer.keystore.dict import DictKeystore
 from cic_types.models.person import Person
 
 # local imports
-from balance import BalanceProcessor
-from task import *
+from import_util import BalanceProcessor
+from import_task import *
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -108,38 +108,15 @@ token_symbol = args.token_symbol
 
 MetadataTask.meta_host = config.get('META_HOST')
 MetadataTask.meta_port = config.get('META_PORT')
+MetadataTask.chain_spec = chain_spec
 
 def main():
     conn = EthHTTPConnection(config.get('ETH_PROVIDER'))
    
-    processor = BalanceProcessor(conn, chain_spec, config.get('CIC_REGISTRY_ADDRESS'), signer_address)
-    processor.init()
+    MetadataTask.balance_processor = BalanceProcessor(conn, chain_spec, config.get('CIC_REGISTRY_ADDRESS'), signer_address, signer)
+    MetadataTask.balance_processor.init()
 
-
-#    syncer_backend = MemBackend(chain_str, 0)
-#
-#    if block_offset == -1:
-#        o = block_latest()
-#        r = conn.do(o)
-#        block_offset = int(strip_0x(r), 16) + 1
-##
-##    addresses = {}
-##    f = open('{}/addresses.csv'.format(user_dir, 'r'))
-##    while True:
-##        l = f.readline()
-##        if l == None:
-##            break
-##        r = l.split(',')
-##        try:
-##            k = r[0]
-##            v = r[1].rstrip()
-##            addresses[k] = v
-##            sys.stdout.write('loading address mapping {} -> {}'.format(k, v).ljust(200) + "\r")
-##        except IndexError as e:
-##            break
-##    f.close()
-#
-#    # TODO get decimals from token
+    # TODO get decimals from token
     balances = {}
     f = open('{}/balances.csv'.format(user_dir, 'r'))
     remove_zeros = 10**6
@@ -160,6 +137,8 @@ def main():
 
     f.close()
 
+    MetadataTask.balances = balances
+    
     argv = ['worker', '-Q', 'cic-import-ussd', '--loglevel=DEBUG']
     celery_app.worker_main(argv)
 
