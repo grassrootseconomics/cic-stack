@@ -6,7 +6,7 @@ RUN apt-get update && \
 WORKDIR /usr/src/cic-notify
 
 ARG pip_extra_index_url_flag='--index https://pypi.org/simple --extra-index-url https://pip.grassrootseconomics.net:8433'
-RUN pip install $pip_extra_index_url_flag cic-base[full_graph]==0.1.2a61
+RUN pip install $pip_extra_index_url_flag cic-base[full_graph]==0.1.2a62
 
 COPY cic-notify/setup.cfg \
 	 cic-notify/setup.py \

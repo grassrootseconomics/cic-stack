@@ -20,6 +20,7 @@ from cic_eth.admin.ctrl import lock_send
 from cic_eth.db.enum import LockEnum
 from cic_eth.runnable.daemons.filters.straggler import StragglerFilter
 from cic_eth.sync.retry import RetrySyncer
+from cic_eth.stat import init_chain_stat
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -71,57 +72,21 @@ RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, tag='def
 dsn = dsn_from_config(config)
 SessionBase.connect(dsn, debug=config.true('DATABASE_DEBUG'))
 
-straggler_delay = int(config.get('CIC_TX_RETRY_DELAY'))
-
-## TODO: we already have the signed raw tx in get, so its a waste of cycles to get_tx here
-#def sendfail_filter(w3, tx_hash, rcpt, chain_spec):
-#    tx_dict = get_tx(tx_hash)
-#    tx = unpack(tx_dict['signed_tx'], chain_spec)
-#    logg.debug('submitting tx {} for retry'.format(tx_hash))
-#    s_check = celery.signature(
-#            'cic_eth.admin.ctrl.check_lock',
-#            [
-#                tx_hash,
-#                chain_str,
-#                LockEnum.QUEUE,
-#                tx['from'],
-#                ],
-#            queue=queue,
-#            )
-##    s_resume = celery.signature(
-##            'cic_eth.eth.tx.resume_tx',
-##            [
-##                chain_str,
-##                ],
-##            queue=queue,
-##            )
-#    
-##    s_retry_status = celery.signature(
-##            'cic_eth.queue.state.set_ready',
-##            [],
-##            queue=queue,
-##    )
-#    s_resend = celery.signature(
-#            'cic_eth.eth.gas.resend_with_higher_gas',
-#            [
-#                chain_str,
-#                ],
-#            queue=queue,
-#            )
-#
-#    #s_resume.link(s_retry_status)
-#    #s_check.link(s_resume)
-#    s_check.link(s_resend)
-#    s_check.apply_async()
-
 
 def main(): 
     conn = RPCConnection.connect(chain_spec, 'default')
+
+    straggler_delay = int(config.get('CIC_TX_RETRY_DELAY'))
+    loop_interval = config.get('SYNCER_LOOP_INTERVAL')
+    if loop_interval == None:
+        stat = init_chain_stat(conn)
+        loop_interval = stat.block_average()
+
     syncer = RetrySyncer(conn, chain_spec, straggler_delay, batch_size=config.get('_BATCH_SIZE'))
     syncer.backend.set(0, 0)
     fltr = StragglerFilter(chain_spec, queue=queue)
     syncer.add_filter(fltr)
-    syncer.loop(float(straggler_delay), conn)
+    syncer.loop(int(loop_interval), conn)
 
 
 if __name__ == '__main__':
