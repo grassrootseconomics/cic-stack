@@ -61,7 +61,7 @@ def process_account_creation_callback(self, result: str, url: str, status_code: 
                         result,
                         phone_number,
                         'pgp',
-                        ]
+                    ],
                     queue=queue,
                     )
             s.apply_async()
