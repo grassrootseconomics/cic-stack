@@ -177,31 +177,6 @@ if __name__ == '__main__':
             s_phone.link(s_meta)
             s_phone.apply_async()
 
-#            if u.identities.get('evm') == None:
-#                u.identities['evm'] = {}
-#            sub_chain_str = '{}:{}'.format(chain_spec.common_name(), chain_spec.network_id())
-#            u.identities['evm'][sub_chain_str] = [new_address]
-#
-#            new_address_clean = strip_0x(new_address)
-#            filepath = os.path.join(
-#                    user_new_dir,
-#                    new_address_clean[:2].upper(),
-#                    new_address_clean[2:4].upper(),
-#                    new_address_clean.upper() + '.json',
-#                    )
-#            os.makedirs(os.path.dirname(filepath), exist_ok=True)
-#
-#            o = u.serialize()
-#            f = open(filepath, 'w')
-#            f.write(json.dumps(o))
-#            f.close()
-#
-#            #old_address = to_checksum(add_0x(y[:len(y)-5]))
-#            #fi.write('{},{}\n'.format(new_address, old_address))
-#            meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), 'cic.person')
-#            meta_filepath = os.path.join(meta_dir, '{}.json'.format(new_address_clean.upper()))
-#            os.symlink(os.path.realpath(filepath), meta_filepath)
-
             i += 1
             sys.stdout.write('imported {} {}'.format(i, u).ljust(200) + "\r")
         
