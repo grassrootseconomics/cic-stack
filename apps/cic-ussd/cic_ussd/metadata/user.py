@@ -13,16 +13,13 @@ from cic_ussd.metadata import make_request
 from cic_ussd.metadata.signer import Signer
 from cic_ussd.redis import cache_data
 from cic_ussd.error import MetadataStoreError
+from .base import Metadata
 
 logg = logging.getLogger()
 
 
-class UserMetadata:
-    """
-    :cvar base_url:
-    :type base_url:
-    """
-    base_url = None
+class UserMetadata(Metadata):
+    
 
     def __init__(self, identifier: bytes):
         """

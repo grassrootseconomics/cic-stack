@@ -13,7 +13,7 @@ from confini import Config
 from cic_ussd.db import dsn_from_config
 from cic_ussd.db.models.base import SessionBase
 from cic_ussd.metadata.signer import Signer
-from cic_ussd.metadata.user import UserMetadata
+from cic_ussd.metadata.base import Metadata
 from cic_ussd.redis import InMemoryStore
 from cic_ussd.session.ussd_session import UssdSession as InMemoryUssdSession
 from cic_ussd.validator import validate_presence
@@ -63,7 +63,7 @@ InMemoryStore.cache = redis.StrictRedis(host=config.get('REDIS_HOSTNAME'),
 InMemoryUssdSession.redis_cache = InMemoryStore.cache
 
 # define metadata URL
-UserMetadata.base_url = config.get('CIC_META_URL')
+Metadata.base_url = config.get('CIC_META_URL')
 
 # define signer values
 export_dir = config.get('PGP_EXPORT_DIR')

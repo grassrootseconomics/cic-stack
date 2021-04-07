@@ -23,7 +23,7 @@ from cic_ussd.encoder import PasswordEncoder
 from cic_ussd.files.local_files import create_local_file_data_stores, json_file_parser
 from cic_ussd.menu.ussd_menu import UssdMenu
 from cic_ussd.metadata.signer import Signer
-from cic_ussd.metadata.user import UserMetadata
+from cic_ussd.metadata.base import Metadata
 from cic_ussd.operations import (define_response_with_content,
                                  process_menu_interaction_requests,
                                  define_multilingual_responses)
@@ -100,7 +100,7 @@ InMemoryStore.cache = redis.StrictRedis(host=config.get('REDIS_HOSTNAME'),
 InMemoryUssdSession.redis_cache = InMemoryStore.cache
 
 # define metadata URL
-UserMetadata.base_url = config.get('CIC_META_URL')
+Metadata.base_url = config.get('CIC_META_URL')
 
 # define signer values
 export_dir = config.get('PGP_EXPORT_DIR')

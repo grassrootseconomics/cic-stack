@@ -2,8 +2,9 @@
 import json
 import logging
 
-# third-party imports
+# external imports
 import celery
+from hexathon import strip_0x
 
 # local imports
 from cic_ussd.metadata import blockchain_address_to_metadata_pointer
@@ -51,7 +52,7 @@ def edit_user_metadata(blockchain_address: str, data: bytes, engine: str):
 
 
 @celery_app.task(bind=True, base=CriticalMetadataTask)
-def add_phone_pointer(blockchain_address: str, phone: str, engine: str):
+def add_phone_pointer(self, blockchain_address: str, phone: str, engine: str):
     stripped_address = strip_0x(blockchain_address)
-    phone_metadata_client = PhonePointerMetadata(identifier=phone, engine=engine)
+    phone_metadata_client = PhonePointerMetadata(identifier=phone.encode('utf-8'), engine=engine)
     phone_metadata_client.create(data=stripped_address)

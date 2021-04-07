@@ -80,6 +80,8 @@ phone_idx = []
 user_dir = args.dir
 user_count = args.user_count
 
+random.seed()
+
 def genPhoneIndex(phone):
     h = hashlib.new('sha256')
     h.update(phone.encode('utf-8'))
