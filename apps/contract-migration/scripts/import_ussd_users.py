@@ -36,8 +36,6 @@ argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='Chain spe
 argparser.add_argument('--redis-host', dest='redis_host', type=str, help='redis host to use for task submission')
 argparser.add_argument('--redis-port', dest='redis_port', type=int, help='redis host to use for task submission')
 argparser.add_argument('--redis-db', dest='redis_db', type=int, help='redis db to use for task submission and callback')
-argparser.add_argument('--redis-host-callback', dest='redis_host_callback', default='localhost', type=str, help='redis host to use for callback')
-argparser.add_argument('--redis-port-callback', dest='redis_port_callback', default=6379, type=int, help='redis port to use for callback')
 argparser.add_argument('--batch-size', dest='batch_size', default=100, type=int, help='burst size of sending transactions to node') # batch size should be slightly below cumulative gas limit worth, eg 80000 gas txs with 8000000 limit is a bit less than 100 batch size
 argparser.add_argument('--batch-delay', dest='batch_delay', default=2, type=int, help='seconds delay between batches')
 argparser.add_argument('--timeout', default=60.0, type=float, help='Callback timeout')
@@ -86,45 +84,7 @@ chain_str = str(chain_spec)
 batch_size = args.batch_size
 batch_delay = args.batch_delay
 
-
-def register_eth(i, u):
-    redis_channel = str(uuid.uuid4())
-    ps.subscribe(redis_channel)
-    #ps.get_message()
-    api = Api(
-        config.get('CIC_CHAIN_SPEC'),
-        queue=args.q,
-        callback_param='{}:{}:{}:{}'.format(args.redis_host_callback, args.redis_port_callback, redis_db, redis_channel),
-        callback_task='cic_eth.callbacks.redis.redis',
-        callback_queue=args.q,
-        )
-    t = api.create_account(register=True)
-    logg.debug('register {} -> {}'.format(u, t))
-
-    while True:
-        ps.get_message()
-        m = ps.get_message(timeout=args.timeout)
-        address = None
-        if m == None:
-            logg.debug('message timeout')
-            return
-        if m['type'] == 'subscribe':
-            logg.debug('skipping subscribe message')
-            continue
-        try:
-            r = json.loads(m['data'])
-            address = r['result']
-            break
-        except Exception as e:
-            if m == None:
-                logg.critical('empty response from redis callback (did the service crash?) {}'.format(e))
-            else:
-                logg.critical('unexpected response from redis callback: {} {}'.format(m, e))
-            sys.exit(1)
-        logg.debug('[{}] register eth {} {}'.format(i, u, address))
-
-    return address
-   
+  
 
 def build_ussd_request(phone, host, port, service_code, username, password, ssl=False):
     url = 'http'
@@ -166,8 +126,6 @@ def register_ussd(i, u):
 
 if __name__ == '__main__':
 
-    #fi = open(os.path.join(user_out_dir, 'addresses.csv'), 'a')
-
     i = 0
     j = 0
     for x in os.walk(user_old_dir):
@@ -185,8 +143,8 @@ if __name__ == '__main__':
             f.close()
             u = Person.deserialize(o)
 
-            #new_address = register_eth(i, u)
             new_address = register_ussd(i, u)
+
 #            if u.identities.get('evm') == None:
 #                u.identities['evm'] = {}
 #            sub_chain_str = '{}:{}'.format(chain_spec.common_name(), chain_spec.network_id())
