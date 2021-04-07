@@ -15,7 +15,7 @@ from cic_ussd.balance import BalanceManager, compute_operational_balance, get_ca
 from cic_ussd.chain import Chain
 from cic_ussd.db.models.user import AccountStatus, User
 from cic_ussd.db.models.ussd_session import UssdSession
-from cic_ussd.error import UserMetadataNotFoundError
+from cic_ussd.error import MetadataNotFoundError
 from cic_ussd.menu.ussd_menu import UssdMenu
 from cic_ussd.metadata import blockchain_address_to_metadata_pointer
 from cic_ussd.phone_number import get_user_by_phone_number
@@ -235,7 +235,7 @@ def process_display_user_metadata(user: User, display_key: str):
             products=products
         )
     else:
-        raise UserMetadataNotFoundError(f'Expected user metadata but found none in cache for key: {user.blockchain_address}')
+        raise MetadataNotFoundError(f'Expected user metadata but found none in cache for key: {user.blockchain_address}')
 
 
 def process_account_statement(user: User, display_key: str, ussd_session: dict):

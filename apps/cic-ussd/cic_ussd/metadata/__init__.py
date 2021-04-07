@@ -3,7 +3,10 @@
 # third-party imports
 import requests
 from chainlib.eth.address import to_checksum
-from hexathon import add_0x
+from hexathon import (
+        add_0x,
+        strip_0x,
+        )
 
 # local imports
 from cic_ussd.error import UnsupportedMethodError
@@ -40,4 +43,4 @@ def blockchain_address_to_metadata_pointer(blockchain_address: str):
     :return:
     :rtype:
     """
-    return bytes.fromhex(blockchain_address[2:])
+    return bytes.fromhex(strip_0x(blockchain_address))

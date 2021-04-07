@@ -12,6 +12,7 @@ from cic_ussd.chain import Chain
 from cic_ussd.metadata import make_request
 from cic_ussd.metadata.signer import Signer
 from cic_ussd.redis import cache_data
+from cic_ussd.error import MetadataStoreError
 
 logg = logging.getLogger()
 
@@ -28,7 +29,7 @@ class UserMetadata:
         :param identifier:
         :type identifier:
         """
-        self. headers = {
+        self.headers = {
             'X-CIC-AUTOMERGE': 'server',
             'Content-Type': 'application/json'
         }
@@ -49,7 +50,7 @@ class UserMetadata:
             logg.info(f'Get sign material response status: {result.status_code}')
             result.raise_for_status()
         except requests.exceptions.HTTPError as error:
-            raise RuntimeError(error)
+            raise MetadataStoreError(error)
 
     def edit(self, data: bytes, engine: str):
         """
@@ -79,7 +80,7 @@ class UserMetadata:
             logg.info(f'Signed content submission status: {result.status_code}.')
             result.raise_for_status()
         except requests.exceptions.HTTPError as error:
-            raise RuntimeError(error)
+            raise MetadataStoreError(error)
 
     def query(self):
         result = make_request(method='GET', url=self.url)
@@ -99,4 +100,4 @@ class UserMetadata:
                 logg.info('The data is not available and might need to be added.')
             result.raise_for_status()
         except requests.exceptions.HTTPError as error:
-            raise RuntimeError(error)
+            raise MetadataNotFoundError(error)

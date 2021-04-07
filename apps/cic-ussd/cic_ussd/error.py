@@ -18,7 +18,7 @@ class ActionDataNotFoundError(OSError):
     pass
 
 
-class UserMetadataNotFoundError(OSError):
+class MetadataNotFoundError(OSError):
     """Raised when metadata is expected but not available in cache."""
     pass
 
@@ -31,3 +31,10 @@ class UnsupportedMethodError(OSError):
 class CachedDataNotFoundError(OSError):
     """Raised when the method passed to the make request function is unsupported."""
     pass
+
+
+class MetadataStoreError(Exception):
+    """Raised when metadata storage fails"""
+    pass
+
+

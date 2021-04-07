@@ -27,6 +27,7 @@ from cic_ussd.metadata.user import UserMetadata
 from cic_ussd.operations import (define_response_with_content,
                                  process_menu_interaction_requests,
                                  define_multilingual_responses)
+from cic_ussd.phone_number import process_phone_number
 from cic_ussd.redis import InMemoryStore
 from cic_ussd.requests import (get_request_endpoint,
                                get_request_method,
@@ -150,6 +151,10 @@ def application(env, start_response):
         phone_number = post_data.get('phoneNumber')
         external_session_id = post_data.get('sessionId')
         user_input = post_data.get('text')
+
+        # add validation for phone number
+        if phone_number:
+            phone_number = process_phone_number(phone_number=phone_number, region=config.get('PHONE_NUMBER_REGION'))
 
         # validate ip address
         if not check_ip(config=config, env=env):

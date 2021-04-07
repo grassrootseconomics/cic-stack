@@ -11,7 +11,7 @@ from cic_types.models.person import generate_vcard_from_contact_data, manage_ide
 # local imports
 from cic_ussd.chain import Chain
 from cic_ussd.db.models.user import User
-from cic_ussd.error import UserMetadataNotFoundError
+from cic_ussd.error import MetadataNotFoundError
 from cic_ussd.metadata import blockchain_address_to_metadata_pointer
 from cic_ussd.operations import save_to_in_memory_ussd_session_data
 from cic_ussd.redis import get_cached_data
@@ -181,7 +181,7 @@ def edit_user_metadata_attribute(state_machine_data: Tuple[str, dict, User]):
     user_metadata = get_cached_data(key=key)
 
     if not user_metadata:
-        raise UserMetadataNotFoundError(f'Expected user metadata but found none in cache for key: {blockchain_address}')
+        raise MetadataNotFoundError(f'Expected user metadata but found none in cache for key: {blockchain_address}')
 
     given_name = ussd_session.get('session_data').get('given_name')
     family_name = ussd_session.get('session_data').get('family_name')
