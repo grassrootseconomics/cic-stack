@@ -44,7 +44,7 @@ class Signer:
         gpg_keys = self.gpg.list_keys()
         key_algorithm = gpg_keys[0].get('algo')
         key_id = gpg_keys[0].get("keyid")
-        logg.info(f'using signing key: {key_id}, algorithm: {key_algorithm}')
+        logg.debug(f'using signing key: {key_id}, algorithm: {key_algorithm}')
         return gpg_keys[0]
 
     def sign_digest(self, data: bytes):

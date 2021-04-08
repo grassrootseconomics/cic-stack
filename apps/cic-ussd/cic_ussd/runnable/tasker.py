@@ -20,6 +20,7 @@ from cic_ussd.validator import validate_presence
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
+logging.getLogger('gnupg').setLevel(logging.WARNING)
 
 config_directory = '/usr/local/etc/cic-ussd/'
 
@@ -47,7 +48,7 @@ logg.debug(config)
 
 # connect to database
 data_source_name = dsn_from_config(config)
-SessionBase.connect(data_source_name=data_source_name)
+SessionBase.connect(data_source_name, pool_size=int(config.get('DATABASE_POOL_SIZE')), debug=config.true('DATABASE_DEBUG'))
 
 # verify database connection with minimal sanity query
 session = SessionBase.create_session()

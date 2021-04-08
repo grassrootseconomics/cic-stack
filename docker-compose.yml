@@ -164,6 +164,7 @@ services:
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       DATABASE_DEBUG: 1
+      DATABASE_POOL_SIZE: 0
       ETH_ABI_DIR: ${ETH_ABI_DIR:-/usr/local/share/cic/solidity/abi}
       CIC_TRUST_ADDRESS: ${DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER:-0xEb3907eCad74a0013c259D5874AE7f22DcBcC95C}
       CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
@@ -233,6 +234,7 @@ services:
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
       PGPASSWORD: ${DATABASE_PASSWORD:-tralala}
       CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       BANCOR_DIR: ${BANCOR_DIR:-/usr/local/share/cic/bancor}
@@ -430,6 +432,7 @@ services:
       DATABASE_NAME: ${DATABASE_NAME_CIC_NOTIFY:-cic_notify}
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_POOL_SIZE: 0
       PGPASSWORD: ${DATABASE_PASSWORD:-tralala}
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_BROKER_URL:-redis://redis}
@@ -503,7 +506,7 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-    command: "/root/start_uwsgi.sh"
+    command: "/root/start_uwsgi.sh -vv"
 
   cic-ussd-tasker:
     # image: grassrootseconomics:cic-ussd
@@ -518,6 +521,7 @@ services:
       DATABASE_NAME: cic_ussd
       DATABASE_ENGINE: postgresql
       DATABASE_DRIVER: psycopg2
+      DATABASE_POOL_SIZE: 0
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_BROKER_URL:-redis://redis}
       PGP_PASSPHRASE: merman
@@ -530,4 +534,4 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-    command: "/root/start_tasker.sh -q cic-ussd"
+    command: "/root/start_tasker.sh -q cic-ussd -vv"

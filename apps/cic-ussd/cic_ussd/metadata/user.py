@@ -74,7 +74,7 @@ class UserMetadata(Metadata):
 
         try:
             result = make_request(method='PUT', url=self.url, data=formatted_data, headers=self.headers)
-            logg.info(f'Signed content submission status: {result.status_code}.')
+            logg.debug(f'signed user metadata submission status: {result.status_code}.')
             result.raise_for_status()
         except requests.exceptions.HTTPError as error:
             raise MetadataStoreError(error)

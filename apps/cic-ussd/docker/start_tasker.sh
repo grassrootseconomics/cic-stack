@@ -2,4 +2,4 @@
 
 . /root/db.sh
 
-/usr/local/bin/cic-ussd-tasker -vv "$@"
+/usr/local/bin/cic-ussd-tasker $@

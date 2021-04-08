@@ -77,6 +77,8 @@ def process_account_creation_callback(self, result: str, url: str, status_code: 
         session.close()
         raise ActionDataNotFoundError(f'Account creation task: {task_id}, returned unexpected response: {status_code}')
 
+    session.close()
+
 
 @celery_app.task
 def process_incoming_transfer_callback(result: dict, param: str, status_code: int):
@@ -130,6 +132,7 @@ def process_incoming_transfer_callback(result: dict, param: str, status_code: in
         session.close()
         raise ValueError(f'Unexpected status code: {status_code}.')
 
+    session.close()
 
 @celery_app.task
 def process_balances_callback(result: list, param: str, status_code: int):
@@ -173,7 +176,6 @@ def define_transaction_action_tag(
 def process_statement_callback(result, param: str, status_code: int):
     if status_code == 0:
         # create session
-        session = SessionBase.create_session()
         processed_transactions = []
 
         # process transaction data to cache
@@ -186,6 +188,7 @@ def process_statement_callback(result, param: str, status_code: int):
             if '0x0000000000000000000000000000000000000000' in source_token:
                 pass
             else:
+                session = SessionBase.create_session()
                 # describe a processed transaction
                 processed_transaction = {}
 
@@ -213,6 +216,8 @@ def process_statement_callback(result, param: str, status_code: int):
 
                 else:
                     logg.warning(f'Tx with recipient not found in cic-ussd')
+
+                session.close()
 
                 # add transaction values
                 processed_transaction['to_value'] = from_wei(value=transaction.get('to_value')).__str__()

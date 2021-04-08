@@ -91,7 +91,7 @@ logg.debug('config loaded from {}:\n{}'.format(args.c, config))
 
 # connect to database
 dsn = dsn_from_config(config)
-SessionBase.connect(dsn, pool_size=50, debug=config.true('DATABASE_DEBUG'))
+SessionBase.connect(dsn, pool_size=int(config.get('DATABASE_POOL_SIZE')), debug=config.true('DATABASE_DEBUG'))
 
 # verify database connection with minimal sanity query
 session = SessionBase.create_session()

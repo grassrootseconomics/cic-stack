@@ -13,7 +13,7 @@ from cic_ussd.metadata.phone import PhonePointerMetadata
 from cic_ussd.tasks.base import CriticalMetadataTask
 
 celery_app = celery.current_app
-logg = logging.getLogger()
+logg = logging.getLogger().getChild(__name__)
 
 
 @celery_app.task

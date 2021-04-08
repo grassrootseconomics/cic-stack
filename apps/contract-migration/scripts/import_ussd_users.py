@@ -37,7 +37,7 @@ argparser.add_argument('--redis-host', dest='redis_host', type=str, help='redis 
 argparser.add_argument('--redis-port', dest='redis_port', type=int, help='redis host to use for task submission')
 argparser.add_argument('--redis-db', dest='redis_db', type=int, help='redis db to use for task submission and callback')
 argparser.add_argument('--batch-size', dest='batch_size', default=100, type=int, help='burst size of sending transactions to node') # batch size should be slightly below cumulative gas limit worth, eg 80000 gas txs with 8000000 limit is a bit less than 100 batch size
-argparser.add_argument('--batch-delay', dest='batch_delay', default=2, type=int, help='seconds delay between batches')
+argparser.add_argument('--batch-delay', dest='batch_delay', default=3, type=int, help='seconds delay between batches')
 argparser.add_argument('--timeout', default=60.0, type=float, help='Callback timeout')
 argparser.add_argument('-q', type=str, default='cic-eth', help='Task queue')
 argparser.add_argument('-v', action='store_true', help='Be verbose')
@@ -77,6 +77,9 @@ os.makedirs(meta_dir)
 
 user_old_dir = os.path.join(args.user_dir, 'old')
 os.stat(user_old_dir)
+
+txs_dir = os.path.join(args.user_dir, 'txs')
+os.makedirs(txs_dir)
 
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 chain_str = str(chain_spec)
@@ -165,7 +168,7 @@ if __name__ == '__main__':
                     )
 
             s_balance = celery.signature(
-                    'import_task.transfer_opening_balance',
+                    'import_task.opening_balance_tx',
                     [
                         phone,
                         i,
@@ -175,7 +178,7 @@ if __name__ == '__main__':
 
             s_meta.link(s_balance)
             s_phone.link(s_meta)
-            s_phone.apply_async()
+            s_phone.apply_async(countdown=7) # block time plus a bit of time for ussd processing
 
             i += 1
             sys.stdout.write('imported {} {}'.format(i, u).ljust(200) + "\r")

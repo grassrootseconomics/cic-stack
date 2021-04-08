@@ -10,6 +10,7 @@ from sqlalchemy.pool import (
         StaticPool,
         QueuePool,
         AssertionPool,
+        NullPool,
         )
 
 logg = logging.getLogger()
@@ -64,6 +65,7 @@ class SessionBase(Model):
         if SessionBase.poolable:
             poolclass = QueuePool
             if pool_size > 1:
+                logg.info('db using queue pool')
                 e = create_engine(
                         dsn,
                         max_overflow=pool_size*3,
@@ -74,17 +76,22 @@ class SessionBase(Model):
                         echo=debug,
                     )
             else:
-                if debug:
+                if pool_size == 0:
+                    logg.info('db using nullpool')
+                    poolclass = NullPool
+                elif debug:
+                    logg.info('db using assertion pool')
                     poolclass = AssertionPool
                 else:
+                    logg.info('db using static pool')
                     poolclass = StaticPool
-
                 e = create_engine(
                         dsn,
                         poolclass=poolclass,
                         echo=debug,
                     )
         else:
+            logg.info('db not poolable')
             e = create_engine(
                     dsn,
                     echo=debug,

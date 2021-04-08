@@ -7,7 +7,10 @@ from eth_token_index import TokenUniqueSymbolIndex
 from chainlib.eth.gas import OverrideGasOracle
 from chainlib.eth.nonce import OverrideNonceOracle
 from chainlib.eth.erc20 import ERC20
-from chainlib.eth.tx import count
+from chainlib.eth.tx import (
+        count,
+        TxFormat,
+        )
 
 logg = logging.getLogger().getChild(__name__)
 
@@ -51,16 +54,18 @@ class BalanceProcessor:
         tx_factory = ERC20(self.chain_spec)
         o = tx_factory.decimals(self.token_address)
         r = self.conn.do(o)
-        self.value_multiplier = int(r, 16) ** 10
+        n = tx_factory.parse_decimals(r)
+        self.value_multiplier = 10 ** n
 
 
     def get_rpc_tx(self, recipient, value, i):
         logg.debug('initiating nonce offset {} for recipient {}'.format(self.nonce_offset + i, recipient))
         nonce_oracle = OverrideNonceOracle(self.signer_address, self.nonce_offset + i)
         tx_factory = ERC20(self.chain_spec, signer=self.signer, nonce_oracle=nonce_oracle, gas_oracle=self.gas_oracle)
-        (tx_hash_hex, o) = tx_factory.transfer(self.token_address, self.signer_address, recipient, value)
-        self.conn.do(o)
-        return tx_hash_hex
+        return tx_factory.transfer(self.token_address, self.signer_address, recipient, value, tx_format=TxFormat.RLP_SIGNED)
+        #(tx_hash_hex, o) = tx_factory.transfer(self.token_address, self.signer_address, recipient, value)
+        #self.conn.do(o)
+        #return tx_hash_hex
 
 
     def get_decimal_amount(self, value):

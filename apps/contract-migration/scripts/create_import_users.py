@@ -215,7 +215,7 @@ if __name__ == '__main__':
 
         amount = genAmount()
         fa.write('{},{}\n'.format(eth,amount))
-        logg.debug('pidx {}, uid {}, eth {}, amount {}'.format(pidx, uid, eth, amount))
+        logg.debug('pidx {}, uid {}, eth {}, amount {}, phone {}'.format(pidx, uid, eth, amount, phone))
         
         i += 1
 

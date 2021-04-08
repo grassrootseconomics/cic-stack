@@ -70,3 +70,4 @@ def persist_session_to_db(external_session_id: str):
         session.close()
         raise SessionNotFoundError('Session does not exist!')
 
+    session.close()

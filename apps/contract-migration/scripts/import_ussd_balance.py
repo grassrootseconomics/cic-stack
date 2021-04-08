@@ -138,7 +138,17 @@ def main():
     f.close()
 
     MetadataTask.balances = balances
-    
+    MetadataTask.count = i
+
+    s = celery.signature(
+            'import_task.send_txs',
+            [
+                MetadataTask.balance_processor.nonce_offset,
+                ],
+            queue='cic-import-ussd',
+            )
+    s.apply_async()
+
     argv = ['worker', '-Q', 'cic-import-ussd', '--loglevel=DEBUG']
     celery_app.worker_main(argv)
 

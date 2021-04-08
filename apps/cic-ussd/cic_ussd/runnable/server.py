@@ -65,7 +65,6 @@ config.censor('PASSWORD', 'DATABASE')
 # define log levels
 if args.vv:
     logging.getLogger().setLevel(logging.DEBUG)
-    logging.getLogger('sqlalchemy.engine').setLevel(logging.DEBUG)
 elif args.v:
     logging.getLogger().setLevel(logging.INFO)
 
@@ -182,6 +181,7 @@ def application(env, start_response):
             logg.error('invalid phone number {}'.format(phone_number))
             start_response('400 Invalid phone number format', errors_headers)
             return []
+        logg.debug('session {} started for {}'.format(external_session_id, phone_number))
 
         # handle menu interaction requests
         chain_str = chain_spec.__str__()

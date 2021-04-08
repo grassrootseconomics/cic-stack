@@ -63,8 +63,9 @@ class PhonePointerMetadata(Metadata):
         cic_meta_signer = Signer()
         signature = cic_meta_signer.sign_digest(data=data)
         algorithm = cic_meta_signer.get_operational_key().get('algo')
+        decoded_data = data.decode('utf-8')
         formatted_data = {
-            'm': data.decode('utf-8'),
+            'm': decoded_data,
             's': {
                 'engine': engine,
                 'algo': algorithm,
@@ -76,8 +77,9 @@ class PhonePointerMetadata(Metadata):
 
         try:
             result = make_request(method='PUT', url=self.url, data=formatted_data, headers=self.headers)
-            logg.info(f'Signed content submission status: {result.status_code}.')
+            logg.debug(f'signed phone pointer metadata submission status: {result.status_code}.')
             result.raise_for_status()
+            logg.info('phone {} metadata pointer {} set to {}'.format(self.identifier.decode('utf-8'), self.metadata_pointer, decoded_data))
         except requests.exceptions.HTTPError as error:
             raise MetadataStoreError(error)
 

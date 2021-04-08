@@ -13,6 +13,10 @@ from hexathon import (
         add_0x,
         )
 from chainlib.eth.address import to_checksum_address
+from chainlib.eth.tx import (
+        unpack,
+        raw,
+        )
 from cic_types.processor import generate_metadata_pointer
 from cic_types.models.person import Person
 
@@ -23,9 +27,10 @@ celery_app = celery.current_app
 
 class MetadataTask(celery.Task):
 
+    count = 0
     balances = None
     chain_spec = None
-    import_path = 'out'
+    import_dir = 'out'
     meta_host = None
     meta_port = None
     meta_path = ''
@@ -33,11 +38,12 @@ class MetadataTask(celery.Task):
     balance_processor = None
     autoretry_for = (
             urllib.error.HTTPError,
+            OSError,
             )
-    retry_kwargs = {
-        'countdown': 3,
-        'max_retries': 100,
-            }
+    retry_jitter = True
+    retry_backoff = True
+    retry_backoff_max = 60
+    max_retries = None
 
     @classmethod
     def meta_url(self):
@@ -79,12 +85,12 @@ def resolve_phone(self, phone):
 
 @celery_app.task(bind=True, base=MetadataTask)
 def generate_metadata(self, address, phone):
-    old_address = old_address_from_phone(self.import_path, phone)
+    old_address = old_address_from_phone(self.import_dir, phone)
 
     logg.debug('address {}'.format(address))
     old_address_upper = strip_0x(old_address).upper()
     metadata_path = '{}/old/{}/{}/{}.json'.format(
-            self.import_path,
+            self.import_dir,
             old_address_upper[:2],
             old_address_upper[2:4],
             old_address_upper,
@@ -103,7 +109,7 @@ def generate_metadata(self, address, phone):
 
     new_address_clean = strip_0x(address)
     filepath = os.path.join(
-            self.import_path,
+            self.import_dir,
             'new',
             new_address_clean[:2].upper(),
             new_address_clean[2:4].upper(),
@@ -118,7 +124,7 @@ def generate_metadata(self, address, phone):
 
     meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), 'cic.person')
     meta_filepath = os.path.join(
-            self.import_path,
+            self.import_dir,
             'meta',
             '{}.json'.format(new_address_clean.upper()),
             )
@@ -130,19 +136,77 @@ def generate_metadata(self, address, phone):
 
 
 @celery_app.task(bind=True, base=MetadataTask)
-def transfer_opening_balance(self, address, phone, serial):
+def opening_balance_tx(self, address, phone, serial):
 
 
-    old_address = old_address_from_phone(self.import_path, phone)
+    old_address = old_address_from_phone(self.import_dir, phone)
   
     k = to_checksum_address(strip_0x(old_address))
     balance = self.balances[k]
     logg.debug('found balance {} for address {} phone {}'.format(balance, old_address, phone))
 
-    decimal_balance = self.balance_processor.get_decimal_amount(balance)
+    decimal_balance = self.balance_processor.get_decimal_amount(int(balance))
 
-    tx_hash_hex = self.balance_processor.get_rpc_tx(address, decimal_balance, serial)
-    logg.debug('sending {} to {} tx hash {}'.format(decimal_balance, address, tx_hash_hex))
+    (tx_hash_hex, o) = self.balance_processor.get_rpc_tx(address, decimal_balance, serial)
 
-    return tx_hash_hex
+    tx = unpack(bytes.fromhex(strip_0x(o)), self.chain_spec)
+    logg.debug('generated tx token value {} to {} tx hash {}'.format(decimal_balance, address, tx_hash_hex))
 
+    tx_path = os.path.join(
+            self.import_dir,
+            'txs',
+            strip_0x(tx_hash_hex),
+            )
+            
+    f = open(tx_path, 'w')
+    f.write(o)
+    f.close()
+
+    tx_nonce_path = os.path.join(
+            self.import_dir,
+            'txs',
+            '.' + str(tx['nonce']),
+            )
+    os.symlink(os.path.realpath(tx_path), tx_nonce_path)
+
+    return tx['hash']
+
+
+@celery_app.task(bind=True, base=MetadataTask, autoretry_for=(FileNotFoundError,), max_retries=None, countdown=0.1)
+def send_txs(self, nonce):
+
+    if nonce == self.count + self.balance_processor.nonce_offset:
+        logg.info('reached nonce {} (offset {} + count {}) exiting'.format(nonce, self.balance_processor.nonce_offset, self.count))
+        return
+
+
+    tx_nonce_path = os.path.join(
+            self.import_dir,
+            'txs',
+            '.' + str(nonce),
+            )
+    f = open(tx_nonce_path, 'r')
+    tx_signed_raw_hex = f.read()
+    f.close()
+
+    os.unlink(tx_nonce_path)
+
+    o = raw(tx_signed_raw_hex)
+    tx_hash_hex = self.balance_processor.conn.do(o)
+
+    logg.info('sent nonce {} tx hash {}'.format(nonce, tx_hash_hex)) #tx_signed_raw_hex))
+
+    nonce += 1
+
+    queue = self.request.delivery_info.get('routing_key')
+    s = celery.signature(
+            'import_task.send_txs',
+            [
+                nonce,
+                ],
+            queue=queue,
+            )
+    s.apply_async()
+
+
+    return nonce
