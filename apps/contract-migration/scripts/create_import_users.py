@@ -24,6 +24,7 @@ from cic_types.models.person import (
         get_contact_data_from_vcard,
         )
 from chainlib.eth.address import to_checksum_address
+import phonenumbers
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -103,8 +104,9 @@ def genDate():
 
 
 def genPhone():
-    #return fake.msisdn()
-    return '+254' + str(random.randint(100000000, 999999999))
+    phone_str = '+254' + str(random.randint(100000000, 999999999))
+    phone_object = phonenumbers.parse(phone_str)
+    return phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
 
 
 def genPersonal(phone):

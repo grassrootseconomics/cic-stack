@@ -3,6 +3,7 @@ const path = require('path');
 const http = require('http');
 
 const cic = require('cic-client-meta');
+const vcfp = require('vcard-parser');
 
 //const conf = JSON.parse(fs.readFileSync('./cic.conf'));
 
@@ -40,15 +41,18 @@ function sendit(uid, envelope) {
 	req.end();
 }
 
-function doOne(keystore, filePath) {
+function doOne(keystore, filePath, address) {
 	const signer = new cic.PGPSigner(keystore);
-	const parts = path.basename(filePath).split('.');
-	const ethereum_address = path.basename(parts[0]);
 
-	cic.Phone.toKey('0x' + ethereum_address).then((uid) => {
+	const j = JSON.parse(fs.readFileSync(filePath).toString());
+	const b = Buffer.from(j['vcard'], 'base64');
+	const s = b.toString();
+	const o = vcfp.parse(s);
+	const phone = o.tel[0].value;
+
+
+	cic.Phone.toKey(address, phone).then((uid) => {
 		const o = fs.readFileSync(filePath, 'utf-8');
-		//const o = JSON.parse(d);
-		//console.log(o);
 		fs.unlinkSync(filePath);
 
 		const s = new cic.Syncable(uid, o);
@@ -77,7 +81,9 @@ new cic.PGPKeyStore(
 const batchSize = 16;
 const batchDelay = 1000;
 const total = parseInt(process.argv[3]);
-const workDir = path.join(process.argv[2], 'phone/meta');
+const dataDir = process.argv[2];
+const workDir = path.join(dataDir, 'phone/meta');
+const userDir = path.join(dataDir, 'new');
 let count = 0;
 let batchCount = 0;
 
@@ -90,7 +96,7 @@ function importMetaPhone(keystore) {
 		err, files = fs.readdirSync(workDir);
 	} catch {
 		console.error('source directory not yet ready', workDir);
-		setTimeout(importMeta, batchDelay, keystore);
+		setTimeout(importMetaPhone, batchDelay, keystore);
 		return;
 	}
 	let limit = batchSize;
@@ -103,7 +109,16 @@ function importMetaPhone(keystore) {
 			console.debug('skipping file', file);	
 		}
 		const filePath = path.join(workDir, file);
-		doOne(keystore, filePath);
+
+		const address = fs.readFileSync(filePath).toString().substring(2).toUpperCase();
+		const metaFilePath = path.join(
+			userDir,
+			address.substring(0, 2),
+			address.substring(2, 4),
+			address + '.json',
+		);
+
+		doOne(keystore, metaFilePath, address);
 		count++;
 		batchCount++;
 		if (batchCount == batchSize) {

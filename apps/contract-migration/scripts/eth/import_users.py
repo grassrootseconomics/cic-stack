@@ -179,6 +179,7 @@ if __name__ == '__main__':
 
             phone_object = phonenumbers.parse(u.tel)
             phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
+            logg.debug('>>>>> Using phone {}'.format(phone))
             meta_phone_key = generate_metadata_pointer(phone.encode('utf-8'), ':cic.phone')
             meta_phone_filepath = os.path.join(phone_dir, 'meta', meta_phone_key)
 
