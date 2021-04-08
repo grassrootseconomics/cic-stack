@@ -24,6 +24,7 @@ In addition the following common tools are available:
 * **verify.py**: Import verification script
 * **cic_meta**: Metadata imports
 
+
 ## REQUIREMENTS
 
 A virtual environment for the python scripts is recommended. We know it works with `python 3.8.x`. Let us know if you run it successfully with other minor versions.
@@ -40,7 +41,7 @@ Install all requirements from the `requirements.txt` file:
 
 If you are importing metadata, also do:
 
-`npm install cic-client-meta'
+`npm install cic-client-meta`
 
 
 ## HOW TO USE
