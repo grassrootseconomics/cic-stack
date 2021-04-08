@@ -24,6 +24,24 @@ In addition the following common tools are available:
 * **verify.py**: Import verification script
 * **cic_meta**: Metadata imports
 
+## REQUIREMENTS
+
+A virtual environment for the python scripts is recommended. We know it works with `python 3.8.x`. Let us know if you run it successfully with other minor versions.
+
+```
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+Install all requirements from the `requirements.txt` file:
+
+`pip install --extra-index-url https://pip.grassrootseconomics.net:8433 -r requirements.txt`
+
+
+If you are importing metadata, also do:
+
+`npm install cic-client-meta'
+
 
 ## HOW TO USE
 
@@ -188,3 +206,5 @@ Should exit with code 0 if all input data is found in the respective services.
 - When the account callback in `cic_eth` fails, the `cic_eth/import_users.py` script will exit with a cryptic complaint concerning a `None` value.
 
 - Sovereign import scripts use the same keystore, and running them simultaneously will mess up the transaction nonce sequence. Better would be to use two different keystore wallets so balance and users scripts can be run simultaneously.
+
+- `pycrypto` and `pycryptodome` _have to be installed in that order_. If you get errors concerning `Crypto.KDF` then uninstall both and re-install in that order. Make sure you use the versions listed in `requirements.txt`. (This problem will go away once the last bit of web3-related code is gone).
