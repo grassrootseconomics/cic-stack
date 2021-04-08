@@ -44,12 +44,36 @@ If you want to use a `import_balance.py` script to add to the user's balance fro
 
 ### Step 2 - Services
 
+Unless you know what you are doing, start with a clean slate, and execute (in the repository root):
+
+`docker-compose down -v`
+
+
+#### Base requirements
+
 If you are importing using `eth` and _not_ importing metadata, then the only service you need running in the cluster is:
 * eth
 
 In all other cases you will _also_ need:
 * postgres
 * redis
+
+
+#### EVM provisions
+
+This step is needed in *all* cases.
+
+`RUN_MASK=1 docker-compose up contract-migration`
+
+
+#### Custodial provisions
+
+This step is _only_ needed if you are importing using `cic_eth` or `cic_ussd`
+
+`RUN_MASK=2 docker-compose up contract-migration`
+
+
+#### Custodial services
 
 If importing using `cic_eth` or `cic_ussd` also run:
 * cic-eth-tasker
@@ -63,6 +87,7 @@ If importing using `cic_ussd` also run:
 
 If metadata is to be imported, also run:
 * cic-meta-server
+
 
 
 ### Step 3 - User imports
