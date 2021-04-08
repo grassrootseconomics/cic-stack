@@ -44,8 +44,10 @@ If you want to use a `import_balance.py` script to add to the user's balance fro
 
 ### Step 2 - Services
 
-Make sure the following is running in the cluster:
+If you are importing using `eth` and _not_ importing metadata, then the only service you need running in the cluster is:
 * eth
+
+In all other cases you will _also_ need:
 * postgres
 * redis
 
