@@ -50,10 +50,8 @@ function doOne(keystore, filePath, address) {
 	const o = vcfp.parse(s);
 	const phone = o.tel[0].value;
 
-
-	cic.Phone.toKey(address, phone).then((uid) => {
+	cic.Phone.toKey(phone).then((uid) => {
 		const o = fs.readFileSync(filePath, 'utf-8');
-		fs.unlinkSync(filePath);
 
 		const s = new cic.Syncable(uid, o);
 		s.setSigner(signer);
@@ -119,6 +117,7 @@ function importMetaPhone(keystore) {
 		);
 
 		doOne(keystore, metaFilePath, address);
+		fs.unlinkSync(filePath);
 		count++;
 		batchCount++;
 		if (batchCount == batchSize) {
