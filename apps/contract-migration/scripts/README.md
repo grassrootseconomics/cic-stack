@@ -224,4 +224,4 @@ Should exit with code 0 if all input data is found in the respective services.
 
 - `pycrypto` and `pycryptodome` _have to be installed in that order_. If you get errors concerning `Crypto.KDF` then uninstall both and re-install in that order. Make sure you use the versions listed in `requirements.txt`. `pycryptodome` is a legacy dependency and will be removed as soon as possible.
 
-- Sovereign import script is very slow because it's scrypt'ing keystore files. An improvement would be optional and/or asynchronous keyfile generation.
+- Sovereign import script is very slow because it's scrypt'ing keystore files for the accounts that it creates. An improvement would be optional and/or asynchronous keyfile generation.
