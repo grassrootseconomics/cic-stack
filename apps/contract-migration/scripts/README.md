@@ -101,6 +101,7 @@ If importing using `cic_eth` or `cic_ussd` also run:
 * cic-eth-tasker
 * cic-eth-dispatcher
 * cic-eth-tracker
+* cic-eth-retrier
 
 If importing using `cic_ussd` also run:
 * cic-ussd-tasker
