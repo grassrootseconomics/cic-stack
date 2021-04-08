@@ -157,9 +157,9 @@ If _number of users_ is omitted the script will run until manually interrupted.
 
 #### Importing phone pointer
 
-**IMPORTANT** If you imported using `cic_ussd`, the phone pointer is _already added_ and this script should _NOT_ be run.
-
 `node cic_meta/import_meta_phone.js <datadir> <number_of_users>`
+
+If you imported using `cic_ussd`, the phone pointer is _already added_ and this script will do nothing.
 
 
 ### Step 5 - Verify
