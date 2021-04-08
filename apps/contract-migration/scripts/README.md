@@ -39,9 +39,9 @@ Install all requirements from the `requirements.txt` file:
 `pip install --extra-index-url https://pip.grassrootseconomics.net:8433 -r requirements.txt`
 
 
-If you are importing metadata, also do:
+If you are importing metadata, also do ye olde:
 
-`npm install cic-client-meta`
+`npm install`
 
 
 ## HOW TO USE
