@@ -20,8 +20,8 @@ The balance script will sync with the blockchain, processing transactions and tr
 
 In addition the following common tools are available:
 
-* User creation script
-* Import verification script
+* **create_import_users.py**: User creation script
+* **verify.py**: Import verification script
 * **cic_meta**: Metadata imports
 
 
