@@ -123,10 +123,11 @@ To import, run to _completion_:
 
 `python eth/import_users.py -v -c config -p <eth_provider> -r <cic_registry_address> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c <datadir>`
 
+After the script completes, keystore files for all generated accouts will be found in `<datadir>/keystore`, all with empty string as password.
+
 If you are transferring balances externally, then run:
 
 `python eth/import_balance.py -v -c config -r <cic_registry_address> -p <eth_provider> --offset <block_height_at_start> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c <datadir>` 
-
 
 
 
@@ -156,6 +157,8 @@ In second terminal:
 The balance script is a celery task worker, and will not exit by itself in its current version. However, after it's done doing its job, you will find "reached nonce ... exiting" among the last lines of the log.
 
 The connection parameters for the `cic-ussd-server` is currently _hardcoded_ in the `import_users.py` script file.
+
+All external balance transactions are saved to `<datadir>/txs`
 
 
 ### Step 4 - Metadata import (optional)
