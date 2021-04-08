@@ -45,30 +45,27 @@ If you want to use a `import_balance.py` script to add to the user's balance fro
 ### Step 2 - Services
 
 Make sure the following is running in the cluster:
-	* eth
-	* postgres
-	* redis
-
-
-If metadata is to be imported, also run:
-	* cic-meta-server
-
+* eth
+* postgres
+* redis
 
 If importing using `cic_eth` or `cic_ussd` also run:
-	* cic-eth-tasker
-	* cic-eth-dispatcher
-	* cic-eth-tracker
+* cic-eth-tasker
+* cic-eth-dispatcher
+* cic-eth-tracker
 
 If importing using `cic_ussd` also run:
-	* cic-ussd-tasker
-	* cic-ussd-server
-	* cic-notify-tasker
+* cic-ussd-tasker
+* cic-ussd-server
+* cic-notify-tasker
 
-You will want to run these in sequence:
+If metadata is to be imported, also run:
+* cic-meta-server
 
 
 ### Step 3 - User imports
 
+Only run _one_ of the following.
 
 #### Alternative 1 - Sovereign wallet import - `eth` 
 
@@ -99,7 +96,7 @@ In another terminal:
 The `redis_hostname_in_docker` value is the hostname required to reach the redis server from within the docker cluster. The `import_users` script will receive the address of each newly created custodial account on a redis subscription fed by a callback task in the `cic_eth` account creation task chain.
 
 
-#### Alternative 3 - USSD import
+#### Alternative 3 - USSD import - `cic_ussd`
 
 Run in sequence, in first terminal:
 
@@ -142,12 +139,12 @@ If _number of users_ is omitted the script will run until manually interrupted.
 `python verify.py -v -c config -r <cic_registry_address> -p <eth_provider> <datadir>` 
 
 Included checks:
-	* Private key is in cic-eth keystore
-	* Address is in accounts index
-	* Address has gas balance
-	* Address has triggered the token faucet
-	* Address has token balance matching the gift threshold 
-	* Metadata can be retrieved and has exact match
+* Private key is in cic-eth keystore
+* Address is in accounts index
+* Address has gas balance
+* Address has triggered the token faucet
+* Address has token balance matching the gift threshold 
+* Metadata can be retrieved and has exact match
 
 Checks can be selectively included and excluded. See `--help` for details.
 
