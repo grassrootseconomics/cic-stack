@@ -85,7 +85,7 @@ random.seed()
 def genPhoneIndex(phone):
     h = hashlib.new('sha256')
     h.update(phone.encode('utf-8'))
-    h.update(b'cic.phone')
+    h.update(b':cic.phone')
     return h.digest().hex()
 
 

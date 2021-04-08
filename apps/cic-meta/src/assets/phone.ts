@@ -18,7 +18,7 @@ class Phone extends Syncable implements Addressable {
 	}
 
 	public static async toKey(msisdn:number) {
-		return await toKey(msisdn.toString(), ':cic.msisdn');
+		return await toKey(msisdn.toString(), ':cic.phone');
 	}
 
 	public key(): string {

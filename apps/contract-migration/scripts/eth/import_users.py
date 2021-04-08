@@ -7,6 +7,7 @@ import argparse
 import uuid
 import datetime
 import time
+import phonenumbers
 from glob import glob
 
 # external imports
@@ -66,6 +67,9 @@ os.makedirs(user_new_dir)
 
 meta_dir = os.path.join(args.user_dir, 'meta')
 os.makedirs(meta_dir)
+
+phone_dir = os.path.join(args.user_dir, 'phone')
+os.makedirs(os.path.join(phone_dir, 'meta'))
 
 user_old_dir = os.path.join(args.user_dir, 'old')
 os.stat(user_old_dir)
@@ -166,9 +170,29 @@ if __name__ == '__main__':
             f.write(json.dumps(o))
             f.close()
 
-            meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), 'cic.person')
+            meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), ':cic.person')
             meta_filepath = os.path.join(meta_dir, '{}.json'.format(new_address_clean.upper()))
             os.symlink(os.path.realpath(filepath), meta_filepath)
+
+            phone_object = phonenumbers.parse(u.tel)
+            phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
+            meta_phone_key = generate_metadata_pointer(phone.encode('utf-8'), ':cic.phone')
+            meta_phone_filepath = os.path.join(phone_dir, 'meta', meta_phone_key)
+
+            filepath = os.path.join(
+                    phone_dir,
+                    'new',
+                    meta_phone_key[:2].upper(),
+                    meta_phone_key[2:4].upper(),
+                    meta_phone_key.upper(),
+                    )
+            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+            
+            f = open(filepath, 'w')
+            f.write(to_checksum_address(new_address_clean))
+            f.close()
+
+            os.symlink(os.path.realpath(filepath), meta_phone_filepath)
 
             i += 1
             sys.stdout.write('imported {} {}'.format(i, u).ljust(200) + "\r")

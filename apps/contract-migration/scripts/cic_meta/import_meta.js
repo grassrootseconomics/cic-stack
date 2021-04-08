@@ -101,6 +101,7 @@ function importMeta(keystore) {
 		const file = files[i];
 		if (file.substr(-5) != '.json') {
 			console.debug('skipping file', file);	
+			continue;
 		}
 		const filePath = path.join(workDir, file);
 		doOne(keystore, filePath);
