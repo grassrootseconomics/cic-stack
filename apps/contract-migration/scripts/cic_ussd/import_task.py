@@ -25,17 +25,21 @@ logg = logging.getLogger().getChild(__name__)
 celery_app = celery.current_app
 
 
-class MetadataTask(celery.Task):
+class ImportTask(celery.Task):
 
-    count = 0
     balances = None
-    chain_spec = None
     import_dir = 'out'
+    count = 0
+    chain_spec = None
+    balance_processor = None
+    max_retries = None
+
+class MetadataTask(ImportTask):
+
     meta_host = None
     meta_port = None
     meta_path = ''
     meta_ssl = False
-    balance_processor = None
     autoretry_for = (
             urllib.error.HTTPError,
             OSError,
@@ -43,7 +47,6 @@ class MetadataTask(celery.Task):
     retry_jitter = True
     retry_backoff = True
     retry_backoff_max = 60
-    max_retries = None
 
     @classmethod
     def meta_url(self):
@@ -172,7 +175,7 @@ def opening_balance_tx(self, address, phone, serial):
     return tx['hash']
 
 
-@celery_app.task(bind=True, base=MetadataTask, autoretry_for=(FileNotFoundError,), max_retries=None, countdown=0.1)
+@celery_app.task(bind=True, base=ImportTask, autoretry_for=(FileNotFoundError,), max_retries=None, default_retry_delay=0.1)
 def send_txs(self, nonce):
 
     if nonce == self.count + self.balance_processor.nonce_offset:

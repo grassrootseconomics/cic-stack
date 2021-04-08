@@ -108,13 +108,13 @@ token_symbol = args.token_symbol
 
 MetadataTask.meta_host = config.get('META_HOST')
 MetadataTask.meta_port = config.get('META_PORT')
-MetadataTask.chain_spec = chain_spec
+ImportTask.chain_spec = chain_spec
 
 def main():
     conn = EthHTTPConnection(config.get('ETH_PROVIDER'))
    
-    MetadataTask.balance_processor = BalanceProcessor(conn, chain_spec, config.get('CIC_REGISTRY_ADDRESS'), signer_address, signer)
-    MetadataTask.balance_processor.init()
+    ImportTask.balance_processor = BalanceProcessor(conn, chain_spec, config.get('CIC_REGISTRY_ADDRESS'), signer_address, signer)
+    ImportTask.balance_processor.init()
 
     # TODO get decimals from token
     balances = {}
@@ -137,8 +137,8 @@ def main():
 
     f.close()
 
-    MetadataTask.balances = balances
-    MetadataTask.count = i
+    ImportTask.balances = balances
+    ImportTask.count = i
 
     s = celery.signature(
             'import_task.send_txs',

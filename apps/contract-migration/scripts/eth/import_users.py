@@ -88,7 +88,7 @@ signer = EIP155Signer(keystore)
 
 nonce_oracle = RPCNonceOracle(signer_address, rpc)
 
-registry = Registry()
+registry = Registry(chain_spec)
 o = registry.address_of(config.get('CIC_REGISTRY_ADDRESS'), 'AccountRegistry')
 r = rpc.do(o)
 account_registry_address = registry.parse_address_of(r)
