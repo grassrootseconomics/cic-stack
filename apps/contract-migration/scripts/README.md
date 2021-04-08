@@ -207,7 +207,9 @@ Included checks:
 * Address has gas balance
 * Address has triggered the token faucet
 * Address has token balance matching the gift threshold 
-* Metadata can be retrieved and has exact match
+* Personal metadata can be retrieved and has exact match
+* Phone pointer metadata can be retrieved and matches address
+* USSD menu response is initial state after registration
 
 Checks can be selectively included and excluded. See `--help` for details.
 

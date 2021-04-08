@@ -11,6 +11,8 @@ import csv
 import json
 import urllib
 import copy
+import uuid
+import urllib.request
 
 # external imports
 import celery
@@ -57,11 +59,21 @@ custodial_tests = [
         'faucet',
         ]
 
-all_tests = custodial_tests + [
+metadata_tests = [
+        'metadata',
+        'metadata_phone',
+        ]
+
+eth_tests = [
         'accounts_index',
         'balance',
-        'metadata',
         ]
+
+phone_tests = [
+        'ussd',
+        ]
+
+all_tests = eth_tests + custodial_tests + metadata_tests + phone_tests
 
 argparser = argparse.ArgumentParser(description='daemon that monitors transactions in new blocks')
 argparser.add_argument('-p', '--provider', dest='p', type=str, help='chain rpc provider address')
@@ -69,6 +81,7 @@ argparser.add_argument('-c', type=str, default=config_dir, help='config root to 
 argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:oldchain:1', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
 argparser.add_argument('--meta-provider', type=str, dest='meta_provider', default='http://localhost:63380', help='cic-meta url')
+argparser.add_argument('--ussd-provider', type=str, dest='ussd_provider', default='http://localhost:63315', help='cic-ussd url')
 argparser.add_argument('--skip-custodial', dest='skip_custodial', action='store_true', help='skip all custodial verifications')
 argparser.add_argument('--exclude', action='append', type=str, default=[], help='skip specified verification')
 argparser.add_argument('--include', action='append', type=str, help='include specified verification')
@@ -98,6 +111,9 @@ args_override = {
 config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
+config.add(args.meta_provider, '_META_PROVIDER', True)
+config.add(args.ussd_provider, '_USSD_PROVIDER', True)
+
 logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
 
 celery_app = celery.Celery(backend=config.get('CELERY_RESULT_URL'),  broker=config.get('CELERY_BROKER_URL'))
@@ -107,7 +123,6 @@ chain_str = str(chain_spec)
 old_chain_spec = ChainSpec.from_chain_str(args.old_chain_spec)
 old_chain_str = str(old_chain_spec)
 user_dir = args.user_dir # user_out_dir from import_users.py
-meta_url = args.meta_provider
 exit_on_error = args.x
 
 active_tests = []
@@ -271,7 +286,7 @@ class Verifier:
 
     def verify_metadata(self, address, balance=None):
         k = generate_metadata_pointer(bytes.fromhex(strip_0x(address)), ':cic.person')
-        url = os.path.join(meta_url, k)
+        url = os.path.join(config.get('_META_PROVIDER'), k)
         logg.debug('verify metadata url {}'.format(url))
         try:
             res = urllib.request.urlopen(url)
@@ -297,6 +312,77 @@ class Verifier:
 
         if o_original != o_retrieved:
             raise VerifierError(o_retrieved, 'metadata (person)')
+
+
+    def verify_metadata_phone(self, address, balance=None):
+        upper_address = strip_0x(address).upper()
+        f = open(os.path.join(
+            self.data_dir,
+            'new',
+            upper_address[:2],
+            upper_address[2:4],
+            upper_address + '.json',
+            ), 'r'
+            )
+        o = json.load(f)
+        f.close()
+
+        p = Person.deserialize(o) 
+
+        k = generate_metadata_pointer(p.tel.encode('utf-8'), ':cic.phone')
+        url = os.path.join(config.get('_META_PROVIDER'), k)
+        logg.debug('verify metadata phone url {}'.format(url))
+        try:
+            res = urllib.request.urlopen(url)
+        except urllib.error.HTTPError as e:
+            raise VerifierError(
+                    '({}) {}'.format(url, e),
+                    'metadata (phone)',
+                    )
+        b = res.read()
+        address_recovered = json.loads(b.decode('utf-8'))
+        address_recovered = address_recovered.replace('"', '')
+
+        if strip_0x(address) != strip_0x(address_recovered):
+            raise VerifierError(address_recovered, 'metadata (phone)')
+
+
+    def verify_ussd(self, address, balance=None):
+        upper_address = strip_0x(address).upper()
+        f = open(os.path.join(
+            self.data_dir,
+            'new',
+            upper_address[:2],
+            upper_address[2:4],
+            upper_address + '.json',
+            ), 'r'
+            )
+        o = json.load(f)
+        f.close()
+
+        p = Person.deserialize(o)
+        phone = p.tel
+
+        session = uuid.uuid4().hex
+        data = {
+                'sessionId': session,
+                'serviceCode': config.get('APP_SERVICE_CODE'),
+                'phoneNumber': phone,
+                'text': config.get('APP_SERVICE_CODE'),
+            }
+
+        req = urllib.request.Request(config.get('_USSD_PROVIDER'))
+        data_str = json.dumps(data)
+        data_bytes = data_str.encode('utf-8')
+        req.add_header('Content-Type', 'application/json')
+        req.data = data_bytes
+        response = urllib.request.urlopen(req)
+        response_data = response.read().decode('utf-8')
+        state = response_data[:3]
+        out = response_data[4:]
+        m = '{} {}'.format(state, out[:7])
+        if m != 'CON Welcome':
+            raise VerifierError(response_data, 'ussd')
 
 
     def verify(self, address, balance, debug_stem=None):
