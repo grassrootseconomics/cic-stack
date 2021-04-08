@@ -132,7 +132,7 @@ To import, run to _completion_:
 
 `python eth/import_users.py -v -c config -p <eth_provider> -r <cic_registry_address> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c <datadir>`
 
-After the script completes, keystore files for all generated accouts will be found in `<datadir>/keystore`, all with empty string as password.
+After the script completes, keystore files for all generated accouts will be found in `<datadir>/keystore`, all with `foo` as password (would set it empty, but believe it or not some interfaces won't work unless you have one).
 
 If you are transferring balances externally, then run:
 
@@ -223,3 +223,5 @@ Should exit with code 0 if all input data is found in the respective services.
 - Sovereign import scripts use the same keystore, and running them simultaneously will mess up the transaction nonce sequence. Better would be to use two different keystore wallets so balance and users scripts can be run simultaneously.
 
 - `pycrypto` and `pycryptodome` _have to be installed in that order_. If you get errors concerning `Crypto.KDF` then uninstall both and re-install in that order. Make sure you use the versions listed in `requirements.txt`. `pycryptodome` is a legacy dependency and will be removed as soon as possible.
+
+- Sovereign import script is very slow because it's scrypt'ing keystore files. An improvement would be optional and/or asynchronous keyfile generation.

@@ -116,7 +116,7 @@ def register_eth(i, u):
     rpc.do(o)
 
     pk = keystore.get(address)
-    keyfile_content = to_keyfile_dict(pk, '')
+    keyfile_content = to_keyfile_dict(pk, 'foo')
     keyfile_path = os.path.join(keyfile_dir, '{}.json'.format(address))
     f = open(keyfile_path, 'w')
     json.dump(keyfile_content, f)
