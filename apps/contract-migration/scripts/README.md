@@ -85,6 +85,8 @@ This step is needed in *all* cases.
 
 `RUN_MASK=1 docker-compose up contract-migration`
 
+After this step is run, you can find top-level ethereum addresses (like the cic registry address, which you will need below) in `<repository_root>/service-configs/.env`
+
 
 #### Custodial provisions
 
@@ -112,7 +114,12 @@ If metadata is to be imported, also run:
 
 ### Step 3 - User imports
 
+If you did not change the docker-compose setup, your `eth_provider` the you need for the commands below will be `http://localhost:63545`.
+
+The keystore file is relative to the directory you found this README in. Of course you can use a different wallet, but then you will have to provide it with tokens yourself (hint: `../reset.sh`)
+
 Only run _one_ of the following.
+
 
 #### Alternative 1 - Sovereign wallet import - `eth` 
 
@@ -135,20 +142,20 @@ If you are transferring balances externally, then run:
 
 Run in sequence, in first terminal:
 
-`python cic_eth/import_balance.py -v -c config -p http://localhost:63545 -r 0xea6225212005e86a4490018ded4bf37f3e772161 -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c --head out`
+`python cic_eth/import_balance.py -v -c config -p <eth_provider> -r <cic_registry_address> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c --head out`
 
 In another terminal:
 
 `python cic_eth/import_users.py -v -c config --redis-host-callback <redis_hostname_in_docker> out`
 
-The `redis_hostname_in_docker` value is the hostname required to reach the redis server from within the docker cluster. The `import_users` script will receive the address of each newly created custodial account on a redis subscription fed by a callback task in the `cic_eth` account creation task chain.
+The `redis_hostname_in_docker` value is the hostname required to reach the redis server from within the docker cluster, and should be `redis` if you left the docker-compose unchanged. The `import_users` script will receive the address of each newly created custodial account on a redis subscription fed by a callback task in the `cic_eth` account creation task chain.
 
 
 #### Alternative 3 - USSD import - `cic_ussd`
 
 Run in sequence, in first terminal:
 
-`python cic_eth/import_balance.py -v -c config -p http://localhost:63545 -r 0xea6225212005e86a4490018ded4bf37f3e772161 -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c out`
+`python cic_eth/import_balance.py -v -c config -p <eth_provider> -r <cic_registry_address> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c out`
 
 In second terminal:
 
