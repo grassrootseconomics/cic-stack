@@ -48,6 +48,7 @@ Unless you know what you are doing, start with a clean slate, and execute (in th
 
 `docker-compose down -v`
 
+Then go through, in sequence:
 
 #### Base requirements
 
