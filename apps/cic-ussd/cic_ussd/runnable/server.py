@@ -86,7 +86,7 @@ UssdMenu.ussd_menu_db = ussd_menu_db
 
 # set up db
 data_source_name = dsn_from_config(config)
-SessionBase.connect(data_source_name=data_source_name)
+SessionBase.connect(data_source_name, pool_size=int(config.get('DATABASE_POOL_SIZE')), debug=config.true('DATABASE_DEBUG'))
 # create session for the life time of http request
 SessionBase.session = SessionBase.create_session()
 

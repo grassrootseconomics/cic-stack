@@ -82,6 +82,9 @@ os.makedirs(os.path.join(phone_dir, 'meta'))
 user_old_dir = os.path.join(args.user_dir, 'old')
 os.stat(user_old_dir)
 
+txs_dir = os.path.join(args.user_dir, 'txs')
+os.makedirs(txs_dir)
+
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 chain_str = str(chain_spec)
 

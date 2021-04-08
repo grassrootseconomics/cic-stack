@@ -118,6 +118,8 @@ If you did not change the docker-compose setup, your `eth_provider` the you need
 
 The keystore file is relative to the directory you found this README in. Of course you can use a different wallet, but then you will have to provide it with tokens yourself (hint: `../reset.sh`)
 
+All external balance transactions are saved in raw wire format in `<datadir>/txs`, with transaction hash as file name.
+
 Only run _one_ of the following.
 
 
@@ -153,7 +155,11 @@ The `redis_hostname_in_docker` value is the hostname required to reach the redis
 
 #### Alternative 3 - USSD import - `cic_ussd`
 
-Run in sequence, in first terminal:
+If you have previously run the `cic_ussd` import incompletely, it could be a good idea to purge the queue. If you have left docker-compose unchanged, `redis_url` should be `redis://localhost:63379`.
+
+`celery -A cic_ussd.import_task purge -Q cic-import-ussd --broker <redis_url>`
+
+Then, in sequence, run in first terminal:
 
 `python cic_eth/import_balance.py -v -c config -p <eth_provider> -r <cic_registry_address> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c out`
 
@@ -164,8 +170,6 @@ In second terminal:
 The balance script is a celery task worker, and will not exit by itself in its current version. However, after it's done doing its job, you will find "reached nonce ... exiting" among the last lines of the log.
 
 The connection parameters for the `cic-ussd-server` is currently _hardcoded_ in the `import_users.py` script file.
-
-All external balance transactions are saved to `<datadir>/txs`
 
 
 ### Step 4 - Metadata import (optional)

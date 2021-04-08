@@ -33,7 +33,7 @@ class UserMetadata(Metadata):
         self.identifier = identifier
         self.metadata_pointer = generate_metadata_pointer(
                 identifier=self.identifier,
-                cic_type='cic.person'
+                cic_type=':cic.person'
         )
         if self.base_url:
             self.url = os.path.join(self.base_url, self.metadata_pointer)

@@ -20,7 +20,8 @@ from chainlib.eth.tx import (
 from cic_types.processor import generate_metadata_pointer
 from cic_types.models.person import Person
 
-logg = logging.getLogger().getChild(__name__)
+#logg = logging.getLogger().getChild(__name__)
+logg = logging.getLogger()
 
 celery_app = celery.current_app
 
@@ -58,7 +59,7 @@ class MetadataTask(ImportTask):
 
 
 def old_address_from_phone(base_path, phone):
-    pidx = generate_metadata_pointer(phone.encode('utf-8'), 'cic.phone')
+    pidx = generate_metadata_pointer(phone.encode('utf-8'), ':cic.phone')
     phone_idx_path = os.path.join('{}/phone/{}/{}/{}'.format(
             base_path,
             pidx[:2],
@@ -75,7 +76,7 @@ def old_address_from_phone(base_path, phone):
 
 @celery_app.task(bind=True, base=MetadataTask)
 def resolve_phone(self, phone):
-    identifier = generate_metadata_pointer(phone.encode('utf-8'), 'cic.phone')
+    identifier = generate_metadata_pointer(phone.encode('utf-8'), ':cic.phone')
     url = urllib.parse.urljoin(self.meta_url(), identifier)
     logg.debug('attempt getting phone pointer at {} for phone {}'.format(url, phone))
     r = urllib.request.urlopen(url)
@@ -90,6 +91,7 @@ def resolve_phone(self, phone):
 def generate_metadata(self, address, phone):
     old_address = old_address_from_phone(self.import_dir, phone)
 
+    logg.debug('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> foo')
     logg.debug('address {}'.format(address))
     old_address_upper = strip_0x(old_address).upper()
     metadata_path = '{}/old/{}/{}/{}.json'.format(
@@ -125,7 +127,7 @@ def generate_metadata(self, address, phone):
     f.write(json.dumps(o))
     f.close()
 
-    meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), 'cic.person')
+    meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), ':cic.person')
     meta_filepath = os.path.join(
             self.import_dir,
             'meta',
@@ -162,7 +164,7 @@ def opening_balance_tx(self, address, phone, serial):
             )
             
     f = open(tx_path, 'w')
-    f.write(o)
+    f.write(strip_0x(o))
     f.close()
 
     tx_nonce_path = os.path.join(
@@ -183,6 +185,7 @@ def send_txs(self, nonce):
         return
 
 
+    logg.debug('attempt to open symlink for nonce {}'.format(nonce))
     tx_nonce_path = os.path.join(
             self.import_dir,
             'txs',
@@ -194,7 +197,7 @@ def send_txs(self, nonce):
 
     os.unlink(tx_nonce_path)
 
-    o = raw(tx_signed_raw_hex)
+    o = raw(add_0x(tx_signed_raw_hex))
     tx_hash_hex = self.balance_processor.conn.do(o)
 
     logg.info('sent nonce {} tx hash {}'.format(nonce, tx_hash_hex)) #tx_signed_raw_hex))

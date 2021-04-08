@@ -48,7 +48,7 @@ argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to 
 argparser.add_argument('--offset', type=int, default=0, help='block offset to start syncer from')
 argparser.add_argument('-v', help='be verbose', action='store_true')
 argparser.add_argument('-vv', help='be more verbose', action='store_true')
-argparser.add_argument('user_dir', type=str, help='user export directory')
+argparser.add_argument('user_dir', default='out', type=str, help='user export directory')
 args = argparser.parse_args(sys.argv[1:])
 
 if args.v == True:

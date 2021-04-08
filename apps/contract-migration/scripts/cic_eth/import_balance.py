@@ -162,6 +162,15 @@ class Handler:
             (tx_hash_hex, o) = self.tx_factory.transfer(self.token_address, signer_address, recipient, balance_full)
             logg.info('submitting erc20 transfer tx {} for recipient {}'.format(tx_hash_hex, recipient))
             r = conn.do(o)
+
+            tx_path = os.path.join(
+                    user_dir,
+                    'txs',
+                    strip_0x(tx_hash_hex),
+                    )
+            f = open(tx_path, 'w')
+            f.write(strip_0x(o['params'][0]))
+            f.close()
 #        except TypeError as e:
 #            logg.warning('typerror {}'.format(e))
 #            pass

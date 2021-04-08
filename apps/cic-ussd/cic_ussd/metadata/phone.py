@@ -31,7 +31,7 @@ class PhonePointerMetadata(Metadata):
         self.identifier = identifier
         self.metadata_pointer = generate_metadata_pointer(
                 identifier=self.identifier,
-                cic_type='cic.phone'
+                cic_type=':cic.phone'
         )
         if self.base_url:
             self.url = os.path.join(self.base_url, self.metadata_pointer)
