@@ -117,7 +117,7 @@ If metadata is to be imported, also run:
 
 If you did not change the docker-compose setup, your `eth_provider` the you need for the commands below will be `http://localhost:63545`.
 
-The keystore file is relative to the directory you found this README in. Of course you can use a different wallet, but then you will have to provide it with tokens yourself (hint: `../reset.sh`)
+The keystore file used for transferring external opening balances tracker is relative to the directory you found this README in. Of course you can use a different wallet, but then you will have to provide it with tokens yourself (hint: `../reset.sh`)
 
 All external balance transactions are saved in raw wire format in `<datadir>/txs`, with transaction hash as file name.
 
