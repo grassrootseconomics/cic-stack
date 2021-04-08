@@ -117,11 +117,12 @@ If metadata is to be imported, also run:
 
 If you did not change the docker-compose setup, your `eth_provider` the you need for the commands below will be `http://localhost:63545`.
 
+Only run _one_ of the alternatives.
+
 The keystore file used for transferring external opening balances tracker is relative to the directory you found this README in. Of course you can use a different wallet, but then you will have to provide it with tokens yourself (hint: `../reset.sh`)
 
 All external balance transactions are saved in raw wire format in `<datadir>/txs`, with transaction hash as file name.
 
-Only run _one_ of the following.
 
 
 #### Alternative 1 - Sovereign wallet import - `eth` 
@@ -133,9 +134,9 @@ To import, run to _completion_:
 
 `python eth/import_users.py -v -c config -p <eth_provider> -r <cic_registry_address> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c <datadir>`
 
-After the script completes, keystore files for all generated accouts will be found in `<datadir>/keystore`, all with `foo` as password (would set it empty, but believe it or not some interfaces won't work unless you have one).
+After the script completes, keystore files for all generated accouts will be found in `<datadir>/keystore`, all with `foo` as password (would set it empty, but believe it or not some interfaces out there won't work unless you have one).
 
-If you are transferring balances externally, then run:
+Then run:
 
 `python eth/import_balance.py -v -c config -r <cic_registry_address> -p <eth_provider> --offset <block_height_at_start> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c <datadir>` 
 
@@ -226,3 +227,5 @@ Should exit with code 0 if all input data is found in the respective services.
 - `pycrypto` and `pycryptodome` _have to be installed in that order_. If you get errors concerning `Crypto.KDF` then uninstall both and re-install in that order. Make sure you use the versions listed in `requirements.txt`. `pycryptodome` is a legacy dependency and will be removed as soon as possible.
 
 - Sovereign import script is very slow because it's scrypt'ing keystore files for the accounts that it creates. An improvement would be optional and/or asynchronous keyfile generation.
+
+- Running the balance script should be _optional_ in all cases, but is currently required in the case of `cic_ussd` because it is needed to generate the metadata. An improvement would be moving the task to `import_users.py`, for a different queue than the balance tx handler.
