@@ -10,6 +10,7 @@ from chainlib.eth.error import RequestMismatchException
 from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.eth.erc20 import ERC20
 from hexathon import strip_0x
+from sarafu_faucet import MinterFaucet as Faucet
 
 # local imports
 from .base import SyncFilter
@@ -39,23 +40,19 @@ def parse_transferfrom(tx):
 
 
 def parse_giftto(tx):
-    # TODO: broken
-    logg.error('broken')
-    return
-    transfer_data = unpack_gift(tx.payload)
-    transfer_data['from'] = tx.inputs[0]
-    transfer_data['value'] = 0
-    transfer_data['token_address'] = ZERO_ADDRESS
-    # TODO: would be better to query the gift amount from the block state
-    for l in tx.logs:
-        topics = l['topics']
-        logg.debug('topixx {}'.format(topics))
-        if strip_0x(topics[0]) == '45c201a59ac545000ead84f30b2db67da23353aa1d58ac522c48505412143ffa':
-            #transfer_data['value'] = web3.Web3.toInt(hexstr=strip_0x(l['data']))
-            transfer_data['value'] = int.from_bytes(bytes.fromhex(strip_0x(l_data)))
-            #token_address_bytes = topics[2][32-20:]
-            token_address = strip_0x(topics[2])[64-40:]
-            transfer_data['token_address'] = to_checksum_address(token_address)
+    r = Faucet.parse_give_to_request(tx.payload)
+    logg.debug(f'TOKEN GIFT TX: {tx}')
+    transfer_data = {}
+    logg.debug(f'TOKEN GIFT DATA START: {transfer_data}')
+    transfer_data['to'] = r[0]
+    logg.debug(f'TOKEN GIFT DATA TO: {transfer_data}')
+    transfer_data['value'] = tx['value']
+    logg.debug(f'TOKEN GIFT DATA VALUE: {transfer_data}')
+    transfer_data['from'] = tx['from']
+    logg.debug(f'TOKEN GIFT DATA FROM: {transfer_data}')
+    transfer_data['token_address'] = tx['to']
+    logg.debug(f'TOKEN GIFT DATA TO: {transfer_data}')
+    logg.debug(f'TOKEN GIFT DATA FINAL: {transfer_data}')
     return ('tokengift', transfer_data)
 
 
