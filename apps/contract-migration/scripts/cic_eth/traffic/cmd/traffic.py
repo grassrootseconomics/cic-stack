@@ -241,7 +241,9 @@ class TrafficProvisioner:
             #callback_queue=queue,
             )
         t = api.balance(account, token.symbol())
-        r = t.get_leaf()
+        r = t.get()
+        for c in t.collect():
+            r = c[1]
         assert t.successful()
         #return r[0]['balance_network'] - r[0]['balance_outgoing']
         return r[0]
