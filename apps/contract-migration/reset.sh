@@ -2,6 +2,7 @@
 
 set -a
 
+DEV_TOKEN_TYPE=${DEV_TOKEN_TYPE:-giftable}
 DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER=0xEb3907eCad74a0013c259D5874AE7f22DcBcC95C
 DEV_ETH_ACCOUNT_RESERVE_MINTER=${DEV_ETH_ACCOUNT_RESERVE_MINTER:-$DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER}
 DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER=${DEV_ETH_ACCOUNT_RESERVE_MINTER:-$DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER}
@@ -11,6 +12,12 @@ keystore_file=$(realpath ./keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907e
 
 if [ ! -z $DEV_ETH_ACCOUNT_GAS_PRICE ]; then
 	gas_price_arg="--gas-price $DEV_ETH_ACCOUNT_GAS_PRICE"
+fi
+
+if [[ $DEV_TOKEN_TYPE != 'giftable' && $DEV_TOKEN_TYPE != 'sarafu' ]]; then
+	echo $DEV_TOKEN_TYPE
+	>&2 echo DEV_TOKEN_TYPE must be one of [giftable,sarafu]
+	exit 1
 fi
 
 echo "environment:"
@@ -40,7 +47,13 @@ if [[ -n "${ETH_PROVIDER}" ]]; then
 	echo "waiting for ${ETH_PROVIDER}..."
   	./wait-for-it.sh "${ETH_PROVIDER_HOST}:${ETH_PROVIDER_PORT}"
 
-	DEV_RESERVE_ADDRESS=`giftable-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $keystore_file -i $CIC_CHAIN_SPEC -v -w --name "Sarafu" --symbol "SRF" --decimals 6`
+	if [ $DEV_TOKEN_TYPE == 'giftable' ]; then
+		>&2 echo "deploying 'giftable token'"
+		DEV_RESERVE_ADDRESS=`giftable-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $keystore_file -i $CIC_CHAIN_SPEC -v -w --name "Giftable Token" --symbol "GFT" --decimals 6 -vv`
+	else
+		>&2 echo "deploying 'sarafu' token'"
+		DEV_RESERVE_ADDRESS=`sarafu-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $keystore_file -i $CIC_CHAIN_SPEC -v -w --name "Sarafu" --decimals 6 -vv SRF $DEV_SARAFU_DEMURRAGE_LEVEL`
+	fi
 	giftable-token-gift $gas_price_arg -p $ETH_PROVIDER -y $keystore_file -i $CIC_CHAIN_SPEC -v -w -a $DEV_RESERVE_ADDRESS $DEV_RESERVE_AMOUNT
 
 	#BANCOR_REGISTRY_ADDRESS=`cic-bancor-deploy $gas_price_arg --bancor-dir /usr/local/share/cic/bancor -z $DEV_ETH_RESERVE_ADDRESS -p $ETH_PROVIDER -o $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER`
@@ -75,11 +88,12 @@ if [[ -n "${ETH_PROVIDER}" ]]; then
 	# Sarafu faucet contract
 	>&2 echo "deploy token faucet contract"
 	DEV_FAUCET_ADDRESS=`sarafu-faucet-deploy $gas_price_arg -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w -v --account-index-address $DEV_ACCOUNT_INDEX_ADDRESS $DEV_RESERVE_ADDRESS`
-	>&2 echo "set token faucet amount"
-	sarafu-faucet-set $gas_price_arg -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_FAUCET_ADDRESS $faucet_amount
 	eth-contract-registry-set $gas_price_arg -w -y $keystore_file -r $CIC_REGISTRY_ADDRESS -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -vv Faucet $DEV_FAUCET_ADDRESS
 	>&2 echo "set faucet as token minter"
 	giftable-token-minter $gas_price_arg -w -y $keystore_file -a $DEV_RESERVE_ADDRESS -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -vv $DEV_FAUCET_ADDRESS
+
+	>&2 echo "set token faucet amount"
+	sarafu-faucet-set $gas_price_arg -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_FAUCET_ADDRESS $faucet_amount
 
 
 else

@@ -57,14 +57,16 @@ WORKDIR /home/grassroots
 USER grassroots
 
 ARG pip_extra_index_url=https://pip.grassrootseconomics.net:8433
-ARG cic_base_version=0.1.2a64
+ARG cic_base_version=0.1.2a66
 ARG cic_eth_version=0.11.0b2
+ARG sarafu_token_version=0.0.1a6
 ARG sarafu_faucet_version=0.0.2a20
 ARG cic_contracts_version=0.0.2a2
 RUN pip install --user --extra-index-url $pip_extra_index_url cic-base[full_graph]==$cic_base_version \
 	cic-eth==$cic_eth_version \
 	cic-contracts==$cic_contracts_version \
-	sarafu-faucet==$sarafu_faucet_version
+	sarafu-faucet==$sarafu_faucet_version \
+	sarafu-token==$sarafu_token_version
 
 FROM python:3.8.6-slim-buster as runtime-image
 

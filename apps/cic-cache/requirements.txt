@@ -1,13 +1,13 @@
-cic-base~=0.1.2a62
+cic-base~=0.1.2a66
 alembic==1.4.2
 confini~=0.3.6rc3
 uwsgi==2.0.19.1
 moolb~=0.1.0
-cic-eth-registry~=0.5.4a12
+cic-eth-registry~=0.5.4a13
 SQLAlchemy==1.3.20
 semver==2.13.0
 psycopg2==2.8.6
 celery==4.4.7
 redis==3.5.3
-chainlib~=0.0.2a5
+chainlib~=0.0.2a10
 chainsyncer~=0.0.1a21
