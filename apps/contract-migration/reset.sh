@@ -7,12 +7,17 @@ DEV_ETH_ACCOUNT_RESERVE_MINTER=${DEV_ETH_ACCOUNT_RESERVE_MINTER:-$DEV_ETH_ACCOUN
 DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER=${DEV_ETH_ACCOUNT_RESERVE_MINTER:-$DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER}
 DEV_RESERVE_AMOUNT=${DEV_ETH_RESERVE_AMOUNT:-""10000000000000000000000000000000000}
 faucet_amount=${DEV_FAUCET_AMOUNT:-0}
-keystore_file=$(realpath ./keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c)
+keystore_file=$()
+DEV_ETH_KEYSTORE_FILE=${DEV_KEYSTORE_FILE:-`realpath ./keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c`}
+DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER=`eth-checksum 0x$(cat $DEV_ETH_KEYSTORE_FILE | jq -r .address)`
+
 
 echo "environment:"
 printenv
 echo \n
 
+echo "using wallet address $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER"
+exit 0
 # This is a grassroots team convention for building the Bancor contracts using the bancor protocol repository truffle setup
 # Running this in docker-internal dev container (built from Docker folder in this repo) will write a
 # source-able env file to CIC_DATA_DIR. Services dependent on these contracts can mount this file OR 
