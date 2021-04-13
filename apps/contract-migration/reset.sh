@@ -16,6 +16,7 @@ DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER=`eth-checksum $(cat $DEV_ETH_KEYSTORE_FILE | j
 
 if [ ! -z $DEV_ETH_GAS_PRICE ]; then
 	gas_price_arg="--gas-price $DEV_ETH_GAS_PRICE"
+	>&2 echo using static gas price $DEV_ETH_GAS_PRICE
 fi
 
 if [[ $DEV_TOKEN_TYPE != 'giftable' && $DEV_TOKEN_TYPE != 'sarafu' ]]; then
