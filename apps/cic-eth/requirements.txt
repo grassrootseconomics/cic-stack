@@ -2,7 +2,7 @@ cic-base~=0.1.2a67
 celery==4.4.7
 crypto-dev-signer~=0.4.14a17
 confini~=0.3.6rc3
-cic-eth-registry~=0.5.4a12
+cic-eth-registry~=0.5.4a13
 #cic-bancor~=0.0.6
 redis==3.5.3
 alembic==1.4.2

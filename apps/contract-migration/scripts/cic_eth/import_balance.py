@@ -204,8 +204,8 @@ class Handler:
 #        return b
 
 
-def progress_callback(block_number, tx_index, s):
-    sys.stdout.write(str(s).ljust(200) + "\n")
+def progress_callback(block_number, tx_index):
+    sys.stdout.write(str(block_number).ljust(200) + "\n")
 
 
 
@@ -299,7 +299,7 @@ def main():
     f.close()
 
     syncer_backend.set(block_offset, 0)
-    syncer = HeadSyncer(syncer_backend, post_callback=progress_callback)
+    syncer = HeadSyncer(syncer_backend, block_callback=progress_callback)
     handler = Handler(conn, chain_spec, user_dir, balances, sarafu_token_address, signer, gas_oracle, nonce_oracle)
     syncer.add_filter(handler)
     syncer.loop(1, conn)
