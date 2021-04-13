@@ -20,40 +20,42 @@ logg = logging.getLogger().getChild(__name__)
 
 
 def parse_transfer(tx):
-    r = ERC20.parse_transfer_request(tx.payload)
-    transfer_data = {}
-    transfer_data['to'] = r[0]
-    transfer_data['value'] = r[1]
-    transfer_data['from'] = tx['from']
-    transfer_data['token_address'] = tx['to']
-    return ('transfer', transfer_data)
+    if tx.payload:
+        r = ERC20.parse_transfer_request(tx.payload)
+        transfer_data = {}
+        transfer_data['to'] = r[0]
+        transfer_data['value'] = r[1]
+        transfer_data['from'] = tx['from']
+        transfer_data['token_address'] = tx['to']
+        return ('transfer', transfer_data)
+    else:
+        pass
 
 
 def parse_transferfrom(tx):
-    r = ERC20.parse_transfer_request(tx.payload)
-    transfer_data = unpack_transferfrom(tx.payload)
-    transfer_data['from'] = r[0]
-    transfer_data['to'] = r[1]
-    transfer_data['value'] = r[2]
-    transfer_data['token_address'] = tx['to']
-    return ('transferfrom', transfer_data)
+    if tx.payload:
+        r = ERC20.parse_transfer_request(tx.payload)
+        transfer_data = {}
+        transfer_data['from'] = r[0]
+        transfer_data['to'] = r[1]
+        transfer_data['value'] = r[2]
+        transfer_data['token_address'] = tx['to']
+        return ('transferfrom', transfer_data)
+    else:
+        pass
 
 
 def parse_giftto(tx):
-    r = Faucet.parse_give_to_request(tx.payload)
-    logg.debug(f'TOKEN GIFT TX: {tx}')
-    transfer_data = {}
-    logg.debug(f'TOKEN GIFT DATA START: {transfer_data}')
-    transfer_data['to'] = r[0]
-    logg.debug(f'TOKEN GIFT DATA TO: {transfer_data}')
-    transfer_data['value'] = tx['value']
-    logg.debug(f'TOKEN GIFT DATA VALUE: {transfer_data}')
-    transfer_data['from'] = tx['from']
-    logg.debug(f'TOKEN GIFT DATA FROM: {transfer_data}')
-    transfer_data['token_address'] = tx['to']
-    logg.debug(f'TOKEN GIFT DATA TO: {transfer_data}')
-    logg.debug(f'TOKEN GIFT DATA FINAL: {transfer_data}')
-    return ('tokengift', transfer_data)
+    if tx.payload:
+        r = Faucet.parse_give_to_request(tx.payload)
+        transfer_data = {}
+        transfer_data['to'] = r[0]
+        transfer_data['value'] = tx['value']
+        transfer_data['from'] = tx['from']
+        transfer_data['token_address'] = tx['to']
+        return ('tokengift', transfer_data)
+    else:
+        pass
 
 
 class CallbackFilter(SyncFilter):
@@ -97,7 +99,6 @@ class CallbackFilter(SyncFilter):
         transfer_data = None
         # TODO: what's with the mix of attributes and dict keys
         logg.debug('have payload {}'.format(tx.payload))
-        method_signature = tx.payload[:8]
 
         logg.debug('tx status {}'.format(tx.status))
 
@@ -107,8 +108,11 @@ class CallbackFilter(SyncFilter):
                 parse_giftto,
                 ]:
             try:
-                (transfer_type, transfer_data) = parser(tx)
-                break
+                if tx:
+                    (transfer_type, transfer_data) = parser(tx)
+                    break
+                else:
+                    pass
             except RequestMismatchException:
                 continue
 
@@ -150,7 +154,7 @@ class CallbackFilter(SyncFilter):
                 t = self.call_back(transfer_type, tokentx.to_dict())
                 logg.info('callback success task id {} tx {}'.format(t, tx.hash))
             except UnknownContractError:
-                logg.debug('callback filter {}:{} skipping "transfer" method on unknown contract {} tx {}'.format(tc.queue, tc.method, transfer_data['to'], tx.hash))
+                logg.debug('callback filter {}:{} skipping "transfer" method on unknown contract {} tx {}'.format(tx.queue, tx.method, transfer_data['to'], tx.hash))
 
 
     def __str__(self):
