@@ -1,4 +1,4 @@
-cic-base~=0.1.2a62
+cic-base~=0.1.2a67
 celery==4.4.7
 crypto-dev-signer~=0.4.14a17
 confini~=0.3.6rc3
@@ -16,10 +16,10 @@ semver==2.13.0
 websocket-client==0.57.0
 moolb~=0.1.1b2
 eth-address-index~=0.1.1a7
-chainlib~=0.0.2a5
+chainlib~=0.0.2a10
 hexathon~=0.0.1a7
-chainsyncer~=0.0.1a21
+chainsyncer[sql]==0.0.2a1
 chainqueue~=0.0.1a7
 pysha3==1.0.2
 coincurve==15.0.0
-sarafu-faucet~=0.0.2a20
+sarafu-faucet==0.0.2a21
