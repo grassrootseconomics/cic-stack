@@ -11,7 +11,7 @@ faucet_amount=${DEV_FAUCET_AMOUNT:-0}
 keystore_file=$(realpath ./keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c)
 
 if [ ! -z $DEV_ETH_ACCOUNT_GAS_PRICE ]; then
-	gas_price_arg="--gas-price $DEV_ETH_ACCOUNT_GAS_PRICE"
+	gas_price_arg="--gas-price $DEV_ETH_GAS_PRICE"
 fi
 
 if [[ $DEV_TOKEN_TYPE != 'giftable' && $DEV_TOKEN_TYPE != 'sarafu' ]]; then

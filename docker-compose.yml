@@ -105,6 +105,7 @@ services:
       DEV_FAUCET_AMOUNT: ${DEV_FAUCET_AMOUNT:-0}
       DEV_TOKEN_TYPE: ${DEV_TOKEN_TYPE:-giftable}
       DEV_SARAFU_DEMURRAGE_LEVEL: ${DEV_SARAFU_DEMURRAGE_LEVEL:-196454828847045000000000000000000}
+      DEV_ETH_GAS_PRICE: ${DEV_ETH_GAS_PRICE:-1}
     command: ["./run_job.sh"]
         #command: ["./reset.sh"]
     depends_on:
