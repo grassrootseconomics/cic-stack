@@ -85,6 +85,7 @@ services:
       # ETH_PROVIDER should be broken out into host/port but cic-eth expects this
       ETH_PROVIDER: http://eth:8545
       # And these two are for wait-for-it (could parse this)
+      DEV_USE_DOCKER_WAIT_SCRIPT: 1
       ETH_PROVIDER_HOST: eth 
       ETH_PROVIDER_PORT: 8545
       CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
