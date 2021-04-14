@@ -29,7 +29,7 @@ RUN /usr/local/bin/python -m pip install --upgrade pip
 #	python merge_requirements.py | tee merged_requirements.txt 
 #RUN cd cic-base && \
 #	pip install $pip_extra_index_url_flag -r ./merged_requirements.txt 
-RUN pip install $pip_extra_index_url_flag cic-base[full_graph]==0.1.2a64
+RUN pip install $pip_extra_index_url_flag cic-base[full_graph]==0.1.2a74
 
 COPY cic-eth/scripts/ scripts/
 COPY cic-eth/setup.cfg cic-eth/setup.py ./
