@@ -4,10 +4,11 @@ const http = require('http');
 
 const cic = require('cic-client-meta');
 const vcfp = require('vcard-parser');
+import { Config, PGPKeyStore, PGPSigner, Syncable } from 'crdt-meta';
 
 //const conf = JSON.parse(fs.readFileSync('./cic.conf'));
 
-const config = new cic.Config('./config'); 
+const config = new Config('./config');
 config.process();
 console.log(config);
 
@@ -42,7 +43,7 @@ function sendit(uid, envelope) {
 }
 
 function doOne(keystore, filePath, address) {
-	const signer = new cic.PGPSigner(keystore);
+	const signer = new PGPSigner(keystore);
 
 	const j = JSON.parse(fs.readFileSync(filePath).toString());
 	const b = Buffer.from(j['vcard'], 'base64');
@@ -53,7 +54,7 @@ function doOne(keystore, filePath, address) {
 	cic.Phone.toKey(phone).then((uid) => {
 		const o = fs.readFileSync(filePath, 'utf-8');
 
-		const s = new cic.Syncable(uid, o);
+		const s = new Syncable(uid, o);
 		s.setSigner(signer);
 		s.onwrap = (env) => {
 			sendit(uid, env);
@@ -67,7 +68,7 @@ const publicKeyPath = path.join(config.get('PGP_EXPORTS_DIR'), config.get('PGP_P
 pk = fs.readFileSync(privateKeyPath);
 pubk = fs.readFileSync(publicKeyPath);
 
-new cic.PGPKeyStore(
+new PGPKeyStore(
 	config.get('PGP_PASSPHRASE'),
 	pk,
 	pubk,
