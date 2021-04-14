@@ -20,42 +20,39 @@ logg = logging.getLogger().getChild(__name__)
 
 
 def parse_transfer(tx):
-    if tx.payload:
-        r = ERC20.parse_transfer_request(tx.payload)
-        transfer_data = {}
-        transfer_data['to'] = r[0]
-        transfer_data['value'] = r[1]
-        transfer_data['from'] = tx['from']
-        transfer_data['token_address'] = tx['to']
-        return ('transfer', transfer_data)
-    else:
-        pass
+    if not tx.payload:
+        return (None, None)
+    r = ERC20.parse_transfer_request(tx.payload)
+    transfer_data = {}
+    transfer_data['to'] = r[0]
+    transfer_data['value'] = r[1]
+    transfer_data['from'] = tx['from']
+    transfer_data['token_address'] = tx['to']
+    return ('transfer', transfer_data)
 
 
 def parse_transferfrom(tx):
-    if tx.payload:
-        r = ERC20.parse_transfer_request(tx.payload)
-        transfer_data = {}
-        transfer_data['from'] = r[0]
-        transfer_data['to'] = r[1]
-        transfer_data['value'] = r[2]
-        transfer_data['token_address'] = tx['to']
-        return ('transferfrom', transfer_data)
-    else:
-        pass
+    if not tx.payload:
+        return (None, None)
+    r = ERC20.parse_transfer_request(tx.payload)
+    transfer_data = {}
+    transfer_data['from'] = r[0]
+    transfer_data['to'] = r[1]
+    transfer_data['value'] = r[2]
+    transfer_data['token_address'] = tx['to']
+    return ('transferfrom', transfer_data)
 
 
 def parse_giftto(tx):
-    if tx.payload:
-        r = Faucet.parse_give_to_request(tx.payload)
-        transfer_data = {}
-        transfer_data['to'] = r[0]
-        transfer_data['value'] = tx['value']
-        transfer_data['from'] = tx['from']
-        transfer_data['token_address'] = tx['to']
-        return ('tokengift', transfer_data)
-    else:
-        pass
+    if not tx.payload:
+        return (None, None)
+    r = Faucet.parse_give_to_request(tx.payload)
+    transfer_data = {}
+    transfer_data['to'] = r[0]
+    transfer_data['value'] = tx['value']
+    transfer_data['from'] = tx['from']
+    transfer_data['token_address'] = tx['to']
+    return ('tokengift', transfer_data)
 
 
 class CallbackFilter(SyncFilter):
@@ -110,7 +107,8 @@ class CallbackFilter(SyncFilter):
             try:
                 if tx:
                     (transfer_type, transfer_data) = parser(tx)
-                    break
+                    if transfer_type == None:
+                        continue
                 else:
                     pass
             except RequestMismatchException:
