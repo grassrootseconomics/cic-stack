@@ -11,13 +11,12 @@ from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.tx import receipt
 from eth_accounts_index import AccountRegistry
 from hexathon import strip_0x
+from chainqueue.db.enum import StatusEnum
+from chainqueue.db.models.otx import Otx
 
 # local imports
 from cic_eth.error import OutOfGasError
-from cic_eth.db.models.otx import Otx
 from cic_eth.db.models.base import SessionBase
-from cic_eth.db.enum import StatusEnum
-from cic_eth.db.enum import StatusEnum
 from cic_eth.db.models.nonce import Nonce
 from cic_eth.db.models.role import AccountRole
 
@@ -74,9 +73,10 @@ def test_register_account(
         ):
 
     s_nonce = celery.signature(
-            'cic_eth.eth.tx.reserve_nonce',
+            'cic_eth.eth.nonce.reserve_nonce',
             [
                 eth_empty_accounts[0],
+                default_chain_spec.asdict(),
                 custodial_roles['ACCOUNT_REGISTRY_WRITER'],
                 ],
             queue=None,
@@ -116,7 +116,7 @@ def test_register_account(
 
     init_eth_tester.mine_block()
 
-    c = AccountRegistry()
+    c = AccountRegistry(default_chain_spec)
     o = c.have(account_registry, eth_empty_accounts[0], sender_address=call_sender)
     r = eth_rpc.do(o)
     assert int(strip_0x(r), 16) == 1
@@ -160,7 +160,7 @@ def test_gift(
     ):
 
     nonce_oracle = RPCNonceOracle(contract_roles['ACCOUNT_REGISTRY_WRITER'], eth_rpc)
-    c = AccountRegistry(signer=eth_signer, nonce_oracle=nonce_oracle, chain_id=default_chain_spec.chain_id())
+    c = AccountRegistry(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle)
     (tx_hash_hex, o) = c.add(account_registry, contract_roles['ACCOUNT_REGISTRY_WRITER'], agent_roles['ALICE'])
     eth_rpc.do(o)
     o = receipt(tx_hash_hex)
@@ -168,9 +168,10 @@ def test_gift(
     assert r['status'] == 1
 
     s_nonce = celery.signature(
-            'cic_eth.eth.tx.reserve_nonce',
+            'cic_eth.eth.nonce.reserve_nonce',
             [
                 agent_roles['ALICE'],
+                default_chain_spec.asdict(),
                 ],
             queue=None,
             )

@@ -11,7 +11,7 @@ from cic_types.models.person import generate_vcard_from_contact_data, manage_ide
 # local imports
 from cic_ussd.chain import Chain
 from cic_ussd.db.models.user import User
-from cic_ussd.error import UserMetadataNotFoundError
+from cic_ussd.error import MetadataNotFoundError
 from cic_ussd.metadata import blockchain_address_to_metadata_pointer
 from cic_ussd.operations import save_to_in_memory_ussd_session_data
 from cic_ussd.redis import get_cached_data
@@ -164,11 +164,11 @@ def save_complete_user_metadata(state_machine_data: Tuple[str, dict, User]):
     user_metadata = format_user_metadata(metadata=metadata, user=user)
 
     blockchain_address = user.blockchain_address
-    s_create_user_metadata = celery.signature(
-        'cic_ussd.tasks.metadata.create_user_metadata',
+    s_create_person_metadata = celery.signature(
+        'cic_ussd.tasks.metadata.create_person_metadata',
         [blockchain_address, user_metadata]
     )
-    s_create_user_metadata.apply_async(queue='cic-ussd')
+    s_create_person_metadata.apply_async(queue='cic-ussd')
 
 
 def edit_user_metadata_attribute(state_machine_data: Tuple[str, dict, User]):
@@ -181,7 +181,7 @@ def edit_user_metadata_attribute(state_machine_data: Tuple[str, dict, User]):
     user_metadata = get_cached_data(key=key)
 
     if not user_metadata:
-        raise UserMetadataNotFoundError(f'Expected user metadata but found none in cache for key: {blockchain_address}')
+        raise MetadataNotFoundError(f'Expected user metadata but found none in cache for key: {blockchain_address}')
 
     given_name = ussd_session.get('session_data').get('given_name')
     family_name = ussd_session.get('session_data').get('family_name')
@@ -192,7 +192,7 @@ def edit_user_metadata_attribute(state_machine_data: Tuple[str, dict, User]):
     # validate user metadata
     person = Person()
     user_metadata = json.loads(user_metadata)
-    deserialized_person = person.deserialize(metadata=user_metadata)
+    deserialized_person = person.deserialize(person_data=user_metadata)
 
     # edit specific metadata attribute
     if given_name:
@@ -211,18 +211,18 @@ def edit_user_metadata_attribute(state_machine_data: Tuple[str, dict, User]):
 
     edited_metadata = deserialized_person.serialize()
 
-    s_edit_user_metadata = celery.signature(
-        'cic_ussd.tasks.metadata.edit_user_metadata',
-        [blockchain_address, edited_metadata, 'pgp']
+    s_edit_person_metadata = celery.signature(
+        'cic_ussd.tasks.metadata.edit_person_metadata',
+        [blockchain_address, edited_metadata]
     )
-    s_edit_user_metadata.apply_async(queue='cic-ussd')
+    s_edit_person_metadata.apply_async(queue='cic-ussd')
 
 
 def get_user_metadata(state_machine_data: Tuple[str, dict, User]):
     user_input, ussd_session, user = state_machine_data
     blockchain_address = user.blockchain_address
     s_get_user_metadata = celery.signature(
-        'cic_ussd.tasks.metadata.query_user_metadata',
+        'cic_ussd.tasks.metadata.query_person_metadata',
         [blockchain_address]
     )
     s_get_user_metadata.apply_async(queue='cic-ussd')

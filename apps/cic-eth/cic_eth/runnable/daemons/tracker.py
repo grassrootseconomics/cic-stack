@@ -7,7 +7,7 @@ import argparse
 import sys
 import re
 
-# third-party imports
+# external imports
 import confini
 import celery
 import rlp
@@ -42,6 +42,7 @@ from cic_eth.runnable.daemons.filters import (
         RegistrationFilter,
         TransferAuthFilter,
         )
+from cic_eth.stat import init_chain_stat
 
 script_dir = os.path.realpath(os.path.dirname(__file__))
 
@@ -66,7 +67,6 @@ chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 #RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, 'default')
 cic_base.rpc.setup(chain_spec, config.get('ETH_PROVIDER'))
 
-
 def main():
     # connect to celery
     celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
@@ -76,7 +76,13 @@ def main():
 
     o = block_latest()
     r = rpc.do(o)
-    block_offset = int(strip_0x(r), 16) + 1
+    block_current = int(r, 16)
+    block_offset = block_current + 1
+
+    loop_interval = config.get('SYNCER_LOOP_INTERVAL')
+    if loop_interval == None:
+        stat = init_chain_stat(rpc, block_start=block_current)
+        loop_interval = stat.block_average()
 
     logg.debug('starting at block {}'.format(block_offset))
 
@@ -140,7 +146,8 @@ def main():
         for cf in callback_filters:
             syncer.add_filter(cf)
 
-        r = syncer.loop(int(config.get('SYNCER_LOOP_INTERVAL')), rpc)
+        #r = syncer.loop(int(config.get('SYNCER_LOOP_INTERVAL')), rpc)
+        r = syncer.loop(int(loop_interval), rpc)
         sys.stderr.write("sync {} done at block {}\n".format(syncer, r))
 
         i += 1

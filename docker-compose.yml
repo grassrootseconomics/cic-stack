@@ -145,7 +145,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        /usr/local/bin/cic-cache-trackerd -vv
+        /usr/local/bin/cic-cache-trackerd -vv -c /usr/local/etc/cic-cache
     volumes:
       - contract-config:/tmp/cic/config/:ro
 
@@ -164,6 +164,7 @@ services:
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       DATABASE_DEBUG: 1
+      DATABASE_POOL_SIZE: 0
       ETH_ABI_DIR: ${ETH_ABI_DIR:-/usr/local/share/cic/solidity/abi}
       CIC_TRUST_ADDRESS: ${DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER:-0xEb3907eCad74a0013c259D5874AE7f22DcBcC95C}
       CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
@@ -233,6 +234,7 @@ services:
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
       PGPASSWORD: ${DATABASE_PASSWORD:-tralala}
       CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       BANCOR_DIR: ${BANCOR_DIR:-/usr/local/share/cic/bancor}
@@ -317,8 +319,8 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
       TASKS_TRANSFER_CALLBACKS: $TASKS_TRANSFER_CALLBACKS
-        #DATABASE_DEBUG: ${DATABASE_DEBUG:-false}
-      DATABASE_DEBUG: 1
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-false}
+        #DATABASE_DEBUG: 1
 
     depends_on:
       - eth
@@ -358,7 +360,9 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
       TASKS_TRANSFER_CALLBACKS: $TASKS_TRANSFER_CALLBACKS
-      CIC_TX_RETRY_DELAY: 15
+      CIC_TX_RETRY_DELAY: 60
+      BATCH_SIZE: ${RETRIER_BATCH_SIZE:-50}
+        #DATABASE_DEBUG: 1
     depends_on:
       - eth
       - postgres
@@ -373,7 +377,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_retry.sh -v
+        ./start_retry.sh -vv 
     # command: "/root/start_retry.sh -q cic-eth -vv"
 
 
@@ -428,6 +432,7 @@ services:
       DATABASE_NAME: ${DATABASE_NAME_CIC_NOTIFY:-cic_notify}
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_POOL_SIZE: 0
       PGPASSWORD: ${DATABASE_PASSWORD:-tralala}
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_BROKER_URL:-redis://redis}
@@ -444,6 +449,7 @@ services:
 
 
   cic-meta-server:
+    hostname: meta
     build:
       context: apps/
       dockerfile: cic-meta/docker/Dockerfile
@@ -488,9 +494,10 @@ services:
       DATABASE_ENGINE: postgresql
       DATABASE_DRIVER: psycopg2
       PGP_PASSPHRASE: merman
-      SERVER_PORT: 8000
+      SERVER_PORT: 9000
+      CIC_META_URL: ${CIC_META_URL:-http://meta:8000}
     ports:
-      - ${HTTP_PORT_CIC_USSD:-63315}:8000
+      - ${HTTP_PORT_CIC_USSD:-63315}:9000
     depends_on:
       - postgres
       - redis
@@ -499,7 +506,7 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-    command: "/root/start_uwsgi.sh"
+    command: "/root/start_uwsgi.sh -vv"
 
   cic-ussd-tasker:
     # image: grassrootseconomics:cic-ussd
@@ -514,9 +521,11 @@ services:
       DATABASE_NAME: cic_ussd
       DATABASE_ENGINE: postgresql
       DATABASE_DRIVER: psycopg2
+      DATABASE_POOL_SIZE: 0
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_BROKER_URL:-redis://redis}
       PGP_PASSPHRASE: merman
+      CIC_META_URL: ${CIC_META_URL:-http://meta:8000}
     depends_on:
       - postgres
       - redis
@@ -525,4 +534,4 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-    command: "/root/start_tasker.sh -q cic-ussd"
+    command: "/root/start_tasker.sh -q cic-ussd -vv"

@@ -14,25 +14,42 @@ import confini
 from chainlib.connection import RPCConnection
 from chainlib.eth.connection import EthUnixSignerConnection
 from chainlib.chain import ChainSpec
+from chainqueue.db.models.otx import Otx
 
 # local imports
-from cic_eth_registry import CICRegistry
-
-from cic_eth.eth import erc20
-from cic_eth.eth import tx
-from cic_eth.eth import account
-from cic_eth.admin import debug
-from cic_eth.admin import ctrl
-from cic_eth.queue import tx
-from cic_eth.queue import balance
-from cic_eth.callbacks import Callback
-from cic_eth.callbacks import http
-from cic_eth.callbacks import tcp
-from cic_eth.callbacks import redis
+from cic_eth.eth import (
+        erc20,
+        tx,
+        account,
+        nonce,
+        gas,
+        )
+from cic_eth.admin import (
+        debug,
+        ctrl,
+        )
+from cic_eth.queue import (
+        query,
+        balance,
+        state,
+        tx,
+        lock,
+        time,
+        )
+from cic_eth.callbacks import (
+        Callback,
+        http,
+        #tcp,
+        redis,
+        )
 from cic_eth.db.models.base import SessionBase
-from cic_eth.db.models.otx import Otx
 from cic_eth.db import dsn_from_config
 from cic_eth.ext import tx
+from cic_eth.registry import (
+        connect as connect_registry,
+        connect_declarator,
+        connect_token_registry,
+        )
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -74,7 +91,7 @@ logg.debug('config loaded from {}:\n{}'.format(args.c, config))
 
 # connect to database
 dsn = dsn_from_config(config)
-SessionBase.connect(dsn, pool_size=50, debug=config.true('DATABASE_DEBUG'))
+SessionBase.connect(dsn, pool_size=int(config.get('DATABASE_POOL_SIZE')), debug=config.true('DATABASE_DEBUG'))
 
 # verify database connection with minimal sanity query
 session = SessionBase.create_session()
@@ -121,8 +138,6 @@ RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 's
 
 Otx.tracing = config.true('TASKS_TRACE_QUEUE_STATUS')
 
-CICRegistry.address = config.get('CIC_REGISTRY_ADDRESS')
-
 
 def main():
     argv = ['worker']
@@ -145,8 +160,8 @@ def main():
 #        Callback.ssl_ca_file = config.get('SSL_CA_FILE')
 
     rpc = RPCConnection.connect(chain_spec, 'default')
-    registry = CICRegistry(chain_spec, rpc)
-    registry_address = registry.by_name('ContractRegistry')
+
+    connect_registry(rpc, chain_spec, config.get('CIC_REGISTRY_ADDRESS'))
 
     trusted_addresses_src = config.get('CIC_TRUST_ADDRESS')
     if trusted_addresses_src == None:
@@ -155,8 +170,15 @@ def main():
     trusted_addresses = trusted_addresses_src.split(',')
     for address in trusted_addresses:
         logg.info('using trusted address {}'.format(address))
+    connect_declarator(rpc, chain_spec, trusted_addresses)
+    connect_token_registry(rpc, chain_spec)
     
     current_app.worker_main(argv)
+
+
+@celery.signals.eventlet_pool_postshutdown.connect
+def shutdown(sender=None, headers=None, body=None, **kwargs):
+    logg.warning('in shudown event hook')
 
 
 if __name__ == '__main__':

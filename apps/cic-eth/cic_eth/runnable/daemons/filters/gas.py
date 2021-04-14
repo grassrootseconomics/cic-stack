@@ -2,14 +2,18 @@
 import logging
 
 # external imports
-from hexathon import add_0x
+from hexathon import (
+        add_0x,
+        strip_0x,
+        )
+from chainlib.eth.tx import unpack
+from chainqueue.db.enum import StatusBits
+from chainqueue.db.models.tx import TxCache
+from chainqueue.db.models.otx import Otx
+from chainqueue.query import get_paused_tx_cache as get_paused_tx
 
 # local imports
-from cic_eth.db.enum import StatusBits
 from cic_eth.db.models.base import SessionBase
-from cic_eth.db.models.tx import TxCache
-from cic_eth.db.models.otx import Otx
-from cic_eth.queue.tx import get_paused_txs
 from cic_eth.eth.gas import create_check_gas_task
 from .base import SyncFilter
 
@@ -24,13 +28,13 @@ class GasFilter(SyncFilter):
 
 
     def filter(self, conn, block, tx, session):
-        tx_hash_hex = add_0x(tx.hash)
         if tx.value > 0:
+            tx_hash_hex = add_0x(tx.hash)
             logg.debug('gas refill tx {}'.format(tx_hash_hex))
             session = SessionBase.bind_session(session)
             q = session.query(TxCache.recipient)
             q = q.join(Otx)
-            q = q.filter(Otx.tx_hash==tx_hash_hex)
+            q = q.filter(Otx.tx_hash==strip_0x(tx_hash_hex))
             r = q.first()
 
             if r == None:
@@ -38,7 +42,7 @@ class GasFilter(SyncFilter):
                 SessionBase.release_session(session)
                 return
 
-            txs = get_paused_txs(StatusBits.GAS_ISSUES, r[0], self.chain_spec.chain_id(), session=session)
+            txs = get_paused_tx(self.chain_spec, status=StatusBits.GAS_ISSUES, sender=r[0], session=session, decoder=unpack)
 
             SessionBase.release_session(session)
 

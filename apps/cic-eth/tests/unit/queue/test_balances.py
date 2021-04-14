@@ -2,12 +2,12 @@
 import os
 import logging
 
-# third-party imports
+# external imports
 import pytest
+from chainqueue.db.models.otx import Otx
+from chainqueue.db.models.tx import TxCache
 
 # local imports
-from cic_eth.db.models.otx import Otx
-from cic_eth.db.models.tx import TxCache
 from cic_eth.queue.balance import (
         balance_outgoing,
         balance_incoming,
@@ -59,17 +59,15 @@ def test_assemble():
     assert r[1].get('balance_xyzzy') != None
 
 
-@pytest.mark.skip()
 def test_outgoing_balance(
         default_chain_spec,
         init_database,
         ):
 
-    chain_str = str(default_chain_spec)
     recipient = '0x' + os.urandom(20).hex()
     tx_hash = '0x' + os.urandom(32).hex()
     signed_tx = '0x' + os.urandom(128).hex()
-    otx = Otx.add(0, recipient, tx_hash, signed_tx, session=init_database)
+    otx = Otx.add(0, tx_hash, signed_tx, session=init_database)
     init_database.add(otx)
     init_database.commit()
     
@@ -83,6 +81,7 @@ def test_outgoing_balance(
             token_address,
             1000,
             1000,
+            session=init_database,
             )
     init_database.add(txc)
     init_database.commit()
@@ -91,33 +90,35 @@ def test_outgoing_balance(
             'address': token_address,
             'converters': [],
             }
-    b = balance_outgoing([token_data], sender, chain_str)
+    b = balance_outgoing([token_data], sender, default_chain_spec.asdict())
     assert b[0]['balance_outgoing'] == 1000
 
+    otx.readysend(session=init_database)
+    init_database.flush()
+    otx.reserve(session=init_database)
+    init_database.flush()
     otx.sent(session=init_database)
     init_database.commit()
 
-    b = balance_outgoing([token_data], sender, chain_str)
+    b = balance_outgoing([token_data], sender, default_chain_spec.asdict())
     assert b[0]['balance_outgoing'] == 1000
     
     otx.success(block=1024, session=init_database)
     init_database.commit()
 
-    b = balance_outgoing([token_data], sender, chain_str)
+    b = balance_outgoing([token_data], sender, default_chain_spec.asdict())
     assert b[0]['balance_outgoing'] == 0
 
 
-@pytest.mark.skip()
 def test_incoming_balance(
         default_chain_spec,
         init_database,
         ):
 
-    chain_str = str(default_chain_spec)
     recipient = '0x' + os.urandom(20).hex()
     tx_hash = '0x' + os.urandom(32).hex()
     signed_tx = '0x' + os.urandom(128).hex()
-    otx = Otx.add(0, recipient, tx_hash, signed_tx, session=init_database)
+    otx = Otx.add(0, tx_hash, signed_tx, session=init_database)
     init_database.add(otx)
     init_database.commit()
     
@@ -131,6 +132,7 @@ def test_incoming_balance(
             token_address,
             1000,
             1000,
+            session=init_database,
             )
     init_database.add(txc)
     init_database.commit()
@@ -139,19 +141,23 @@ def test_incoming_balance(
             'address': token_address,
             'converters': [],
             }
-    b = balance_incoming([token_data], recipient, chain_str)
+    b = balance_incoming([token_data], recipient, default_chain_spec.asdict())
     assert b[0]['balance_incoming'] == 0
 
+    otx.readysend(session=init_database)
+    init_database.flush()
+    otx.reserve(session=init_database)
+    init_database.flush()
     otx.sent(session=init_database)
     init_database.commit()
 
-    b = balance_incoming([token_data], recipient, chain_str)
+    b = balance_incoming([token_data], recipient, default_chain_spec.asdict())
     assert b[0]['balance_incoming'] == 1000
    
     otx.success(block=1024, session=init_database)
     init_database.commit()
 
-    b = balance_incoming([token_data], recipient, chain_str)
+    b = balance_incoming([token_data], recipient, default_chain_spec.asdict())
     assert b[0]['balance_incoming'] == 0
 
 

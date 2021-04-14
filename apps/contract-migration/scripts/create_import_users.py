@@ -17,15 +17,14 @@ import random
 import vobject
 import celery
 from faker import Faker
-import cic_eth_registry
 import confini
-from cic_eth.api import Api
 from cic_types.models.person import (
         Person,
         generate_vcard_from_contact_data,
         get_contact_data_from_vcard,
         )
 from chainlib.eth.address import to_checksum_address
+import phonenumbers
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -62,8 +61,6 @@ ts_then = int(dt_then.timestamp())
 
 celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
-api = Api(config.get('CIC_CHAIN_SPEC'))
-
 gift_max = args.gift_threshold or 0
 gift_factor = (10**6)
 
@@ -84,10 +81,12 @@ phone_idx = []
 user_dir = args.dir
 user_count = args.user_count
 
+random.seed()
+
 def genPhoneIndex(phone):
     h = hashlib.new('sha256')
     h.update(phone.encode('utf-8'))
-    h.update(b'cic.msisdn')
+    h.update(b':cic.phone')
     return h.digest().hex()
 
 
@@ -100,13 +99,14 @@ def genId(addr, typ):
 
 def genDate():
 
-    logg.info(ts_then)
     ts = random.randint(ts_then, ts_now)
     return datetime.datetime.fromtimestamp(ts).timestamp()
 
 
 def genPhone():
-    return fake.msisdn()
+    phone_str = '+254' + str(random.randint(100000000, 999999999))
+    phone_object = phonenumbers.parse(phone_str)
+    return phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
 
 
 def genPersonal(phone):
@@ -210,14 +210,14 @@ if __name__ == '__main__':
         f.close()
 
         pidx = genPhoneIndex(phone)
-        d = prepareLocalFilePath(os.path.join(user_dir, 'phone'), uid)
+        d = prepareLocalFilePath(os.path.join(user_dir, 'phone'), pidx)
         f = open('{}/{}'.format(d, pidx), 'w')
         f.write(eth)
         f.close()
 
         amount = genAmount()
         fa.write('{},{}\n'.format(eth,amount))
-        logg.debug('pidx {}, uid {}, eth {}, amount {}'.format(pidx, uid, eth, amount))
+        logg.debug('pidx {}, uid {}, eth {}, amount {}, phone {}'.format(pidx, uid, eth, amount, phone))
         
         i += 1
 

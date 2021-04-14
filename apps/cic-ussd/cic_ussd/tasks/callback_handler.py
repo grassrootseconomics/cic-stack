@@ -53,6 +53,13 @@ def process_account_creation_callback(self, result: str, url: str, status_code: 
             session.add(user)
             session.commit()
             session.close()
+    
+            queue = self.request.delivery_info.get('routing_key')
+            s = celery.signature(
+                    'cic_ussd.tasks.metadata.add_phone_pointer',
+                    [result, phone_number]
+                    )
+            s.apply_async(queue=queue)
 
             # expire cache
             cache.expire(task_id, timedelta(seconds=180))
@@ -64,6 +71,8 @@ def process_account_creation_callback(self, result: str, url: str, status_code: 
     else:
         session.close()
         raise ActionDataNotFoundError(f'Account creation task: {task_id}, returned unexpected response: {status_code}')
+
+    session.close()
 
 
 @celery_app.task
@@ -118,6 +127,7 @@ def process_incoming_transfer_callback(result: dict, param: str, status_code: in
         session.close()
         raise ValueError(f'Unexpected status code: {status_code}.')
 
+    session.close()
 
 @celery_app.task
 def process_balances_callback(result: list, param: str, status_code: int):
@@ -143,21 +153,24 @@ def define_transaction_action_tag(
         # check preferred language
         if preferred_language == 'en':
             action_tag = 'SENT'
+            direction = 'TO'
         else:
             action_tag = 'ULITUMA'
+            direction = 'KWA'
     else:
         if preferred_language == 'en':
             action_tag = 'RECEIVED'
+            direction = 'FROM'
         else:
             action_tag = 'ULIPOKEA'
-    return action_tag
+            direction = 'KUTOKA'
+    return action_tag, direction
 
 
 @celery_app.task
 def process_statement_callback(result, param: str, status_code: int):
     if status_code == 0:
         # create session
-        session = SessionBase.create_session()
         processed_transactions = []
 
         # process transaction data to cache
@@ -170,20 +183,23 @@ def process_statement_callback(result, param: str, status_code: int):
             if '0x0000000000000000000000000000000000000000' in source_token:
                 pass
             else:
+                session = SessionBase.create_session()
                 # describe a processed transaction
                 processed_transaction = {}
 
                 # check if sender is in the system
                 sender: User = session.query(User).filter_by(blockchain_address=sender_blockchain_address).first()
+                owner: User = session.query(User).filter_by(blockchain_address=param).first()
                 if sender:
                     processed_transaction['sender_phone_number'] = sender.phone_number
 
-                    action_tag = define_transaction_action_tag(
-                        preferred_language=sender.preferred_language,
+                    action_tag, direction = define_transaction_action_tag(
+                        preferred_language=owner.preferred_language,
                         sender_blockchain_address=sender_blockchain_address,
                         param=param
                     )
                     processed_transaction['action_tag'] = action_tag
+                    processed_transaction['direction'] = direction
 
                 else:
                     processed_transaction['sender_phone_number'] = 'GRASSROOTS ECONOMICS'
@@ -196,9 +212,11 @@ def process_statement_callback(result, param: str, status_code: int):
                 else:
                     logg.warning(f'Tx with recipient not found in cic-ussd')
 
+                session.close()
+
                 # add transaction values
-                processed_transaction['to_value'] = from_wei(value=transaction.get('to_value'))
-                processed_transaction['from_value'] = from_wei(value=transaction.get('from_value'))
+                processed_transaction['to_value'] = from_wei(value=transaction.get('to_value')).__str__()
+                processed_transaction['from_value'] = from_wei(value=transaction.get('from_value')).__str__()
 
                 raw_timestamp = transaction.get('timestamp')
                 timestamp = datetime.utcfromtimestamp(raw_timestamp).strftime('%d/%m/%y, %H:%M')

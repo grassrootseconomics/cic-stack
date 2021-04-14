@@ -1,6 +1,8 @@
 # standard imports
 import logging
+import os
 import re
+import ipaddress
 
 # third-party imports
 from confini import Config
@@ -20,7 +22,14 @@ def check_ip(config: Config, env: dict):
     :return: Request IP validity
     :rtype: boolean
     """
-    return env.get('REMOTE_ADDR') == config.get('APP_ALLOWED_IP')
+    # TODO: do once at boot time
+    actual_ip = ipaddress.ip_network(env.get('REMOTE_ADDR') + '/32')
+    for allowed_net_src in config.get('APP_ALLOWED_IP').split(','):
+        allowed_net = ipaddress.ip_network(allowed_net_src)
+        if actual_ip.subnet_of(allowed_net):
+            return True
+
+    return False
 
 
 def check_request_content_length(config: Config, env: dict):
@@ -110,7 +119,7 @@ def validate_phone_number(phone: str):
 
 
 def validate_response_type(processor_response: str) -> bool:
-    """1*3443*3443*Philip*Wanga*1*Juja*Software Developer*2*3
+    """
     This function checks the prefix for a corresponding menu's text from the response offered by the Ussd Processor and
     determines whether the response should prompt the end of a ussd session or the
     :param processor_response: A ussd menu's text value.
@@ -126,3 +135,14 @@ def validate_response_type(processor_response: str) -> bool:
         return True
     return False
 
+
+def validate_presence(path: str):
+    """
+
+    """
+    is_present = os.path.exists(path=path)
+
+    if not is_present:
+        raise ValueError(f'Directory/File in path: {path} not found.')
+    else:
+        logg.debug(f'Loading data from: {path}')

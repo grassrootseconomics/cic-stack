@@ -18,13 +18,14 @@ from chainlib.eth.erc20 import ERC20
 from hexathon import strip_0x
 from cic_eth_registry import CICRegistry
 from cic_eth_registry.erc20 import ERC20Token
+from chainqueue.db.models.otx import Otx
+from chainqueue.db.enum import StatusEnum
+from chainqueue.query import get_tx_cache
 
 # local imports
-from cic_eth.db.models.otx import Otx
-from cic_eth.db.enum import StatusEnum
-from cic_eth.queue.tx import get_tx_cache
 from cic_eth.queue.time import tx_times
 from cic_eth.task import BaseTask
+from cic_eth.db.models.base import SessionBase
 
 celery_app = celery.current_app
 logg = logging.getLogger()
@@ -168,14 +169,16 @@ def tx_collate(tx_batches, chain_spec_dict, offset, limit, newest_first=True):
     if isinstance(tx_batches, dict):
         tx_batches = [tx_batches]
 
+    session = SessionBase.create_session()
+
     for b in tx_batches:
         for v in b.values():
             tx = None
             k = None
             try:
                 hx = strip_0x(v)
-                tx = unpack(bytes.fromhex(hx), chain_spec.chain_id())
-                txc = get_tx_cache(tx['hash'])
+                tx = unpack(bytes.fromhex(hx), chain_spec)
+                txc = get_tx_cache(chain_spec, tx['hash'], session)
                 txc['timestamp'] = int(txc['date_created'].timestamp())
                 txc['hash'] = txc['tx_hash']
                 tx = txc
@@ -185,6 +188,8 @@ def tx_collate(tx_batches, chain_spec_dict, offset, limit, newest_first=True):
             k = '{}.{}.{}'.format(tx['timestamp'], tx['sender'], tx['nonce'])
             txs_by_block[k] = tx
 
+    session.close()
+
     txs = []
     ks = list(txs_by_block.keys())
     ks.sort()
@@ -192,4 +197,5 @@ def tx_collate(tx_batches, chain_spec_dict, offset, limit, newest_first=True):
         ks.reverse()
     for k in ks:
         txs.append(txs_by_block[k])
+
     return txs

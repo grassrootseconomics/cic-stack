@@ -5,11 +5,11 @@ import logging
 # third-party imports
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey
 from chainlib.eth.constant import ZERO_ADDRESS
+from chainqueue.db.models.tx import TxCache
+from chainqueue.db.models.otx import Otx
 
 # local imports
 from cic_eth.db.models.base import SessionBase
-from cic_eth.db.models.tx import TxCache
-from cic_eth.db.models.otx import Otx
 
 logg = logging.getLogger()
 
@@ -22,10 +22,12 @@ class Lock(SessionBase):
     __tablename__ = "lock"
 
     blockchain = Column(String)
-    address = Column(String, ForeignKey('tx_cache.sender'))
+    #address = Column(String, ForeignKey('tx_cache.sender'))
+    address = Column(String, ForeignKey(TxCache.sender))
     flags = Column(Integer)
     date_created = Column(DateTime, default=datetime.datetime.utcnow)
-    otx_id = Column(Integer, ForeignKey('otx.id'))
+    otx_id = Column(Integer, ForeignKey(Otx.id))
+    #otx_id = Column(Integer)
 
 
     def chain(self):

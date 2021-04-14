@@ -18,7 +18,7 @@ from cic_ussd.files.local_files import create_local_file_data_stores, json_file_
 from cic_ussd.menu.ussd_menu import UssdMenu
 from cic_ussd.metadata import blockchain_address_to_metadata_pointer
 from cic_ussd.metadata.signer import Signer
-from cic_ussd.metadata.user import UserMetadata
+from cic_ussd.metadata.person import PersonMetadata
 from cic_ussd.state_machine import UssdStateMachine
 
 
@@ -121,9 +121,9 @@ def setup_metadata_signer(load_config):
 @pytest.fixture(scope='function')
 def define_metadata_pointer_url(load_config, create_activated_user):
     identifier = blockchain_address_to_metadata_pointer(blockchain_address=create_activated_user.blockchain_address)
-    UserMetadata.base_url = load_config.get('CIC_META_URL')
-    user_metadata_client = UserMetadata(identifier=identifier)
-    return user_metadata_client.url
+    PersonMetadata.base_url = load_config.get('CIC_META_URL')
+    person_metadata_client = PersonMetadata(identifier=identifier)
+    return person_metadata_client.url
 
 
 @pytest.fixture(scope='function')

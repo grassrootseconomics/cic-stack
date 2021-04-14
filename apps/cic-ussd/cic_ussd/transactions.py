@@ -47,7 +47,7 @@ def to_wei(value: int) -> int:
     :return: Wei equivalent of value in SRF
     :rtype: int
     """
-    return int(value * 1e+18)
+    return int(value * 1e+6)
 
 
 class IncomingTransactionProcessor:

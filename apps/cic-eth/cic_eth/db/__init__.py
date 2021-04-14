@@ -11,10 +11,6 @@ logg = logging.getLogger()
 # an Engine, which the Session will use for connection
 # resources
 
-# TODO: Remove the package exports, all models should be imported using full path
-from .models.otx import Otx
-from .models.convert import TxConvertTransfer
-
 
 def dsn_from_config(config):
     """Generate a dsn string from the provided config dict.

@@ -1,6 +1,6 @@
 {
 	"name": "cic-client-meta",
-	"version": "0.0.7-alpha.3",
+	"version": "0.0.7-alpha.6",
 	"description": "Signed CRDT metadata graphs for the CIC network",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
@@ -40,6 +40,6 @@
 	],
 	"license": "GPL-3.0-or-later",
 	"engines": {
-		"node": "~15.3.0"
+		"node": "~14.16.1"
 	}
 }

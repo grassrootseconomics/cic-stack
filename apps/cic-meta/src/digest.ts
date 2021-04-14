@@ -61,6 +61,7 @@ function addressToBytes(s:string) {
 export {
 	toKey,
 	toAddressKey,
+	mergeKey,
 	bytesToHex,
 	addressToBytes,
 	Addressable,

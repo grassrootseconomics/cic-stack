@@ -26,18 +26,18 @@
   {
     "trigger": "scan_data",
     "source": "metadata_management",
-    "dest": "standard_pin_authorization",
+    "dest": "display_metadata_pin_authorization",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_five_selected"
   },
   {
     "trigger": "scan_data",
-    "source": "standard_pin_authorization",
+    "source": "display_metadata_pin_authorization",
     "dest": "display_user_metadata",
     "conditions": "cic_ussd.state_machine.logic.pin.is_authorized_pin"
   },
   {
     "trigger": "scan_data",
-    "source": "standard_pin_authorization",
+    "source": "display_metadata_pin_authorization",
     "dest": "exit_pin_blocked",
     "conditions": "cic_ussd.state_machine.logic.pin.is_locked_account"
   },

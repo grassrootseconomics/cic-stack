@@ -15,6 +15,7 @@ from cic_ussd.balance import BalanceManager, compute_operational_balance, get_ca
 from cic_ussd.chain import Chain
 from cic_ussd.db.models.user import AccountStatus, User
 from cic_ussd.db.models.ussd_session import UssdSession
+from cic_ussd.error import MetadataNotFoundError
 from cic_ussd.menu.ussd_menu import UssdMenu
 from cic_ussd.metadata import blockchain_address_to_metadata_pointer
 from cic_ussd.phone_number import get_user_by_phone_number
@@ -22,6 +23,7 @@ from cic_ussd.redis import cache_data, create_cached_data_key, get_cached_data
 from cic_ussd.state_machine import UssdStateMachine
 from cic_ussd.conversions import to_wei, from_wei
 from cic_ussd.translation import translation_for
+from cic_types.models.person import generate_metadata_pointer, get_contact_data_from_vcard
 
 logg = logging.getLogger(__name__)
 
@@ -136,7 +138,7 @@ def process_transaction_pin_authorization(user: User, display_key: str, ussd_ses
     tx_sender_information = define_account_tx_metadata(user=user)
 
     token_symbol = 'SRF'
-    user_input = ussd_session.get('user_input').split('*')[-1]
+    user_input = ussd_session.get('session_data').get('transaction_amount')
     transaction_amount = to_wei(value=int(user_input))
     logg.debug('Requires integration to determine user tokens.')
     return process_pin_authorization(
@@ -187,19 +189,53 @@ def format_transactions(transactions: list, preferred_language: str):
             value = transaction.get('to_value')
             timestamp = transaction.get('timestamp')
             action_tag = transaction.get('action_tag')
+            direction = transaction.get('direction')
             token_symbol = 'SRF'
 
             if action_tag == 'SENT' or action_tag == 'ULITUMA':
-                formatted_transactions += f'{action_tag} {value} {token_symbol} {recipient_phone_number} {timestamp}.\n'
+                formatted_transactions += f'{action_tag} {value} {token_symbol} {direction} {recipient_phone_number} {timestamp}.\n'
             else:
-                formatted_transactions += f'{action_tag} {value} {token_symbol} {sender_phone_number} {timestamp}. \n'
+                formatted_transactions += f'{action_tag} {value} {token_symbol} {direction} {sender_phone_number} {timestamp}. \n'
         return formatted_transactions
     else:
         if preferred_language == 'en':
-            formatted_transactions = 'Empty'
+            formatted_transactions = 'NO TRANSACTION HISTORY'
         else:
-            formatted_transactions = 'Hamna historia'
+            formatted_transactions = 'HAMNA RIPOTI YA MATUMIZI'
         return formatted_transactions
+
+
+def process_display_user_metadata(user: User, display_key: str):
+    """
+    :param user:
+    :type user:
+    :param display_key:
+    :type display_key:
+    """
+    key = generate_metadata_pointer(
+        identifier=blockchain_address_to_metadata_pointer(blockchain_address=user.blockchain_address),
+        cic_type='cic.person'
+    )
+    user_metadata = get_cached_data(key)
+    if user_metadata:
+        user_metadata = json.loads(user_metadata)
+        contact_data = get_contact_data_from_vcard(vcard=user_metadata.get('vcard'))
+        logg.debug(f'{contact_data}')
+        full_name = f'{contact_data.get("given")} {contact_data.get("family")}'
+        gender = user_metadata.get('gender')
+        products = ', '.join(user_metadata.get('products'))
+        location = user_metadata.get('location').get('area_name')
+
+        return translation_for(
+            key=display_key,
+            preferred_language=user.preferred_language,
+            full_name=full_name,
+            gender=gender,
+            location=location,
+            products=products
+        )
+    else:
+        raise MetadataNotFoundError(f'Expected person metadata but found none in cache for key: {key}')
 
 
 def process_account_statement(user: User, display_key: str, ussd_session: dict):
@@ -229,7 +265,7 @@ def process_account_statement(user: User, display_key: str, ussd_session: dict):
         middle_transaction_set += transactions[3:][:3]
         first_transaction_set += transactions[:3]
     # there are probably much cleaner and operational inexpensive ways to do this so find them
-    elif 4 < len(transactions) < 7:
+    elif 3 < len(transactions) < 7:
         middle_transaction_set += transactions[3:]
         first_transaction_set += transactions[:3]
     else:
@@ -295,11 +331,11 @@ def process_start_menu(display_key: str, user: User):
     operational_balance = compute_operational_balance(balances=balances_data)
 
     # retrieve and cache account's metadata
-    s_query_user_metadata = celery.signature(
-        'cic_ussd.tasks.metadata.query_user_metadata',
+    s_query_person_metadata = celery.signature(
+        'cic_ussd.tasks.metadata.query_person_metadata',
         [blockchain_address]
     )
-    s_query_user_metadata.apply_async(queue='cic-ussd')
+    s_query_person_metadata.apply_async(queue='cic-ussd')
 
     # retrieve and cache account's statement
     retrieve_account_statement(blockchain_address=blockchain_address)
@@ -349,18 +385,24 @@ def process_request(user_input: str, user: User, ussd_session: Optional[dict] = 
         if user.has_valid_pin():
             last_ussd_session = retrieve_most_recent_ussd_session(phone_number=user.phone_number)
 
-            key = create_cached_data_key(
+            key = generate_metadata_pointer(
                 identifier=blockchain_address_to_metadata_pointer(blockchain_address=user.blockchain_address),
-                salt='cic.person'
+                cic_type='cic.person'
             )
-            user_metadata = get_cached_data(key=key)
+            person_metadata = get_cached_data(key=key)
 
             if last_ussd_session:
                 # get last state
                 last_state = last_ussd_session.state
-                logg.debug(f'LAST USSD SESSION STATE: {last_state}')
                 # if last state is account_creation_prompt and metadata exists, show start menu
-                if last_state == 'account_creation_prompt' and user_metadata is not None:
+                if last_state in [
+                    'account_creation_prompt',
+                    'exit',
+                    'exit_invalid_pin',
+                    'exit_invalid_new_pin',
+                    'exit_pin_mismatch',
+                    'exit_invalid_request'
+                ] and person_metadata is not None:
                     return UssdMenu.find_by_name(name='start')
                 else:
                     return UssdMenu.find_by_name(name=last_state)
@@ -420,9 +462,13 @@ def custom_display_text(
         return process_start_menu(display_key=display_key, user=user)
     elif 'pin_authorization' in menu_name:
         return process_pin_authorization(display_key=display_key, user=user)
+    elif 'enter_current_pin' in menu_name:
+        return process_pin_authorization(display_key=display_key, user=user)
     elif menu_name == 'account_balances':
         return process_account_balances(display_key=display_key, user=user, ussd_session=ussd_session)
     elif 'transaction_set' in menu_name:
         return process_account_statement(display_key=display_key, user=user, ussd_session=ussd_session)
+    elif menu_name == 'display_user_metadata':
+        return process_display_user_metadata(display_key=display_key, user=user)
     else:
         return translation_for(key=display_key, preferred_language=user.preferred_language)

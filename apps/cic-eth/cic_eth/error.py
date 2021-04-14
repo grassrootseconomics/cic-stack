@@ -4,12 +4,6 @@ class TokenCountError(Exception):
     pass
 
 
-class NotLocalTxError(Exception):
-    """Exception raised when trying to access a tx not originated from a local task
-    """
-    pass
-
-
 class PermanentTxError(Exception):
     """Exception raised when encountering a permanent error when sending a tx.
 

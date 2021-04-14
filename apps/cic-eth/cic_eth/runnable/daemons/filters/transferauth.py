@@ -61,7 +61,7 @@ class TransferAuthFilter(SyncFilter):
             }
 
         s_nonce = celery.signature(
-            'cic_eth.eth.tx.reserve_nonce',
+            'cic_eth.eth.nonce.reserve_nonce',
             [
                 [token_data],
                 sender,
@@ -69,7 +69,7 @@ class TransferAuthFilter(SyncFilter):
             queue=self.queue,
             )
         s_approve = celery.signature(
-            'cic_eth.eth.token.approve',
+            'cic_eth.eth.erc20.approve',
             [
                 sender,
                 recipient,

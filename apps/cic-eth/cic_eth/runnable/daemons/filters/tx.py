@@ -1,16 +1,16 @@
 # standard imports
 import logging
 
-# third-party imports
+# external imports
 import celery
 from hexathon import (
         add_0x,
         )
+from chainsyncer.db.models.base import SessionBase
+from chainqueue.db.models.otx import Otx
+from chainlib.status import Status
 
 # local imports
-from cic_eth.db.models.otx import Otx
-from chainsyncer.db.models.base import SessionBase
-from chainlib.status import Status
 from .base import SyncFilter
 
 logg = logging.getLogger().getChild(__name__)
@@ -33,16 +33,28 @@ class TxFilter(SyncFilter):
         logg.info('tx filter match on {}'.format(otx.tx_hash))
         db_session.flush()
         SessionBase.release_session(db_session)
-        s = celery.signature(
-                'cic_eth.queue.tx.set_final_status',
+        s_final_state = celery.signature(
+                'cic_eth.queue.state.set_final',
                 [
+                    self.chain_spec.asdict(),
                     add_0x(tx_hash_hex),
                     tx.block.number,
+                    tx.index,
                     tx.status == Status.ERROR,
                     ],
                 queue=self.queue,
                 )
-        t = s.apply_async()
+        s_obsolete_state = celery.signature(
+                'cic_eth.queue.state.obsolete',
+                [
+                    self.chain_spec.asdict(),
+                    add_0x(tx_hash_hex),
+                    True,
+                    ],
+                queue=self.queue,
+                )
+        t = celery.group(s_obsolete_state, s_final_state)()
+
         return t
 
 

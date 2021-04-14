@@ -114,6 +114,7 @@ async function processRequest(req, res) {
 		return;
 	}
 
+
 	if (!['PUT', 'GET', 'POST'].includes(req.method)) {
 		res.writeHead(405, {"Content-Type": "text/plain"});
 		res.end();
@@ -123,6 +124,7 @@ async function processRequest(req, res) {
 	try {
 		digest = parseDigest(req.url);
 	} catch(e) {
+		console.error('digest error: ' + e)
 		res.writeHead(400, {"Content-Type": "text/plain"});
 		res.end();
 		return;

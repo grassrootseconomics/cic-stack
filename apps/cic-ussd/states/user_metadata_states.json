@@ -4,5 +4,6 @@
   "enter_gender",
   "enter_age",
   "enter_location",
-  "enter_products"
+  "enter_products",
+  "display_metadata_pin_authorization"
 ]

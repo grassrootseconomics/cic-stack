@@ -22,23 +22,21 @@ from hexathon import (
         add_0x,
         )
 from chainlib.eth.gas import balance
-
-# local imports
-from cic_eth.db.models.base import SessionBase
-from cic_eth.db.models.role import AccountRole
-from cic_eth.db.models.otx import Otx
-from cic_eth.db.models.tx import TxCache
-from cic_eth.db.models.nonce import Nonce
-from cic_eth.db.enum import (
+from chainqueue.db.enum import (
         StatusEnum,
         StatusBits,
         is_alive,
         is_error_status,
         status_str,
     )
+from chainqueue.error import TxStateChangeError
+
+# local imports
+from cic_eth.db.models.base import SessionBase
+from cic_eth.db.models.role import AccountRole
+from cic_eth.db.models.nonce import Nonce
 from cic_eth.error import InitializationError
-from cic_eth.db.error import TxStateChangeError
-from cic_eth.queue.tx import get_tx
+from cic_eth.queue.query import get_tx
 
 app = celery.current_app
 
@@ -92,7 +90,7 @@ class AdminApi:
 
     def get_lock(self):
         s_lock = celery.signature(
-            'cic_eth.queue.tx.get_lock',
+            'cic_eth.queue.lock.get_lock',
             [],
             queue=self.queue,
             )
@@ -134,11 +132,13 @@ class AdminApi:
         return s_have.apply_async()
 
 
-    def resend(self, tx_hash_hex, chain_str, in_place=True, unlock=False):
+    def resend(self, tx_hash_hex, chain_spec, in_place=True, unlock=False):
+
         logg.debug('resend {}'.format(tx_hash_hex))
         s_get_tx_cache = celery.signature(
-            'cic_eth.queue.tx.get_tx_cache',
+            'cic_eth.queue.query.get_tx_cache',
             [
+                chain_spec.asdict(),
                 tx_hash_hex,
                 ],
             queue=self.queue,
@@ -154,9 +154,9 @@ class AdminApi:
             raise NotImplementedError('resend as new not yet implemented')
 
         s = celery.signature(
-            'cic_eth.eth.tx.resend_with_higher_gas',
+            'cic_eth.eth.gas.resend_with_higher_gas',
             [
-                chain_str,
+                chain_spec.asdict(),
                 None,
                 1.01,
                 ],
@@ -164,7 +164,7 @@ class AdminApi:
             )
 
         s_manual = celery.signature(
-            'cic_eth.queue.tx.set_manual',
+            'cic_eth.queue.state.set_manual',
             [
                 tx_hash_hex,
                 ],
@@ -176,7 +176,7 @@ class AdminApi:
             s_gas = celery.signature(
                 'cic_eth.admin.ctrl.unlock_send',
                 [
-                    chain_str,
+                    chain_spec.asdict(),
                     tx_dict['sender'],
                 ],
                 queue=self.queue,
@@ -187,8 +187,9 @@ class AdminApi:
                         
     def check_nonce(self, address):
         s = celery.signature(
-                'cic_eth.queue.tx.get_account_tx',
+                'cic_eth.queue.query.get_account_tx',
                 [
+                    chain_spec.asdict(),
                     address,
                     True,
                     False,
@@ -203,8 +204,9 @@ class AdminApi:
         last_nonce = -1
         for k in txs.keys():
             s_get_tx = celery.signature(
-                    'cic_eth.queue.tx.get_tx',
+                    'cic_eth.queue.query.get_tx',
                     [
+                    chain_spec.asdict(),
                         k,
                         ],
                     queue=self.queue,
@@ -218,7 +220,7 @@ class AdminApi:
                 blocking_tx = k
                 blocking_nonce = nonce_otx
             elif nonce_otx - last_nonce > 1:
-                logg.error('nonce gap; {} followed {}'.format(nonce_otx, last_nonce))
+                logg.error('nonce gap; {} followed {} for account {}'.format(nonce_otx, last_nonce, tx['from']))
                 blocking_tx = k
                 blocking_nonce = nonce_otx
                 break
@@ -242,8 +244,9 @@ class AdminApi:
 
     def fix_nonce(self, address, nonce, chain_spec):
         s = celery.signature(
-                'cic_eth.queue.tx.get_account_tx',
+                'cic_eth.queue.query.get_account_tx',
                 [
+                    chain_spec.asdict(),
                     address,
                     True,
                     False,
@@ -293,8 +296,9 @@ class AdminApi:
         """
         last_nonce = -1
         s = celery.signature(
-                'cic_eth.queue.tx.get_account_tx',
+                'cic_eth.queue.query.get_account_tx',
                 [
+                    chain_spec.asdict(),
                     address,
                     ],
                 queue=self.queue,
@@ -305,17 +309,20 @@ class AdminApi:
         for tx_hash in txs.keys():
             errors = []
             s = celery.signature(
-                    'cic_eth.queue.tx.get_tx_cache',
-                    [tx_hash],
+                    'cic_eth.queue.query.get_tx_cache',
+                    [
+                        chain_spec.asdict(),
+                        tx_hash,
+                        ],
                     queue=self.queue,
                     )
             tx_dict = s.apply_async().get()
             if tx_dict['sender'] == address:
                 if tx_dict['nonce'] - last_nonce > 1:
-                    logg.error('nonce gap; {} followed {} for tx {}'.format(tx_dict['nonce'], last_nonce, tx_dict['hash']))
+                    logg.error('nonce gap; {} followed {} for address {} tx {}'.format(tx_dict['nonce'], last_nonce, tx_dict['sender'], tx_hash))
                     errors.append('nonce')
                 elif tx_dict['nonce'] == last_nonce:
-                    logg.warning('nonce {} duplicate in tx {}'.format(tx_dict['nonce'], tx_dict['hash']))
+                    logg.info('nonce {} duplicate for address {} in tx {}'.format(tx_dict['nonce'], tx_dict['sender'], tx_hash))
                 last_nonce = tx_dict['nonce']
                 if not include_sender:
                     logg.debug('skipping sender tx {}'.format(tx_dict['tx_hash']))
@@ -366,12 +373,16 @@ class AdminApi:
             #tx_hash = self.w3.keccak(hexstr=tx_raw).hex()
 
         s = celery.signature(
-            'cic_eth.queue.tx.get_tx_cache',
-            [tx_hash],
+            'cic_eth.queue.query.get_tx_cache',
+            [
+                chain_spec.asdict(),
+                tx_hash,
+                ],
             queue=self.queue,
             )
     
-        tx = s.apply_async().get()
+        t = s.apply_async()
+        tx = t.get()
   
         source_token = None
         if tx['source_token'] != ZERO_ADDRESS:
@@ -480,15 +491,17 @@ class AdminApi:
             tx['destination_token_symbol'] = destination_token.symbol()
             tx['recipient_token_balance'] = source_token.function('balanceOf')(tx['recipient']).call()
 
-        tx['network_status'] = 'Not submitted'
+        # TODO: this can mean either not subitted or culled, need to check other txs with same nonce to determine which
+        tx['network_status'] = 'Not in node' 
 
         r = None
         try:
             o = transaction(tx_hash)
             r = self.rpc.do(o)
+            if r != None:
+                tx['network_status'] = 'Mempool'
         except Exception as e:
             logg.warning('(too permissive exception handler, please fix!) {}'.format(e))
-            tx['network_status'] = 'Mempool'
 
         if r != None:
             try:
@@ -515,14 +528,15 @@ class AdminApi:
         r = self.rpc.do(o)
         tx['recipient_gas_balance'] = r
 
-        tx_unpacked = unpack(bytes.fromhex(tx['signed_tx'][2:]), chain_spec.chain_id())
+        tx_unpacked = unpack(bytes.fromhex(strip_0x(tx['signed_tx'])), chain_spec)
         tx['gas_price'] = tx_unpacked['gasPrice']
         tx['gas_limit'] = tx_unpacked['gas']
         tx['data'] = tx_unpacked['data']
 
         s = celery.signature(
-            'cic_eth.queue.tx.get_state_log',
+            'cic_eth.queue.state.get_state_log',
             [
+                chain_spec.asdict(),
                 tx_hash,
                 ],
             queue=self.queue,

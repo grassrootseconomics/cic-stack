@@ -17,26 +17,25 @@ from chainlib.eth.tx import unpack
 from chainlib.connection import RPCConnection
 from chainsyncer.error import SyncDone
 from hexathon import strip_0x
+from chainqueue.db.enum import (
+    StatusEnum,
+    StatusBits,
+    )
+from chainqueue.error import NotLocalTxError
+from chainqueue.state import set_reserved
 
 # local imports
 import cic_eth
 from cic_eth.db import SessionBase
-from cic_eth.db.enum import StatusEnum
-from cic_eth.db.enum import StatusBits
 from cic_eth.db.enum import LockEnum
 from cic_eth.db import dsn_from_config
-from cic_eth.queue.tx import (
-        get_upcoming_tx,
-        set_dequeue,
-        )
+from cic_eth.queue.query import get_upcoming_tx
 from cic_eth.admin.ctrl import lock_send
 from cic_eth.eth.tx import send as task_tx_send
 from cic_eth.error import (
         PermanentTxError,
         TemporaryTxError,
-        NotLocalTxError,
         )
-#from cic_eth.eth.util import unpack_signed_raw_tx_hex
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -88,11 +87,10 @@ run = True
 
 class DispatchSyncer:
 
-    yield_delay = 0.005
+    yield_delay = 0.0005
 
     def __init__(self, chain_spec):
         self.chain_spec = chain_spec
-        self.chain_id = chain_spec.chain_id()
 
 
     def chain(self):
@@ -103,13 +101,14 @@ class DispatchSyncer:
         c = len(txs.keys())
         logg.debug('processing {} txs {}'.format(c, list(txs.keys())))
         chain_str = str(self.chain_spec)
+        session = SessionBase.create_session()
         for k in txs.keys():
             tx_raw = txs[k]
             tx_raw_bytes = bytes.fromhex(strip_0x(tx_raw))
-            tx = unpack(tx_raw_bytes, self.chain_spec.chain_id())
+            tx = unpack(tx_raw_bytes, self.chain_spec)
             
             try:
-                set_dequeue(tx['hash'])
+                set_reserved(self.chain_spec, tx['hash'], session=session)
             except NotLocalTxError as e:
                 logg.warning('dispatcher was triggered with non-local tx {}'.format(tx['hash']))
                 continue
@@ -140,7 +139,7 @@ class DispatchSyncer:
         while run:
             txs = {}
             typ = StatusBits.QUEUED
-            utxs = get_upcoming_tx(typ, chain_id=self.chain_id)
+            utxs = get_upcoming_tx(self.chain_spec, typ)
             for k in utxs.keys():
                 txs[k] = utxs[k]
             self.process(w3, txs)

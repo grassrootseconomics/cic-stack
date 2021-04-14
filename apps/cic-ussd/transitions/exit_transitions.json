@@ -38,7 +38,7 @@
   {
     "trigger": "scan_data",
     "source": "exit_invalid_recipient",
-    "dest": "send_enter_recipient",
+    "dest": "enter_transaction_recipient",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected"
   },
   {
@@ -49,13 +49,13 @@
     "after": "cic_ussd.state_machine.logic.sms.upsell_unregistered_recipient"
   },
   {
-    "trigger": "feed_char",
+    "trigger": "scan_data",
     "source": "exit_successful_transaction",
     "dest": "start",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected"
   },
   {
-    "trigger": "feed_char",
+    "trigger": "scan_data",
     "source": "exit_successful_transaction",
     "dest": "exit",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_ninety_nine_selected"

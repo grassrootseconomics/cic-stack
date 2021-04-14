@@ -1,12 +1,12 @@
 import { ArgPair, Syncable } from '../sync';
-import { Addressable, addressToBytes, bytesToHex, toKey } from '../digest';
+import { Addressable, mergeKey } from '../digest';
 
 class Phone extends Syncable implements Addressable {
 
 	address:	string
 	value:		number
 
-	constructor(address:string, v:number) {
+	constructor(address:string, v:string) {
 		const o = {
 			msisdn: v,
 		}
@@ -17,8 +17,8 @@ class Phone extends Syncable implements Addressable {
 		});
 	}
 
-	public static async toKey(msisdn:number) {
-		return await toKey(msisdn.toString(), ':cic.msisdn');
+	public static async toKey(msisdn:string) {
+		return await mergeKey(Buffer.from(msisdn), Buffer.from(':cic.phone'));
 	}
 
 	public key(): string {

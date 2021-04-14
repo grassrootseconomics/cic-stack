@@ -55,8 +55,8 @@ en:
       4. Edit products
       5. View my profile
       0. Back
-    display_user_profile_data: |-
-      END Your details are:
+    display_user_metadata: |-
+      CON Your details are:
         Name: %{full_name}
         Gender: %{gender}
         Location: %{location}
@@ -85,7 +85,7 @@ en:
       retry: |-
         CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
         0. Back
-    standard_pin_authorization:
+    display_metadata_pin_authorization:
       first: |-
         CON Please enter your PIN.
         0. Back

@@ -13,12 +13,14 @@ from confini import Config
 from cic_ussd.db import dsn_from_config
 from cic_ussd.db.models.base import SessionBase
 from cic_ussd.metadata.signer import Signer
-from cic_ussd.metadata.user import UserMetadata
+from cic_ussd.metadata.base import Metadata
 from cic_ussd.redis import InMemoryStore
 from cic_ussd.session.ussd_session import UssdSession as InMemoryUssdSession
+from cic_ussd.validator import validate_presence
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
+logging.getLogger('gnupg').setLevel(logging.WARNING)
 
 config_directory = '/usr/local/etc/cic-ussd/'
 
@@ -46,7 +48,7 @@ logg.debug(config)
 
 # connect to database
 data_source_name = dsn_from_config(config)
-SessionBase.connect(data_source_name=data_source_name)
+SessionBase.connect(data_source_name, pool_size=int(config.get('DATABASE_POOL_SIZE')), debug=config.true('DATABASE_DEBUG'))
 
 # verify database connection with minimal sanity query
 session = SessionBase.create_session()
@@ -62,12 +64,18 @@ InMemoryStore.cache = redis.StrictRedis(host=config.get('REDIS_HOSTNAME'),
 InMemoryUssdSession.redis_cache = InMemoryStore.cache
 
 # define metadata URL
-UserMetadata.base_url = config.get('CIC_META_URL')
+Metadata.base_url = config.get('CIC_META_URL')
 
 # define signer values
-Signer.gpg_path = config.get('PGP_EXPORT_DIR')
+export_dir = config.get('PGP_EXPORT_DIR')
+if export_dir:
+    validate_presence(path=export_dir)
+Signer.gpg_path = export_dir
 Signer.gpg_passphrase = config.get('PGP_PASSPHRASE')
-Signer.key_file_path = f"{config.get('PGP_KEYS_PATH')}{config.get('PGP_PRIVATE_KEYS')}"
+key_file_path = f"{config.get('PGP_KEYS_PATH')}{config.get('PGP_PRIVATE_KEYS')}"
+if key_file_path:
+    validate_presence(path=key_file_path)
+Signer.key_file_path = key_file_path
 
 # set up celery
 current_app = celery.Celery(__name__)

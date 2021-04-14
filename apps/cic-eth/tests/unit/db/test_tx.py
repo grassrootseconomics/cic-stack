@@ -18,10 +18,8 @@ from hexathon import (
         add_0x,
         strip_0x,
         )
-
-# local imports
-from cic_eth.db.models.tx import TxCache
-from cic_eth.db.models.otx import Otx
+from chainqueue.db.models.tx import TxCache
+from chainqueue.db.models.otx import Otx
 
 # test imports
 from tests.util.gas import StaticGasOracle
@@ -35,18 +33,16 @@ def test_set(
         agent_roles,
         ):
 
-    chain_id = default_chain_spec.chain_id()
     rpc = RPCConnection.connect(default_chain_spec, 'default')
     nonce_oracle = RPCNonceOracle(agent_roles['ALICE'], eth_rpc)
     gas_oracle = RPCGasOracle(eth_rpc)
-    c = Gas(signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle, chain_id=chain_id)
+    c = Gas(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
 
     (tx_hash_hex, tx_signed_raw_hex) = c.create(agent_roles['ALICE'], agent_roles['BOB'], 100 * (10 ** 6), tx_format=TxFormat.RLP_SIGNED)
-    tx = unpack(bytes.fromhex(strip_0x(tx_signed_raw_hex)), chain_id)
+    tx = unpack(bytes.fromhex(strip_0x(tx_signed_raw_hex)), default_chain_spec)
 
     otx = Otx(
         tx['nonce'],
-        tx['from'],
         tx_hash_hex,
         tx_signed_raw_hex,
         )
@@ -66,6 +62,7 @@ def test_set(
         to_value,
         666,
         13,
+        session=init_database,
             )
     init_database.add(txc)
     init_database.commit()
@@ -89,18 +86,17 @@ def test_clone(
         agent_roles,
         ):
 
-    chain_id = default_chain_spec.chain_id()
     rpc = RPCConnection.connect(default_chain_spec, 'default')
     nonce_oracle = RPCNonceOracle(agent_roles['ALICE'], eth_rpc)
     gas_oracle = StaticGasOracle(2 * (10 ** 9), 21000)
-    c = Gas(signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle, chain_id=chain_id)
+    c = Gas(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
 
     txs_rpc = [
         c.create(agent_roles['ALICE'], agent_roles['BOB'], 100 * (10 ** 6), tx_format=TxFormat.RLP_SIGNED),
         ]
 
     gas_oracle = StaticGasOracle(4 * (10 ** 9), 21000)
-    c = Gas(signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle, chain_id=chain_id)
+    c = Gas(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
     txs_rpc += [
         c.create(agent_roles['ALICE'], agent_roles['BOB'], 100 * (10 ** 6), tx_format=TxFormat.RLP_SIGNED),
         ]
@@ -109,10 +105,9 @@ def test_clone(
     for tx_rpc in txs_rpc:
         tx_hash_hex = tx_rpc[0]
         tx_signed_raw_hex = tx_rpc[1]
-        tx_dict = unpack(bytes.fromhex(strip_0x(tx_signed_raw_hex)), chain_id)
+        tx_dict = unpack(bytes.fromhex(strip_0x(tx_signed_raw_hex)), default_chain_spec)
         otx = Otx(
             tx_dict['nonce'],
-            tx_dict['from'],
             tx_hash_hex,
             tx_signed_raw_hex,
             )
@@ -130,15 +125,16 @@ def test_clone(
         ZERO_ADDRESS,
         txs[0]['value'],
         txs[0]['value'],
+        session=init_database,
             )
     init_database.add(txc)
     init_database.commit()
 
-    TxCache.clone(txs[0]['hash'], txs[1]['hash'])
+    TxCache.clone(txs[0]['hash'], txs[1]['hash'], session=init_database)
 
     q = init_database.query(TxCache)
     q = q.join(Otx)
-    q = q.filter(Otx.tx_hash==txs[1]['hash'])
+    q = q.filter(Otx.tx_hash==strip_0x(txs[1]['hash']))
     txc_clone = q.first()
     
     assert txc_clone != None

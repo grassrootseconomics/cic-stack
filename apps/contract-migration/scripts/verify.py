@@ -10,6 +10,9 @@ import hashlib
 import csv
 import json
 import urllib
+import copy
+import uuid
+import urllib.request
 
 # external imports
 import celery
@@ -39,7 +42,6 @@ from chainlib.eth.gas import (
 from chainlib.eth.tx import TxFactory
 from chainlib.eth.rpc import jsonrpc_template
 from chainlib.eth.error import EthException
-from cic_eth.api.api_admin import AdminApi
 from cic_types.models.person import (
         Person,
         generate_metadata_pointer,
@@ -51,12 +53,38 @@ logg = logging.getLogger()
 
 config_dir = '/usr/local/etc/cic-syncer'
 
+custodial_tests = [
+        'local_key',
+        'gas',
+        'faucet',
+        ]
+
+metadata_tests = [
+        'metadata',
+        'metadata_phone',
+        ]
+
+eth_tests = [
+        'accounts_index',
+        'balance',
+        ]
+
+phone_tests = [
+        'ussd',
+        ]
+
+all_tests = eth_tests + custodial_tests + metadata_tests + phone_tests
+
 argparser = argparse.ArgumentParser(description='daemon that monitors transactions in new blocks')
 argparser.add_argument('-p', '--provider', dest='p', type=str, help='chain rpc provider address')
 argparser.add_argument('-c', type=str, default=config_dir, help='config root to use')
 argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:oldchain:1', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
 argparser.add_argument('--meta-provider', type=str, dest='meta_provider', default='http://localhost:63380', help='cic-meta url')
+argparser.add_argument('--ussd-provider', type=str, dest='ussd_provider', default='http://localhost:63315', help='cic-ussd url')
+argparser.add_argument('--skip-custodial', dest='skip_custodial', action='store_true', help='skip all custodial verifications')
+argparser.add_argument('--exclude', action='append', type=str, default=[], help='skip specified verification')
+argparser.add_argument('--include', action='append', type=str, help='include specified verification')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-x', '--exit-on-error', dest='x', action='store_true', help='Halt exection on error')
@@ -83,6 +111,9 @@ args_override = {
 config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
+config.add(args.meta_provider, '_META_PROVIDER', True)
+config.add(args.ussd_provider, '_USSD_PROVIDER', True)
+
 logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
 
 celery_app = celery.Celery(backend=config.get('CELERY_RESULT_URL'),  broker=config.get('CELERY_BROKER_URL'))
@@ -92,17 +123,63 @@ chain_str = str(chain_spec)
 old_chain_spec = ChainSpec.from_chain_str(args.old_chain_spec)
 old_chain_str = str(old_chain_spec)
 user_dir = args.user_dir # user_out_dir from import_users.py
-meta_url = args.meta_provider
 exit_on_error = args.x
+
+active_tests = []
+exclude = []
+include = args.include
+if args.include == None:
+    include = all_tests
+for t in args.exclude:
+    if t not in all_tests:
+        raise ValueError('Cannot exclude unknown verification "{}"'.format(t))
+    exclude.append(t)
+if args.skip_custodial:
+    logg.info('will skip all custodial verifications ({})'.format(','.join(custodial_tests)))
+    for t in custodial_tests:
+        if t not in exclude:
+            exclude.append(t)
+for t in include:
+    if t not in all_tests:
+        raise ValueError('Cannot include unknown verification "{}"'.format(t))
+    if t not in exclude:
+        active_tests.append(t)
+        logg.info('will perform verification "{}"'.format(t))
+
+api = None
+for t in custodial_tests:
+    if t in active_tests:
+        from cic_eth.api.api_admin import AdminApi
+        api = AdminApi(None)
+        logg.info('activating custodial module'.format(t))
+        break
+
+cols = os.get_terminal_size().columns
+
+
+def to_terminalwidth(s):
+    ss = s.ljust(int(cols)-1)
+    ss += "\r"
+    return ss
+
+def default_outfunc(s):
+    ss = to_terminalwidth(s)
+    sys.stdout.write(ss)
+outfunc = default_outfunc
+if logg.isEnabledFor(logging.DEBUG):
+    outfunc = logg.debug
 
 
 class VerifierState:
 
-    def __init__(self, item_keys):
+    def __init__(self, item_keys, active_tests=None):
         self.items = {}
         for k in item_keys:
-            logg.info('k {}'.format(k))
             self.items[k] = 0
+        if active_tests == None:
+            self.active_tests = copy.copy(item_keys)
+        else:
+            self.active_tests = copy.copy(active_tests)
 
 
     def poke(self, item_key):
@@ -112,7 +189,10 @@ class VerifierState:
     def __str__(self):
         r = ''
         for k in self.items.keys():
-            r += '{}: {}\n'.format(k, self.items[k])
+            if k in self.active_tests:
+                r += '{}: {}\n'.format(k, self.items[k])
+            else:
+                r += '{}: skipped\n'.format(k)
         return r
 
 
@@ -138,20 +218,20 @@ class Verifier:
         self.index_address = index_address
         self.token_address = token_address
         self.faucet_address = faucet_address
-        self.erc20_tx_factory = ERC20(chain_id=chain_spec.chain_id(), gas_oracle=gas_oracle)
-        self.tx_factory = TxFactory(chain_id=chain_spec.chain_id(), gas_oracle=gas_oracle)
+        self.erc20_tx_factory = ERC20(chain_spec, gas_oracle=gas_oracle)
+        self.tx_factory = TxFactory(chain_spec, gas_oracle=gas_oracle)
         self.api = cic_eth_api
         self.data_dir = data_dir
         self.exit_on_error = exit_on_error
-        self.faucet_tx_factory = SingleShotFaucet(chain_id=chain_spec.chain_id(), gas_oracle=gas_oracle)
+        self.faucet_tx_factory = SingleShotFaucet(chain_spec, gas_oracle=gas_oracle)
 
         verifymethods = []
         for k in dir(self):
             if len(k) > 7 and k[:7] == 'verify_':
-                logg.info('adding verify method {}'.format(k))
+                logg.debug('verifier has verify method {}'.format(k))
                 verifymethods.append(k[7:])
 
-        self.state = VerifierState(verifymethods)
+        self.state = VerifierState(verifymethods, active_tests=active_tests)
 
 
     def verify_accounts_index(self, address, balance=None):
@@ -191,6 +271,7 @@ class Verifier:
     def verify_gas(self, address, balance_token=None):
         o = balance(address)
         r = self.conn.do(o)
+        logg.debug('wtf {}'.format(r))
         actual_balance = int(strip_0x(r), 16)
         if actual_balance == 0:
             raise VerifierError((address, actual_balance), 'gas')
@@ -205,7 +286,7 @@ class Verifier:
 
     def verify_metadata(self, address, balance=None):
         k = generate_metadata_pointer(bytes.fromhex(strip_0x(address)), ':cic.person')
-        url = os.path.join(meta_url, k)
+        url = os.path.join(config.get('_META_PROVIDER'), k)
         logg.debug('verify metadata url {}'.format(url))
         try:
             res = urllib.request.urlopen(url)
@@ -233,26 +314,91 @@ class Verifier:
             raise VerifierError(o_retrieved, 'metadata (person)')
 
 
-    def verify(self, address, balance):
-        logg.debug('verify {} {}'.format(address, balance))
-  
-        methods = [
-                'local_key',
-                'accounts_index',
-                'balance',
-                'metadata',
-                'gas',
-                'faucet',
-                ]
+    def verify_metadata_phone(self, address, balance=None):
+        upper_address = strip_0x(address).upper()
+        f = open(os.path.join(
+            self.data_dir,
+            'new',
+            upper_address[:2],
+            upper_address[2:4],
+            upper_address + '.json',
+            ), 'r'
+            )
+        o = json.load(f)
+        f.close()
 
-        for k in methods:
+        p = Person.deserialize(o) 
+
+        k = generate_metadata_pointer(p.tel.encode('utf-8'), ':cic.phone')
+        url = os.path.join(config.get('_META_PROVIDER'), k)
+        logg.debug('verify metadata phone url {}'.format(url))
+        try:
+            res = urllib.request.urlopen(url)
+        except urllib.error.HTTPError as e:
+            raise VerifierError(
+                    '({}) {}'.format(url, e),
+                    'metadata (phone)',
+                    )
+        b = res.read()
+        address_recovered = json.loads(b.decode('utf-8'))
+        address_recovered = address_recovered.replace('"', '')
+
+        try:
+            address = strip_0x(address)
+            address_recovered = strip_0x(address_recovered)
+        except ValueError:
+            raise VerifierError(address_recovered, 'metadata (phone) address {} address recovered {}'.format(address, address_recovered))
+
+        if address != address_recovered:
+            raise VerifierError(address_recovered, 'metadata (phone)')
+
+
+    def verify_ussd(self, address, balance=None):
+        upper_address = strip_0x(address).upper()
+        f = open(os.path.join(
+            self.data_dir,
+            'new',
+            upper_address[:2],
+            upper_address[2:4],
+            upper_address + '.json',
+            ), 'r'
+            )
+        o = json.load(f)
+        f.close()
+
+        p = Person.deserialize(o)
+        phone = p.tel
+
+        session = uuid.uuid4().hex
+        data = {
+                'sessionId': session,
+                'serviceCode': config.get('APP_SERVICE_CODE'),
+                'phoneNumber': phone,
+                'text': config.get('APP_SERVICE_CODE'),
+            }
+
+        req = urllib.request.Request(config.get('_USSD_PROVIDER'))
+        data_str = json.dumps(data)
+        data_bytes = data_str.encode('utf-8')
+        req.add_header('Content-Type', 'application/json')
+        req.data = data_bytes
+        response = urllib.request.urlopen(req)
+        response_data = response.read().decode('utf-8')
+        state = response_data[:3]
+        out = response_data[4:]
+        m = '{} {}'.format(state, out[:7])
+        if m != 'CON Welcome':
+            raise VerifierError(response_data, 'ussd')
+
+
+    def verify(self, address, balance, debug_stem=None):
+  
+        for k in active_tests:
+            s = '{} {}'.format(debug_stem, k)
+            outfunc(s)
             try:
                 m = getattr(self, 'verify_{}'.format(k))
                 m(address, balance)
-#            self.verify_local_key(address)
-#            self.verify_accounts_index(address)
-#            self.verify_balance(address, balance)
-#            self.verify_metadata(address)
             except VerifierError as e:
                 logline = 'verification {} failed for {}: {}'.format(k, address, str(e))
                 if self.exit_on_error:
@@ -266,10 +412,6 @@ class Verifier:
         return str(self.state)
 
 
-class MockClient:
-
-    w3 = None
-
 def main():
     global chain_str, block_offset, user_dir
     
@@ -277,7 +419,7 @@ def main():
     gas_oracle = OverrideGasOracle(conn=conn, limit=8000000)
 
     # Get Token registry address
-    txf = TxFactory(signer=None, gas_oracle=gas_oracle, nonce_oracle=None, chain_id=chain_spec.chain_id())
+    txf = TxFactory(chain_spec, signer=None, gas_oracle=gas_oracle, nonce_oracle=None)
     tx = txf.template(ZERO_ADDRESS, config.get('CIC_REGISTRY_ADDRESS'))
 
     # TODO: replace with cic-eth-registry
@@ -291,7 +433,6 @@ def main():
     o['params'].append(txf.normalize(tx))
     o['params'].append('latest')
     r = conn.do(o)
-    print('r {}'.format(r))
     token_index_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     logg.info('found token index address {}'.format(token_index_address))
 
@@ -320,6 +461,7 @@ def main():
     logg.info('found faucet {}'.format(faucet_address))
 
 
+
     # Get Sarafu token address
     tx = txf.template(ZERO_ADDRESS, token_index_address)
     data = add_0x(registry_addressof_method)
@@ -333,7 +475,6 @@ def main():
     o['params'].append(txf.normalize(tx))
     o['params'].append('latest')
     r = conn.do(o)
-    print('r {}'.format(r))
     sarafu_token_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     logg.info('found token address {}'.format(sarafu_token_address))
 
@@ -348,7 +489,7 @@ def main():
         try:
             address = to_checksum_address(r[0])
             #sys.stdout.write('loading balance {} {}'.format(i, address).ljust(200) + "\r")
-            logg.debug('loading balance {} {}'.format(i, address).ljust(200))
+            outfunc('loading balance {} {}'.format(i, address)) #.ljust(200))
         except ValueError:
             break
         balance = int(r[1].rstrip())
@@ -357,11 +498,10 @@ def main():
 
     f.close()
 
-    api = AdminApi(MockClient())
-
     verifier = Verifier(conn, api, gas_oracle, chain_spec, account_index_address, sarafu_token_address, faucet_address, user_dir, exit_on_error)
 
     user_new_dir = os.path.join(user_dir, 'new')
+    i = 0
     for x in os.walk(user_new_dir):
         for y in x[2]:
             if y[len(y)-5:] != '.json':
@@ -377,7 +517,7 @@ def main():
             f.close()
 
             u = Person.deserialize(o)
-            logg.debug('data {}'.format(u.identities['evm']))
+            #logg.debug('data {}'.format(u.identities['evm']))
 
             subchain_str = '{}:{}'.format(chain_spec.common_name(), chain_spec.network_id())
             new_address = u.identities['evm'][subchain_str][0]
@@ -388,9 +528,11 @@ def main():
                 balance = balances[old_address]
             except KeyError:
                 logg.info('no old balance found for {}, assuming 0'.format(old_address))
-            logg.debug('checking {} -> {} = {}'.format(old_address, new_address, balance))
 
-            verifier.verify(new_address, balance)
+            s = 'checking {}: {} -> {} = {}'.format(i, old_address, new_address, balance)
+
+            verifier.verify(new_address, balance, debug_stem=s)
+            i += 1
 
     print(verifier)
 

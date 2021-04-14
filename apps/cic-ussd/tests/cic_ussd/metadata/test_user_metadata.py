@@ -9,26 +9,26 @@ from cic_types.models.person import generate_metadata_pointer
 # local imports
 from cic_ussd.metadata import blockchain_address_to_metadata_pointer
 from cic_ussd.metadata.signer import Signer
-from cic_ussd.metadata.user import UserMetadata
+from cic_ussd.metadata.person import PersonMetadata
 from cic_ussd.redis import get_cached_data
 
 
 def test_user_metadata(create_activated_user, define_metadata_pointer_url, load_config):
-    UserMetadata.base_url = load_config.get('CIC_META_URL')
+    PersonMetadata.base_url = load_config.get('CIC_META_URL')
     identifier = blockchain_address_to_metadata_pointer(blockchain_address=create_activated_user.blockchain_address)
-    user_metadata_client = UserMetadata(identifier=identifier)
+    person_metadata_client = PersonMetadata(identifier=identifier)
 
-    assert user_metadata_client.url == define_metadata_pointer_url
+    assert person_metadata_client.url == define_metadata_pointer_url
 
 
-def test_create_user_metadata(caplog,
-                              create_activated_user,
-                              define_metadata_pointer_url,
-                              load_config,
-                              mock_meta_post_response,
-                              person_metadata):
+def test_create_person_metadata(caplog,
+                                create_activated_user,
+                                define_metadata_pointer_url,
+                                load_config,
+                                mock_meta_post_response,
+                                person_metadata):
     identifier = blockchain_address_to_metadata_pointer(blockchain_address=create_activated_user.blockchain_address)
-    user_metadata_client = UserMetadata(identifier=identifier)
+    person_metadata_client = PersonMetadata(identifier=identifier)
 
     with requests_mock.Mocker(real_http=False) as request_mocker:
         request_mocker.register_uri(
@@ -38,7 +38,7 @@ def test_create_user_metadata(caplog,
             reason='CREATED',
             content=json.dumps(mock_meta_post_response).encode('utf-8')
         )
-        user_metadata_client.create(data=person_metadata)
+        person_metadata_client.create(data=person_metadata)
         assert 'Get signed material response status: 201' in caplog.text
 
     with pytest.raises(RuntimeError) as error:
@@ -49,19 +49,19 @@ def test_create_user_metadata(caplog,
                 status_code=400,
                 reason='BAD REQUEST'
             )
-            user_metadata_client.create(data=person_metadata)
+            person_metadata_client.create(data=person_metadata)
         assert str(error.value) == f'400 Client Error: BAD REQUEST for url: {define_metadata_pointer_url}'
 
 
-def test_edit_user_metadata(caplog,
-                            create_activated_user,
-                            define_metadata_pointer_url,
-                            load_config,
-                            person_metadata,
-                            setup_metadata_signer):
+def test_edit_person_metadata(caplog,
+                              create_activated_user,
+                              define_metadata_pointer_url,
+                              load_config,
+                              person_metadata,
+                              setup_metadata_signer):
     Signer.gpg_passphrase = load_config.get('KEYS_PASSPHRASE')
     identifier = blockchain_address_to_metadata_pointer(blockchain_address=create_activated_user.blockchain_address)
-    user_metadata_client = UserMetadata(identifier=identifier)
+    person_metadata_client = PersonMetadata(identifier=identifier)
     with requests_mock.Mocker(real_http=False) as request_mocker:
         request_mocker.register_uri(
             'PUT',
@@ -69,7 +69,7 @@ def test_edit_user_metadata(caplog,
             status_code=200,
             reason='OK'
         )
-        user_metadata_client.edit(data=person_metadata, engine='pgp')
+        person_metadata_client.edit(data=person_metadata)
         assert 'Signed content submission status: 200' in caplog.text
 
     with pytest.raises(RuntimeError) as error:
@@ -80,7 +80,7 @@ def test_edit_user_metadata(caplog,
                 status_code=400,
                 reason='BAD REQUEST'
             )
-            user_metadata_client.edit(data=person_metadata, engine='pgp')
+            person_metadata_client.edit(data=person_metadata)
         assert str(error.value) == f'400 Client Error: BAD REQUEST for url: {define_metadata_pointer_url}'
 
 
@@ -92,7 +92,7 @@ def test_get_user_metadata(caplog,
                            person_metadata,
                            setup_metadata_signer):
     identifier = blockchain_address_to_metadata_pointer(blockchain_address=create_activated_user.blockchain_address)
-    user_metadata_client = UserMetadata(identifier=identifier)
+    person_metadata_client = PersonMetadata(identifier=identifier)
     with requests_mock.Mocker(real_http=False) as request_mocker:
         request_mocker.register_uri(
             'GET',
@@ -101,7 +101,7 @@ def test_get_user_metadata(caplog,
             content=json.dumps(person_metadata).encode('utf-8'),
             reason='OK'
         )
-        user_metadata_client.query()
+        person_metadata_client.query()
         assert 'Get latest data status: 200' in caplog.text
     key = generate_metadata_pointer(
         identifier=identifier,
@@ -118,6 +118,6 @@ def test_get_user_metadata(caplog,
                 status_code=404,
                 reason='NOT FOUND'
             )
-            user_metadata_client.query()
+            person_metadata_client.query()
             assert 'The data is not available and might need to be added.' in caplog.text
         assert str(error.value) == f'400 Client Error: NOT FOUND for url: {define_metadata_pointer_url}'

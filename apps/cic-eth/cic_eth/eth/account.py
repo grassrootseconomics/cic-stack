@@ -21,6 +21,7 @@ from chainlib.eth.tx import (
 from chainlib.chain import ChainSpec
 from eth_accounts_index import AccountRegistry
 from sarafu_faucet import MinterFaucet as Faucet
+from chainqueue.db.models.tx import TxCache
 
 # local import
 from cic_eth_registry import CICRegistry
@@ -31,7 +32,6 @@ from cic_eth.eth.gas import (
 from cic_eth.db.models.nonce import Nonce
 from cic_eth.db.models.base import SessionBase
 from cic_eth.db.models.role import AccountRole
-from cic_eth.db.models.tx import TxCache
 from cic_eth.error import (
         RoleMissingError,
         SignerError,
@@ -125,7 +125,7 @@ def register(self, account_address, chain_spec_dict, writer_address=None):
     rpc_signer = RPCConnection.connect(chain_spec, 'signer')
     nonce_oracle = CustodialTaskNonceOracle(writer_address, self.request.root_id, session=session) #, default_nonce)
     gas_oracle = self.create_gas_oracle(rpc, AccountRegistry.gas)
-    account_registry = AccountRegistry(signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle, chain_id=chain_spec.chain_id())
+    account_registry = AccountRegistry(chain_spec, signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
     (tx_hash_hex, tx_signed_raw_hex) = account_registry.add(account_registry_address, writer_address, account_address, tx_format=TxFormat.RLP_SIGNED)
     rpc_signer.disconnect()
 
@@ -178,7 +178,7 @@ def gift(self, account_address, chain_spec_dict):
     rpc_signer = RPCConnection.connect(chain_spec, 'signer')
     nonce_oracle = CustodialTaskNonceOracle(account_address, self.request.root_id, session=session) #, default_nonce)
     gas_oracle = self.create_gas_oracle(rpc, Faucet.gas)
-    faucet = Faucet(signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle, chain_id=chain_spec.chain_id())
+    faucet = Faucet(chain_spec, signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
     (tx_hash_hex, tx_signed_raw_hex) = faucet.give_to(faucet_address, account_address, account_address, tx_format=TxFormat.RLP_SIGNED)
     rpc_signer.disconnect()
 
@@ -285,7 +285,7 @@ def cache_gift_data(
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
 
     tx_signed_raw_bytes = bytes.fromhex(strip_0x(tx_signed_raw_hex))
-    tx = unpack(tx_signed_raw_bytes, chain_spec.chain_id())
+    tx = unpack(tx_signed_raw_bytes, chain_spec)
     tx_data = Faucet.parse_give_to_request(tx['data'])
 
     session = self.create_session()
@@ -328,7 +328,7 @@ def cache_account_data(
     """
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
     tx_signed_raw_bytes = bytes.fromhex(tx_signed_raw_hex[2:])
-    tx = unpack(tx_signed_raw_bytes, chain_id=chain_spec.chain_id())
+    tx = unpack(tx_signed_raw_bytes, chain_spec)
     tx_data = AccountRegistry.parse_add_request(tx['data'])
 
     session = SessionBase.create_session()
