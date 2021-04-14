@@ -21,6 +21,7 @@ from cic_eth.runnable.daemons.filters.callback import (
         parse_transfer,
         parse_transferfrom,
         parse_giftto,
+        CallbackFilter,
         )
 
 logg = logging.getLogger()
@@ -154,3 +155,54 @@ def test_faucet_gift_to_tx(
     (transfer_type, transfer_data) = parse_giftto(tx)
 
     assert transfer_type == 'tokengift'
+
+
+
+def test_callback_filter(
+        default_chain_spec,
+        init_database,
+        eth_rpc,
+        eth_signer,
+        foo_token,
+        agent_roles,
+        contract_roles,
+        ):
+
+    rpc = RPCConnection.connect(default_chain_spec, 'default')
+    nonce_oracle = RPCNonceOracle(token_roles['FOO_TOKEN_OWNER'], rpc)
+    gas_oracle = OverrideGasOracle(conn=rpc, limit=200000)
+   
+    txf = ERC20(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
+    (tx_hash_hex, o) = txf.transfer(foo_token, token_roles['FOO_TOKEN_OWNER'], agent_roles['ALICE'], 1024)
+    r = rpc.do(o)
+    
+    o = transaction(tx_hash_hex)
+    r = rpc.do(o)
+    logg.debug(r)
+    tx_src = snake_and_camel(r)
+    tx = Tx(tx_src)
+
+    o = receipt(tx_hash_hex)
+    r = rpc.do(o)
+    assert r['status'] == 1
+
+    rcpt = snake_and_camel(r)
+    tx.apply_receipt(rcpt)
+
+    fltr = CallbackFilter(default_chain_spec, None, None)
+
+    class CallbackMock:
+
+        def __init__(self):
+            self.results = {}
+
+    
+        def call_back(self, transfer_type, result):
+            self.results[transfer_type] = result
+
+    mock = CallbackMock()
+    fltr.call_back = mock.call_back
+
+    fltr.filter(eth_rpc, None, tx, init_database)
+
+    assert mock.results.get('transfer') != None
