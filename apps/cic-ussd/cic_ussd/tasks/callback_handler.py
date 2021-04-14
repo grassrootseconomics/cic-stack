@@ -57,14 +57,9 @@ def process_account_creation_callback(self, result: str, url: str, status_code: 
             queue = self.request.delivery_info.get('routing_key')
             s = celery.signature(
                     'cic_ussd.tasks.metadata.add_phone_pointer',
-                    [
-                        result,
-                        phone_number,
-                        'pgp',
-                    ],
-                    queue=queue,
+                    [result, phone_number]
                     )
-            s.apply_async()
+            s.apply_async(queue=queue)
 
             # expire cache
             cache.expire(task_id, timedelta(seconds=180))

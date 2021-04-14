@@ -164,11 +164,11 @@ def save_complete_user_metadata(state_machine_data: Tuple[str, dict, User]):
     user_metadata = format_user_metadata(metadata=metadata, user=user)
 
     blockchain_address = user.blockchain_address
-    s_create_user_metadata = celery.signature(
-        'cic_ussd.tasks.metadata.create_user_metadata',
+    s_create_person_metadata = celery.signature(
+        'cic_ussd.tasks.metadata.create_person_metadata',
         [blockchain_address, user_metadata]
     )
-    s_create_user_metadata.apply_async(queue='cic-ussd')
+    s_create_person_metadata.apply_async(queue='cic-ussd')
 
 
 def edit_user_metadata_attribute(state_machine_data: Tuple[str, dict, User]):
@@ -211,18 +211,18 @@ def edit_user_metadata_attribute(state_machine_data: Tuple[str, dict, User]):
 
     edited_metadata = deserialized_person.serialize()
 
-    s_edit_user_metadata = celery.signature(
-        'cic_ussd.tasks.metadata.edit_user_metadata',
-        [blockchain_address, edited_metadata, 'pgp']
+    s_edit_person_metadata = celery.signature(
+        'cic_ussd.tasks.metadata.edit_person_metadata',
+        [blockchain_address, edited_metadata]
     )
-    s_edit_user_metadata.apply_async(queue='cic-ussd')
+    s_edit_person_metadata.apply_async(queue='cic-ussd')
 
 
 def get_user_metadata(state_machine_data: Tuple[str, dict, User]):
     user_input, ussd_session, user = state_machine_data
     blockchain_address = user.blockchain_address
     s_get_user_metadata = celery.signature(
-        'cic_ussd.tasks.metadata.query_user_metadata',
+        'cic_ussd.tasks.metadata.query_person_metadata',
         [blockchain_address]
     )
     s_get_user_metadata.apply_async(queue='cic-ussd')

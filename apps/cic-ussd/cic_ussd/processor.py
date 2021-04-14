@@ -235,7 +235,7 @@ def process_display_user_metadata(user: User, display_key: str):
             products=products
         )
     else:
-        raise MetadataNotFoundError(f'Expected user metadata but found none in cache for key: {user.blockchain_address}')
+        raise MetadataNotFoundError(f'Expected person metadata but found none in cache for key: {key}')
 
 
 def process_account_statement(user: User, display_key: str, ussd_session: dict):
@@ -331,11 +331,11 @@ def process_start_menu(display_key: str, user: User):
     operational_balance = compute_operational_balance(balances=balances_data)
 
     # retrieve and cache account's metadata
-    s_query_user_metadata = celery.signature(
-        'cic_ussd.tasks.metadata.query_user_metadata',
+    s_query_person_metadata = celery.signature(
+        'cic_ussd.tasks.metadata.query_person_metadata',
         [blockchain_address]
     )
-    s_query_user_metadata.apply_async(queue='cic-ussd')
+    s_query_person_metadata.apply_async(queue='cic-ussd')
 
     # retrieve and cache account's statement
     retrieve_account_statement(blockchain_address=blockchain_address)
@@ -389,14 +389,11 @@ def process_request(user_input: str, user: User, ussd_session: Optional[dict] = 
                 identifier=blockchain_address_to_metadata_pointer(blockchain_address=user.blockchain_address),
                 cic_type='cic.person'
             )
-            logg.debug(f'METADATA POINTER: {key}')
-            user_metadata = get_cached_data(key=key)
-            logg.debug(f'METADATA: {user_metadata}')
+            person_metadata = get_cached_data(key=key)
 
             if last_ussd_session:
                 # get last state
                 last_state = last_ussd_session.state
-                logg.debug(f'LAST USSD SESSION STATE: {last_state}')
                 # if last state is account_creation_prompt and metadata exists, show start menu
                 if last_state in [
                     'account_creation_prompt',
@@ -405,7 +402,7 @@ def process_request(user_input: str, user: User, ussd_session: Optional[dict] = 
                     'exit_invalid_new_pin',
                     'exit_pin_mismatch',
                     'exit_invalid_request'
-                ] and user_metadata is not None:
+                ] and person_metadata is not None:
                     return UssdMenu.find_by_name(name='start')
                 else:
                     return UssdMenu.find_by_name(name=last_state)
