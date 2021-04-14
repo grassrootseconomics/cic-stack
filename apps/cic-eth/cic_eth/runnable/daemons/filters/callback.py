@@ -49,9 +49,9 @@ def parse_giftto(tx):
     r = Faucet.parse_give_to_request(tx.payload)
     transfer_data = {}
     transfer_data['to'] = r[0]
-    transfer_data['value'] = tx['value']
-    transfer_data['from'] = tx['from']
-    transfer_data['token_address'] = tx['to']
+    transfer_data['value'] = tx.value
+    transfer_data['from'] = tx.outputs[0]
+    transfer_data['token_address'] = tx.inputs[0]
     return ('tokengift', transfer_data)
 
 
