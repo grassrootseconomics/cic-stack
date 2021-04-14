@@ -343,7 +343,13 @@ class Verifier:
         address_recovered = json.loads(b.decode('utf-8'))
         address_recovered = address_recovered.replace('"', '')
 
-        if strip_0x(address) != strip_0x(address_recovered):
+        try:
+            address = strip_0x(address)
+            address_recovered = strip_0x(address_recovered)
+        except ValueError:
+            raise VerifierError(address_recovered, 'metadata (phone) address {} address recovered {}'.format(address, address_recovered))
+
+        if address != address_recovered:
             raise VerifierError(address_recovered, 'metadata (phone)')
 
 
