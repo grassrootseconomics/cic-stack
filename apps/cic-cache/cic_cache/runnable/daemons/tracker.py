@@ -29,6 +29,7 @@ from hexathon import (
 from chainsyncer.backend import SyncerBackend
 from chainsyncer.driver import (
         HeadSyncer,
+        HistorySyncer,
         )
 from chainsyncer.db.models.base import SessionBase
 
@@ -76,13 +77,15 @@ def main():
 
     if len(syncer_backends) == 0:
         logg.info('found no backends to resume')
-        syncer_backends.append(SyncerBackend.initial(chain_spec, block_offset))
+        syncers.append(SyncerBackend.initial(chain_spec, block_offset))
     else:
         for syncer_backend in syncer_backends:
             logg.info('resuming sync session {}'.format(syncer_backend))
 
-    syncer_backends.append(SyncerBackend.live(chain_spec, block_offset+1))
+    for syncer_backend in syncer_backends:
+        syncers.append(HistorySyncer(syncer_backend))
 
+    syncer_backend = SyncerBackend.live(chain_spec, block_offset+1)
     syncers.append(HeadSyncer(syncer_backend))
 
     trusted_addresses_src = config.get('CIC_TRUST_ADDRESS')

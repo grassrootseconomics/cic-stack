@@ -109,6 +109,9 @@ if [[ -n "${ETH_PROVIDER}" ]]; then
 	>&2 echo "set token faucet amount"
 	sarafu-faucet-set $gas_price_arg -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_FAUCET_ADDRESS -vv $faucet_amount
 
+	>&2 echo "set token faucet amount"
+	sarafu-faucet-set -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_FAUCET_ADDRESS $faucet_amount
+
 
 else
 	echo "\$ETH_PROVIDER not set!"

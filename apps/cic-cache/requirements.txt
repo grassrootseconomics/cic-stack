@@ -10,4 +10,4 @@ psycopg2==2.8.6
 celery==4.4.7
 redis==3.5.3
 chainlib~=0.0.2a10
-chainsyncer~=0.0.1a21
+chainsyncer[sql]~=0.0.2a1

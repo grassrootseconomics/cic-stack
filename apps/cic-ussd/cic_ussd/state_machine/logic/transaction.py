@@ -97,11 +97,11 @@ def retrieve_recipient_metadata(state_machine_data: Tuple[str, dict, User]):
     recipient = get_user_by_phone_number(phone_number=user_input)
     blockchain_address = recipient.blockchain_address
     # retrieve and cache account's metadata
-    s_query_user_metadata = celery.signature(
-        'cic_ussd.tasks.metadata.query_user_metadata',
+    s_query_person_metadata = celery.signature(
+        'cic_ussd.tasks.metadata.query_person_metadata',
         [blockchain_address]
     )
-    s_query_user_metadata.apply_async(queue='cic-ussd')
+    s_query_person_metadata.apply_async(queue='cic-ussd')
 
 
 def save_transaction_amount_to_session_data(state_machine_data: Tuple[str, dict, User]):
