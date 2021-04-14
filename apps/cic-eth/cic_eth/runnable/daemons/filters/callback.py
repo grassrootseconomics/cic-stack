@@ -34,12 +34,12 @@ def parse_transfer(tx):
 def parse_transferfrom(tx):
     if not tx.payload:
         return (None, None)
-    r = ERC20.parse_transfer_request(tx.payload)
+    r = ERC20.parse_transfer_from_request(tx.payload)
     transfer_data = {}
     transfer_data['from'] = r[0]
     transfer_data['to'] = r[1]
     transfer_data['value'] = r[2]
-    transfer_data['token_address'] = tx['to']
+    transfer_data['token_address'] = tx.inputs[0]
     return ('transferfrom', transfer_data)
 
 
