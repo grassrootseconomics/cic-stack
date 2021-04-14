@@ -21,12 +21,7 @@ from potaahto.symbols import snake_and_camel
 from hexathon import add_0x
 
 # local imports
-from cic_eth.runnable.daemons.filters.callback import (
-        parse_transfer,
-        parse_transferfrom,
-        parse_giftto,
-        CallbackFilter,
-        )
+from cic_eth.runnable.daemons.filters.callback import CallbackFilter
 
 logg = logging.getLogger()
 
@@ -40,6 +35,7 @@ def test_transfer_tx(
         foo_token,
         agent_roles,
         token_roles,
+        contract_roles,
         celery_session_worker,
         ):
 
@@ -64,7 +60,8 @@ def test_transfer_tx(
     rcpt = snake_and_camel(r)
     tx.apply_receipt(rcpt)
 
-    (transfer_type, transfer_data) = parse_transfer(tx)
+    fltr = CallbackFilter(default_chain_spec, None, None, caller_address=contract_roles['CONTRACT_DEPLOYER'])
+    (transfer_type, transfer_data) = fltr.parse_transfer(tx, eth_rpc)
 
     assert transfer_type == 'transfer'
 
@@ -78,6 +75,7 @@ def test_transfer_from_tx(
         foo_token,
         agent_roles,
         token_roles,
+        contract_roles,
         celery_session_worker,
         ):
 
@@ -110,12 +108,12 @@ def test_transfer_from_tx(
     rcpt = snake_and_camel(r)
     tx.apply_receipt(rcpt)
 
-    (transfer_type, transfer_data) = parse_transferfrom(tx)
+    fltr = CallbackFilter(default_chain_spec, None, None, caller_address=contract_roles['CONTRACT_DEPLOYER'])
+    (transfer_type, transfer_data) = fltr.parse_transferfrom(tx, eth_rpc)
 
     assert transfer_type == 'transferfrom'
 
 
-@pytest.mark.skip()
 def test_faucet_gift_to_tx(
         default_chain_spec,
         init_database,
@@ -157,9 +155,11 @@ def test_faucet_gift_to_tx(
     rcpt = snake_and_camel(r)
     tx.apply_receipt(rcpt)
 
-    (transfer_type, transfer_data) = parse_giftto(tx)
+    fltr = CallbackFilter(default_chain_spec, None, None, caller_address=contract_roles['CONTRACT_DEPLOYER'])
+    (transfer_type, transfer_data) = fltr.parse_giftto(tx, eth_rpc)
 
     assert transfer_type == 'tokengift'
+    assert transfer_data['token_address'] == foo_token
 
 
 def test_callback_filter(
@@ -220,3 +220,4 @@ def test_callback_filter(
     fltr.filter(eth_rpc, mockblock, tx, init_database)
 
     assert mock.results.get('transfer') != None
+    assert mock.results['transfer']['destination_token'] == foo_token

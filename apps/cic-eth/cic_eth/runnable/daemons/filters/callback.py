@@ -9,7 +9,12 @@ from chainlib.eth.address import to_checksum_address
 from chainlib.eth.error import RequestMismatchException
 from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.eth.erc20 import ERC20
-from hexathon import strip_0x
+from hexathon import (
+        strip_0x,
+        add_0x,
+        )
+# TODO: use sarafu_Faucet for both when inheritance has been implemented
+from erc20_single_shot_faucet import SingleShotFaucet
 from sarafu_faucet import MinterFaucet as Faucet
 
 # local imports
@@ -18,41 +23,6 @@ from cic_eth.eth.meta import ExtendedTx
 
 logg = logging.getLogger().getChild(__name__)
 
-
-def parse_transfer(tx):
-    if not tx.payload:
-        return (None, None)
-    r = ERC20.parse_transfer_request(tx.payload)
-    transfer_data = {}
-    transfer_data['to'] = r[0]
-    transfer_data['value'] = r[1]
-    transfer_data['from'] = tx.outputs[0]
-    transfer_data['token_address'] = tx.inputs[0]
-    return ('transfer', transfer_data)
-
-
-def parse_transferfrom(tx):
-    if not tx.payload:
-        return (None, None)
-    r = ERC20.parse_transfer_from_request(tx.payload)
-    transfer_data = {}
-    transfer_data['from'] = r[0]
-    transfer_data['to'] = r[1]
-    transfer_data['value'] = r[2]
-    transfer_data['token_address'] = tx.inputs[0]
-    return ('transferfrom', transfer_data)
-
-
-def parse_giftto(tx):
-    if not tx.payload:
-        return (None, None)
-    r = Faucet.parse_give_to_request(tx.payload)
-    transfer_data = {}
-    transfer_data['to'] = r[0]
-    transfer_data['value'] = tx.value
-    transfer_data['from'] = tx.outputs[0]
-    transfer_data['token_address'] = tx.inputs[0]
-    return ('tokengift', transfer_data)
 
 
 class CallbackFilter(SyncFilter):
@@ -64,6 +34,49 @@ class CallbackFilter(SyncFilter):
         self.method = method
         self.chain_spec = chain_spec
         self.caller_address = caller_address
+
+
+    def parse_transfer(self, tx, conn):
+        if not tx.payload:
+            return (None, None)
+        r = ERC20.parse_transfer_request(tx.payload)
+        transfer_data = {}
+        transfer_data['to'] = r[0]
+        transfer_data['value'] = r[1]
+        transfer_data['from'] = tx.outputs[0]
+        transfer_data['token_address'] = tx.inputs[0]
+        return ('transfer', transfer_data)
+
+
+    def parse_transferfrom(self, tx, conn):
+        if not tx.payload:
+            return (None, None)
+        r = ERC20.parse_transfer_from_request(tx.payload)
+        transfer_data = {}
+        transfer_data['from'] = r[0]
+        transfer_data['to'] = r[1]
+        transfer_data['value'] = r[2]
+        transfer_data['token_address'] = tx.inputs[0]
+        return ('transferfrom', transfer_data)
+
+
+    def parse_giftto(self, tx, conn):
+        if not tx.payload:
+            return (None, None)
+        r = Faucet.parse_give_to_request(tx.payload)
+        transfer_data = {}
+        transfer_data['to'] = r[0]
+        transfer_data['value'] = tx.value
+        transfer_data['from'] = tx.outputs[0]
+        #transfer_data['token_address'] = tx.inputs[0]
+        faucet_contract = tx.inputs[0]
+
+        c = SingleShotFaucet(self.chain_spec)
+        o = c.token(faucet_contract, sender_address=self.caller_address)
+        r = conn.do(o)
+        transfer_data['token_address'] = add_0x(c.parse_token(r))
+
+        return ('tokengift', transfer_data)
 
 
     def call_back(self, transfer_type, result):
@@ -92,7 +105,7 @@ class CallbackFilter(SyncFilter):
         return s
 
 
-    def parse_data(self, tx):
+    def parse_data(self, tx, conn):
         transfer_type = None
         transfer_data = None
         # TODO: what's with the mix of attributes and dict keys
@@ -101,13 +114,13 @@ class CallbackFilter(SyncFilter):
         logg.debug('tx status {}'.format(tx.status))
 
         for parser in [
-                parse_transfer,
-                parse_transferfrom,
-                parse_giftto,
+                self.parse_transfer,
+                self.parse_transferfrom,
+                self.parse_giftto,
                 ]:
             try:
                 if tx:
-                    (transfer_type, transfer_data) = parser(tx)
+                    (transfer_type, transfer_data) = parser(tx, conn)
                     if transfer_type == None:
                         continue
                 else:
@@ -127,11 +140,12 @@ class CallbackFilter(SyncFilter):
     def filter(self, conn, block, tx, db_session=None):
         transfer_data = None
         transfer_type = None
-        try:
-            (transfer_type, transfer_data) = self.parse_data(tx)
-        except TypeError:
-            logg.debug('invalid method data length for tx {}'.format(tx.hash))
-            return
+        (transfer_type, transfer_data) = self.parse_data(tx, conn)
+#        try:
+#            (transfer_type, transfer_data) = self.parse_data(tx, conn)
+#        except TypeError:
+#            logg.debug('invalid method data length for tx {}'.format(tx.hash))
+#            return
 
         if len(tx.payload) < 8:
             logg.debug('callbacks filter data length not sufficient for method signature in tx {}, skipping'.format(tx.hash))
