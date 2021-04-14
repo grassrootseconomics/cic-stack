@@ -1,15 +1,11 @@
 import * as http from 'http';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as pgp from 'openpgp';
 
 import * as handlers from './handlers';
-import { Envelope, Syncable } from '../../src/sync';
-import { PGPKeyStore, PGPSigner } from '../../src/auth';
+import { PGPKeyStore, PGPSigner, Config, SqliteAdapter, PostgresAdapter } from 'crdt-meta';
 
 import { standardArgs } from './args';
-import { Config } from '../../src/config';
-import { SqliteAdapter, PostgresAdapter } from '../../src/db';
 
 let configPath = '/usr/local/etc/cic-meta';
 

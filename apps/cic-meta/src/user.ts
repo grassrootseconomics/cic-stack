@@ -1,5 +1,4 @@
-import { ArgPair, Syncable } from '../sync';
-import { Addressable, addressToBytes, bytesToHex, toAddressKey } from '../digest';
+import { Syncable, Addressable, toAddressKey } from 'crdt-meta';
 
 const keySalt = new TextEncoder().encode(':cic.person');
 class User extends Syncable implements Addressable {

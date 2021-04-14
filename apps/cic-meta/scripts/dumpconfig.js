@@ -1,4 +1,4 @@
-const config = require('./src/config');
+import { Config } from 'crdt-meta';
 const fs = require('fs');
 
 if (process.argv[2] === undefined) {
@@ -15,6 +15,6 @@ try {
 	process.exit(1);
 }
 
-const c = new config.Config(process.argv[2], process.env['CONFINI_ENV_PREFIX']);
+const c = new Config(process.argv[2], process.env['CONFINI_ENV_PREFIX']);
 c.process();
 process.stdout.write(c.toString());

@@ -1,13 +1,10 @@
-import Automerge = require('automerge');
 import assert = require('assert');
 import fs = require('fs');
 import pgp = require('openpgp');
 import sqlite = require('sqlite3');
 
 import * as handlers from '../scripts/server/handlers';
-import { Envelope, Syncable, ArgPair } from '../src/sync';
-import { PGPKeyStore, PGPSigner, KeyStore, Signer } from '../src/auth';
-import { SqliteAdapter } from '../src/db';
+import { Envelope, Syncable, ArgPair, PGPKeyStore, PGPSigner, KeyStore, Signer, SqliteAdapter } from 'crdt-meta';
 
 function createKeystore() {
 	const pksa = fs.readFileSync(__dirname + '/privatekeys.asc', 'utf-8');
