@@ -1,6 +1,10 @@
-# extended imports
+# external imports
 from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.status import Status as TxStatus
+from cic_eth_registry.erc20 import ERC20Token
+
+# local imports
+from cic_eth.ext.address import translate_address
 
 
 class ExtendedTx:
@@ -27,12 +31,12 @@ class ExtendedTx:
         self.status_code = TxStatus.PENDING.value
 
 
-    def set_actors(self, sender, recipient, trusted_declarator_addresses=None):
+    def set_actors(self, sender, recipient, trusted_declarator_addresses=None, caller_address=ZERO_ADDRESS):
         self.sender = sender
         self.recipient = recipient
         if trusted_declarator_addresses != None:
-            self.sender_label = translate_address(sender, trusted_declarator_addresses, self.chain_spec)
-            self.recipient_label = translate_address(recipient, trusted_declarator_addresses, self.chain_spec)
+            self.sender_label = translate_address(sender, trusted_declarator_addresses, self.chain_spec, sender_address=caller_address)
+            self.recipient_label = translate_address(recipient, trusted_declarator_addresses, self.chain_spec, sender_address=caller_address)
 
 
     def set_tokens(self, source, source_value, destination=None, destination_value=None):
@@ -40,8 +44,8 @@ class ExtendedTx:
             destination = source
         if destination_value == None:
             destination_value = source_value
-        st = ERC20Token(self.rpc, source)
-        dt = ERC20Token(self.rpc, destination)
+        st = ERC20Token(self.chain_spec, self.rpc, source)
+        dt = ERC20Token(self.chain_spec, self.rpc, destination)
         self.source_token = source
         self.source_token_symbol = st.symbol
         self.source_token_name = st.name

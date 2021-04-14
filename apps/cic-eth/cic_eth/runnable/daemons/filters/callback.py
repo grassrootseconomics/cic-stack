@@ -1,7 +1,7 @@
 # standard imports
 import logging
 
-# third-party imports
+# external imports
 import celery
 from cic_eth_registry.error import UnknownContractError
 from chainlib.status import Status as TxStatus
@@ -59,10 +59,11 @@ class CallbackFilter(SyncFilter):
 
     trusted_addresses = []
 
-    def __init__(self, chain_spec, method, queue):
+    def __init__(self, chain_spec, method, queue, caller_address=ZERO_ADDRESS):
         self.queue = queue
         self.method = method
         self.chain_spec = chain_spec
+        self.caller_address = caller_address
 
 
     def call_back(self, transfer_type, result):
@@ -143,7 +144,7 @@ class CallbackFilter(SyncFilter):
             result = None
             try:
                 tokentx = ExtendedTx(conn, tx.hash, self.chain_spec)
-                tokentx.set_actors(transfer_data['from'], transfer_data['to'], self.trusted_addresses)
+                tokentx.set_actors(transfer_data['from'], transfer_data['to'], self.trusted_addresses, caller_address=self.caller_address)
                 tokentx.set_tokens(transfer_data['token_address'], transfer_data['value'])
                 if transfer_data['status'] == 0:
                     tokentx.set_status(1)

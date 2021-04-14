@@ -27,7 +27,6 @@ from cic_eth.runnable.daemons.filters.callback import (
 logg = logging.getLogger()
 
 
-@pytest.mark.skip()
 def test_transfer_tx(
         default_chain_spec,
         init_database,
@@ -65,7 +64,6 @@ def test_transfer_tx(
     assert transfer_type == 'transfer'
 
 
-@pytest.mark.skip()
 def test_transfer_from_tx(
         default_chain_spec,
         init_database,
@@ -164,8 +162,10 @@ def test_callback_filter(
         eth_rpc,
         eth_signer,
         foo_token,
+        token_roles,
         agent_roles,
         contract_roles,
+        register_lookups,
         ):
 
     rpc = RPCConnection.connect(default_chain_spec, 'default')
@@ -189,14 +189,13 @@ def test_callback_filter(
     rcpt = snake_and_camel(r)
     tx.apply_receipt(rcpt)
 
-    fltr = CallbackFilter(default_chain_spec, None, None)
+    fltr = CallbackFilter(default_chain_spec, None, None, caller_address=contract_roles['CONTRACT_DEPLOYER'])
 
     class CallbackMock:
 
         def __init__(self):
             self.results = {}
 
-    
         def call_back(self, transfer_type, result):
             self.results[transfer_type] = result
 
