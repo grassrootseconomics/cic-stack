@@ -1,4 +1,4 @@
-cic-base~=0.1.2a70
+cic-base~=0.1.2a71
 celery==4.4.7
 crypto-dev-signer~=0.4.14b2
 confini~=0.3.6rc3
