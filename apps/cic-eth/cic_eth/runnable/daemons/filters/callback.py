@@ -76,6 +76,10 @@ class CallbackFilter(SyncFilter):
         r = conn.do(o)
         transfer_data['token_address'] = add_0x(c.parse_token(r))
 
+        o = c.amount(faucet_contract, sender_address=self.caller_address)
+        r = conn.do(o)
+        transfer_data['amount'] = add_0x(c.parse_amount(r))
+
         return ('tokengift', transfer_data)
 
 
@@ -140,12 +144,11 @@ class CallbackFilter(SyncFilter):
     def filter(self, conn, block, tx, db_session=None):
         transfer_data = None
         transfer_type = None
-        (transfer_type, transfer_data) = self.parse_data(tx, conn)
-#        try:
-#            (transfer_type, transfer_data) = self.parse_data(tx, conn)
-#        except TypeError:
-#            logg.debug('invalid method data length for tx {}'.format(tx.hash))
-#            return
+        try:
+            (transfer_type, transfer_data) = self.parse_data(tx, conn)
+        except TypeError:
+            logg.debug('invalid method data length for tx {}'.format(tx.hash))
+            return
 
         if len(tx.payload) < 8:
             logg.debug('callbacks filter data length not sufficient for method signature in tx {}, skipping'.format(tx.hash))
