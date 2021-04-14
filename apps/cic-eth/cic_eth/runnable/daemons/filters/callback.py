@@ -26,8 +26,8 @@ def parse_transfer(tx):
     transfer_data = {}
     transfer_data['to'] = r[0]
     transfer_data['value'] = r[1]
-    transfer_data['from'] = tx['from']
-    transfer_data['token_address'] = tx['to']
+    transfer_data['from'] = tx.outputs[0]
+    transfer_data['token_address'] = tx.inputs[0]
     return ('transfer', transfer_data)
 
 

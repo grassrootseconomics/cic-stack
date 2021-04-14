@@ -1,9 +1,24 @@
+# standard import
+import logging
+
 # external imports
 from chainlib.connection import RPCConnection
 from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.gas import OverrideGasOracle
-from chainlib.eth.tx import receipt
+from chainlib.eth.tx import (
+        receipt,
+        transaction,
+        Tx,
+        snake_and_camel,
+        )
 from chainlib.eth.erc20 import ERC20
+
+# local imports
+from cic_eth.runnable.daemons.filters.callback import (
+        parse_transfer,
+        )
+
+logg = logging.getLogger()
 
 
 def test_transfer_tx(
@@ -24,6 +39,20 @@ def test_transfer_tx(
     txf = ERC20(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
     (tx_hash_hex, o) = txf.transfer(foo_token, token_roles['FOO_TOKEN_OWNER'], agent_roles['ALICE'], 1024)
     r = rpc.do(o)
+    
+    o = transaction(tx_hash_hex)
+    r = rpc.do(o)
+    logg.debug(r)
+    tx_src = snake_and_camel(r)
+    tx = Tx(tx_src)
+
     o = receipt(tx_hash_hex)
     r = rpc.do(o)
     assert r['status'] == 1
+
+    rcpt = snake_and_camel(r)
+    tx.apply_receipt(rcpt)
+
+    (transfer_type, transfer_data) = parse_transfer(tx)
+
+    assert transfer_type == 'transfer'
