@@ -3,11 +3,11 @@ const path = require('path');
 const http = require('http');
 
 const cic = require('cic-client-meta');
-import { Config, PGPKeyStore, PGPSigner, Syncable } from 'crdt-meta';
+const crdt = require('crdt-meta');
 
 //const conf = JSON.parse(fs.readFileSync('./cic.conf'));
 
-const config = new Config('./config');
+const config = new crdt.Config('./config');
 config.process();
 console.log(config);
 
@@ -42,7 +42,7 @@ function sendit(uid, envelope) {
 }
 
 function doOne(keystore, filePath) {
-	const signer = new PGPSigner(keystore);
+	const signer = new crdt.PGPSigner(keystore);
 	const parts = path.basename(filePath).split('.');
 	const ethereum_address = path.basename(parts[0]);
 
@@ -52,7 +52,7 @@ function doOne(keystore, filePath) {
 		//console.log(o);
 		fs.unlinkSync(filePath);
 
-		const s = new Syncable(uid, o);
+		const s = new crdt.Syncable(uid, o);
 		s.setSigner(signer);
 		s.onwrap = (env) => {
 			sendit(uid, env);
@@ -66,7 +66,7 @@ const publicKeyPath = path.join(config.get('PGP_EXPORTS_DIR'), config.get('PGP_P
 pk = fs.readFileSync(privateKeyPath);
 pubk = fs.readFileSync(publicKeyPath);
 
-new PGPKeyStore(
+new crdt.PGPKeyStore(
 	config.get('PGP_PASSPHRASE'),
 	pk,
 	pubk,
