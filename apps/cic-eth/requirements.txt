@@ -18,7 +18,7 @@ moolb~=0.1.1b2
 eth-address-index~=0.1.1a8
 chainlib~=0.0.2a8
 hexathon~=0.0.1a7
-chainsyncer[sql]~=0.0.2a1
+chainsyncer[sql]~=0.0.2a2
 chainqueue~=0.0.1a7
 pysha3==1.0.2
 coincurve==15.0.0
