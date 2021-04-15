@@ -145,7 +145,7 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        /usr/local/bin/cic-cache-trackerd -vv -c /usr/local/etc/cic-cache
+        ./start_tracker.sh -c /usr/local/etc/cic-cache -vv
     volumes:
       - contract-config:/tmp/cic/config/:ro
 
@@ -191,13 +191,13 @@ services:
         context: apps
         dockerfile: cic-cache/docker/Dockerfile
     environment:
-      DATABASE_USER: $DATABASE_USER
-      DATABASE_HOST: $DATABASE_HOST
-      DATABASE_PORT: $DATABASE_PORT
-      DATABASE_PASSWORD: $DATABASE_PASSWORD
-      DATABASE_NAME: $DATABASE_NAME_CIC_CACHE
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+        #DATABASE_PASSWORD: ${DATABASE_PASSWORD:-
+      DATABASE_NAME: ${DATABASE_NAME_CIC_CACHE:-cic_cache}
       DATABASE_DEBUG: 1
-      PGPASSWORD: $DATABASE_PASSWORD
+        #PGPASSWORD: $DATABASE_PASSWORD
       SERVER_PORT: 8000
     ports:
       - ${HTTP_PORT_CIC_CACHE:-63313}:8000
@@ -212,9 +212,10 @@ services:
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
         "/usr/local/bin/uwsgi" \
-        --wsgi-file /usr/src/cic-cache/cic_cache/runnable/serverd.py \
+        --wsgi-file /usr/src/cic-cache/cic_cache/runnable/daemons/server.py \
         --http :8000 \
-        --pyargv -vv
+        --pyargv "-vv"
+
 
   cic-eth-tasker:
     # image: grassrootseconomics:cic-eth-service
