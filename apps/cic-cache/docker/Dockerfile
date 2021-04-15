@@ -47,6 +47,9 @@ RUN git clone https://gitlab.com/grassrootseconomics/cic-contracts.git && \
 	mkdir -p /usr/local/share/cic/solidity && \
 	cp -R cic-contracts/abis /usr/local/share/cic/solidity/abi
 
+COPY cic-cache/docker/start_tracker.sh ./start_tracker.sh
+COPY cic-cache/docker/db.sh ./db.sh
+RUN chmod 755 ./*.sh
 # Tracker
 # ENTRYPOINT ["/usr/local/bin/cic-cache-tracker", "-vv"]
 # Server

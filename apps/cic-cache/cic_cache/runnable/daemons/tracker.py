@@ -26,7 +26,7 @@ from chainlib.eth.block import (
 from hexathon import (
         strip_0x,
         )
-from chainsyncer.backend import SyncerBackend
+from chainsyncer.backend.sql import SQLBackend
 from chainsyncer.driver import (
         HeadSyncer,
         HistorySyncer,
@@ -71,13 +71,13 @@ def main():
 
     syncers = []
 
-    #if SyncerBackend.first(chain_spec):
-    #    backend = SyncerBackend.initial(chain_spec, block_offset)
-    syncer_backends = SyncerBackend.resume(chain_spec, block_offset)
+    #if SQLBackend.first(chain_spec):
+    #    backend = SQLBackend.initial(chain_spec, block_offset)
+    syncer_backends = SQLBackend.resume(chain_spec, block_offset)
 
     if len(syncer_backends) == 0:
         logg.info('found no backends to resume')
-        syncers.append(SyncerBackend.initial(chain_spec, block_offset))
+        syncers.append(SQLBackend.initial(chain_spec, block_offset))
     else:
         for syncer_backend in syncer_backends:
             logg.info('resuming sync session {}'.format(syncer_backend))
@@ -85,7 +85,7 @@ def main():
     for syncer_backend in syncer_backends:
         syncers.append(HistorySyncer(syncer_backend))
 
-    syncer_backend = SyncerBackend.live(chain_spec, block_offset+1)
+    syncer_backend = SQLBackend.live(chain_spec, block_offset+1)
     syncers.append(HeadSyncer(syncer_backend))
 
     trusted_addresses_src = config.get('CIC_TRUST_ADDRESS')
