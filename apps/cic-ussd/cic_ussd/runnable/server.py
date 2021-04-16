@@ -57,19 +57,17 @@ arg_parser.add_argument('--env-prefix',
                         help='environment prefix for variables to overwrite configuration')
 args = arg_parser.parse_args()
 
-# parse config
-config = Config(config_dir=args.c, env_prefix=args.env_prefix)
-config.process()
-config.censor('PASSWORD', 'DATABASE')
-
 # define log levels
 if args.vv:
     logging.getLogger().setLevel(logging.DEBUG)
 elif args.v:
     logging.getLogger().setLevel(logging.INFO)
 
-# log config vars
-logg.debug(config)
+# parse config
+config = Config(config_dir=args.c, env_prefix=args.env_prefix)
+config.process()
+config.censor('PASSWORD', 'DATABASE')
+logg.debug('config loaded from {}:\n{}'.format(args.c, config))
 
 # initialize elements
 # set up translations

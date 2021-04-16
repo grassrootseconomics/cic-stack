@@ -83,8 +83,8 @@ def process_incoming_transfer_callback(result: dict, param: str, status_code: in
         # collect result data
         recipient_blockchain_address = result.get('recipient')
         sender_blockchain_address = result.get('sender')
-        token_symbol = result.get('token_symbol')
-        value = result.get('destination_value')
+        token_symbol = result.get('destination_token_symbol')
+        value = result.get('destination_token_value')
 
         # try to find users in system
         recipient_user = session.query(User).filter_by(blockchain_address=recipient_blockchain_address).first()

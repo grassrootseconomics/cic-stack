@@ -39,6 +39,7 @@ from cic_eth.queue import (
 from cic_eth.callbacks import (
         Callback,
         http,
+        noop,
         #tcp,
         redis,
         )

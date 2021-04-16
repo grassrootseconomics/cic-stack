@@ -6,6 +6,7 @@ import tempfile
 
 # third party imports
 import celery
+import i18n
 import redis
 from confini import Config
 
@@ -33,18 +34,18 @@ arg_parser.add_argument('-vv', action='store_true', help='be more verbose')
 arg_parser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 args = arg_parser.parse_args()
 
-# parse config
-config = Config(config_dir=args.c, env_prefix=args.env_prefix)
-config.process()
-config.censor('PASSWORD', 'DATABASE')
-
 # define log levels
 if args.vv:
     logging.getLogger().setLevel(logging.DEBUG)
 elif args.v:
     logging.getLogger().setLevel(logging.INFO)
 
-logg.debug(config)
+# parse config
+config = Config(args.c, args.env_prefix)
+config.process()
+config.add(args.q, '_CELERY_QUEUE', True)
+config.censor('PASSWORD', 'DATABASE')
+logg.debug('config loaded from {}:\n{}'.format(args.c, config))
 
 # connect to database
 data_source_name = dsn_from_config(config)
@@ -76,6 +77,10 @@ key_file_path = f"{config.get('PGP_KEYS_PATH')}{config.get('PGP_PRIVATE_KEYS')}"
 if key_file_path:
     validate_presence(path=key_file_path)
 Signer.key_file_path = key_file_path
+
+# set up translations
+i18n.load_path.append(config.get('APP_LOCALE_PATH'))
+i18n.set('fallback', config.get('APP_LOCALE_FALLBACK'))
 
 # set up celery
 current_app = celery.Celery(__name__)

@@ -446,7 +446,7 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-    command: "/root/start_tasker.sh -q cic-notify"
+    command: "/root/start_tasker.sh -q cic-notify -vv"
 
 
   cic-meta-server:
@@ -494,6 +494,8 @@ services:
       DATABASE_NAME: cic_ussd
       DATABASE_ENGINE: postgresql
       DATABASE_DRIVER: psycopg2
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
+      CELERY_RESULT_URL: ${CELERY_BROKER_URL:-redis://redis}
       PGP_PASSPHRASE: merman
       SERVER_PORT: 9000
       CIC_META_URL: ${CIC_META_URL:-http://meta:8000}

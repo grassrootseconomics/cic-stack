@@ -57,6 +57,7 @@ custodial_tests = [
         'local_key',
         'gas',
         'faucet',
+        'ussd'
         ]
 
 metadata_tests = [
