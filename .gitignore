@@ -1,4 +1,6 @@
 service-configs/*
 !service-configs/.gitkeep
-
 **/node_modules/
+__pycache__
+*.pyc
+*.o
