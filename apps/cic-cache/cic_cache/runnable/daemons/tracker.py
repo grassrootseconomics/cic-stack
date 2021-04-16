@@ -77,7 +77,7 @@ def main():
 
     if len(syncer_backends) == 0:
         logg.info('found no backends to resume')
-        syncers.append(SQLBackend.initial(chain_spec, block_offset))
+        syncers_backends.append(SQLBackend.initial(chain_spec, block_offset))
     else:
         for syncer_backend in syncer_backends:
             logg.info('resuming sync session {}'.format(syncer_backend))
