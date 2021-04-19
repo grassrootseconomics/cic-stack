@@ -15,7 +15,6 @@ from cic_eth_registry import CICRegistry
 from chainlib.chain import ChainSpec
 from chainlib.eth.tx import unpack
 from chainlib.connection import RPCConnection
-from chainsyncer.error import SyncDone
 from hexathon import strip_0x
 from chainqueue.db.enum import (
     StatusEnum,
@@ -153,10 +152,7 @@ class DispatchSyncer:
 def main(): 
     syncer = DispatchSyncer(chain_spec)
     conn = RPCConnection.connect(chain_spec, 'default')
-    try:
-        syncer.loop(conn, float(config.get('DISPATCHER_LOOP_INTERVAL')))
-    except SyncDone as e:
-        sys.stderr.write("dispatcher done at block {}\n".format(e))
+    syncer.loop(conn, float(config.get('DISPATCHER_LOOP_INTERVAL')))
 
     sys.exit(0)
 

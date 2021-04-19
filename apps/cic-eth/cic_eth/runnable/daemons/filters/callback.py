@@ -1,7 +1,7 @@
 # standard imports
 import logging
 
-# third-party imports
+# external imports
 import celery
 from cic_eth_registry.error import UnknownContractError
 from chainlib.status import Status as TxStatus
@@ -9,7 +9,13 @@ from chainlib.eth.address import to_checksum_address
 from chainlib.eth.error import RequestMismatchException
 from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.eth.erc20 import ERC20
-from hexathon import strip_0x
+from hexathon import (
+        strip_0x,
+        add_0x,
+        )
+# TODO: use sarafu_Faucet for both when inheritance has been implemented
+from erc20_single_shot_faucet import SingleShotFaucet
+from sarafu_faucet import MinterFaucet as Faucet
 
 # local imports
 from .base import SyncFilter
@@ -18,65 +24,73 @@ from cic_eth.eth.meta import ExtendedTx
 logg = logging.getLogger().getChild(__name__)
 
 
-def parse_transfer(tx):
-    r = ERC20.parse_transfer_request(tx.payload)
-    transfer_data = {}
-    transfer_data['to'] = r[0]
-    transfer_data['value'] = r[1]
-    transfer_data['from'] = tx['from']
-    transfer_data['token_address'] = tx['to']
-    return ('transfer', transfer_data)
-
-
-def parse_transferfrom(tx):
-    r = ERC20.parse_transfer_request(tx.payload)
-    transfer_data = unpack_transferfrom(tx.payload)
-    transfer_data['from'] = r[0]
-    transfer_data['to'] = r[1]
-    transfer_data['value'] = r[2]
-    transfer_data['token_address'] = tx['to']
-    return ('transferfrom', transfer_data)
-
-
-def parse_giftto(tx):
-    # TODO: broken
-    logg.error('broken')
-    return
-    transfer_data = unpack_gift(tx.payload)
-    transfer_data['from'] = tx.inputs[0]
-    transfer_data['value'] = 0
-    transfer_data['token_address'] = ZERO_ADDRESS
-    # TODO: would be better to query the gift amount from the block state
-    for l in tx.logs:
-        topics = l['topics']
-        logg.debug('topixx {}'.format(topics))
-        if strip_0x(topics[0]) == '45c201a59ac545000ead84f30b2db67da23353aa1d58ac522c48505412143ffa':
-            #transfer_data['value'] = web3.Web3.toInt(hexstr=strip_0x(l['data']))
-            transfer_data['value'] = int.from_bytes(bytes.fromhex(strip_0x(l_data)))
-            #token_address_bytes = topics[2][32-20:]
-            token_address = strip_0x(topics[2])[64-40:]
-            transfer_data['token_address'] = to_checksum_address(token_address)
-    return ('tokengift', transfer_data)
-
 
 class CallbackFilter(SyncFilter):
 
     trusted_addresses = []
 
-    def __init__(self, chain_spec, method, queue):
+    def __init__(self, chain_spec, method, queue, caller_address=ZERO_ADDRESS):
         self.queue = queue
         self.method = method
         self.chain_spec = chain_spec
+        self.caller_address = caller_address
+
+
+    def parse_transfer(self, tx, conn):
+        if not tx.payload:
+            return (None, None)
+        r = ERC20.parse_transfer_request(tx.payload)
+        transfer_data = {}
+        transfer_data['to'] = r[0]
+        transfer_data['value'] = r[1]
+        transfer_data['from'] = tx.outputs[0]
+        transfer_data['token_address'] = tx.inputs[0]
+        return ('transfer', transfer_data)
+
+
+    def parse_transferfrom(self, tx, conn):
+        if not tx.payload:
+            return (None, None)
+        r = ERC20.parse_transfer_from_request(tx.payload)
+        transfer_data = {}
+        transfer_data['from'] = r[0]
+        transfer_data['to'] = r[1]
+        transfer_data['value'] = r[2]
+        transfer_data['token_address'] = tx.inputs[0]
+        return ('transferfrom', transfer_data)
+
+
+    def parse_giftto(self, tx, conn):
+        if not tx.payload:
+            return (None, None)
+        r = Faucet.parse_give_to_request(tx.payload)
+        transfer_data = {}
+        transfer_data['to'] = r[0]
+        transfer_data['value'] = tx.value
+        transfer_data['from'] = tx.outputs[0]
+        #transfer_data['token_address'] = tx.inputs[0]
+        faucet_contract = tx.inputs[0]
+
+        c = SingleShotFaucet(self.chain_spec)
+        o = c.token(faucet_contract, sender_address=self.caller_address)
+        r = conn.do(o)
+        transfer_data['token_address'] = add_0x(c.parse_token(r))
+
+        o = c.amount(faucet_contract, sender_address=self.caller_address)
+        r = conn.do(o)
+        transfer_data['value'] = c.parse_amount(r)
+
+        return ('tokengift', transfer_data)
 
 
     def call_back(self, transfer_type, result):
-        logg.debug('result {}'.format(result))
+        result['chain_spec'] = result['chain_spec'].asdict()
         s = celery.signature(
             self.method,
             [
                 result,
                 transfer_type,
-                int(result['status_code'] == 0),
+                int(result['status_code'] != 0),
             ],
             queue=self.queue,
             )
@@ -92,26 +106,29 @@ class CallbackFilter(SyncFilter):
 #        s_translate.link(s)
 #        s_translate.apply_async()
         t = s.apply_async()
-        return s
+        return t
 
 
-    def parse_data(self, tx):
+    def parse_data(self, tx, conn):
         transfer_type = None
         transfer_data = None
         # TODO: what's with the mix of attributes and dict keys
         logg.debug('have payload {}'.format(tx.payload))
-        method_signature = tx.payload[:8]
 
         logg.debug('tx status {}'.format(tx.status))
 
         for parser in [
-                parse_transfer,
-                parse_transferfrom,
-                parse_giftto,
+                self.parse_transfer,
+                self.parse_transferfrom,
+                self.parse_giftto,
                 ]:
             try:
-                (transfer_type, transfer_data) = parser(tx)
-                break
+                if tx:
+                    (transfer_type, transfer_data) = parser(tx, conn)
+                    if transfer_type == None:
+                        continue
+                else:
+                    pass
             except RequestMismatchException:
                 continue
 
@@ -128,7 +145,7 @@ class CallbackFilter(SyncFilter):
         transfer_data = None
         transfer_type = None
         try:
-            (transfer_type, transfer_data) = self.parse_data(tx)
+            (transfer_type, transfer_data) = self.parse_data(tx, conn)
         except TypeError:
             logg.debug('invalid method data length for tx {}'.format(tx.hash))
             return
@@ -144,16 +161,17 @@ class CallbackFilter(SyncFilter):
             result = None
             try:
                 tokentx = ExtendedTx(conn, tx.hash, self.chain_spec)
-                tokentx.set_actors(transfer_data['from'], transfer_data['to'], self.trusted_addresses)
+                tokentx.set_actors(transfer_data['from'], transfer_data['to'], self.trusted_addresses, caller_address=self.caller_address)
                 tokentx.set_tokens(transfer_data['token_address'], transfer_data['value'])
                 if transfer_data['status'] == 0:
                     tokentx.set_status(1)
                 else:
                     tokentx.set_status(0)
-                t = self.call_back(transfer_type, tokentx.to_dict())
-                logg.info('callback success task id {} tx {}'.format(t, tx.hash))
+                result = tokentx.asdict()
+                t = self.call_back(transfer_type, result)
+                logg.info('callback success task id {} tx {} queue {}'.format(t, tx.hash, t.queue))
             except UnknownContractError:
-                logg.debug('callback filter {}:{} skipping "transfer" method on unknown contract {} tx {}'.format(tc.queue, tc.method, transfer_data['to'], tx.hash))
+                logg.debug('callback filter {}:{} skipping "transfer" method on unknown contract {} tx {}'.format(tx.queue, tx.method, transfer_data['to'], tx.hash))
 
 
     def __str__(self):

@@ -17,7 +17,7 @@ from hexathon import (
         strip_0x,
         add_0x,
         )
-from chainsyncer.backend import MemBackend
+from chainsyncer.backend.memory import MemBackend
 from chainsyncer.driver import HeadSyncer
 from chainlib.eth.connection import EthHTTPConnection
 from chainlib.eth.block import (
@@ -25,13 +25,13 @@ from chainlib.eth.block import (
         block_by_number,
         Block,
         )
-from chainlib.eth.hash import keccak256_string_to_hex
+from chainlib.hash import keccak256_string_to_hex
 from chainlib.eth.address import to_checksum_address
 from chainlib.eth.erc20 import ERC20
 from chainlib.eth.gas import OverrideGasOracle
 from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.tx import TxFactory
-from chainlib.eth.rpc import jsonrpc_template
+from chainlib.jsonrpc import jsonrpc_template
 from chainlib.eth.error import EthException
 from chainlib.chain import ChainSpec
 from crypto_dev_signer.eth.signer import ReferenceSigner as EIP155Signer

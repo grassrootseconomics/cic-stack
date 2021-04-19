@@ -10,7 +10,7 @@ from urllib.parse import urlparse, parse_qs
 from sqlalchemy import desc
 
 # local imports
-from cic_ussd.db.models.user import AccountStatus, User
+from cic_ussd.db.models.account import AccountStatus, Account
 from cic_ussd.operations import get_account_status, reset_pin
 from cic_ussd.validator import check_known_user
 
@@ -123,9 +123,9 @@ def process_locked_accounts_requests(env: dict) -> tuple:
             else:
                 limit = r[1]
 
-        locked_accounts = User.session.query(User.blockchain_address).filter(
-            User.account_status == AccountStatus.LOCKED.value,
-            User.failed_pin_attempts >= 3).order_by(desc(User.updated)).offset(offset).limit(limit).all()
+        locked_accounts = Account.session.query(Account.blockchain_address).filter(
+            Account.account_status == AccountStatus.LOCKED.value,
+            Account.failed_pin_attempts >= 3).order_by(desc(Account.updated)).offset(offset).limit(limit).all()
 
         # convert lists to scalar blockchain addresses
         locked_accounts = [blockchain_address for (blockchain_address, ) in locked_accounts]

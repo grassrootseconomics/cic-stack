@@ -13,7 +13,7 @@ from tinydb.table import Document
 from cic_ussd.account import define_account_tx_metadata, retrieve_account_statement
 from cic_ussd.balance import BalanceManager, compute_operational_balance, get_cached_operational_balance
 from cic_ussd.chain import Chain
-from cic_ussd.db.models.user import AccountStatus, User
+from cic_ussd.db.models.account import AccountStatus, Account
 from cic_ussd.db.models.ussd_session import UssdSession
 from cic_ussd.error import MetadataNotFoundError
 from cic_ussd.menu.ussd_menu import UssdMenu
@@ -28,13 +28,13 @@ from cic_types.models.person import generate_metadata_pointer, get_contact_data_
 logg = logging.getLogger(__name__)
 
 
-def process_pin_authorization(display_key: str, user: User, **kwargs) -> str:
+def process_pin_authorization(display_key: str, user: Account, **kwargs) -> str:
     """
     This method provides translation for all ussd menu entries that follow the pin authorization pattern.
     :param display_key: The path in the translation files defining an appropriate ussd response
     :type display_key: str
     :param user: The user in a running USSD session.
-    :type user: User
+    :type user: Account
     :param kwargs: Any additional information required by the text values in the internationalization files.
     :type kwargs
     :return: A string value corresponding the ussd menu's text value.
@@ -55,13 +55,13 @@ def process_pin_authorization(display_key: str, user: User, **kwargs) -> str:
         )
 
 
-def process_exit_insufficient_balance(display_key: str, user: User, ussd_session: dict):
+def process_exit_insufficient_balance(display_key: str, user: Account, ussd_session: dict):
     """This function processes the exit menu letting users their account balance is insufficient to perform a specific
     transaction.
     :param display_key: The path in the translation files defining an appropriate ussd response
     :type display_key: str
     :param user: The user requesting access to the ussd menu.
-    :type user: User
+    :type user: Account
     :param ussd_session: A JSON serialized in-memory ussd session object
     :type ussd_session: dict
     :return: Corresponding translation text response
@@ -90,12 +90,12 @@ def process_exit_insufficient_balance(display_key: str, user: User, ussd_session
     )
 
 
-def process_exit_successful_transaction(display_key: str, user: User, ussd_session: dict):
+def process_exit_successful_transaction(display_key: str, user: Account, ussd_session: dict):
     """This function processes the exit menu after a successful initiation for a transfer of tokens.
     :param display_key: The path in the translation files defining an appropriate ussd response
     :type display_key: str
     :param user: The user requesting access to the ussd menu.
-    :type user: User
+    :type user: Account
     :param ussd_session: A JSON serialized in-memory ussd session object
     :type ussd_session: dict
     :return: Corresponding translation text response
@@ -118,11 +118,11 @@ def process_exit_successful_transaction(display_key: str, user: User, ussd_sessi
     )
 
 
-def process_transaction_pin_authorization(user: User, display_key: str, ussd_session: dict):
+def process_transaction_pin_authorization(user: Account, display_key: str, ussd_session: dict):
     """This function processes pin authorization where making a transaction is concerned. It constructs a
     pre-transaction response menu that shows the details of the transaction.
     :param user: The user requesting access to the ussd menu.
-    :type user: User
+    :type user: Account
     :param display_key: The path in the translation files defining an appropriate ussd response
     :type display_key: str
     :param ussd_session: The USSD session determining what user data needs to be extracted and added to the menu's
@@ -151,7 +151,7 @@ def process_transaction_pin_authorization(user: User, display_key: str, ussd_ses
     )
 
 
-def process_account_balances(user: User, display_key: str, ussd_session: dict):
+def process_account_balances(user: Account, display_key: str, ussd_session: dict):
     """
     :param user:
     :type user:
@@ -205,7 +205,7 @@ def format_transactions(transactions: list, preferred_language: str):
         return formatted_transactions
 
 
-def process_display_user_metadata(user: User, display_key: str):
+def process_display_user_metadata(user: Account, display_key: str):
     """
     :param user:
     :type user:
@@ -238,7 +238,7 @@ def process_display_user_metadata(user: User, display_key: str):
         raise MetadataNotFoundError(f'Expected person metadata but found none in cache for key: {key}')
 
 
-def process_account_statement(user: User, display_key: str, ussd_session: dict):
+def process_account_statement(user: Account, display_key: str, ussd_session: dict):
     """
     :param user:
     :type user:
@@ -301,12 +301,12 @@ def process_account_statement(user: User, display_key: str, ussd_session: dict):
         )
 
 
-def process_start_menu(display_key: str, user: User):
+def process_start_menu(display_key: str, user: Account):
     """This function gets data on an account's balance and token in order to append it to the start of the start menu's
     title. It passes said arguments to the translation function and returns the appropriate corresponding text from the
     translation files.
     :param user: The user requesting access to the ussd menu.
-    :type user: User
+    :type user: Account
     :param display_key: The path in the translation files defining an appropriate ussd response
     :type display_key: str
     :return: Corresponding translation text response
@@ -361,13 +361,13 @@ def retrieve_most_recent_ussd_session(phone_number: str) -> UssdSession:
     return last_ussd_session
 
 
-def process_request(user_input: str, user: User, ussd_session: Optional[dict] = None) -> Document:
+def process_request(user_input: str, user: Account, ussd_session: Optional[dict] = None) -> Document:
     """This function assesses a request based on the user from the request comes, the session_id and the user's
     input. It determines whether the request translates to a return to an existing session by checking whether the
     provided  session id exists in the database or whether the creation of a new ussd session object is warranted.
     It then returns the appropriate ussd menu text values.
     :param user: The user requesting access to the ussd menu.
-    :type user: User
+    :type user: Account
     :param user_input: The value a user enters in the ussd menu.
     :type user_input: str
     :param ussd_session: A JSON serialized in-memory ussd session object
@@ -415,14 +415,14 @@ def process_request(user_input: str, user: User, ussd_session: Optional[dict] = 
                 return UssdMenu.find_by_name(name='initial_pin_entry')
 
 
-def next_state(ussd_session: dict, user: User, user_input: str) -> str:
+def next_state(ussd_session: dict, user: Account, user_input: str) -> str:
     """This function navigates the state machine based on the ussd session object and user inputs it receives.
     It checks the user input and provides the successive state in the state machine. It then updates the session's
     state attribute with the new state.
     :param ussd_session: A JSON serialized in-memory ussd session object
     :type ussd_session: dict
     :param user: The user requesting access to the ussd menu.
-    :type user: User
+    :type user: Account
     :param user_input: The value a user enters in the ussd menu.
     :type user_input: str
     :return: A string value corresponding the successive give a specific state in the state machine.
@@ -438,7 +438,7 @@ def custom_display_text(
         display_key: str,
         menu_name: str,
         ussd_session: dict,
-        user: User) -> str:
+        user: Account) -> str:
     """This function extracts the appropriate session data based on the current menu name. It then inserts them as
     keywords in the i18n function.
     :param display_key: The path in the translation files defining an appropriate ussd response
@@ -446,7 +446,7 @@ def custom_display_text(
     :param menu_name: The name by which a specific menu can be identified.
     :type menu_name: str
     :param user: The user in a running USSD session.
-    :type user: User
+    :type user: Account
     :param ussd_session: A JSON serialized in-memory ussd session object
     :type ussd_session: dict
     :return: A string value corresponding the ussd menu's text value.

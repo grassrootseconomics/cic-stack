@@ -15,7 +15,6 @@ import cic_base.config
 import cic_base.log
 import cic_base.argparse
 import cic_base.rpc
-from cic_eth_registry import CICRegistry
 from cic_eth_registry.error import UnknownContractError
 from chainlib.chain import ChainSpec
 from chainlib.eth.constant import ZERO_ADDRESS
@@ -26,7 +25,7 @@ from chainlib.eth.block import (
 from hexathon import (
         strip_0x,
         )
-from chainsyncer.backend import SyncerBackend
+from chainsyncer.backend.sql import SQLBackend
 from chainsyncer.driver import (
         HeadSyncer,
         HistorySyncer,
@@ -43,6 +42,12 @@ from cic_eth.runnable.daemons.filters import (
         TransferAuthFilter,
         )
 from cic_eth.stat import init_chain_stat
+from cic_eth.registry import (
+        connect as connect_registry,
+        connect_declarator,
+        connect_token_registry,
+        )
+
 
 script_dir = os.path.realpath(os.path.dirname(__file__))
 
@@ -88,18 +93,18 @@ def main():
 
     syncers = []
 
-    #if SyncerBackend.first(chain_spec):
-    #    backend = SyncerBackend.initial(chain_spec, block_offset)
-    syncer_backends = SyncerBackend.resume(chain_spec, block_offset)
+    #if SQLBackend.first(chain_spec):
+    #    backend = SQLBackend.initial(chain_spec, block_offset)
+    syncer_backends = SQLBackend.resume(chain_spec, block_offset)
 
     if len(syncer_backends) == 0:
         logg.info('found no backends to resume')
-        syncer_backends.append(SyncerBackend.initial(chain_spec, block_offset))
+        syncer_backends.append(SQLBackend.initial(chain_spec, block_offset))
     else:
         for syncer_backend in syncer_backends:
             logg.info('resuming sync session {}'.format(syncer_backend))
 
-    syncer_backends.append(SyncerBackend.live(chain_spec, block_offset+1))
+    syncer_backends.append(SQLBackend.live(chain_spec, block_offset+1))
 
     for syncer_backend in syncer_backends:
         try:
@@ -109,6 +114,8 @@ def main():
             logg.info('Initializing HEAD syncer on backend {}'.format(syncer_backend))
             syncers.append(HeadSyncer(syncer_backend))
 
+    connect_registry(rpc, chain_spec, config.get('CIC_REGISTRY_ADDRESS'))
+
     trusted_addresses_src = config.get('CIC_TRUST_ADDRESS')
     if trusted_addresses_src == None:
         logg.critical('At least one trusted address must be declared in CIC_TRUST_ADDRESS')
@@ -116,6 +123,8 @@ def main():
     trusted_addresses = trusted_addresses_src.split(',')
     for address in trusted_addresses:
         logg.info('using trusted address {}'.format(address))
+    connect_declarator(rpc, chain_spec, trusted_addresses)
+    connect_token_registry(rpc, chain_spec)
     CallbackFilter.trusted_addresses = trusted_addresses
 
     callback_filters = []

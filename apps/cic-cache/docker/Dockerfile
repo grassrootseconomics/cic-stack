@@ -17,7 +17,7 @@ RUN apt-get update && \
 
 # Copy shared requirements from top of mono-repo
 RUN echo "copying root req file ${root_requirement_file}"
-RUN pip install $pip_extra_index_url_flag cic-base[full_graph]==0.1.2a58
+RUN pip install $pip_extra_index_url_flag cic-base[full_graph]==0.1.2a76
 
 COPY cic-cache/requirements.txt ./
 COPY cic-cache/setup.cfg \
@@ -47,6 +47,9 @@ RUN git clone https://gitlab.com/grassrootseconomics/cic-contracts.git && \
 	mkdir -p /usr/local/share/cic/solidity && \
 	cp -R cic-contracts/abis /usr/local/share/cic/solidity/abi
 
+COPY cic-cache/docker/start_tracker.sh ./start_tracker.sh
+COPY cic-cache/docker/db.sh ./db.sh
+RUN chmod 755 ./*.sh
 # Tracker
 # ENTRYPOINT ["/usr/local/bin/cic-cache-tracker", "-vv"]
 # Server

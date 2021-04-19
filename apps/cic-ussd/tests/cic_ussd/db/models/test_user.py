@@ -4,19 +4,19 @@
 import pytest
 
 # platform imports
-from cic_ussd.db.models.user import User
+from cic_ussd.db.models.account import Account
 
 
 def test_user(init_database, set_fernet_key):
-    user = User(blockchain_address='0x417f5962fc52dc33ff0689659b25848680dec6dcedc6785b03d1df60fc6d5c51',
-                phone_number='+254700000000')
+    user = Account(blockchain_address='0x417f5962fc52dc33ff0689659b25848680dec6dcedc6785b03d1df60fc6d5c51',
+                   phone_number='+254700000000')
     user.create_password('0000')
 
-    session = User.session
+    session = Account.session
     session.add(user)
     session.commit()
 
-    queried_user = session.query(User).get(1)
+    queried_user = session.query(Account).get(1)
     assert queried_user.blockchain_address == '0x417f5962fc52dc33ff0689659b25848680dec6dcedc6785b03d1df60fc6d5c51'
     assert queried_user.phone_number == '+254700000000'
     assert queried_user.failed_pin_attempts == 0
@@ -25,7 +25,7 @@ def test_user(init_database, set_fernet_key):
 
 def test_user_state_transition(create_pending_user):
     user = create_pending_user
-    session = User.session
+    session = Account.session
 
     assert user.get_account_status() == 'PENDING'
     user.activate_account()

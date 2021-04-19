@@ -16,12 +16,12 @@ class AccountStatus(IntEnum):
     RESET = 4
 
 
-class User(SessionBase):
+class Account(SessionBase):
     """
     This class defines a user record along with functions responsible for hashing the user's corresponding password and
      subsequently verifying a password's validity given an input to compare against the persisted hash.
     """
-    __tablename__ = 'user'
+    __tablename__ = 'account'
 
     blockchain_address = Column(String)
     phone_number = Column(String)
@@ -38,7 +38,7 @@ class User(SessionBase):
         self.account_status = AccountStatus.PENDING.value
 
     def __repr__(self):
-        return f'<User: {self.blockchain_address}>'
+        return f'<Account: {self.blockchain_address}>'
 
     def create_password(self, password):
         """This method takes a password value and hashes the value before assigning it to the corresponding

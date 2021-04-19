@@ -1,4 +1,4 @@
-"""Create user table
+"""Create account table
 
 Revision ID: f289e8510444
 Revises: 
@@ -17,7 +17,7 @@ depends_on = None
 
 
 def upgrade():
-    op.create_table('user',
+    op.create_table('account',
                     sa.Column('id', sa.Integer(), nullable=False),
                     sa.Column('blockchain_address', sa.String(), nullable=False),
                     sa.Column('phone_number', sa.String(), nullable=False),
@@ -29,11 +29,11 @@ def upgrade():
                     sa.Column('updated', sa.DateTime(), nullable=False),
                     sa.PrimaryKeyConstraint('id')
                     )
-    op.create_index(op.f('ix_user_phone_number'), 'user', ['phone_number'], unique=True)
-    op.create_index(op.f('ix_user_blockchain_address'), 'user', ['blockchain_address'], unique=True)
+    op.create_index(op.f('ix_account_phone_number'), 'account', ['phone_number'], unique=True)
+    op.create_index(op.f('ix_account_blockchain_address'), 'account', ['blockchain_address'], unique=True)
 
 
 def downgrade():
-    op.drop_index(op.f('ix_user_blockchain_address'), table_name='user')
-    op.drop_index(op.f('ix_user_phone_number'), table_name='user')
-    op.drop_table('user')
+    op.drop_index(op.f('ix_account_blockchain_address'), table_name='account')
+    op.drop_index(op.f('ix_account_phone_number'), table_name='account')
+    op.drop_table('account')

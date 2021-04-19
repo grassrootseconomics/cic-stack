@@ -5,12 +5,12 @@ from typing import Tuple
 # third-party imports
 
 # local imports
-from cic_ussd.db.models.user import User
+from cic_ussd.db.models.account import Account
 
 logg = logging.getLogger(__file__)
 
 
-def process_mini_statement_request(state_machine_data: Tuple[str, dict, User]):
+def process_mini_statement_request(state_machine_data: Tuple[str, dict, Account]):
     """This function compiles a brief statement of a user's last three inbound and outbound transactions and send the
     same as a message on their selected avenue for notification.
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
