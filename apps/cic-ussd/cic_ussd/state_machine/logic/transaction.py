@@ -9,7 +9,7 @@ import celery
 # local imports
 from cic_ussd.balance import BalanceManager, compute_operational_balance
 from cic_ussd.chain import Chain
-from cic_ussd.db.models.user import AccountStatus, User
+from cic_ussd.db.models.account import AccountStatus, Account
 from cic_ussd.operations import save_to_in_memory_ussd_session_data
 from cic_ussd.phone_number import get_user_by_phone_number
 from cic_ussd.redis import create_cached_data_key, get_cached_data
@@ -19,7 +19,7 @@ from cic_ussd.transactions import OutgoingTransactionProcessor
 logg = logging.getLogger(__file__)
 
 
-def is_valid_recipient(state_machine_data: Tuple[str, dict, User]) -> bool:
+def is_valid_recipient(state_machine_data: Tuple[str, dict, Account]) -> bool:
     """This function checks that a user exists, is not the initiator of the transaction, has an active account status
     and is authorized to perform  standard transactions.
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
@@ -34,7 +34,7 @@ def is_valid_recipient(state_machine_data: Tuple[str, dict, User]) -> bool:
     return is_not_initiator and has_active_account_status and recipient is not None
 
 
-def is_valid_transaction_amount(state_machine_data: Tuple[str, dict, User]) -> bool:
+def is_valid_transaction_amount(state_machine_data: Tuple[str, dict, Account]) -> bool:
     """This function checks that the transaction amount provided is valid as per the criteria for the transaction
     being attempted.
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
@@ -49,7 +49,7 @@ def is_valid_transaction_amount(state_machine_data: Tuple[str, dict, User]) -> b
         return False
 
 
-def has_sufficient_balance(state_machine_data: Tuple[str, dict, User]) -> bool:
+def has_sufficient_balance(state_machine_data: Tuple[str, dict, Account]) -> bool:
     """This function checks that the transaction amount provided is valid as per the criteria for the transaction
     being attempted.
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
@@ -72,7 +72,7 @@ def has_sufficient_balance(state_machine_data: Tuple[str, dict, User]) -> bool:
     return int(user_input) <= operational_balance
 
 
-def save_recipient_phone_to_session_data(state_machine_data: Tuple[str, dict, User]):
+def save_recipient_phone_to_session_data(state_machine_data: Tuple[str, dict, Account]):
     """This function saves the phone number corresponding the intended recipients blockchain account.
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
     :type state_machine_data: str
@@ -85,7 +85,7 @@ def save_recipient_phone_to_session_data(state_machine_data: Tuple[str, dict, Us
     save_to_in_memory_ussd_session_data(queue='cic-ussd', session_data=session_data, ussd_session=ussd_session)
 
 
-def retrieve_recipient_metadata(state_machine_data: Tuple[str, dict, User]):
+def retrieve_recipient_metadata(state_machine_data: Tuple[str, dict, Account]):
     """
     :param state_machine_data:
     :type state_machine_data:
@@ -104,7 +104,7 @@ def retrieve_recipient_metadata(state_machine_data: Tuple[str, dict, User]):
     s_query_person_metadata.apply_async(queue='cic-ussd')
 
 
-def save_transaction_amount_to_session_data(state_machine_data: Tuple[str, dict, User]):
+def save_transaction_amount_to_session_data(state_machine_data: Tuple[str, dict, Account]):
     """This function saves the phone number corresponding the intended recipients blockchain account.
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
     :type state_machine_data: str
@@ -117,7 +117,7 @@ def save_transaction_amount_to_session_data(state_machine_data: Tuple[str, dict,
     save_to_in_memory_ussd_session_data(queue='cic-ussd', session_data=session_data, ussd_session=ussd_session)
 
 
-def process_transaction_request(state_machine_data: Tuple[str, dict, User]):
+def process_transaction_request(state_machine_data: Tuple[str, dict, Account]):
     """This function saves the phone number corresponding the intended recipients blockchain account.
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
     :type state_machine_data: str

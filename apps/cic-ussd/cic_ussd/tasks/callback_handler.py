@@ -9,7 +9,7 @@ import celery
 # local imports
 from cic_ussd.conversions import from_wei
 from cic_ussd.db.models.base import SessionBase
-from cic_ussd.db.models.user import User
+from cic_ussd.db.models.account import Account
 from cic_ussd.account import define_account_tx_metadata
 from cic_ussd.error import ActionDataNotFoundError
 from cic_ussd.redis import InMemoryStore, cache_data, create_cached_data_key
@@ -49,7 +49,7 @@ def process_account_creation_callback(self, result: str, url: str, status_code: 
             phone_number = account_creation_data.get('phone_number')
 
             # create user
-            user = User(blockchain_address=result, phone_number=phone_number)
+            user = Account(blockchain_address=result, phone_number=phone_number)
             session.add(user)
             session.commit()
             session.close()
@@ -87,8 +87,8 @@ def process_incoming_transfer_callback(result: dict, param: str, status_code: in
         value = result.get('destination_token_value')
 
         # try to find users in system
-        recipient_user = session.query(User).filter_by(blockchain_address=recipient_blockchain_address).first()
-        sender_user = session.query(User).filter_by(blockchain_address=sender_blockchain_address).first()
+        recipient_user = session.query(Account).filter_by(blockchain_address=recipient_blockchain_address).first()
+        sender_user = session.query(Account).filter_by(blockchain_address=sender_blockchain_address).first()
 
         # check whether recipient is in the system
         if not recipient_user:
@@ -188,8 +188,8 @@ def process_statement_callback(result, param: str, status_code: int):
                 processed_transaction = {}
 
                 # check if sender is in the system
-                sender: User = session.query(User).filter_by(blockchain_address=sender_blockchain_address).first()
-                owner: User = session.query(User).filter_by(blockchain_address=param).first()
+                sender: Account = session.query(Account).filter_by(blockchain_address=sender_blockchain_address).first()
+                owner: Account = session.query(Account).filter_by(blockchain_address=param).first()
                 if sender:
                     processed_transaction['sender_phone_number'] = sender.phone_number
 
@@ -205,7 +205,7 @@ def process_statement_callback(result, param: str, status_code: int):
                     processed_transaction['sender_phone_number'] = 'GRASSROOTS ECONOMICS'
 
                 # check if recipient is in the system
-                recipient: User = session.query(User).filter_by(blockchain_address=recipient_address).first()
+                recipient: Account = session.query(Account).filter_by(blockchain_address=recipient_address).first()
                 if recipient:
                     processed_transaction['recipient_phone_number'] = recipient.phone_number
 

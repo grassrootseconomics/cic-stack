@@ -8,12 +8,12 @@ from cic_types.processor import generate_metadata_pointer
 
 # local imports
 from cic_ussd.chain import Chain
-from cic_ussd.db.models.user import User
+from cic_ussd.db.models.account import Account
 from cic_ussd.metadata import blockchain_address_to_metadata_pointer
 from cic_ussd.redis import get_cached_data
 
 
-def define_account_tx_metadata(user: User):
+def define_account_tx_metadata(user: Account):
     # get sender metadata
     identifier = blockchain_address_to_metadata_pointer(
         blockchain_address=user.blockchain_address
