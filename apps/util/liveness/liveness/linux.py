@@ -14,14 +14,15 @@ def load(namespace, check_strs, rundir='/run'):
 
     checks = []
     for m in check_strs:
-        logg.debug('added liveness check module {}'.format(str(m)))
+        logg.debug('added liveness check: {}'.format(str(m)))
         module = importlib.import_module(m)
         checks.append(module)
 
     for check in checks:
         r = check.health()
         if r == False:
-            raise RuntimeError('check {} failed'.format(str(check)))
+            raise RuntimeError('liveness check {} failed'.format(str(check)))
+        logg.info('liveness check passed: {}'.format(str(check)))
 
     app_rundir = os.path.join(rundir, namespace)
     os.makedirs(app_rundir) # should not already exist

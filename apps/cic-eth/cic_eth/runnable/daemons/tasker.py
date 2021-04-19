@@ -15,6 +15,7 @@ from chainlib.connection import RPCConnection
 from chainlib.eth.connection import EthUnixSignerConnection
 from chainlib.chain import ChainSpec
 from chainqueue.db.models.otx import Otx
+import liveness.linux
 
 # local imports
 from cic_eth.eth import (
@@ -51,6 +52,7 @@ from cic_eth.registry import (
         connect_declarator,
         connect_token_registry,
         )
+
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -90,14 +92,15 @@ config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
 logg.debug('config loaded from {}:\n{}'.format(args.c, config))
 
+health_modules = config.get('CIC_HEALTH_MODULES', [])
+if len(health_modules) != 0:
+    health_modules = health_modules.split(',')
+logg.debug('health mods {}'.format(health_modules))
+
 # connect to database
 dsn = dsn_from_config(config)
 SessionBase.connect(dsn, pool_size=int(config.get('DATABASE_POOL_SIZE')), debug=config.true('DATABASE_DEBUG'))
 
-# verify database connection with minimal sanity query
-session = SessionBase.create_session()
-session.execute('select version_num from alembic_version')
-session.close()
 
 # set up celery
 current_app = celery.Celery(__name__)
@@ -139,6 +142,7 @@ RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 's
 
 Otx.tracing = config.true('TASKS_TRACE_QUEUE_STATUS')
 
+liveness.linux.load('cic-eth', health_modules)
 
 def main():
     argv = ['worker']
@@ -173,8 +177,10 @@ def main():
         logg.info('using trusted address {}'.format(address))
     connect_declarator(rpc, chain_spec, trusted_addresses)
     connect_token_registry(rpc, chain_spec)
-    
+   
+    liveness.linux.set('cic-eth')
     current_app.worker_main(argv)
+    liveness.linux.reset('cic-eth')
 
 
 @celery.signals.eventlet_pool_postshutdown.connect
