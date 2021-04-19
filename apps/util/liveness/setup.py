@@ -1,7 +1,7 @@
 from setuptools import setup
 setup(
         name='liveness',
-        version='0.0.1a2',
+        version='0.0.1a4',
         packages=['liveness'],
         include_package_data=True,
         )

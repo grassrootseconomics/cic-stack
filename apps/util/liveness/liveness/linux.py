@@ -8,8 +8,18 @@ logg = logging.getLogger().getChild(__name__)
 
 pid = os.getpid()
 
+default_namespace = os.environ.get('LIVENESS_UNIT_NAME')
+if default_namespace == None:
+    import socket
+    default_namespace = socket.gethostname()
 
-def load(namespace, check_strs, rundir='/run'):
+
+def load(check_strs, namespace=default_namespace, rundir='/run'):
+
+    if namespace == None:
+        import socket
+        namespace = socket.gethostname()
+
     logg.info('pid ' + str(pid))
 
     checks = []
@@ -31,13 +41,13 @@ def load(namespace, check_strs, rundir='/run'):
     f.close()
 
 
-def set(namespace, error=0, rundir='/run'):
+def set(error=0, namespace=default_namespace, rundir='/run'):
     app_rundir = os.path.join(rundir, namespace)
     f = open(os.path.join(app_rundir, 'error'), 'w')
     f.write(str(error))
     f.close()
 
 
-def reset(namespace, rundir='/run'):
+def reset(namespace=default_namespace, rundir='/run'):
     app_rundir = os.path.join(rundir, namespace)
     os.unlink(os.path.join(app_rundir, 'error'))

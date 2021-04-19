@@ -142,7 +142,7 @@ RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 's
 
 Otx.tracing = config.true('TASKS_TRACE_QUEUE_STATUS')
 
-liveness.linux.load('cic-eth', health_modules)
+liveness.linux.load(health_modules)
 
 def main():
     argv = ['worker']
@@ -178,9 +178,9 @@ def main():
     connect_declarator(rpc, chain_spec, trusted_addresses)
     connect_token_registry(rpc, chain_spec)
    
-    liveness.linux.set('cic-eth')
+    liveness.linux.set()
     current_app.worker_main(argv)
-    liveness.linux.reset('cic-eth')
+    liveness.linux.reset()
 
 
 @celery.signals.eventlet_pool_postshutdown.connect
