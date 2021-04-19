@@ -1,2 +1,2 @@
-def health():
+def health(*args, **kwargs):
     return True

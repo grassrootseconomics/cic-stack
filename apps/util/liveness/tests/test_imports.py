@@ -114,5 +114,14 @@ class TestImports(unittest.TestCase):
             os.stat(error_path)
     
 
+    def test_args(self):
+        checks = ['tests.imports.import_args']
+        liveness.linux.load(checks, namespace=self.unit, rundir=self.run_dir, args=['foo'], kwargs={'bar': 42})
+        f = open(self.pid_path, 'r')
+        r = f.read()
+        f.close()
+        self.assertEqual(str(os.getpid()), r)
+
+
 if __name__ == '__main__':
     unittest.main()
