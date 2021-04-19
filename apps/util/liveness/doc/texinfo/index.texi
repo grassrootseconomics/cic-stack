@@ -1,0 +1,71 @@
+@node liveness
+@chapter liveness
+
+@anchor{ilveness_overview}
+@section Overview
+
+This is a cluster-specific convenience setup for enabling a Kubernetes-style liveness/readiness test as outlined in @url{https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/}.
+
+Conceptually, it provides an application with means to:
+
+@itemize
+@item Run a collection of functions to validate sanity of the environment
+@item Set a no-error state before execution of the main routine
+@item Modify the error state during execution
+@item Invalidating all state when execution ends
+@end itemize
+
+
+@section Python module
+
+Three python methods are provided.
+
+@subsection load
+
+This is meant to be called after configurations and environment has been set up, but before the execution logic has commenced.
+
+It receives a list of externally defined fully-qualified python modules. Each of these modules must implement the method @code{health(*args,**kwargs)} in its global namespace.
+
+Any module returning @code{False} will cause a @code{RuntimeException}.
+
+The component will not trap any other exception from the modules.
+
+If successful, it will write the @code{pid}  of the application to the specified run data folder. By default this is @code{/run/<HOSTNAME>}, but the path can be modified if desired.
+
+
+@subsection set
+
+This is meant to be called during the execution of the main program routine begins.
+
+@subsubsection at startup
+
+It should be called once at the @emph{start} of execution of the main program routine.
+
+For one-shot routines, this would mean the start of any code only run when the module name is @code{__main__}. 
+
+For daemons, it would be just before handing over execution to the main loop.
+
+
+@subsubsection during execution
+
+Call @code{set(error_code=<error>, ...} any time the health state temporarily changes. Any @code{error} value other than @code{0} is considered an unhealthy state.
+
+
+@subsubsection at shutdown
+
+Call @code{reset(...)}, which will indicate that the state is to be considered the same as at startup.
+
+
+@section shell
+
+A bash script is provided for @emph{Kubernetes} to perform the health check. 
+
+It performs the following checks:
+
+@enumerate
+@item A numeric value exists in @file{<rundir>/<unitname>/pid}.
+@item The numeric value is a directory in @file{/proc} (a valid pid)
+@item The file @file{<rundir>/<unitname>/error} contains "0"
+@end enumerate
+
+If any of these checks fail should inditcate that the container is unhealthy.
