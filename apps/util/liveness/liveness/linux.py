@@ -35,7 +35,7 @@ def load(check_strs, namespace=default_namespace, rundir='/run', *args, **kwargs
         logg.info('liveness check passed: {}'.format(str(check)))
 
     app_rundir = os.path.join(rundir, namespace)
-    os.makedirs(app_rundir) # should not already exist
+    os.makedirs(app_rundir, exist_ok=True) # should not already exist
     f = open(os.path.join(app_rundir, 'pid'), 'w')
     f.write(str(pid))
     f.close()
