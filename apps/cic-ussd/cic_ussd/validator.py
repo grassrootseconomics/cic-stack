@@ -8,7 +8,7 @@ import ipaddress
 from confini import Config
 
 # local imports
-from cic_ussd.db.models.user import User
+from cic_ussd.db.models.account import Account
 
 logg = logging.getLogger(__file__)
 
@@ -68,7 +68,7 @@ def check_known_user(phone: str):
     :return: Is known phone number
     :rtype: boolean
     """
-    user = User.session.query(User).filter_by(phone_number=phone).first()
+    user = Account.session.query(Account).filter_by(phone_number=phone).first()
     return user is not None
 
 

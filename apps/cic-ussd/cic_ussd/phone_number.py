@@ -5,7 +5,7 @@ from typing import Optional
 import phonenumbers
 
 # local imports
-from cic_ussd.db.models.user import User
+from cic_ussd.db.models.account import Account
 
 
 def process_phone_number(phone_number: str, region: str):
@@ -30,14 +30,14 @@ def process_phone_number(phone_number: str, region: str):
     return parsed_phone_number
 
 
-def get_user_by_phone_number(phone_number: str) -> Optional[User]:
+def get_user_by_phone_number(phone_number: str) -> Optional[Account]:
     """This function queries the database for a user based on the provided phone number.
     :param phone_number: A valid phone number.
     :type phone_number: str
     :return: A user object matching a given phone number
-    :rtype: User|None
+    :rtype: Account|None
     """
     # consider adding region to user's metadata
     phone_number = process_phone_number(phone_number=phone_number, region='KE')
-    user = User.session.query(User).filter_by(phone_number=phone_number).first()
+    user = Account.session.query(Account).filter_by(phone_number=phone_number).first()
     return user

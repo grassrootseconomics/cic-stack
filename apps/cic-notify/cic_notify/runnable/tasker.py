@@ -33,7 +33,9 @@ elif args.v:
 
 config = confini.Config(args.c, args.env_prefix)
 config.process()
+config.add(args.q, '_CELERY_QUEUE', True)
 config.censor('PASSWORD', 'DATABASE')
+logg.debug('config loaded from {}:\n{}'.format(args.c, config))
 
 # connect to database
 dsn = dsn_from_config(config)
