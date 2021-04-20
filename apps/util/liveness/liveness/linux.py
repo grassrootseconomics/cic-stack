@@ -50,4 +50,5 @@ def set(error=0, namespace=default_namespace, rundir='/run'):
 
 def reset(namespace=default_namespace, rundir='/run'):
     app_rundir = os.path.join(rundir, namespace)
+    os.unlink(os.path.join(app_rundir, 'pid'))
     os.unlink(os.path.join(app_rundir, 'error'))
