@@ -24,7 +24,7 @@ from chainlib.eth.gas import RPCGasOracle
 from chainlib.eth.nonce import RPCNonceOracle
 from cic_types.processor import generate_metadata_pointer
 from eth_accounts_index import AccountRegistry
-from contract_registry import Registry
+from eth_contract_registry import Registry
 from crypto_dev_signer.keystore.dict import DictKeystore
 from crypto_dev_signer.eth.signer.defaultsigner import ReferenceSigner as EIP155Signer
 from crypto_dev_signer.keystore.keyfile import to_dict as to_keyfile_dict
