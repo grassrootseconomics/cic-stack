@@ -22,7 +22,7 @@ from hexathon import (
         strip_0x,
         add_0x,
         )
-from chainsyncer.backend import MemBackend
+from chainsyncer.backend.memory import MemBackend
 from chainsyncer.driver import HeadSyncer
 from chainlib.chain import ChainSpec
 from chainlib.eth.connection import EthHTTPConnection
