@@ -67,6 +67,7 @@ class ERC20TransferFilter(SyncFilter):
                 tx.status == Status.SUCCESS,
                 block.timestamp,
                 )
-        db_session.flush()
+        #db_session.flush()
+        db_session.commit()
 
         return True
