@@ -24,7 +24,7 @@ variables:
       IMAGE_TAG_BASE: $CI_REGISTRY_IMAGE/$APP_NAME:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
       LATEST_TAG: $CI_REGISTRY_IMAGE/$APP_NAME:latest
   script:
-    - export IMAGE_TAG="$IMAGE_TAG_BASE-$(date +%F.%H%M%S)"
+    - export IMAGE_TAG="$IMAGE_TAG_BASE-$(date +%s)"
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > "/kaniko/.docker/config.json"
     # - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --destination $IMAGE_TAG
