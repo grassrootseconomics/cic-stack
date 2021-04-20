@@ -8,6 +8,8 @@ import json
 
 # external imports
 import celery
+import psycopg2
+from psycopg2 import extras
 from hexathon import (
         strip_0x,
         add_0x,
@@ -216,3 +218,27 @@ def send_txs(self, nonce):
 
 
     return nonce
+
+
+@celery_app.task
+def set_pins(config: dict, phone_to_pins: list):
+    # define db connection
+    db_conn = psycopg2.connect(
+        database=config.get('database'),
+        host=config.get('host'),
+        port=config.get('port'),
+        user=config.get('user'),
+        password=config.get('password')
+    )
+    db_cursor = db_conn.cursor()
+
+    # batch updates
+    extras.execute_values(db_cursor,
+                          'UPDATE account \
+                          SET password_hash = update_data.password_hash \
+                          FROM (VALUES %s) AS update_data (phone, password_hash) \
+                          WHERE phone_number = update_data.phone', phone_to_pins)
+    db_conn.commit()
+
+    db_cursor.close()
+    db_conn.close()
