@@ -14,25 +14,32 @@ if default_namespace == None:
     default_namespace = socket.gethostname()
 
 
+def check_by_module(checks, *args, **kwargs):
+    for check in checks:
+        r = check.health(args, kwargs)
+        if r == False:
+            raise RuntimeError('liveness check {} failed'.format(str(check)))
+        logg.info('liveness check passed: {}'.format(str(check)))
+
+
+def check_by_string(check_strs, *args, **kwargs):
+    checks = []
+    for m in check_strs:
+        logg.debug('added liveness check: {}'.format(str(m)))
+        module = importlib.import_module(m)
+        checks.append(module)
+    return check_by_module(checks, args, kwargs)
+   
+
 def load(check_strs, namespace=default_namespace, rundir='/run', *args, **kwargs):
 
     if namespace == None:
         import socket
         namespace = socket.gethostname()
 
+    check_by_string(check_strs)
+
     logg.info('pid ' + str(pid))
-
-    checks = []
-    for m in check_strs:
-        logg.debug('added liveness check: {}'.format(str(m)))
-        module = importlib.import_module(m)
-        checks.append(module)
-
-    for check in checks:
-        r = check.health(args, kwargs)
-        if r == False:
-            raise RuntimeError('liveness check {} failed'.format(str(check)))
-        logg.info('liveness check passed: {}'.format(str(check)))
 
     app_rundir = os.path.join(rundir, namespace)
     os.makedirs(app_rundir, exist_ok=True) # should not already exist
