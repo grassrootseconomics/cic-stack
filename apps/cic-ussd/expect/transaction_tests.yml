@@ -1,0 +1,285 @@
+- config:
+  - testset: "transaction tests"
+
+- test:
+    - group: "transactions"
+    - name: "send tokens[EN]"
+    - url: "/"
+    - delay: "3"
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+254712345678", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek024", "text": ""}'
+    - headers: { 'Content-Type': 'application/json' }
+    - expected_status: [ 200 ]
+    - validators:
+        - compare: { "header": "content-type", "comparator": "str_eq", "expected": "text/plain" }
+        - compare: { "header": "content-length", "comparator": "str_eq", "expected": "51" }
+        - compare: { "raw_body": "", "comparator": "str_eq", expected: "CON Balance 50.00 SRF\n1. Send\n2. My Account\n3. Help" }
+
+- test:
+    - group: "transactions"
+    - name: "send tokens[SW]"
+    - url: "/"
+    - delay: "3"
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+254712345679", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek025", "text": ""}'
+    - headers: { 'Content-Type': 'application/json' }
+    - expected_status: [ 200 ]
+    - validators:
+        - compare: { "header": "content-type", "comparator": "str_eq", "expected": "text/plain" }
+        - compare: {"header": "content-length", "comparator": "str_eq", "expected":"56"}
+        - compare: {"raw_body":"", "comparator":"str_eq", expected: "CON Salio 50.00 SRF\n1. Tuma\n2. Akaunti yangu\n3. Usaidizi"}
+
+- test:
+    - group: "transactions"
+    - name: "enter recipients phone number[EN]"
+    - url: "/"
+    - delay: "2"
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+254712345678", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek024", "text": "1"}'
+    - headers: { 'Content-Type': 'application/json' }
+    - expected_status: [ 200 ]
+    - validators:
+        - compare: { "header": "content-type", "comparator": "str_eq", "expected": "text/plain" }
+        - compare: { "header": "content-length", "comparator": "str_eq", "expected": "30" }
+        - compare: { "raw_body": "", "comparator": "str_eq", expected: "CON Enter phone number\n0. Back" }
+
+
+- test:
+    - group: "transactions"
+    - name: "enter recipients phone number[SW]"
+    - url: "/"
+    - delay: "2"
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+254712345679", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek025", "text": "1"}'
+    - headers: { 'Content-Type': 'application/json' }
+    - expected_status: [ 200 ]
+    - validators:
+        - compare: { "header": "content-type", "comparator": "str_eq", "expected": "text/plain" }
+        - compare: {"header": "content-length", "comparator": "str_eq", "expected":"33"}
+        - compare: {"raw_body":"", "comparator":"str_eq", expected: "CON Weka nambari ya simu\n0. Nyuma"}
+
+- test:
+    - group: "transactions"
+    - name: "enter token amount[EN]"
+    - url: "/"
+    - delay: "2"
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+254712345678", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek024", "text": "1*0712345679"}'
+    - headers: { 'Content-Type': 'application/json' }
+    - expected_status: [ 200 ]
+    - validators:
+        - compare: { "header": "content-type", "comparator": "str_eq", "expected": "text/plain" }
+        - compare: { "header": "content-length", "comparator": "str_eq", "expected": "24" }
+        - compare: { "raw_body": "", "comparator": "str_eq", expected: "CON Enter amount\n0. Back" }
+
+- test:
+    - group: "transactions"
+    - name: "enter token amount[SW]"
+    - url: "/"
+    - delay: "2"
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+254712345679", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek025", "text": "1*0712345678"}'
+    - headers: { 'Content-Type': 'application/json' }
+    - expected_status: [ 200 ]
+    - validators:
+        - compare: { "header": "content-type", "comparator": "str_eq", "expected": "text/plain" }
+        - compare: {"header": "content-length", "comparator": "str_eq", "expected":"25"}
+        - compare: {"raw_body":"", "comparator":"str_eq", expected: "CON Weka kiwango\n0. Nyuma"}
+
+- test:
+    - group: "transactions"
+    - name: "transaction pin authorization[EN]"
+    - url: "/"
+    - delay: "2"
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+254712345678", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek024", "text": "1*0712345679*15"}'
+    - headers: { 'Content-Type': 'application/json' }
+    - expected_status: [ 200 ]
+    - validators:
+        - compare: { "header": "content-type", "comparator": "str_eq", "expected": "text/plain" }
+        - compare: { "header": "content-length", "comparator": "str_eq", "expected": "129" }
+        - compare: { "raw_body": "", "comparator": "str_eq", expected: "CON Chebet Musau +254712345679 will receive 15.00 SRF from Kimani Omollo +254712345678.\nPlease enter your PIN to confirm.\n0. Back" }
+
+- test:
+    - group: "transactions"
+    - name: "transaction pin authorization[SW]"
+    - url: "/"
+    - delay: "2"
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+254712345679", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek025", "text": "1*0712345678*18"}'
+    - headers: { 'Content-Type': 'application/json' }
+    - expected_status: [ 200 ]
+    - validators:
+        - compare: { "header": "content-type", "comparator": "str_eq", "expected": "text/plain" }
+        - compare: {"header": "content-length", "comparator": "str_eq", "expected":"148"}
+        - compare: {"raw_body":"", "comparator":"str_eq", expected: "CON Kimani Omollo +254712345678 atapokea 18.00 SRF kutoka kwa Chebet Musau +254712345679.\nTafadhali weka nambari yako ya siri kudhibitisha.\n0. Nyuma"}
+
+
+- test:
+    - group: "transactions"
+    - name: "transaction pin authorization-invalid-pin[EN]"
+    - url: "/"
+    - delay: "2"
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+254712345678", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek024", "text": "1*0712345679*15*6987"}'
+    - headers: { 'Content-Type': 'application/json' }
+    - expected_status: [ 200 ]
+    - validators:
+        - compare: { "header": "content-type", "comparator": "str_eq", "expected": "text/plain" }
+        - compare: { "header": "content-length", "comparator": "str_eq", "expected": "65" }
+        - compare: { "raw_body": "", "comparator": "str_eq", expected: "CON Please enter your PIN. You have 2 attempts remaining.\n0. Back" }
+
+- test:
+    - group: "transactions"
+    - name: "transaction pin authorization-invalid-pin[SW]"
+    - url: "/"
+    - delay: "2"
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+254712345679", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek025", "text": "1*0712345678*18*7845"}'
+    - headers: { 'Content-Type': 'application/json' }
+    - expected_status: [ 200 ]
+    - validators:
+        - compare: { "header": "content-type", "comparator": "str_eq", "expected": "text/plain" }
+        - compare: {"header": "content-length", "comparator": "str_eq", "expected":"62"}
+        - compare: {"raw_body":"", "comparator":"str_eq", expected: "CON Weka nambari ya siri. Una majaribio 2 yaliyobaki.\n0. Nyuma"}
+
+- test:
+    - group: "transactions"
+    - name: "transaction pin authorization-valid-pin[EN]"
+    - url: "/"
+    - delay: "2"
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+254712345678", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek024", "text": "1*0712345679*15*6987*0000"}'
+    - headers: { 'Content-Type': 'application/json' }
+    - expected_status: [ 200 ]
+    - validators:
+        - compare: { "header": "content-type", "comparator": "str_eq", "expected": "text/plain" }
+        - compare: { "header": "content-length", "comparator": "str_eq", "expected": "133" }
+        - compare: { "raw_body": "", "comparator": "str_eq", expected: "CON Your request has been sent. Chebet Musau +254712345679 will receive 15.00 SRF from Kimani Omollo +254712345678.\n00. Back\n99. Exit" }
+
+
+- test:
+    - group: "transactions"
+    - name: "transaction pin authorization-valid-pin[SW]"
+    - url: "/"
+    - delay: "2"
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+254712345679", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek025", "text": "1*0712345678*18*7845*1111"}'
+    - headers: { 'Content-Type': 'application/json' }
+    - expected_status: [ 200 ]
+    - validators:
+        - compare: { "header": "content-type", "comparator": "str_eq", "expected": "text/plain" }
+        - compare: {"header": "content-length", "comparator": "str_eq", "expected":"131"}
+        - compare: {"raw_body":"", "comparator":"str_eq", expected: "CON Ombi lako limetumwa. Kimani Omollo +254712345678 atapokea 18.00 SRF kutoka kwa Chebet Musau +254712345679.\n00. Nyuma\n99. Ondoka"}
+
+- test:
+    - group: "transactions"
+    - name: "send tokens-2[EN]"
+    - url: "/"
+    - delay: "3"
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+254712345678", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek026", "text": ""}'
+    - headers: { 'Content-Type': 'application/json' }
+    - expected_status: [ 200 ]
+    - validators:
+        - compare: { "header": "content-type", "comparator": "str_eq", "expected": "text/plain" }
+        - compare: { "header": "content-length", "comparator": "str_eq", "expected": "51" }
+        - compare: { "raw_body": "", "comparator": "str_eq", expected: "CON Balance 53.00 SRF\n1. Send\n2. My Account\n3. Help" }
+
+- test:
+    - group: "transactions"
+    - name: "send tokens-2[SW]"
+    - url: "/"
+    - delay: "3"
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+254712345679", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek027", "text": ""}'
+    - headers: { 'Content-Type': 'application/json' }
+    - expected_status: [ 200 ]
+    - validators:
+        - compare: { "header": "content-type", "comparator": "str_eq", "expected": "text/plain" }
+        - compare: {"header": "content-length", "comparator": "str_eq", "expected":"56"}
+        - compare: {"raw_body":"", "comparator":"str_eq", expected: "CON Salio 47.00 SRF\n1. Tuma\n2. Akaunti yangu\n3. Usaidizi"}
+
+- test:
+    - group: "transactions"
+    - name: "enter recipients phone number-2[EN]"
+    - url: "/"
+    - delay: "2"
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+254712345678", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek026", "text": "1"}'
+    - headers: { 'Content-Type': 'application/json' }
+    - expected_status: [ 200 ]
+    - validators:
+        - compare: { "header": "content-type", "comparator": "str_eq", "expected": "text/plain" }
+        - compare: { "header": "content-length", "comparator": "str_eq", "expected": "30" }
+        - compare: { "raw_body": "", "comparator": "str_eq", expected: "CON Enter phone number\n0. Back" }
+
+- test:
+    - group: "transactions"
+    - name: "enter recipients phone number-2[SW]"
+    - url: "/"
+    - delay: "2"
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+254712345679", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek027", "text": "1"}'
+    - headers: { 'Content-Type': 'application/json' }
+    - expected_status: [ 200 ]
+    - validators:
+        - compare: { "header": "content-type", "comparator": "str_eq", "expected": "text/plain" }
+        - compare: {"header": "content-length", "comparator": "str_eq", "expected":"33"}
+        - compare: {"raw_body":"", "comparator":"str_eq", expected: "CON Weka nambari ya simu\n0. Nyuma"}
+
+- test:
+    - group: "transactions"
+    - name: "enter token amount-2[EN]"
+    - url: "/"
+    - delay: "2"
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+254712345678", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek026", "text": "1*0712345679"}'
+    - headers: { 'Content-Type': 'application/json' }
+    - expected_status: [ 200 ]
+    - validators:
+        - compare: { "header": "content-type", "comparator": "str_eq", "expected": "text/plain" }
+        - compare: { "header": "content-length", "comparator": "str_eq", "expected": "24" }
+        - compare: { "raw_body": "", "comparator": "str_eq", expected: "CON Enter amount\n0. Back" }
+
+- test:
+    - group: "transactions"
+    - name: "enter token amount-2[SW]"
+    - url: "/"
+    - delay: "2"
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+254712345679", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek027", "text": "1*0712345678"}'
+    - headers: { 'Content-Type': 'application/json' }
+    - expected_status: [ 200 ]
+    - validators:
+        - compare: { "header": "content-type", "comparator": "str_eq", "expected": "text/plain" }
+        - compare: {"header": "content-length", "comparator": "str_eq", "expected":"25"}
+        - compare: {"raw_body":"", "comparator":"str_eq", expected: "CON Weka kiwango\n0. Nyuma"}
+
+- test:
+    - group: "transactions"
+    - name: "transaction pin authorization-2[EN]"
+    - url: "/"
+    - delay: "2"
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+254712345678", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek026", "text": "1*0712345679*850"}'
+    - headers: { 'Content-Type': 'application/json' }
+    - expected_status: [ 200 ]
+    - validators:
+        - compare: { "header": "content-type", "comparator": "str_eq", "expected": "text/plain" }
+        - compare: { "header": "content-length", "comparator": "str_eq", "expected": "156" }
+        - compare: { "raw_body": "", "comparator": "str_eq", expected: "CON Payment of 850.00 SRF to Chebet Musau +254712345679 has failed due to insufficient balance.\nYour Sarafu-Network balances is: 53.00 SRF\n00. Back\n99. Exit"}
+
+- test:
+    - group: "transactions"
+    - name: "transaction pin authorization-2[SW]"
+    - url: "/"
+    - delay: "2"
+    - method: "POST"
+    - body: '{"serviceCode": "*483*46#", "phoneNumber": "+254712345679", "sessionId": "AT_Idjhfuvelw64ffbweiy73nd5vnek027", "text": "1*0712345678*1800"}'
+    - headers: { 'Content-Type': 'application/json' }
+    - expected_status: [ 200 ]
+    - validators:
+        - compare: { "header": "content-type", "comparator": "str_eq", "expected": "text/plain" }
+        - compare: {"header": "content-length", "comparator": "str_eq", "expected":"186"}
+        - compare: {"raw_body":"", "comparator":"str_eq", expected: "CON Malipo ya 1800.00 SRF kwa Kimani Omollo +254712345678 halijakamilika kwa sababu salio lako haitoshi.\nAkaunti yako ya Sarafu-Network ina salio ifuatayo: 47.00 SRF\n00. Nyuma\n99. Ondoka"}
