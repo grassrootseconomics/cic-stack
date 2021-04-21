@@ -145,7 +145,7 @@ Otx.tracing = config.true('TASKS_TRACE_QUEUE_STATUS')
 #import cic_eth.checks.gas
 #if not cic_eth.checks.gas.health(config=config):
 #    raise RuntimeError()
-liveness.linux.load(health_modules)
+liveness.linux.load(health_modules, config=config)
 
 def main():
     argv = ['worker']

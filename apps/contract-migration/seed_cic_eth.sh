@@ -46,6 +46,11 @@ DEV_ETH_ACCOUNT_GAS_GIFTER=`cic-eth-create $debug --redis-host-callback=$REDIS_H
 echo DEV_ETH_ACCOUNT_GAS_GIFTER=$DEV_ETH_ACCOUNT_GAS_GIFTER >> $env_out_file
 cic-eth-tag -i $CIC_CHAIN_SPEC GAS_GIFTER $DEV_ETH_ACCOUNT_GAS_GIFTER
 
+# Remove the SEND (8), QUEUE (16) and INIT (2) locks (or'ed), set by default at migration
+cic-eth-ctl -i :: unlock INIT
+cic-eth-ctl -i :: unlock SEND
+cic-eth-ctl -i :: unlock QUEUE
+
 >&2 echo "create account for sarafu gifter"
 DEV_ETH_ACCOUNT_SARAFU_GIFTER=`cic-eth-create $debug --redis-host-callback=$REDIS_HOST --redis-port-callback=$REDIS_PORT --no-register`
 echo DEV_ETH_ACCOUNT_SARAFU_GIFTER=$DEV_ETH_ACCOUNT_SARAFU_GIFTER >> $env_out_file
