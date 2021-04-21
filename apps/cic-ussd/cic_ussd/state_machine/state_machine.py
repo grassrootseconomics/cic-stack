@@ -13,7 +13,7 @@ class UssdStateMachine(Machine):
     """This class describes a finite state machine responsible for maintaining all the states that describe the ussd
     menu  as well as providing a means for navigating through these states based on different user inputs.
     It defines different helper functions that co-ordinate with the stakeholder components of the ussd menu: i.e  the
-    User, UssdSession, UssdMenu to facilitate user interaction with ussd menu.
+    Account, UssdSession, UssdMenu to facilitate user interaction with ussd menu.
     :cvar states: A list of pre-defined states.
     :type states: list
     :cvar transitions: A list of pre-defined transitions.

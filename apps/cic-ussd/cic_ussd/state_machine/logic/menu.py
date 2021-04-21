@@ -6,10 +6,10 @@ ussd menu facilitating the return of appropriate menu responses based on said us
 from typing import Tuple
 
 # local imports
-from cic_ussd.db.models.user import User
+from cic_ussd.db.models.account import Account
 
 
-def menu_one_selected(state_machine_data: Tuple[str, dict, User]) -> bool:
+def menu_one_selected(state_machine_data: Tuple[str, dict, Account]) -> bool:
     """This function checks that user input matches a string with value '1'
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
     :type state_machine_data: str
@@ -20,7 +20,7 @@ def menu_one_selected(state_machine_data: Tuple[str, dict, User]) -> bool:
     return user_input == '1'
 
 
-def menu_two_selected(state_machine_data: Tuple[str, dict, User]) -> bool:
+def menu_two_selected(state_machine_data: Tuple[str, dict, Account]) -> bool:
     """This function checks that user input matches a string with value '2'
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
     :type state_machine_data: tuple
@@ -31,7 +31,7 @@ def menu_two_selected(state_machine_data: Tuple[str, dict, User]) -> bool:
     return user_input == '2'
 
 
-def menu_three_selected(state_machine_data: Tuple[str, dict, User]) -> bool:
+def menu_three_selected(state_machine_data: Tuple[str, dict, Account]) -> bool:
     """This function checks that user input matches a string with value '3'
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
     :type state_machine_data: tuple
@@ -42,7 +42,7 @@ def menu_three_selected(state_machine_data: Tuple[str, dict, User]) -> bool:
     return user_input == '3'
 
 
-def menu_four_selected(state_machine_data: Tuple[str, dict, User]) -> bool:
+def menu_four_selected(state_machine_data: Tuple[str, dict, Account]) -> bool:
     """
     This function checks that user input matches a string with value '4'
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
@@ -54,7 +54,7 @@ def menu_four_selected(state_machine_data: Tuple[str, dict, User]) -> bool:
     return user_input == '4'
 
 
-def menu_five_selected(state_machine_data: Tuple[str, dict, User]) -> bool:
+def menu_five_selected(state_machine_data: Tuple[str, dict, Account]) -> bool:
     """
     This function checks that user input matches a string with value '5'
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
@@ -66,7 +66,7 @@ def menu_five_selected(state_machine_data: Tuple[str, dict, User]) -> bool:
     return user_input == '5'
 
 
-def menu_zero_zero_selected(state_machine_data: Tuple[str, dict, User]) -> bool:
+def menu_zero_zero_selected(state_machine_data: Tuple[str, dict, Account]) -> bool:
     """
     This function checks that user input matches a string with value '00'
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
@@ -78,7 +78,7 @@ def menu_zero_zero_selected(state_machine_data: Tuple[str, dict, User]) -> bool:
     return user_input == '00'
 
 
-def menu_ninety_nine_selected(state_machine_data: Tuple[str, dict, User]) -> bool:
+def menu_ninety_nine_selected(state_machine_data: Tuple[str, dict, Account]) -> bool:
     """
     This function checks that user input matches a string with value '99'
     :param state_machine_data: A tuple containing user input, a ussd session and user object.

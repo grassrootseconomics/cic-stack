@@ -7,14 +7,14 @@ from typing import Tuple
 from cic_types.models.person import generate_metadata_pointer
 
 # local imports
-from cic_ussd.db.models.user import User
+from cic_ussd.db.models.account import Account
 from cic_ussd.metadata import blockchain_address_to_metadata_pointer
 from cic_ussd.redis import get_cached_data
 
 logg = logging.getLogger()
 
 
-def has_cached_user_metadata(state_machine_data: Tuple[str, dict, User]):
+def has_cached_user_metadata(state_machine_data: Tuple[str, dict, Account]):
     """This function checks whether the attributes of the user's metadata constituting a profile are filled out.
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
     :type state_machine_data: str
@@ -29,7 +29,7 @@ def has_cached_user_metadata(state_machine_data: Tuple[str, dict, User]):
     return user_metadata is not None
 
 
-def is_valid_name(state_machine_data: Tuple[str, dict, User]):
+def is_valid_name(state_machine_data: Tuple[str, dict, Account]):
     """This function checks that a user provided name is valid
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
     :type state_machine_data: str
@@ -43,7 +43,7 @@ def is_valid_name(state_machine_data: Tuple[str, dict, User]):
         return False
 
 
-def is_valid_gender_selection(state_machine_data: Tuple[str, dict, User]):
+def is_valid_gender_selection(state_machine_data: Tuple[str, dict, Account]):
     """
     :param state_machine_data:
     :type state_machine_data:

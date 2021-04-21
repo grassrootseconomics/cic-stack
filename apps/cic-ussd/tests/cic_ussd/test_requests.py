@@ -2,7 +2,7 @@
 import json
 
 # local imports
-from cic_ussd.db.models.user import User
+from cic_ussd.db.models.account import Account
 from cic_ussd.requests import (get_query_parameters,
                                get_request_endpoint,
                                get_request_method,
@@ -58,8 +58,8 @@ def test_process_locked_accounts_requests(create_locked_accounts, valid_locked_a
     assert len(locked_account_addresses) == 10
 
     # check that blockchain addresses are ordered by most recently accessed
-    user_1 = User.session.query(User).filter_by(blockchain_address=locked_account_addresses[2]).first()
-    user_2 = User.session.query(User).filter_by(blockchain_address=locked_account_addresses[7]).first()
+    user_1 = Account.session.query(Account).filter_by(blockchain_address=locked_account_addresses[2]).first()
+    user_2 = Account.session.query(Account).filter_by(blockchain_address=locked_account_addresses[7]).first()
 
     assert user_1.updated > user_2.updated
 

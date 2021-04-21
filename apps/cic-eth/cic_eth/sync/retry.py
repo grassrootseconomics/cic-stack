@@ -4,7 +4,7 @@ import datetime
 
 # external imports
 from chainsyncer.driver import HeadSyncer
-from chainsyncer.backend import MemBackend
+from chainsyncer.backend.memory import MemBackend
 from chainsyncer.error import NoBlockForYou
 from chainlib.eth.block import (
         block_by_number,

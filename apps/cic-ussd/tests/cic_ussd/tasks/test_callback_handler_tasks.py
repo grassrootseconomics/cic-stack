@@ -8,7 +8,7 @@ import celery
 import pytest
 
 # local imports
-from cic_ussd.db.models.user import User
+from cic_ussd.db.models.account import Account
 from cic_ussd.error import ActionDataNotFoundError
 from cic_ussd.conversions import from_wei
 
@@ -29,7 +29,7 @@ def test_successful_process_account_creation_callback_task(account_creation_acti
     # WARNING: [THE SETTING OF THE ROOT ID IS A HACK AND SHOULD BE REVIEWED OR IMPROVED]
     mocked_task_request.root_id = task_id
 
-    user = init_database.query(User).filter_by(phone_number=phone_number).first()
+    user = init_database.query(Account).filter_by(phone_number=phone_number).first()
     assert user is None
 
     redis_cache = init_redis_cache
@@ -48,7 +48,7 @@ def test_successful_process_account_creation_callback_task(account_creation_acti
     )
     s_process_callback_request.apply_async().get()
 
-    user = init_database.query(User).filter_by(phone_number=phone_number).first()
+    user = init_database.query(Account).filter_by(phone_number=phone_number).first()
     assert user.blockchain_address == result
 
     action_data = redis_cache.get(task_id)
