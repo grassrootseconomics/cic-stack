@@ -10,7 +10,7 @@ from tinydb.table import Document
 from typing import Optional
 
 # local imports
-from cic_ussd.db.models.user import User
+from cic_ussd.db.models.account import Account
 from cic_ussd.db.models.ussd_session import UssdSession
 from cic_ussd.db.models.task_tracker import TaskTracker
 from cic_ussd.menu.ussd_menu import UssdMenu
@@ -143,10 +143,10 @@ def get_account_status(phone_number) -> str:
     :return: The user account status.
     :rtype: str
     """
-    user = User.session.query(User).filter_by(phone_number=phone_number).first()
+    user = Account.session.query(Account).filter_by(phone_number=phone_number).first()
     status = user.get_account_status()
-    User.session.add(user)
-    User.session.commit()
+    Account.session.add(user)
+    Account.session.commit()
 
     return status
 
@@ -269,12 +269,12 @@ def cache_account_creation_task_id(phone_number: str, task_id: str):
     redis_cache.persist(name=task_id)
 
 
-def process_current_menu(ussd_session: Optional[dict], user: User, user_input: str) -> Document:
+def process_current_menu(ussd_session: Optional[dict], user: Account, user_input: str) -> Document:
     """This function checks user input and returns a corresponding ussd menu
     :param ussd_session: An in db ussd session object.
     :type ussd_session: UssdSession
     :param user: A user object.
-    :type user: User
+    :type user: Account
     :param user_input: The user's input.
     :type user_input: str
     :return: An in memory ussd menu object.
@@ -324,7 +324,7 @@ def process_menu_interaction_requests(chain_str: str,
 
     else:
         # get user
-        user = User.session.query(User).filter_by(phone_number=phone_number).first()
+        user = Account.session.query(Account).filter_by(phone_number=phone_number).first()
 
         # find any existing ussd session
         existing_ussd_session = UssdSession.session.query(UssdSession).filter_by(
@@ -390,10 +390,10 @@ def reset_pin(phone_number: str) -> str:
     :return: The status of the pin reset.
     :rtype: str
     """
-    user = User.session.query(User).filter_by(phone_number=phone_number).first()
+    user = Account.session.query(Account).filter_by(phone_number=phone_number).first()
     user.reset_account_pin()
-    User.session.add(user)
-    User.session.commit()
+    Account.session.add(user)
+    Account.session.commit()
 
     response = f'Pin reset for user {phone_number} is successful!'
     return response
