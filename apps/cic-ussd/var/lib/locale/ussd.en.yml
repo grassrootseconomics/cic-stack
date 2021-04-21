@@ -154,8 +154,8 @@ en:
       00. Back
       99. Exit
     exit_insufficient_balance: |-
-      CON Payment of %{amount} %{token_symbol} to %{recipient_information} has failed due to insufficent balance.
-      Your Sarafu-Network balances is: %{token_balance}
+      CON Payment of %{amount} %{token_symbol} to %{recipient_information} has failed due to insufficient balance.
+      Your Sarafu-Network balances is: %{token_balance} %{token_symbol}
       00. Back
       99. Exit
     help: |-

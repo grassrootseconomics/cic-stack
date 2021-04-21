@@ -155,7 +155,7 @@ sw:
       99. Ondoka
     exit_insufficient_balance: |-
       CON Malipo ya %{amount} %{token_symbol} kwa %{recipient_information} halijakamilika kwa sababu salio lako haitoshi.
-      Akaunti yako ya Sarafu-Network ina salio ifuatayo: %{token_balance}
+      Akaunti yako ya Sarafu-Network ina salio ifuatayo: %{token_balance} %{token_symbol}
       00. Nyuma
       99. Ondoka
     help: |-

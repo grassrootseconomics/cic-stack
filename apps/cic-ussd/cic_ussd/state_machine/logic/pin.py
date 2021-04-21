@@ -45,7 +45,15 @@ def is_authorized_pin(state_machine_data: Tuple[str, dict, User]) -> bool:
     :rtype: bool
     """
     user_input, ussd_session, user = state_machine_data
-    return user.verify_password(password=user_input)
+    pin_validity = user.verify_password(password=user_input)
+    if pin_validity is True:
+        return user.verify_password(password=user_input)
+    else:
+        # bump number for failed attempts
+        user.failed_pin_attempts += 1
+        Account.session.add(user)
+        Account.session.commit()
+        return pin_validity
 
 
 def is_locked_account(state_machine_data: Tuple[str, dict, User]) -> bool:

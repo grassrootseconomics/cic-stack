@@ -71,7 +71,7 @@ def process_exit_insufficient_balance(display_key: str, user: User, ussd_session
     operational_balance = get_cached_operational_balance(blockchain_address=user.blockchain_address)
 
     # compile response data
-    user_input = ussd_session.get('user_input').split('*')[-1]
+    user_input = ussd_session.get('session_data').get('transaction_amount')
     transaction_amount = to_wei(value=int(user_input))
     token_symbol = 'SRF'
 
@@ -86,7 +86,7 @@ def process_exit_insufficient_balance(display_key: str, user: User, ussd_session
         amount=from_wei(transaction_amount),
         token_symbol=token_symbol,
         recipient_information=tx_recipient_information,
-        token_balance=operational_balance
+        token_balance=operational_balance,
     )
 
 
@@ -401,7 +401,11 @@ def process_request(user_input: str, user: User, ussd_session: Optional[dict] = 
                     'exit_invalid_pin',
                     'exit_invalid_new_pin',
                     'exit_pin_mismatch',
-                    'exit_invalid_request'
+                    'exit_invalid_request',
+                    "exit_insufficient_balance",
+                    "exit_successful_transaction",
+                    "help",
+                    "complete"
                 ] and person_metadata is not None:
                     return UssdMenu.find_by_name(name='start')
                 else:
