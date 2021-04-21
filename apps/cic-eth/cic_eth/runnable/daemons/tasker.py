@@ -139,6 +139,9 @@ RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 's
 
 Otx.tracing = config.true('TASKS_TRACE_QUEUE_STATUS')
 
+import cic_eth.checks.gas
+if not cic_eth.checks.gas.health(config=config):
+    raise RuntimeError()
 
 def main():
     argv = ['worker']

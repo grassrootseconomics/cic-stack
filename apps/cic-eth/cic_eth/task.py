@@ -94,3 +94,8 @@ class CriticalWeb3AndSignerTask(CriticalTask):
 def hello(self):
     time.sleep(0.1)
     return id(SessionBase.create_session)
+
+
+@celery_app.task()
+def shutdown(self):
+    celery.app.control.shutdown()
