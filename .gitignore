@@ -4,3 +4,7 @@ service-configs/*
 __pycache__
 *.pyc
 *.o
+gmon.out
+*.egg-info
+dist/
+build/
