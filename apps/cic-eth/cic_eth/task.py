@@ -97,5 +97,5 @@ def hello(self):
 
 
 @celery_app.task()
-def shutdown(self):
+def check_health(self):
     celery.app.control.shutdown()
