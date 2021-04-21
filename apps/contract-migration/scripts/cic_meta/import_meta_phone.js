@@ -43,6 +43,7 @@ function sendit(uid, envelope) {
 }
 
 function doOne(keystore, filePath, address) {
+	let ethereum_address = '0x' + address;
 	const signer = new crdt.PGPSigner(keystore);
 
 	const j = JSON.parse(fs.readFileSync(filePath).toString());
@@ -52,9 +53,8 @@ function doOne(keystore, filePath, address) {
 	const phone = o.tel[0].value;
 
 	cic.Phone.toKey(phone).then((uid) => {
-		const o = fs.readFileSync(filePath, 'utf-8');
 
-		const s = new crdt.Syncable(uid, o);
+		const s = new crdt.Syncable(uid, ethereum_address);
 		s.setSigner(signer);
 		s.onwrap = (env) => {
 			sendit(uid, env);
