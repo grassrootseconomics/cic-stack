@@ -33,11 +33,11 @@ set -a
 # get required addresses from registries
 DEV_TOKEN_INDEX_ADDRESS=`eth-contract-registry-list -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -r $CIC_REGISTRY_ADDRESS -f brief TokenRegistry`
 DEV_ACCOUNT_INDEX_ADDRESS=`eth-contract-registry-list -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -r $CIC_REGISTRY_ADDRESS -f brief AccountRegistry`
-DEV_RESERVE_ADDRESS=`eth-token-index-list -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_TOKEN_INDEX_ADDRESS -f brief SRF`
+DEV_RESERVE_ADDRESS=`eth-token-index-list -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_TOKEN_INDEX_ADDRESS -f brief $DEV_TOKEN_TYPE`
 cat <<EOF
 Token registry: $DEV_TOKEN_INDEX_ADDRESS
 Account reigstry: $DEV_ACCOUNT_INDEX_ADDRESS
-Reserve address: $DEV_RESERVE_ADDRESS
+Reserve address: $DEV_RESERVE_ADDRESS ($DEV_TOKEN_TYPE)
 EOF
 
 >&2 echo "create account for gas gifter"
