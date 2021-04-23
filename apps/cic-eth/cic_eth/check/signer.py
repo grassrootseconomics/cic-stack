@@ -1,4 +1,5 @@
 # standard imports
+import time
 import logging
 from urllib.error import URLError
 
@@ -12,15 +13,25 @@ logg = logging.getLogger().getChild(__name__)
 
 
 def health(*args, **kwargs):
+    blocked = True
+    max_attempts = 5
     conn = RPCConnection.connect(kwargs['config'].get('CIC_CHAIN_SPEC'), tag='signer')
-    try:
-        conn.do(sign_message(ZERO_ADDRESS, '0x2a'))
-    except FileNotFoundError:
-        return False
-    except ConnectionError:
-        return False
-    except URLError:
-        return False
-    except JSONRPCException as e:
-        pass
-    return True
+    for i in range(max_attempts):
+        idx = i + 1
+        logg.debug('attempt signer connection check {}/{}'.format(idx, max_attempts))
+        try:
+            conn.do(sign_message(ZERO_ADDRESS, '0x2a'))
+        except FileNotFoundError:
+            pass
+        except ConnectionError:
+            pass
+        except URLError:
+            pass
+        except JSONRPCException:
+            logg.debug('signer connection succeeded')
+            return True
+
+        if idx < max_attempts:
+            time.sleep(0.5)
+
+    return False
