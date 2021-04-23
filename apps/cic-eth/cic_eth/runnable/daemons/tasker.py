@@ -140,14 +140,15 @@ else:
 
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, 'default')
-RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 'signer', constructor=EthUnixSignerConnection)
+#RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 'signer', constructor=EthUnixSignerConnection)
+RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 'signer')
 
 Otx.tracing = config.true('TASKS_TRACE_QUEUE_STATUS')
 
 #import cic_eth.checks.gas
 #if not cic_eth.checks.gas.health(config=config):
 #    raise RuntimeError()
-liveness.linux.load(health_modules, config=config)
+liveness.linux.load(health_modules, rundir=config.get('CIC_RUN_DIR'), config=config)
 
 def main():
     argv = ['worker']
