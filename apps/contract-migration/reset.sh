@@ -3,7 +3,7 @@
 set -a
 
 CIC_CHAIN_SPEC=${CIC_CHAIN_SPEC:-evm:bloxberg:8995}
-DEV_TOKEN_TYPE=${DEV_TOKEN_TYPE:-GFT}
+CIC_DEFAULT_TOKEN_SYMBOL=${CIC_DEFAULT_TOKEN_SYMBOL:-GFT}
 DEV_ETH_ACCOUNT_RESERVE_MINTER=${DEV_ETH_ACCOUNT_RESERVE_MINTER:-$DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER}
 DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER=${DEV_ETH_ACCOUNT_RESERVE_MINTER:-$DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER}
 DEV_RESERVE_AMOUNT=${DEV_ETH_RESERVE_AMOUNT:-""10000000000000000000000000000000000}
@@ -19,8 +19,8 @@ if [ ! -z $DEV_ETH_GAS_PRICE ]; then
 	>&2 echo using static gas price $DEV_ETH_GAS_PRICE
 fi
 
-if [[ $DEV_TOKEN_TYPE != 'GFT' && $DEV_TOKEN_TYPE != 'SRF' ]]; then
-	>&2 echo DEV_TOKEN_TYPE must be one of [GFT,SRF], but was $DEV_TOKEN_TYPE
+if [[ $CIC_DEFAULT_TOKEN_SYMBOL != 'GFT' && $CIC_DEFAULT_TOKEN_SYMBOL != 'SRF' ]]; then
+	>&2 echo CIC_DEFAULT_TOKEN_SYMBOL must be one of [GFT,SRF], but was $CIC_DEFAULT_TOKEN_SYMBOL
 	exit 1
 fi
 
@@ -60,7 +60,7 @@ if [[ -n "${ETH_PROVIDER}" ]]; then
 		./wait-for-it.sh "${ETH_PROVIDER_HOST}:${ETH_PROVIDER_PORT}"
 	fi
 
-	if [ $DEV_TOKEN_TYPE == 'GFT' ]; then
+	if [ $CIC_DEFAULT_TOKEN_SYMBOL == 'GFT' ]; then
 		>&2 echo "deploying 'giftable token'"
 		DEV_RESERVE_ADDRESS=`giftable-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -w --name "Giftable Token" --symbol "GFT" --decimals 6 -vv`
 	else

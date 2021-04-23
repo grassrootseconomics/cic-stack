@@ -29,6 +29,8 @@ class BaseTask(celery.Task):
     call_address = ZERO_ADDRESS
     create_nonce_oracle = RPCNonceOracle
     create_gas_oracle = RPCGasOracle
+    default_token_address = None
+    default_token_symbol = None
 
     def create_session(self):
         return BaseTask.session_func()

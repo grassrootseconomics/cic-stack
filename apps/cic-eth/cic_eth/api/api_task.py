@@ -62,6 +62,18 @@ class Api:
                     )       
 
 
+    def default_token(self):
+        s_token = celery.signature(
+                'cic_eth.admin.token.default_token',
+                [],
+                queue=self.queue,
+                )
+        if self.callback_param != None:
+            s_token.link(self.callback_success)
+
+        return s_token.apply_async()
+
+
     def convert_transfer(self, from_address, to_address, target_return, minimum_return, from_token_symbol, to_token_symbol):
         """Executes a chain of celery tasks that performs conversion between two ERC20 tokens, and transfers to a specified receipient after convert has completed.
 
