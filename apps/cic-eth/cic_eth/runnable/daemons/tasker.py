@@ -15,7 +15,9 @@ from chainlib.connection import RPCConnection
 from chainlib.eth.connection import EthUnixSignerConnection
 from chainlib.chain import ChainSpec
 from chainqueue.db.models.otx import Otx
+from cic_eth_registry.error import UnknownContractError
 import liveness.linux
+
 
 # local imports
 from cic_eth.eth import (
@@ -142,11 +144,15 @@ else:
 
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, 'default')
-RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 'signer', constructor=EthUnixSignerConnection)
+#RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 'signer', constructor=EthUnixSignerConnection)
+RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 'signer')
 
 Otx.tracing = config.true('TASKS_TRACE_QUEUE_STATUS')
 
-liveness.linux.load(health_modules)
+#import cic_eth.checks.gas
+#if not cic_eth.checks.gas.health(config=config):
+#    raise RuntimeError()
+liveness.linux.load(health_modules, rundir=config.get('CIC_RUN_DIR'), config=config)
 
 def main():
     argv = ['worker']
@@ -170,7 +176,11 @@ def main():
 
     rpc = RPCConnection.connect(chain_spec, 'default')
 
-    registry = connect_registry(rpc, chain_spec, config.get('CIC_REGISTRY_ADDRESS'))
+    try:
+        registry = connect_registry(rpc, chain_spec, config.get('CIC_REGISTRY_ADDRESS'))
+    except UnknownContractError as e:
+        logg.exception('Registry contract connection failed for {}: {}'.format(config.get('CIC_REGISTRY_ADDRESS'), e))
+        sys.exit(1)
 
     trusted_addresses_src = config.get('CIC_TRUST_ADDRESS')
     if trusted_addresses_src == None:
@@ -179,6 +189,7 @@ def main():
     trusted_addresses = trusted_addresses_src.split(',')
     for address in trusted_addresses:
         logg.info('using trusted address {}'.format(address))
+
     connect_declarator(rpc, chain_spec, trusted_addresses)
     connect_token_registry(rpc, chain_spec)
 

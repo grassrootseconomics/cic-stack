@@ -59,6 +59,7 @@ args_override = {
         'CIC_CHAIN_SPEC': getattr(args, 'i'),
         }
 # override args
+config.dict_override(args_override, 'cli')
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
 logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
@@ -67,7 +68,9 @@ celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=confi
 
 queue = args.q
 
-chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
+chain_spec = None
+if config.get('CIC_CHAIN_SPEC') != None and config.get('CIC_CHAIN_SPEC') != '::':
+    chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 admin_api = AdminApi(None)
 
 
@@ -82,6 +85,9 @@ def lock_names_to_flag(s):
 
 # TODO: move each command to submodule
 def main():
+    chain_spec_dict = None
+    if chain_spec != None:
+        chain_spec_dict = chain_spec.asdict()
     if args.command == 'unlock':
         flags = lock_names_to_flag(args.flags)
         if not is_checksum_address(args.address):
@@ -91,7 +97,7 @@ def main():
             'cic_eth.admin.ctrl.unlock',
             [
                 None,
-                chain_spec.asdict(),
+                chain_spec_dict,
                 args.address,
                 flags,
                 ],
@@ -110,7 +116,7 @@ def main():
             'cic_eth.admin.ctrl.lock',
             [
                 None,
-                chain_spec.asdict(),
+                chain_spec_dict,
                 args.address,
                 flags,
                 ],
