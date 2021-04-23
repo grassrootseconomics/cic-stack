@@ -116,7 +116,9 @@ class TestImports(unittest.TestCase):
 
     def test_args(self):
         checks = ['tests.imports.import_args']
-        liveness.linux.load(checks, namespace=self.unit, rundir=self.run_dir, args=['foo'], kwargs={'bar': 42})
+        aargs=['foo']
+        kwaargs={'bar': 42}
+        liveness.linux.load(checks, self.unit, self.run_dir, *aargs, **kwaargs)
         f = open(self.pid_path, 'r')
         r = f.read()
         f.close()

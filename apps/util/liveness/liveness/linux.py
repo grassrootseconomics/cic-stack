@@ -29,7 +29,7 @@ def load(check_strs, namespace=default_namespace, rundir='/run', *args, **kwargs
         checks.append(module)
 
     for check in checks:
-        r = check.health(args, kwargs)
+        r = check.health(*args, **kwargs)
         if r == False:
             raise RuntimeError('liveness check {} failed'.format(str(check)))
         logg.info('liveness check passed: {}'.format(str(check)))
