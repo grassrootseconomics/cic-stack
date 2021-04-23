@@ -34,6 +34,7 @@ def celery_includes():
         'cic_eth.admin.ctrl',
         'cic_eth.admin.nonce',
         'cic_eth.admin.debug',
+        'cic_eth.admin.token',
         'cic_eth.eth.account',
         'cic_eth.callbacks.noop',
         'cic_eth.callbacks.http',
