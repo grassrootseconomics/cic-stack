@@ -38,6 +38,7 @@ argparser = argparse.ArgumentParser()
 argparser.add_argument('-p', '--provider', dest='p', default='http://localhost:8545', type=str, help='Web3 provider url (http only)')
 argparser.add_argument('-y', '--key-file', dest='y', type=str, help='Ethereum keystore file to use for signing')
 argparser.add_argument('-c', type=str, default=default_config_dir, help='config file')
+argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:oldchain:1', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='Chain specification string')
 argparser.add_argument('-r', '--registry', dest='r', type=str, help='Contract registry address')
 argparser.add_argument('--batch-size', dest='batch_size', default=50, type=int, help='burst size of sending transactions to node')
@@ -68,6 +69,11 @@ os.makedirs(user_new_dir)
 meta_dir = os.path.join(args.user_dir, 'meta')
 os.makedirs(meta_dir)
 
+custom_dir = os.path.join(args.user_dir, 'custom')
+os.makedirs(custom_dir)
+os.makedirs(os.path.join(custom_dir, 'new'))
+os.makedirs(os.path.join(custom_dir, 'meta'))
+
 phone_dir = os.path.join(args.user_dir, 'phone')
 os.makedirs(os.path.join(phone_dir, 'meta'))
 
@@ -77,8 +83,13 @@ os.stat(user_old_dir)
 txs_dir = os.path.join(args.user_dir, 'txs')
 os.makedirs(txs_dir)
 
+user_dir = args.user_dir
+
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 chain_str = str(chain_spec)
+
+old_chain_spec = ChainSpec.from_chain_str(args.old_chain_spec)
+old_chain_str = str(old_chain_spec)
 
 batch_size = args.batch_size
 batch_delay = args.batch_delay
@@ -127,12 +138,18 @@ def register_eth(i, u):
     return address
    
 
-def register_ussd(u):
-    pass
-
-
 if __name__ == '__main__':
 
+    user_tags = {}
+    f = open(os.path.join(user_dir, 'tags.csv'), 'r')
+    while True:
+        r = f.readline().rstrip()
+        if len(r) == 0:
+            break
+        (old_address, tags_csv) = r.split(':')
+        old_address = strip_0x(old_address)
+        user_tags[old_address] = tags_csv.split(',')
+        logg.debug('read tags {} for old address {}'.format(user_tags[old_address], old_address))
 
     i = 0
     j = 0
@@ -150,14 +167,13 @@ if __name__ == '__main__':
                 continue
             f.close()
             u = Person.deserialize(o)
+            logg.debug('u {}'.format(o))
 
             new_address = register_eth(i, u)
             if u.identities.get('evm') == None:
                 u.identities['evm'] = {}
             sub_chain_str = '{}:{}'.format(chain_spec.common_name(), chain_spec.network_id())
             u.identities['evm'][sub_chain_str] = [new_address]
-
-            register_ussd(u)
 
             new_address_clean = strip_0x(new_address)
             filepath = os.path.join(
@@ -197,6 +213,29 @@ if __name__ == '__main__':
             f.close()
 
             os.symlink(os.path.realpath(filepath), meta_phone_filepath)
+
+
+            # custom data
+            custom_key = generate_metadata_pointer(phone.encode('utf-8'), ':cic.custom')
+            custom_filepath = os.path.join(custom_dir, 'meta', custom_key)
+
+            filepath = os.path.join(
+                    custom_dir,
+                    'new',
+                    custom_key[:2].upper(),
+                    custom_key[2:4].upper(),
+                    custom_key.upper() + '.json',
+                    )
+            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+           
+            sub_old_chain_str = '{}:{}'.format(old_chain_spec.common_name(), old_chain_spec.network_id())
+            f = open(filepath, 'w')
+            k = u.identities['evm'][sub_old_chain_str][0]
+            tag_data = {'tags': user_tags[strip_0x(k)]}
+            f.write(json.dumps(tag_data))
+            f.close()
+
+            os.symlink(os.path.realpath(filepath), custom_filepath)
 
             i += 1
             sys.stdout.write('imported {} {}'.format(i, u).ljust(200) + "\r")

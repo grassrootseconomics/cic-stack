@@ -32,6 +32,7 @@ default_config_dir = '/usr/local/etc/cic'
 argparser = argparse.ArgumentParser()
 argparser.add_argument('-c', type=str, default=default_config_dir, help='config file')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='Chain specification string')
+argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:oldchain:1', help='chain spec')
 argparser.add_argument('--redis-host', dest='redis_host', type=str, help='redis host to use for task submission')
 argparser.add_argument('--redis-port', dest='redis_port', type=int, help='redis host to use for task submission')
 argparser.add_argument('--redis-db', dest='redis_db', type=int, help='redis db to use for task submission and callback')
@@ -76,6 +77,11 @@ os.makedirs(user_new_dir)
 meta_dir = os.path.join(args.user_dir, 'meta')
 os.makedirs(meta_dir)
 
+custom_dir = os.path.join(args.user_dir, 'custom')
+os.makedirs(custom_dir)
+os.makedirs(os.path.join(custom_dir, 'new'))
+os.makedirs(os.path.join(custom_dir, 'meta'))
+
 phone_dir = os.path.join(args.user_dir, 'phone')
 os.makedirs(os.path.join(phone_dir, 'meta'))
 
@@ -84,6 +90,11 @@ os.stat(user_old_dir)
 
 txs_dir = os.path.join(args.user_dir, 'txs')
 os.makedirs(txs_dir)
+
+user_dir = args.user_dir
+
+old_chain_spec = ChainSpec.from_chain_str(args.old_chain_spec)
+old_chain_str = str(old_chain_spec)
 
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 chain_str = str(chain_spec)
@@ -133,7 +144,17 @@ def register_eth(i, u):
 
 if __name__ == '__main__':
 
-    #fi = open(os.path.join(user_out_dir, 'addresses.csv'), 'a')
+    user_tags = {}
+    f = open(os.path.join(user_dir, 'tags.csv'), 'r')
+    while True:
+        r = f.readline().rstrip()
+        if len(r) == 0:
+            break
+        (old_address, tags_csv) = r.split(':')
+        old_address = strip_0x(old_address)
+        user_tags[old_address] = tags_csv.split(',')
+        logg.debug('read tags {} for old address {}'.format(user_tags[old_address], old_address))
+
 
     i = 0
     j = 0
@@ -196,6 +217,29 @@ if __name__ == '__main__':
             f.close()
 
             os.symlink(os.path.realpath(filepath), meta_phone_filepath)
+
+
+            # custom data
+            custom_key = generate_metadata_pointer(phone.encode('utf-8'), ':cic.custom')
+            custom_filepath = os.path.join(custom_dir, 'meta', custom_key)
+
+            filepath = os.path.join(
+                    custom_dir,
+                    'new',
+                    custom_key[:2].upper(),
+                    custom_key[2:4].upper(),
+                    custom_key.upper() + '.json',
+                    )
+            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+           
+            sub_old_chain_str = '{}:{}'.format(old_chain_spec.common_name(), old_chain_spec.network_id())
+            f = open(filepath, 'w')
+            k = u.identities['evm'][sub_old_chain_str][0]
+            tag_data = {'tags': user_tags[strip_0x(k)]}
+            f.write(json.dumps(tag_data))
+            f.close()
+
+            os.symlink(os.path.realpath(filepath), custom_filepath)
 
 
             i += 1
