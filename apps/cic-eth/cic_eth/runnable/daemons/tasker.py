@@ -204,6 +204,7 @@ def main():
 
     BaseTask.default_token_symbol = config.get('CIC_DEFAULT_TOKEN_SYMBOL')
     BaseTask.default_token_address = registry.by_name(BaseTask.default_token_symbol)
+    BaseTask.run_dir = config.get('CIC_RUN_DIR')
     logg.info('default token set to {} {}'.format(BaseTask.default_token_symbol, BaseTask.default_token_address))
    
     liveness.linux.set(rundir=config.get('CIC_RUN_DIR'))

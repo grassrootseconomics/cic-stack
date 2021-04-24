@@ -10,12 +10,13 @@ import sqlalchemy
 from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.gas import RPCGasOracle
+import liveness.linux
 
 # local imports
 from cic_eth.error import SeppukuError
 from cic_eth.db.models.base import SessionBase
 
-logg = logging.getLogger(__name__)
+logg = logging.getLogger().getChild(__name__)
 
 celery_app = celery.current_app
 
@@ -28,6 +29,7 @@ class BaseTask(celery.Task):
     create_gas_oracle = RPCGasOracle
     default_token_address = None
     default_token_symbol = None
+    run_dir = '/run'
 
     def create_session(self):
         return BaseTask.session_func()
@@ -40,6 +42,7 @@ class BaseTask(celery.Task):
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         if isinstance(exc, SeppukuError):
+            liveness.linux.reset(rundir=self.run_dir)
             logg.critical(einfo)
             msg = 'received critical exception {}, calling shutdown'.format(str(exc))
             s = celery.signature(
