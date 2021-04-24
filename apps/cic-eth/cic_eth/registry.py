@@ -29,5 +29,5 @@ def connect(rpc, chain_spec, registry_address):
     CICRegistry.address = registry_address
     registry = CICRegistry(chain_spec, rpc)
     registry_address = registry.by_name('ContractRegistry')
-    
     return registry
+

@@ -81,9 +81,13 @@ chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 
 rpc = EthHTTPConnection(args.p)
 
-registry_address = config.get('CIC_REGISTRY_ADDRESS')
+#registry_address = config.get('CIC_REGISTRY_ADDRESS')
 
 admin_api = AdminApi(rpc)
+
+t = admin_api.registry()
+registry_address = t.get()
+logg.info('got registry address from task pool: {}'.format(registry_address))
 
 trusted_addresses_src = config.get('CIC_TRUST_ADDRESS')
 if trusted_addresses_src == None:
@@ -151,14 +155,16 @@ def main():
     txs  = []
     renderer = render_tx
     if len(config.get('_QUERY')) > 66:
-        registry = connect_registry(rpc, chain_spec, registry_address)
-        admin_api.tx(chain_spec, tx_raw=config.get('_QUERY'), registry=registry, renderer=renderer)
+        #registry = connect_registry(rpc, chain_spec, registry_address)
+        #admin_api.tx(chain_spec, tx_raw=config.get('_QUERY'), registry=registry, renderer=renderer)
+        admin_api.tx(chain_spec, tx_raw=config.get('_QUERY'), renderer=renderer)
     elif len(config.get('_QUERY')) > 42:
-        registry = connect_registry(rpc, chain_spec, registry_address)
-        admin_api.tx(chain_spec, tx_hash=config.get('_QUERY'), registry=registry, renderer=renderer)
+        #registry = connect_registry(rpc, chain_spec, registry_address)
+        #admin_api.tx(chain_spec, tx_hash=config.get('_QUERY'), registry=registry, renderer=renderer)
+        admin_api.tx(chain_spec, tx_hash=config.get('_QUERY'), renderer=renderer)
 
     elif len(config.get('_QUERY')) == 42:
-        registry = connect_registry(rpc, chain_spec, registry_address)
+        #registry = connect_registry(rpc, chain_spec, registry_address)
         txs = admin_api.account(chain_spec, config.get('_QUERY'), include_recipient=False, renderer=render_account)
         renderer = render_account
     elif len(config.get('_QUERY')) >= 4 and config.get('_QUERY')[:4] == 'lock':

@@ -30,7 +30,6 @@ from cic_eth.eth import (
 from cic_eth.admin import (
         debug,
         ctrl,
-        token,
         )
 from cic_eth.queue import (
         query,

@@ -23,7 +23,6 @@ default_config_dir = os.environ.get('CONFINI_DIR', '/usr/local/etc/cic')
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument('-p', '--provider', dest='p', default='http://localhost:8545', type=str, help='Web3 provider url (http only)')
-argparser.add_argument('-r', '--registry-address', type=str, help='CIC registry address')
 argparser.add_argument('-f', '--format', dest='f', default=default_format, type=str, help='Output format')
 argparser.add_argument('-c', type=str, default=default_config_dir, help='config root to use')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
