@@ -12,10 +12,7 @@ from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.gas import RPCGasOracle
 
 # local imports
-from cic_eth.error import (
-        SignerError,
-        EthError,
-        )
+from cic_eth.error import SeppukuError
 from cic_eth.db.models.base import SessionBase
 
 logg = logging.getLogger(__name__)
@@ -39,6 +36,18 @@ class BaseTask(celery.Task):
     def log_banner(self):
         logg.debug('task {} root uuid {}'.format(self.__class__.__name__, self.request.root_id))
         return
+
+
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        if isinstance(exc, SeppukuError):
+            logg.critical(einfo)
+            msg = 'received critical exception {}, calling shutdown'.format(str(exc))
+            s = celery.signature(
+                'cic_eth.admin.ctrl.shutdown',
+                [msg],
+                queue=self.request.delivery_info.get('routing_key'),
+                    )
+            s.apply_async()
 
     
 class CriticalTask(BaseTask):
@@ -69,7 +78,6 @@ class CriticalSQLAlchemyAndWeb3Task(CriticalTask):
         sqlalchemy.exc.TimeoutError,
         requests.exceptions.ConnectionError,
         sqlalchemy.exc.ResourceClosedError,
-        EthError,
         )
     safe_gas_threshold_amount = 2000000000 * 60000 * 3
     safe_gas_refill_amount = safe_gas_threshold_amount * 5 
@@ -80,13 +88,11 @@ class CriticalSQLAlchemyAndSignerTask(CriticalTask):
         sqlalchemy.exc.DatabaseError,
         sqlalchemy.exc.TimeoutError,
         sqlalchemy.exc.ResourceClosedError,
-        SignerError,
         ) 
 
 class CriticalWeb3AndSignerTask(CriticalTask):
     autoretry_for = (
         requests.exceptions.ConnectionError,
-        SignerError,
         )
     safe_gas_threshold_amount = 2000000000 * 60000 * 3
     safe_gas_refill_amount = safe_gas_threshold_amount * 5 
@@ -100,4 +106,4 @@ def hello(self):
 
 @celery_app.task()
 def check_health(self):
-    celery.app.control.shutdown()
+    pass

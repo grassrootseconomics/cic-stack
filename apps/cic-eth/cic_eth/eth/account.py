@@ -70,11 +70,18 @@ def create(self, password, chain_spec_dict):
     a = None
     conn = RPCConnection.connect(chain_spec, 'signer')
     o = new_account()
-    a = conn.do(o)
+    try:
+        a = conn.do(o)
+    except ConnectionError as e:
+        raise SignerError(e)
+    except FileNotFoundError as e:
+        raise SignerError(e)
     conn.disconnect()
 
+    # TODO: It seems infeasible that a can be None in any case, verify
     if a == None:
         raise SignerError('create account')
+        
     logg.debug('created account {}'.format(a))
 
     # Initialize nonce provider record for account

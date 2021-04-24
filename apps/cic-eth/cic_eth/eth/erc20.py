@@ -108,7 +108,13 @@ def transfer(self, tokens, holder_address, receiver_address, value, chain_spec_d
     nonce_oracle = CustodialTaskNonceOracle(holder_address, self.request.root_id, session=session)
     gas_oracle = self.create_gas_oracle(rpc, MaxGasOracle.gas)
     c = ERC20(chain_spec, signer=rpc_signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle)
-    (tx_hash_hex, tx_signed_raw_hex) = c.transfer(t['address'], holder_address, receiver_address, value, tx_format=TxFormat.RLP_SIGNED)
+    try:
+        (tx_hash_hex, tx_signed_raw_hex) = c.transfer(t['address'], holder_address, receiver_address, value, tx_format=TxFormat.RLP_SIGNED)
+    except FileNotFoundError as e:
+        raise SignerError(e)
+    except ConnectionError as e:
+        raise SignerError(e)
+    
 
     rpc_signer.disconnect()
     rpc.disconnect()

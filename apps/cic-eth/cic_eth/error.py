@@ -48,6 +48,8 @@ class RoleMissingError(Exception):
     pass
 
 
+
+
 class IntegrityError(Exception):
     """Exception raised to signal irregularities with deduplication and ordering of tasks
 
@@ -62,15 +64,19 @@ class LockedError(Exception):
     pass
 
 
-class SignerError(Exception):
+class SeppukuError(Exception):
+    """Exception base class for all errors that should cause system shutdown
+
+    """
+
+
+class SignerError(SeppukuError):
     """Exception raised when signer is unavailable or generates an error
 
     """
     pass
 
 
-class EthError(Exception):
-    """Exception raised when unspecified error from evm node is encountered
-
+class RoleAgencyError(SeppukuError):
+    """Exception raise when a role cannot perform its function. This is a critical exception
     """
-    pass
