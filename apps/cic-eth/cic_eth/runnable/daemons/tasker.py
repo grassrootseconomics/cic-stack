@@ -186,7 +186,6 @@ def main():
 
     try:
         registry = connect_registry(rpc, chain_spec, config.get('CIC_REGISTRY_ADDRESS'))
-        connect_registry(rpc, chain_spec, config.get('CIC_REGISTRY_ADDRESS'))
     except UnknownContractError as e:
         logg.exception('Registry contract connection failed for {}: {}'.format(config.get('CIC_REGISTRY_ADDRESS'), e))
         sys.exit(1)
