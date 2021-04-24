@@ -4,10 +4,10 @@ import logging
 # external imports
 import celery
 from erc20_single_shot_faucet import SingleShotFaucet as Faucet
-from chainlib.eth.constant import ZERO_ADDRESS
 from hexathon import (
         strip_0x,
         )
+from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.connection import RPCConnection
 from chainlib.eth.sign import (
         new_account,
@@ -19,6 +19,7 @@ from chainlib.eth.tx import (
         unpack,
         )
 from chainlib.chain import ChainSpec
+from chainlib.error import JSONRPCException
 from eth_accounts_index import AccountRegistry
 from sarafu_faucet import MinterFaucet as Faucet
 from chainqueue.db.models.tx import TxCache
@@ -226,21 +227,22 @@ def have(self, account, chain_spec_dict):
     """
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
     o = sign_message(account, '0x2a')
-    try:
-        conn = RPCConnection.connect(chain_spec, 'signer')
-    except Exception as e:
-        logg.debug('cannot sign with {}: {}'.format(account, e))
-        return None
+    conn = RPCConnection.connect(chain_spec, 'signer')
 
     try:
         conn.do(o)
-        conn.disconnect()
-        return account
-    except Exception as e:
+    except ConnectionError as e:
+        raise SignerError(e)
+    except FileNotFoundError as e:
+        raise SignerError(e)
+    except JSONRPCException as e:
         logg.debug('cannot sign with {}: {}'.format(account, e))
         conn.disconnect()
         return None
    
+    conn.disconnect()
+    return account
+
 
 @celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
 def set_role(self, tag, address, chain_spec_dict):
