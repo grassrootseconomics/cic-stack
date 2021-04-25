@@ -121,21 +121,25 @@ broker = config.get('CELERY_BROKER_URL')
 if broker[:4] == 'file':
     bq = tempfile.mkdtemp()
     bp = tempfile.mkdtemp()
-    current_app.conf.update({
+    conf_update = {
             'broker_url': broker,
             'broker_transport_options': {
                 'data_folder_in': bq,
                 'data_folder_out': bq,
                 'data_folder_processed': bp,
             },
-            'result_extended': True,
-            },
-            )
+            }
+    if config.true('CELERY_DEBUG'):
+        conf_update['result_extended'] = True
+    current_app.conf.update(conf_update)
     logg.warning('celery broker dirs queue i/o {} processed {}, will NOT be deleted on shutdown'.format(bq, bp))
 else:
-    current_app.conf.update({
-        'broker_url': broker,
-        })
+    conf_update = {
+            'broker_url': broker,
+            }
+    if config.true('CELERY_DEBUG'):
+        conf_update['result_extended'] = True
+    current_app.conf.update(conf_update)
 
 result = config.get('CELERY_RESULT_URL')
 if result[:4] == 'file':
