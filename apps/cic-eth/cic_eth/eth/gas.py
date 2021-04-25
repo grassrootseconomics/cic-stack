@@ -328,7 +328,12 @@ def refill_gas(self, recipient_address, chain_spec_dict):
 
     # build and add transaction
     logg.debug('tx send gas amount {} from provider {} to {}'.format(refill_amount, gas_provider, recipient_address))
-    (tx_hash_hex, tx_signed_raw_hex) = c.create(gas_provider, recipient_address, refill_amount, tx_format=TxFormat.RLP_SIGNED)
+    try:
+        (tx_hash_hex, tx_signed_raw_hex) = c.create(gas_provider, recipient_address, refill_amount, tx_format=TxFormat.RLP_SIGNED)
+    except ConnectionError as e:
+        raise SignerError(e)
+    except FileNotFoundError as e:
+        raise SignerError(e)
     logg.debug('adding queue refill gas tx {}'.format(tx_hash_hex))
     cache_task = 'cic_eth.eth.gas.cache_gas_data'
     register_tx(tx_hash_hex, tx_signed_raw_hex, chain_spec, queue, cache_task=cache_task, session=session)
@@ -404,7 +409,12 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_spec_dict, gas=None, defa
     c = TxFactory(chain_spec, signer=rpc_signer, gas_oracle=gas_oracle)
     logg.debug('change gas price from old {} to new {} for tx {}'.format(tx['gasPrice'], new_gas_price, tx))
     tx['gasPrice'] = new_gas_price
-    (tx_hash_hex, tx_signed_raw_hex) = c.build_raw(tx)
+    try:
+        (tx_hash_hex, tx_signed_raw_hex) = c.build_raw(tx)
+    except ConnectionError as e:
+        raise SignerError(e)
+    except FileNotFoundError as e:
+        raise SignerError(e)
     queue_create(
         chain_spec,
         tx['nonce'],

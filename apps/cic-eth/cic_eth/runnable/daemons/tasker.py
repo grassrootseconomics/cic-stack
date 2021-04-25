@@ -11,8 +11,14 @@ import websocket
 # external imports
 import celery
 import confini
-from chainlib.connection import RPCConnection
-from chainlib.eth.connection import EthUnixSignerConnection
+from chainlib.connection import (
+        RPCConnection,
+        ConnType,
+        )
+from chainlib.eth.connection import (
+        EthUnixSignerConnection,
+        EthHTTPSignerConnection,
+        )
 from chainlib.chain import ChainSpec
 from chainqueue.db.models.otx import Otx
 from cic_eth_registry.error import UnknownContractError
@@ -142,8 +148,10 @@ else:
         })
 
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
+RPCConnection.register_constructor(ConnType.UNIX, EthUnixSignerConnection, 'signer')
+RPCConnection.register_constructor(ConnType.HTTP, EthHTTPSignerConnection, 'signer')
+RPCConnection.register_constructor(ConnType.HTTP_SSL, EthHTTPSignerConnection, 'signer')
 RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, 'default')
-#RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 'signer', constructor=EthUnixSignerConnection)
 RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 'signer')
 
 Otx.tracing = config.true('TASKS_TRACE_QUEUE_STATUS')
@@ -151,7 +159,7 @@ Otx.tracing = config.true('TASKS_TRACE_QUEUE_STATUS')
 #import cic_eth.checks.gas
 #if not cic_eth.checks.gas.health(config=config):
 #    raise RuntimeError()
-liveness.linux.load(health_modules, rundir=config.get('CIC_RUN_DIR'), config=config)
+liveness.linux.load(health_modules, rundir=config.get('CIC_RUN_DIR'), config=config, unit='cic-eth-tasker')
 
 def main():
     argv = ['worker']
@@ -194,11 +202,12 @@ def main():
 
     BaseTask.default_token_symbol = config.get('CIC_DEFAULT_TOKEN_SYMBOL')
     BaseTask.default_token_address = registry.by_name(BaseTask.default_token_symbol)
+    BaseTask.run_dir = config.get('CIC_RUN_DIR')
     logg.info('default token set to {} {}'.format(BaseTask.default_token_symbol, BaseTask.default_token_address))
    
-    liveness.linux.set()
+    liveness.linux.set(rundir=config.get('CIC_RUN_DIR'))
     current_app.worker_main(argv)
-    liveness.linux.reset()
+    liveness.linux.reset(rundir=config.get('CIC_RUN_DIR'))
 
 
 @celery.signals.eventlet_pool_postshutdown.connect

@@ -14,15 +14,13 @@ from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.gas import RPCGasOracle
 from cic_eth_registry import CICRegistry
 from cic_eth_registry.error import UnknownContractError
+import liveness.linux
 
 # local imports
-from cic_eth.error import (
-        SignerError,
-        EthError,
-        )
+from cic_eth.error import SeppukuError
 from cic_eth.db.models.base import SessionBase
 
-logg = logging.getLogger(__name__)
+logg = logging.getLogger().getChild(__name__)
 
 celery_app = celery.current_app
 
@@ -35,6 +33,7 @@ class BaseTask(celery.Task):
     create_gas_oracle = RPCGasOracle
     default_token_address = None
     default_token_symbol = None
+    run_dir = '/run'
 
     def create_session(self):
         return BaseTask.session_func()
@@ -43,6 +42,19 @@ class BaseTask(celery.Task):
     def log_banner(self):
         logg.debug('task {} root uuid {}'.format(self.__class__.__name__, self.request.root_id))
         return
+
+
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        if isinstance(exc, SeppukuError):
+            liveness.linux.reset(rundir=self.run_dir)
+            logg.critical(einfo)
+            msg = 'received critical exception {}, calling shutdown'.format(str(exc))
+            s = celery.signature(
+                'cic_eth.admin.ctrl.shutdown',
+                [msg],
+                queue=self.request.delivery_info.get('routing_key'),
+                    )
+            s.apply_async()
 
     
 class CriticalTask(BaseTask):
@@ -73,7 +85,6 @@ class CriticalSQLAlchemyAndWeb3Task(CriticalTask):
         sqlalchemy.exc.TimeoutError,
         requests.exceptions.ConnectionError,
         sqlalchemy.exc.ResourceClosedError,
-        EthError,
         )
     safe_gas_threshold_amount = 2000000000 * 60000 * 3
     safe_gas_refill_amount = safe_gas_threshold_amount * 5 
@@ -84,13 +95,11 @@ class CriticalSQLAlchemyAndSignerTask(CriticalTask):
         sqlalchemy.exc.DatabaseError,
         sqlalchemy.exc.TimeoutError,
         sqlalchemy.exc.ResourceClosedError,
-        SignerError,
         ) 
 
 class CriticalWeb3AndSignerTask(CriticalTask):
     autoretry_for = (
         requests.exceptions.ConnectionError,
-        SignerError,
         )
     safe_gas_threshold_amount = 2000000000 * 60000 * 3
     safe_gas_refill_amount = safe_gas_threshold_amount * 5 
@@ -98,7 +107,7 @@ class CriticalWeb3AndSignerTask(CriticalTask):
 
 @celery_app.task()
 def check_health(self):
-    celery.app.control.shutdown()
+    pass
 
 
 # TODO: registry / rpc methods should perhaps be moved to better named module
