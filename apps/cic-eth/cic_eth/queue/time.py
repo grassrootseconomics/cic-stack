@@ -12,6 +12,7 @@ from chainqueue.error import NotLocalTxError
 
 # local imports
 from cic_eth.task import CriticalSQLAlchemyAndWeb3Task
+from cic_eth.db.models.base import SessionBase
 
 celery_app = celery.current_app
 
