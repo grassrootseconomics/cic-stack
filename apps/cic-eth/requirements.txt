@@ -18,7 +18,7 @@ eth-address-index~=0.1.1a9
 chainlib~=0.0.2a19
 hexathon~=0.0.1a7
 chainsyncer[sql]~=0.0.2a2
-chainqueue~=0.0.1a7
+chainqueue~=0.0.2a1
 pysha3==1.0.2
 coincurve==15.0.0
 sarafu-faucet==0.0.2a28
