@@ -2,7 +2,7 @@
 import datetime
 import logging
 
-# third-party imports
+# external imports
 import celery
 from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.chain import ChainSpec
@@ -145,3 +145,9 @@ def check_lock(chained_input, chain_spec_dict, lock_flags, address=None):
     session.flush()
     session.close()
     return chained_input
+
+
+@celery_app.task()
+def shutdown(message):
+    logg.critical('shutdown called: {}'.format(message))
+    celery_app.control.shutdown() #broadcast('shutdown')

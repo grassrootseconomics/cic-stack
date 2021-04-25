@@ -240,6 +240,8 @@ services:
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
       DATABASE_POOL_SIZE: 0
+      REDIS_PORT: 6379
+      REDIS_HOST: redis
       PGPASSWORD: ${DATABASE_PASSWORD:-tralala}
       CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       BANCOR_DIR: ${BANCOR_DIR:-/usr/local/share/cic/bancor}
