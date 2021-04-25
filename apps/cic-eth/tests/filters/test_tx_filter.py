@@ -65,6 +65,7 @@ def test_tx(
     tx_hash_hex_orig = tx_hash_hex
 
     gas_oracle = OverrideGasOracle(price=1100000000, limit=21000)
+    c = Gas(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
     (tx_hash_hex, tx_signed_raw_hex) = c.create(agent_roles['ALICE'], agent_roles['BOB'], 100 * (10 ** 6), tx_format=TxFormat.RLP_SIGNED)
     queue_create(
             default_chain_spec,

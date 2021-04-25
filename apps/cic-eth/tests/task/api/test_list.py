@@ -35,7 +35,7 @@ def test_list_tx(
         foo_token,
         register_tokens,
         init_eth_tester,
-        celery_worker,
+        celery_session_worker,
         ):
 
     tx_hashes = []
