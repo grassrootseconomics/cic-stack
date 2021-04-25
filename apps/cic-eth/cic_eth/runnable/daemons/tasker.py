@@ -128,7 +128,6 @@ if broker[:4] == 'file':
                 'data_folder_out': bq,
                 'data_folder_processed': bp,
             },
-            'result_extended': True,
             },
             )
     logg.warning('celery broker dirs queue i/o {} processed {}, will NOT be deleted on shutdown'.format(bq, bp))
