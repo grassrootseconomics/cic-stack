@@ -28,8 +28,9 @@ class Fmtr(celery.utils.graph.GraphFormatter):
     def label(self, obj):
         super(Fmtr, self).label(obj)
         if obj != None:
-            logg.debug('obj {} attrs'.format(obj.id))
-            return obj.queue
+            if obj.name == None:
+                raise RuntimeError('task name is not defined. Did you run celery with result_extended=True?')
+            return obj.name
 
 
 def main():
@@ -41,12 +42,8 @@ def main():
         #callback_queue=args.q,
         )
     t = api.create_account(register=False)
-    for e in t.collect():
-        print(e[0].backend.get('celery-task-meta-{}'.format(e[0].id)))
-        print(e[0].name)
-    #t.build_graph(intermediate=True, formatter=Fmtr()).to_dot(sys.stdout)ka
-    #v = celery_app.control.inspect().query_task(t.id).objgraph()
-    #v = celery_app.control.inspect().stats()
+    t.get_leaf()
+    t.build_graph(intermediate=True, formatter=Fmtr()).to_dot(sys.stdout)
 
 
 if __name__ == '__main__':
