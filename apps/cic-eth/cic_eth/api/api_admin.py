@@ -60,6 +60,29 @@ class AdminApi:
         self.call_address = call_address
 
 
+    def proxy_do(self, chain_spec, o):
+        s_proxy = celery.signature(
+                'cic_eth.task.rpc_proxy',
+                [
+                    chain_spec.asdict(),
+                    o,
+                    'default',
+                    ],
+                queue=self.queue
+                )
+        return s_proxy.apply_async()
+
+
+    
+    def registry(self):
+        s_registry = celery.signature(
+                'cic_eth.task.registry',
+                [],
+                queue=self.queue
+                )
+        return s_registry.apply_async()
+
+
     def unlock(self, chain_spec, address, flags=None):
         s_unlock = celery.signature(
             'cic_eth.admin.ctrl.unlock',
@@ -146,7 +169,6 @@ class AdminApi:
 
         # TODO: This check should most likely be in resend task itself
         tx_dict = s_get_tx_cache.apply_async().get()
-        #if tx_dict['status'] in [StatusEnum.REVERTED, StatusEnum.SUCCESS, StatusEnum.CANCELLED, StatusEnum.OBSOLETED]: 
         if not is_alive(getattr(StatusEnum, tx_dict['status']).value):
             raise TxStateChangeError('Cannot resend mined or obsoleted transaction'.format(txold_hash_hex))
         
@@ -226,9 +248,6 @@ class AdminApi:
                 break
             last_nonce = nonce_otx
 
-        #nonce_cache = Nonce.get(address)
-        #nonce_w3 = self.w3.eth.getTransactionCount(address, 'pending') 
-        
         return {
             'nonce': {
                 #'network': nonce_cache,
@@ -270,20 +289,6 @@ class AdminApi:
                 queue=self.queue
                 )
         return s_nonce.apply_async()
-
-
-#    # TODO: this is a stub, complete all checks
-#    def ready(self):
-#        """Checks whether all required initializations have been performed.
-#
-#        :raises cic_eth.error.InitializationError: At least one setting pre-requisite has not been met.
-#        :raises KeyError: An address provided for initialization is not known by the keystore.
-#        """
-#        addr = AccountRole.get_address('ETH_GAS_PROVIDER_ADDRESS')
-#        if addr == ZERO_ADDRESS:
-#            raise InitializationError('missing account ETH_GAS_PROVIDER_ADDRESS')
-#
-#        self.w3.eth.sign(addr, text='666f6f')
 
 
     def account(self, chain_spec, address, include_sender=True, include_recipient=True, renderer=None, w=sys.stdout):
@@ -348,6 +353,7 @@ class AdminApi:
 
 
     # TODO: Add exception upon non-existent tx aswell as invalid tx data to docstring 
+    # TODO: This method is WAY too long
     def tx(self, chain_spec, tx_hash=None, tx_raw=None, registry=None, renderer=None, w=sys.stdout):
         """Output local and network details about a given transaction with local origin.
 
@@ -370,7 +376,6 @@ class AdminApi:
 
         if tx_raw != None:
             tx_hash = add_0x(keccak256_hex_to_hex(tx_raw))
-            #tx_hash = self.w3.keccak(hexstr=tx_raw).hex()
 
         s = celery.signature(
             'cic_eth.queue.query.get_tx_cache',
@@ -386,38 +391,78 @@ class AdminApi:
   
         source_token = None
         if tx['source_token'] != ZERO_ADDRESS:
-            try:
-                source_token = registry.by_address(tx['source_token'])
-                #source_token = CICRegistry.get_address(chain_spec, tx['source_token']).contract
-            except UnknownContractError:
-                #source_token_contract = self.w3.eth.contract(abi=CICRegistry.abi('ERC20'), address=tx['source_token'])
-                #source_token = CICRegistry.add_token(chain_spec, source_token_contract)
-                logg.warning('unknown source token contract {}'.format(tx['source_token']))
+            if registry != None:
+                try:
+                    source_token = registry.by_address(tx['source_token'])
+                except UnknownContractError:
+                    logg.warning('unknown source token contract {} (direct)'.format(tx['source_token']))
+            else:
+                s = celery.signature(
+                        'cic_eth.task.registry_address_lookup',
+                        [
+                            chain_spec.asdict(),
+                            tx['source_token'],
+                            ],
+                        queue=self.queue
+                        )
+                t = s.apply_async()
+                source_token = t.get()
+                if source_token == None:
+                    logg.warning('unknown source token contract {} (task pool)'.format(tx['source_token']))
+
 
         destination_token = None
-        if tx['source_token'] != ZERO_ADDRESS:
-            try:
-                #destination_token = CICRegistry.get_address(chain_spec, tx['destination_token'])
-                destination_token = registry.by_address(tx['destination_token'])
-            except UnknownContractError:
-                #destination_token_contract = self.w3.eth.contract(abi=CICRegistry.abi('ERC20'), address=tx['source_token'])
-                #destination_token = CICRegistry.add_token(chain_spec, destination_token_contract)
-                logg.warning('unknown destination token contract {}'.format(tx['destination_token']))
+        if tx['destination_token'] != ZERO_ADDRESS:
+            if registry != None:
+                try:
+                    destination_token = registry.by_address(tx['destination_token'])
+                except UnknownContractError:
+                    logg.warning('unknown destination token contract {}'.format(tx['destination_token']))
+            else:
+                s = celery.signature(
+                        'cic_eth.task.registry_address_lookup',
+                        [
+                            chain_spec.asdict(),
+                            tx['destination_token'],
+                            ],
+                        queue=self.queue
+                        )
+                t = s.apply_async()
+                destination_token = t.get()
+                if destination_token == None:
+                    logg.warning('unknown destination token contract {} (task pool)'.format(tx['destination_token']))
+
 
         tx['sender_description'] = 'Custodial account'
         tx['recipient_description'] = 'Custodial account'
 
         o = code(tx['sender'])
-        r = self.rpc.do(o)
+        t = self.proxy_do(chain_spec, o)
+        r = t.get()
         if len(strip_0x(r, allow_empty=True)) > 0:
-            try:
-                #sender_contract = CICRegistry.get_address(chain_spec, tx['sender'])
-                sender_contract = registry.by_address(tx['sender'], sender_address=self.call_address)
-                tx['sender_description'] = 'Contract at {}'.format(tx['sender']) #sender_contract)
-            except UnknownContractError:
-                tx['sender_description'] = 'Unknown contract'
-            except KeyError as e:
-                tx['sender_description'] = 'Unknown contract'
+            if registry != None:
+                try:
+                    sender_contract = registry.by_address(tx['sender'], sender_address=self.call_address)
+                    tx['sender_description'] = 'Contract at {}'.format(tx['sender'])
+                except UnknownContractError:
+                    tx['sender_description'] = 'Unknown contract'
+                except KeyError as e:
+                    tx['sender_description'] = 'Unknown contract'
+            else:
+                s = celery.signature(
+                        'cic_eth.task.registry_address_lookup',
+                        [
+                            chain_spec.asdict(),
+                            tx['sender'],
+                            ],
+                        queue=self.queue
+                        )
+                t = s.apply_async()
+                tx['sender_description'] = t.get()
+                if tx['sender_description'] == None:
+                    tx['sender_description'] = 'Unknown contract'
+
+
         else:
             s = celery.signature(
                     'cic_eth.eth.account.have',
@@ -446,16 +491,31 @@ class AdminApi:
                     tx['sender_description'] = role
 
         o = code(tx['recipient'])
-        r = self.rpc.do(o)
+        t = self.proxy_do(chain_spec, o)
+        r = t.get()
         if len(strip_0x(r, allow_empty=True)) > 0:
-            try:
-                #recipient_contract = CICRegistry.by_address(tx['recipient'])
-                recipient_contract = registry.by_address(tx['recipient'])
-                tx['recipient_description'] = 'Contract at {}'.format(tx['recipient']) #recipient_contract)
-            except UnknownContractError as e:
-                tx['recipient_description'] = 'Unknown contract'
-            except KeyError as e:
-                tx['recipient_description'] = 'Unknown contract'
+            if registry != None:
+                try:
+                    recipient_contract = registry.by_address(tx['recipient'])
+                    tx['recipient_description'] = 'Contract at {}'.format(tx['recipient'])
+                except UnknownContractError as e:
+                    tx['recipient_description'] = 'Unknown contract'
+                except KeyError as e:
+                    tx['recipient_description'] = 'Unknown contract'
+            else:
+                s = celery.signature(
+                        'cic_eth.task.registry_address_lookup',
+                        [
+                            chain_spec.asdict(),
+                            tx['recipient'],
+                            ],
+                        queue=self.queue
+                        )
+                t = s.apply_async()
+                tx['recipient_description'] = t.get()
+                if tx['recipient_description'] == None:
+                    tx['recipient_description'] = 'Unknown contract'
+
         else:
             s = celery.signature(
                     'cic_eth.eth.account.have',
@@ -497,7 +557,8 @@ class AdminApi:
         r = None
         try:
             o = transaction(tx_hash)
-            r = self.rpc.do(o)
+            t = self.proxy_do(chain_spec, o)
+            r = t.get()
             if r != None:
                 tx['network_status'] = 'Mempool'
         except Exception as e:
@@ -506,7 +567,8 @@ class AdminApi:
         if r != None:
             try:
                 o = receipt(tx_hash)
-                r = self.rpc.do(o)
+                t = self.proxy_do(chain_spec, o)
+                r = t.get()
                 logg.debug('h {} o {}'.format(tx_hash, o))
                 if int(strip_0x(r['status'])) == 1:
                     tx['network_status'] = 'Confirmed'
@@ -521,11 +583,13 @@ class AdminApi:
                 pass
 
         o = balance(tx['sender'])
-        r = self.rpc.do(o)
+        t = self.proxy_do(chain_spec, o)
+        r = t.get()
         tx['sender_gas_balance'] = r
 
         o = balance(tx['recipient'])
-        r = self.rpc.do(o)
+        t = self.proxy_do(chain_spec, o)
+        r = t.get()
         tx['recipient_gas_balance'] = r
 
         tx_unpacked = unpack(bytes.fromhex(strip_0x(tx['signed_tx'])), chain_spec)

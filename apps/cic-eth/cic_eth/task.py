@@ -7,9 +7,13 @@ import uuid
 # external imports
 import celery
 import sqlalchemy
+from chainlib.chain import ChainSpec
+from chainlib.connection import RPCConnection
 from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.gas import RPCGasOracle
+from cic_eth_registry import CICRegistry
+from cic_eth_registry.error import UnknownContractError
 import liveness.linux
 
 # local imports
@@ -101,12 +105,35 @@ class CriticalWeb3AndSignerTask(CriticalTask):
     safe_gas_refill_amount = safe_gas_threshold_amount * 5 
 
 
-@celery_app.task(bind=True, base=BaseTask)
-def hello(self):
-    time.sleep(0.1)
-    return id(SessionBase.create_session)
-
-
 @celery_app.task()
 def check_health(self):
     pass
+
+
+# TODO: registry / rpc methods should perhaps be moved to better named module
+@celery_app.task()
+def registry():
+    return CICRegistry.address
+
+
+@celery_app.task()
+def registry_address_lookup(chain_spec_dict, address, connection_tag='default'):
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
+    conn = RPCConnection.connect(chain_spec, tag=connection_tag)
+    registry = CICRegistry(chain_spec, conn)
+    return registry.by_address(address)
+
+
+@celery_app.task(throws=(UnknownContractError,))
+def registry_name_lookup(chain_spec_dict, name, connection_tag='default'):
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
+    conn = RPCConnection.connect(chain_spec, tag=connection_tag)
+    registry = CICRegistry(chain_spec, conn)
+    return registry.by_name(name)
+
+
+@celery_app.task()
+def rpc_proxy(chain_spec_dict, o, connection_tag='default'):
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
+    conn = RPCConnection.connect(chain_spec, tag=connection_tag)
+    return conn.do(o)
