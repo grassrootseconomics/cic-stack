@@ -128,6 +128,7 @@ if broker[:4] == 'file':
                 'data_folder_out': bq,
                 'data_folder_processed': bp,
             },
+            'result_extended': True,
             },
             )
     logg.warning('celery broker dirs queue i/o {} processed {}, will NOT be deleted on shutdown'.format(bq, bp))
@@ -153,13 +154,6 @@ RPCConnection.register_constructor(ConnType.UNIX, EthUnixSignerConnection, 'sign
 RPCConnection.register_constructor(ConnType.HTTP, EthHTTPSignerConnection, 'signer')
 RPCConnection.register_constructor(ConnType.HTTP_SSL, EthHTTPSignerConnection, 'signer')
 RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, 'default')
-<<<<<<< HEAD
-#RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 'signer', constructor=EthUnixSignerConnection)
-RPCConnection.register_constructor(ConnType.UNIX, EthUnixSignerConnection, tag='signer')
-RPCConnection.register_constructor(ConnType.HTTP, EthHTTPSignerConnection, tag='signer')
-RPCConnection.register_constructor(ConnType.HTTP_SSL, EthHTTPSignerConnection, tag='signer')
-=======
->>>>>>> origin/master
 RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 'signer')
 
 Otx.tracing = config.true('TASKS_TRACE_QUEUE_STATUS')
