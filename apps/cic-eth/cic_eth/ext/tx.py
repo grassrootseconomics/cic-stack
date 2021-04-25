@@ -114,7 +114,7 @@ def list_tx_by_bloom(self, bloomspec, address, chain_spec_dict):
 
                         # TODO: pass through registry to validate declarator entry of token
                         #token = registry.by_address(tx['to'], sender_address=self.call_address)
-                        token = ERC20Token(rpc, tx['to'])
+                        token = ERC20Token(chain_spec, rpc, tx['to'])
                         token_symbol = token.symbol
                         token_decimals = token.decimals
                         times = tx_times(tx['hash'], chain_spec)

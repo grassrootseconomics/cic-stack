@@ -210,9 +210,11 @@ def test_callback_filter(
 
         def __init__(self):
             self.results = {}
+            self.queue = 'test'
 
         def call_back(self, transfer_type, result):
             self.results[transfer_type] = result
+            return self
 
     mock = CallbackMock()
     fltr.call_back = mock.call_back
