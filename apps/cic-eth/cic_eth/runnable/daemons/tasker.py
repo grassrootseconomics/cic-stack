@@ -11,8 +11,14 @@ import websocket
 # external imports
 import celery
 import confini
-from chainlib.connection import RPCConnection
-from chainlib.eth.connection import EthUnixSignerConnection
+from chainlib.connection import (
+        RPCConnection,
+        ConnType,
+        )
+from chainlib.eth.connection import (
+    EthUnixSignerConnection,
+    EthHTTPSignerConnection,
+    )   
 from chainlib.chain import ChainSpec
 from chainqueue.db.models.otx import Otx
 from cic_eth_registry.error import UnknownContractError
@@ -145,6 +151,9 @@ else:
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, 'default')
 #RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 'signer', constructor=EthUnixSignerConnection)
+RPCConnection.register_constructor(ConnType.UNIX, EthUnixSignerConnection, tag='signer')
+RPCConnection.register_constructor(ConnType.HTTP, EthHTTPSignerConnection, tag='signer')
+RPCConnection.register_constructor(ConnType.HTTP_SSL, EthHTTPSignerConnection, tag='signer')
 RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 'signer')
 
 Otx.tracing = config.true('TASKS_TRACE_QUEUE_STATUS')
