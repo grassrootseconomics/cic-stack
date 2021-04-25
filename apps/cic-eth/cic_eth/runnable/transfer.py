@@ -85,9 +85,6 @@ def main():
             callback_queue=args.q,
             )
 
-    #register = not args.no_register
-    #logg.debug('register {}'.format(register))
-    #t = api.create_account(register=register)
     t = api.transfer(config.get('_SENDER'), config.get('_RECIPIENT'), config.get('_VALUE'), config.get('_SYMBOL'))
 
     ps.get_message()
