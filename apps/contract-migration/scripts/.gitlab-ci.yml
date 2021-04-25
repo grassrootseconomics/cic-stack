@@ -1,16 +1,14 @@
-.contract_migration_scripts_variables:
+.scripts_variables:
     variables:
         APP_DIR: contract-migrations
         APP_NAME: scripts
-        DOCKERFILE_PATH: $APP_NAME/scripts/docker/Dockerfile
+        DOCKERFILE_PATH: $APP_DIR/$APP_NAME/docker/Dockerfile
 
-.contract_migration_scripts_changes_target:
+.scripts_changes_target:
     rules:
         - changes:
             - $CONTEXT/$APP_DIR/$APP_NAME
 
-
-
-build-mr-import-scripts:
+build-mr-scripts:
   script:
     - python create_import_users.py -v -c config --gift-threshold 10000 100
