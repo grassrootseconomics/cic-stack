@@ -42,6 +42,7 @@ def load(check_strs, namespace=default_namespace, rundir='/run', *args, **kwargs
 
 
 def set(error=0, namespace=default_namespace, rundir='/run'):
+    logg.info('liveness SET error {} for namespace {}'.format(error, namespace))
     app_rundir = os.path.join(rundir, namespace)
     f = open(os.path.join(app_rundir, 'error'), 'w')
     f.write(str(error))
@@ -49,6 +50,13 @@ def set(error=0, namespace=default_namespace, rundir='/run'):
 
 
 def reset(namespace=default_namespace, rundir='/run'):
+    logg.info('liveness RESET for namespace {}'.format(namespace))
     app_rundir = os.path.join(rundir, namespace)
-    os.unlink(os.path.join(app_rundir, 'pid'))
-    os.unlink(os.path.join(app_rundir, 'error'))
+    try:
+        os.unlink(os.path.join(app_rundir, 'pid'))
+    except FileNotFoundError:
+        pass
+    try:
+        os.unlink(os.path.join(app_rundir, 'error'))
+    except FileNotFoundError:
+        pass
