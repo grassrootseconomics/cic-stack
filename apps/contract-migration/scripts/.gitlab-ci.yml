@@ -4,3 +4,7 @@ default:
     - apt-get update
     - apt-get install -y libpq-dev gcc gnupg git pip
     - pip install --extra-index-url https://pip.grassrootseconomics.net:8433 -r requirements.txt
+
+build-mr-import-scripts:
+  script:
+    - python create_import_users.py -v -c config --gift-threshold 10000 100
