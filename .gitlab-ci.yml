@@ -6,7 +6,6 @@ include:
   - local: 'apps/cic-notify/.gitlab-ci.yml'
   - local: 'apps/cic-meta/.gitlab-ci.yml'
   - local: 'apps/cic-cache/.gitlab-ci.yml'
-  - local: 'apps/contract-migration/scripts/.gitlab-ci.yml'
 
 stages:
   - build
