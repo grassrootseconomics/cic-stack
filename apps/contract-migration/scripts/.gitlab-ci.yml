@@ -1,10 +1,4 @@
-default:
-  image: python:3.8.5-slim-buster
-  before_script:
-    - apt-get update
-    - apt-get install -y libpq-dev gcc gnupg git pip
-    - pip install --extra-index-url https://pip.grassrootseconomics.net:8433 -r requirements.txt
-
 build-mr-import-scripts:
   script:
+    - pip install --extra-index-url https://pip.grassrootseconomics.net:8433 -r requirements.txt
     - python create_import_users.py -v -c config --gift-threshold 10000 100
