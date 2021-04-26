@@ -93,7 +93,6 @@ def resolve_phone(self, phone):
 def generate_metadata(self, address, phone):
     old_address = old_address_from_phone(self.import_dir, phone)
 
-    logg.debug('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> foo')
     logg.debug('address {}'.format(address))
     old_address_upper = strip_0x(old_address).upper()
     metadata_path = '{}/old/{}/{}/{}.json'.format(
@@ -232,13 +231,15 @@ def set_pins(config: dict, phone_to_pins: list):
     )
     db_cursor = db_conn.cursor()
 
-    # batch updates
-    extras.execute_values(db_cursor,
-                          'UPDATE account \
-                          SET password_hash = update_data.password_hash \
-                          FROM (VALUES %s) AS update_data (phone, password_hash) \
-                          WHERE phone_number = update_data.phone', phone_to_pins)
+    # update db
+    for element in phone_to_pins:
+        sql = f'UPDATE account SET password_hash = %s WHERE phone_number = %s'
+        db_cursor.execute(sql, (element[1], element[0]))
+        logg.debug(f'Updating: {element[0]} with: {element[1]}')
+
+    # commit changes
     db_conn.commit()
 
+    # close connections
     db_cursor.close()
     db_conn.close()
