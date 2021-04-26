@@ -1,52 +1,43 @@
 # standard imports
+import argparse
+import copy
+import csv
+import hashlib
+import json
+import logging
 import os
 import sys
-import logging
-import time
-import argparse
-import sys
-import re
-import hashlib
-import csv
-import json
 import urllib
-import copy
-import uuid
 import urllib.request
+import uuid
+from collections import Counter
 
 # external imports
 import celery
-import eth_abi
 import confini
-from hexathon import (
-        strip_0x,
-        add_0x,
-        )
-from chainsyncer.backend import MemBackend
-from chainsyncer.driver import HeadSyncer
+import eth_abi
+import psycopg2
 from chainlib.chain import ChainSpec
+from chainlib.eth.address import to_checksum_address
 from chainlib.eth.connection import EthHTTPConnection
 from chainlib.eth.constant import ZERO_ADDRESS
-from chainlib.eth.block import (
-        block_latest,
-        block_by_number,
-        Block,
-        )
-from chainlib.hash import keccak256_string_to_hex
-from chainlib.eth.address import to_checksum_address
 from chainlib.eth.erc20 import ERC20
 from chainlib.eth.gas import (
-        OverrideGasOracle,
-        balance,
-        )
+    OverrideGasOracle,
+    balance,
+)
 from chainlib.eth.tx import TxFactory
+from chainlib.hash import keccak256_string_to_hex
 from chainlib.jsonrpc import jsonrpc_template
-from chainlib.eth.error import EthException
 from cic_types.models.person import (
-        Person,
-        generate_metadata_pointer,
-        )
+    Person,
+    generate_metadata_pointer,
+)
 from erc20_single_shot_faucet import SingleShotFaucet
+from hexathon import (
+    strip_0x,
+    add_0x,
+)
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -72,6 +63,7 @@ eth_tests = [
 
 phone_tests = [
         'ussd',
+        'ussd_pins'
         ]
 
 all_tests = eth_tests + custodial_tests + metadata_tests + phone_tests
@@ -390,6 +382,34 @@ class Verifier:
         m = '{} {}'.format(state, out[:7])
         if m != 'CON Welcome':
             raise VerifierError(response_data, 'ussd')
+
+    def verify_ussd_pins(self):
+        # read file with pin exports
+        pins_file = f'{args.userdir}/pins.csv'
+        exported_phone_to_pins = [tuple(row) for row in csv.reader(pins_file)]
+
+        # get columns with pins and phone numbers
+        db_conn = psycopg2.connect(
+            database=config.get('DATABASE_NAME'),
+            host=config.get('DATABASE_HOST'),
+            port=config.get('DATABASE_PORT'),
+            user=config.get('DATABASE_USER'),
+            password=config.get('DATABASE_PASSWORD')
+        )
+        db_cursor = db_conn.cursor()
+
+        sql = 'SELECT phone_number, password_hash FROM account'
+        db_cursor.execute(sql)
+        phone_to_pins = db_cursor.fetchall()
+
+        db_cursor.close()
+        db_conn.close()
+
+        if Counter(exported_phone_to_pins) == Counter(phone_to_pins):
+            logg.debug(f'verified {len(exported_phone_to_pins)} exported pins match {len(phone_to_pins)} imported pins in db')
+        else:
+            raise VerifierError('Irregular pins import', 'pins')
+
 
 
     def verify(self, address, balance, debug_stem=None):
