@@ -287,3 +287,118 @@ A string describing the type of transaction detected@footnote{See appendix ? for
 @end enumerate
 
 
+@subsubsection transferauth
+If a valid transfer authorization request has been made, a token @emph{allowance}@footnote{@code{approve} for ERC20 tokens} transaction is executed on behalf of the custodial account, with the @var{TransferAuthorization} contract as spender.
+
+
+
+@subsubsection convert
+If the transaction is a token conversion, @emph{and} there is a pending transfer registered for the conversion, the corresponding token transfer transaction will be executed. Not currently implemented
+
+
+@section Configuration
+
+(refer to @code{cic-base} for a general overview of the config pipeline)
+
+Configuration parameters are grouped by configuration filename.
+
+
+@subsection cic
+
+@table @var
+@item registry_address
+Ethereum address of the @var{ContractRegistry} contract
+@item chain_spec
+String representation of the connected blockchain according to the @var{chainlib} @var{ChainSpec} format.
+@item tx_retry_delay
+Minimum time in seconds to wait before retrying a transaction
+@item trust_address
+Comma-separated list of one or more ethereum addresses regarded as trusted for describing other resources, Used by @var{cic-eth-registry} in the context of the @var{AddressDeclarator}.
+@item defalt_token_symbol
+Fallback token to operate on when no other context is given.
+@item health_modules
+Comma-separated list of methods to execute liveness tests against. (see ...)
+@item run_dir
+Directory to use for session-scoped variables for @var{cic-eth} daemon parent processes.
+@end table
+
+
+@subsection celery
+
+@table @var
+@item broker_url
+Message broker URL
+@item result_url
+Result backend URL
+@item debug
+Boolean value. If set, the amount of available context for a task in the result backend will be maximized@footnote{THis is a @emph{required} setting for the task graph documenter to enabled it to display task names in the graph}.
+@end table
+
+
+@subsection database
+
+See ref cic-base when ready
+
+
+@subsection eth
+
+@table @var
+@item provider
+Address of default RPC endpoint for transactions and state queries.
+@item gas_gifter_minimum_balance
+The minimum gas balance that must be held by the @code{GAS GIFTER} token before the queue processing shuts down@footnote{You should really make sure that this threshold is never hit}
+@end table
+
+
+@subsection redis
+
+Defines connection to the redis server used outside of the context of @var{celery}. This is usually the same server, but should be a different db.
+
+@table @var
+@item host
+Redis hostname
+@item port
+Redis port
+@item db
+Redis db
+@end table
+
+
+@subsection signer
+
+Parameters 
+
+@table @var
+@item socket_path
+The connection string for the signer JSON-RPC service.@footnote{The @var{crypto-dev-signer} supports UNIX socket or a HTTP(S) connections}
+@item secret
+If set, this password is used to add obfuscation on top of the encryption already applied by the signer for the keystore.
+@end table
+
+
+
+@subsection ssl
+
+Certificate information for https api callbacks.
+
+@table @var
+@item enable_client
+Boolean value. If set, client certificate will be used to authenticate the callback request.
+@item cert_file
+Client certificate file in PEM or DER format
+@item key_file
+Client key file in PEM or DER format
+@item password
+Password for unlocking the client key
+@item ca_file
+Certificate authority bundle, to verify the certificate sent by the callback server.
+@end table
+
+
+@subsection syncer
+
+@table @var
+@item loop_interval
+Seconds to pause before each execution of the @var{chainsyncer} poll loop.
+@end table
+
