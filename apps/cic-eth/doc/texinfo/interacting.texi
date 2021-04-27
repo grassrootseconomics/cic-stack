@@ -1,22 +1,22 @@
 @node cic-eth-interacting
 @section Interacting with the system
 
-The API to the @var{cic-eth} component is a proxy for executing @emph{chains of Celery tasks}. The tasks that compose individual chains are documented in appendix (?), which also describes a CLI tool that can generate graph representationso of them.
+The API to the @var{cic-eth} component is a proxy for executing @emph{chains of Celery tasks}. The tasks that compose individual chains are documented in @ref{cic-eth Appendix Task chains,the Task Chain appendix}, which also describes a CLI tool that can generate graph representationso of them.
 
-There are two API classes, @var{Api} and @var{AdminApi}. The former is described later in this section, the latter described in section (?).
+There are two API classes, @var{Api} and @var{AdminApi}. The former is described later in this section, the latter described in @ref{cic-eth system maintenance,the Admin API appendix}.
 
 
 @subsection Interface
 
 API calls are constructed by creating @emph{Celery task signatures} and linking them together, sequentially and/or in parallell. In turn, the tasks themselves may spawn other asynchronous tasks. This means that the code in @file{cic_eth.api.*} does not necessarily specify the full task graph that will be executed for any one command.
 
-The operational guarantee that tasks will be executed, not forgotten, and retried under certain circumstances is deferred to @var{Celery}. On top of this, the @var{chainqueue} component ensures that semantic state changes requested of it by the tasks are valid.
+The operational guarantee that tasks will be executed, not forgotten, and retried under certain circumstances is deferred to @var{Celery}. On top of this, the @var{chainqueue} component ensures that semantic state changes that the @code{Celery} tasks ask of it are valid.
 
 
 @anchor{cic-eth-locking}
 @subsection Locking
 
-All methods that make a change to the blockchain network are subject to the locking layer. Locks may be applied on a global or per-address basis. Lock states are defined by a combination of bit flags. The implemented lock bits are:
+All methods that make a change to the blockchain network must pass @emph{locking layer checks}. Locks may be applied on a global or per-address basis. Lock states are defined by a combination of bit flags. The implemented lock bits are:
 
 @table @var
 @item INIT
@@ -34,7 +34,7 @@ Until reset, no other part of the locking state can be reset
 
 @subsection Callback
 
-All API calls provide the option to attach a callback to the end of the task chain. This callback will be executed regardless of whether task chain execution successed or not.
+All API calls provide the option to attach a callback to the end of the task chain. This callback will be executed regardless of whether task chain execution succeeded or not.
 
 Refer to @file{cic-eth.callbacks.noop.noop} for the expected callback signature.
 
@@ -80,7 +80,7 @@ Retrieves a complex balance statement of a single account, including:
 @item Value increments due to by pending incoming transactions
 @end itemize
 
-Only the first of these balance items has guaranteed finality. The reduction by outgoing transaction can be reasonably be assumed to eventually become final. The same appied for the increment by incoming transaction, @emph{unless} the transfer is part of a multiple-transaction operation. For example, a @ref{cic-eth-convert-and-transfer,convert_and_transfer} operation may fail in the convert stage and/or may yield less tokens then expected after conversion.
+Only the first of these balance items has guaranteed finality. The reduction by outgoing transaction can be reasonably be assumed to eventually become final. The same applies for the increment by incoming transaction, @emph{unless} the transfer is part of a multiple-transaction operation. For example, a @ref{cic-eth-convert-and-transfer,convert_and_transfer} operation may fail in the convert stage and/or may yield less tokens then expected after conversion.
 
 
 @subsubsection list

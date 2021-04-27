@@ -16,4 +16,5 @@ The current implementation is in its entirety based on the EVM network and with 
 @include services.texi
 @include tools.texi
 @include admin.texi
-@include appendix.texi
+@include chains.texi
+@include transfertypes.texi

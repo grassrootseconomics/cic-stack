@@ -17,7 +17,7 @@ The other @var{cic-eth} daemons all interface with this component, along with an
 The tasker has a set of pre-requisites that must be fulfilled before it will start
 
 @itemize
-@item It must be given a valid @var{ContractRegistry} address, which must include valid references to all contracts specified in @strong{[point to section about contract deps]})
+@item It must be given a valid @var{ContractRegistry} address, which must include valid references to all contracts specified in @ref{cic-eth-dependencies-smart-contracts,Smart contract dependencies}
 @item The gas gifter balance must be above the minimum threshold (See "eth" section in configurations).
 @item There must be a valid alembic migration record in the storage database
 @item The redis backend must be reachable and writable
@@ -27,7 +27,7 @@ The tasker has a set of pre-requisites that must be fulfilled before it will sta
 
 @subsection tracker
 
-Implements the @var{chainsyncer}, and registers the filters described in @strong{[ref transaction monitoring]} to be executed for every transaction. It consumes the appropriate @var{TASKS_TRANSFER_CALLBACKS} configuration setting to add externally defined filters at without having to change the daemon code.
+Implements the @var{chainsyncer}, and registers the filters described in @ref{cic-eth-incoming,Incoming Transactions} to be executed for every transaction. It consumes the appropriate @var{TASKS_TRANSFER_CALLBACKS} configuration setting to add externally defined filters at without having to change the daemon code.
 
 The @var{tracker} has the same requisities for the @var{ContractRegistry} as the @var{tasker}.
 

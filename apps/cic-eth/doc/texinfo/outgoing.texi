@@ -9,7 +9,7 @@ The term @var{state bit} refers to the bits definining the @code{chainqueue} sta
 
 Any task that changes blockchain state @strong{must} apply a @code{QUEUE} lock for the address it operates on. This is to ensure that transactions are sent to the network in order.@footnote{If too many transactions arrive out of order to the blockchain node, it may arbitrarily prune those that cannot directly be included in a block. This puts unnecessary strain (and reliance) on the transaction retry mechanism.}
 
-This lock will be released once the blockchain node confirms handover of the transaction.
+This lock will be released once the blockchain node confirms handover of the transaction.@footnote{This is the responsibility of the @var{dispatcher} service}
 
 
 @subsection Nonce

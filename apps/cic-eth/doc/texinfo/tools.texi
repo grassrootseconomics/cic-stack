@@ -17,7 +17,7 @@ Returns information about a specific resource related to the tranasaction queue.
 
 @table @var
 @item lock
-If the argument is the literal string @kbd{lock}, it will list all active lock settings currently in effect. (see @strong{[reference locking section]})
+If the argument is the literal string @kbd{lock}, it will list all active lock settings currently in effect. (@xref{cic-eth-locking})
 @item <address>
 If the argument is a 0x-prefixed hex string of 42 characters, it returns all transactions where the specified address is a sender or recipient@footnote{If the address is the gas gifter or the accounts index writer, this may be a @emph{lot} of transactions. Use with care!}
 @item <tx_hash>
@@ -37,7 +37,7 @@ Execute a token transfer on behalf of a custodial account.
 
 @subsection tag (cic-eth-tag)
 
-Associate an account address with a string identifier. See @strong{[reference SYSTEM ACCOUNTS]}.
+Associate an account address with a string identifier. @xref{cic-eth system accounts}
 
 
 @anchor{cic-eth-tools-ctrl}
