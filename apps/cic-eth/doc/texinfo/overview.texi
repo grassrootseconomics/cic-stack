@@ -3,22 +3,287 @@
 
 @section Overview
 
-@code{cic-eth} is the heart of the custodial account component. It is a combination of python-celery task queues and daemons that sign, dispatch and monitor blockchain transactions, aswell as triggering tasks contingent on other transactions.
+The goal of the @code{cic-eth} project is to create a fully autonomous, high-performance microservices environment that holds keys and signs on behalf of an arbitrary client, and @emph{guarantees} that transactions will be sent to the blockchain network. 
+
+When execution of transactions have been included in the chain state, it also provides clients executing tasks to attach callbacks both on delivery of a task to the queue, but also when the transaction is mined by the network.
+
+The current implementation is in its entirety based on the EVM network and with Solidity-based EVM bytecode. The ambition is to enable cross-chain operability, also across @emph{types} of chains.
+
 
 @subsection Dependencies
 
-The @code{cic-registry} module is used as a cache for contracts and tokens on the network.
+This application is written in Python 3.8. It is tightly coupled with @code{python-celery}, which provides the task worker ecosystem, and @code{SQLAlchemy} which provides useful abstractions for persistent storage though SQL.
 
-A web3 JSON-RPC service that transparently proxies a keystore and provides transaction and message signing. The current development version uses the python web3 middleware feature to route methodsi involving the keystore to the module @code{crypto-dev-signer}, which is hosted on @file{pypi.org}.
-
-@subsection What does it do
+These is currently also a coupling with @code{Redis}, which is used as message broker for @code{python-celery}. This coupling may be relaxed in the future to allow other key-value pubsub solutions instead. @code{Redis} is also explicitly used by some CLI tools to retrieve results from command execution.
 
 
+@subsection Generalized project dependencies
 
-@subsection Tasks
+The core features are built around four main independent components that have been developed for the purpose of this project, but are separated and maintained as general-purpose libraries.
 
-Two main categories exist for tasks, @code{eth} and @code{queue}.
+@table @samp
+@item chainlib
+A cross-chain library prototype that can provide encodings for transactions on a Solidity-based EVM contract network.
+@item chainqueue
+Queue manager that guarantees delivery of outgoing blockchain transactions.
+@item chainsyncer
+Monitors blockchains and guarantees execution of an arbitrary count of pluggable code objects for each block transaction.
+@item crypto-dev-signer
+An keystore capable of signing for the EVM chain through a standard Ethereum JSON-RPC interface.
+@end table
 
-The @code{eth} tasks provide means to construct and decode Ethereum transactions, as well as interfacing the underlying key store.
+@subsection Smart contract dependencies
 
-Tasks in the @code{queue} module operate on the state of transactions queued for processing by @code{cic-eth}.
+A collection of Smart Contracts are expected to be known by the registry:
+
+@table @code
+@item ContractRegistry
+Resolves plaintext identifiers to contract addresses.
+@item AccountRegistry
+An append-only store of accounts hosted by the custodial system
+@item TokenRegistry
+Unique symbol-to-address mappings for token contracts
+@item AddressDeclarator
+Reverse address to resource lookup
+@item TokenAuthorization
+Escrow contract for external spending on behalf of custodial users
+@item Faucet
+Called by newly created accounts to receive initial token balance
+@end table
+
+The closely related component @code{cic-eth-registry} facilitates lookups of resources on the blockchain network. In its current state it resolves tokens by symbol or address, and contracts by common-name identifiers.
+
+
+@section Interacting with the system
+
+The API to the @code{cic-eth} component is a proxy for executing @emph{chains of Celery tasks}. The tasks that compose individual chains are documented in appendix (?), which also describes a CLI tool that can generate graph representationso of them.
+
+There are two API classes, @code{Api} and @code{AdminApi}. The former is described later in this section, the latter described in section (?).
+
+
+@subsection Code design
+
+API calls are constructed by creating @emph{Celery task signatures} and linking them together, sequentially and/or in parallell. In turn, the tasks themselves may spawn other asynchronous tasks. This means that the code in @file{cic_eth.api.*} does not necessarily specify the full task graph that will be executed for any one command.
+
+The operational guarantee that tasks will be executed, not forgotten, and retried under certain circumstances is deferred to @code{Celery}. On top of this, the @code{chainqueue} component ensures that semantic state changes requested of it by the tasks are valid.
+
+
+@subsection Locking
+
+All methods that make a change to the blockchain network are subject to the locking layer. Locks may be applied on a global or per-address basis. Lock states are defined by a combination of bit flags. The implemented lock bits are:
+
+@table @code
+@item INIT
+The system has not yet been initialized. In this state, writes are limited to creating unregistered accounts only.
+@item QUEUE
+Items may not be added to the queue
+@item SEND
+Queued items may not be attempted sent to the network
+@item CREATE (global-only)
+New accounts may not be created
+@item STICKY
+Until reset, no other part of the locking state can be reset
+@end table 
+
+
+@subsection Callback
+
+All API calls provide the option to attach a callback to the end of the task chain. This callback will be executed regardless of whether task chain execution successed or not.
+
+Refer to @code{cic-eth.callbacks.noop.noop} for the expected callback signature.
+
+
+@subsection API Methods that change state
+
+
+@subsection create_account
+
+Creates a new account in the keystore, optionally registering the account with the @code{AccountRegistry} contract.
+
+
+@subsection transfer
+
+Attempts to execute a token transaction between two addresses. It is the caller's responsibility to check whether the token balance is sufficient for the transactions.
+
+
+@subsection refill_gas
+
+Executes a gas token transfer to a custodial address from the @emph{GAS GIFTER} system account.
+
+
+@subsection convert
+
+Converts a token to another token for the given custodial account.
+
+Currently not implemented
+
+
+@subsection convert_and_transfer
+
+Same as convert, but will automatically execute a token transfer to another custodial account when conversion has been completed.
+
+Currently not implemented
+
+
+@subsection Read-only API methods
+
+@subsection balance
+
+Retrieves a complex balance statement of a single account, including:
+
+@itemize
+@item The network balance at the current block height
+@item Value reduction locked by pending outgoing transactions
+@item Value increment locked by pending incoming transactions
+@end itemize
+
+
+@subsection list
+
+Returns an aggregate iist of all token value changes for a given address. As not all value transfers are a result of literal value transfer contract calls (e.g. @code{transfer} and @code{transferFrom} in @code{ERC20}), this data may come from a number of sources, including:
+
+@itemize
+@item Literal value transfers within the custodial system
+@item Literal value transfers from or to an external address
+@item Faucet invocations (token minting)
+@item Demurrage and redistribution built into the token contract
+@end itemize
+
+
+@subsection default_token
+
+Return the symbol and address of the token used by default in the network.
+
+
+@subsection ping
+
+Convenience method for the caller to check whether the @code{cic-eth} engine is alive.
+
+
+
+@section Accounts
+
+Accounts are private keys in the signer component keyed by "addresses," a one-way transformation of a public key. Data can be signed by using the account as identifier for corresponding RPC requests.
+
+Any account to be managed by @code{cic-eth} must be created by the corresponding task. This is because @code{cic-eth} creates a @code{nonce} entry for each newly created account, and guarantees that every nonce will only be used once in its threaded environment.
+
+The calling code receives the account address upon creation. It never receives or has access to the private key.
+
+
+@subsection Signer RPC 
+
+The signer is expected to handle a subset of the standard JSON-RPC:
+
+@table @code
+@item personal_newAccount(password)
+Creates a new account, returning the account address.
+@item eth_signTransactions(tx_dict)
+Sign the transaction represented as a dictionary.
+@item eth_sign(address, message)
+Signs an arbtirary message with the standard Ethereum prefix.
+@end table
+
+
+@section Outgoing transaction management
+
+@strong{Important! A pre-requisite for proper functioning of the component is that no other agent is sending transactions to the network for any of the keys in the keystore.}
+
+The term @var{state bit} refers to the bits definining the @code{chainqueue} state.
+
+@subsection Lock
+
+Any task that changes blockchain state @strong{must} apply a @code{QUEUE} lock for the address it operates on. This is to ensure that transactions are sent to the network in order.@footnote{If too many transactions arrive out of order to the blockchain node, it may arbitrarily prune those that cannot directly be included in a block. This puts unnecessary strain (and reliance) on the transaction retry mechanism.}
+
+This lock will be released once the blockchain node confirms handover of the transaction.
+
+
+@subsection Nonce
+
+A separate task step is executed for binding a transaction nonce to a Celery task root id, which uniquely identifies the task chain. This provides atomicity of the nonce across the parallell task environment, and also recoverability in case unexpected program interruption.
+
+The nonce of a permanently failed task must be @emph{manually} unlocked. Celery tasks that involve nonces who permanently fail are to be considered @emph{critical anomalies} and should not happen. The queue locking mechanism is designed to prevent the amount of out-of-sequence transactions for an account to escalate.
+
+
+@subsection Choosing fee prices
+
+@code{cic-eth} uses the @code{chainlib} module to resolve gas price lookups.
+
+Optimizing gas price discovery should be the responsibility of the chainlib layer. It already accommodates using an separate RPC for the @code{eth_gasPrice} call.@footnote{A sample implementation of a gas price tracker speaking JSON-RPC (also built using chainlib/chainsyncer) can be found at @url{https://gitlab.com/nolash/eth-stat-syncer}.}
+
+
+@subsection Choosing gas limits
+
+To determine the gas limit of a transaction, normally the EVM node will be used to perform a dry-run exection of the inputs against the current chain state.
+
+As the current state of the custodial system should only rely on known, trusted contract bytecode, there is no real need for this mechanism. The @code{chainlib}-based contract interfaces are expected to provide a method call that return safe gas limit values for contract interactions.@footnote{Of course, this method call may in turn conceal more sophisticated gas limit heuristics.}
+
+Note that it is still the responsibility of @code{cic-eth} to make sure that the gas limit of the network is sufficient to allow execution of all needed contracts.
+
+
+@subsection Gas refills
+
+If the gas balance of a custodial account is below a certain threshold, a gas refill task will be spawned. The gas will be transferred from the @code{GAS GIFTER} system account.
+
+In the event that the balance is insufficient even for the imminent transaction@footnote{This will of course be the case when an account is first created, whereupon it has a balance of 0. The subsequent faucet call will spawn a gas refill task.}, execution of the transaction will be deferred until the gas refill transaction is completed. 
+
+The value chosen for the gas refill threshold should ideally allow enough of a margin to avoid the need of deferring transactions in the future.
+
+
+@subsection Retrying transactions
+
+There are three conditions create the need to defer and retry transactions.
+
+The first is communication problems with the blockchain node itself, for example if it is overloaded or being restarted. As far as possible, retries of this nature will be left to the Celery task workers. There may be cases, however, where it is appropriate to hand the responsibility to the @code{chainqueue} instead. In this case, the queue item will have the @code{LOCAL ERROR} state bit set.
+
+The second condition occurs when transactions take too long to be confirmed by the network. In this case, the transaction will be re-submitted, but with a higher gas price.
+
+The third condition occurs when the blockchain node purges the transaction from the mempool before it is sent to the network. @code{cic-eth} does not distinguish this case from the second, as the issue is solved using the same mechanism.
+
+
+@subsubsection Transaction obsoletion
+
+"Re-submitting" a transaction means creating a transaction with a previously used nonce for an account address.
+
+When this happens, The @code{chainqueue} will still contain all previous transactions with the same nonce. The transaction being superseded will have the @code{OBSOLETED} state bit set.
+
+Once a transaction has been mined, all other transactions with the same node will have the @code{OBSOLETED} and @code{FINAL} state bits set.
+
+
+@subsection Transaction monitoring
+
+All transactions in mined blocks will be passed to a selection of plugin filters to the @code{chainsyncer} component. Each of these filters are individual python module files in @code{cic_eth.runnable.daemons.filters}. This section describes their function.
+
+The status bits refer to the bits definining the @code{chainqueue} state.
+
+
+@subsubsection tx
+
+Looks up the transaction in the local queue, and if found it sets the @code{FINAL} state bit. If the contract code execution was unsuccessful, the @code{NETWORK ERROR} state bit is also set.
+
+
+@subsubsection gas
+
+If the transaction is a gas token transfer, it checks if the recipient is a custodial account awaiting gas refill to execute a transaction (the queue item will have the @code{GAS ISSUES} bit set). If this is the case, the transaction will be activated by setting the @code{QUEUED} bit.
+
+
+@subsubsection register
+
+If the transaction is an account registration@footnote{The contract keyed by @var{AccountRegistry} in the @var{ContractRegistry} contract}, a Faucet transaction will be triggered for the registered account@footnote{The faucet contract used in the reference implementation will verify whether the account calling it is registered in the @var{AccountRegistry}. Thus it cannot be called before the account registration has succeeded.}
+
+
+@subsubsection callback
+
+Executes, in order, Celery tasks defined in the configuration variable @var{TASKS_TRANSFER_CALLBACKS}. Each of these tasks are registered as individual filters in the @code{chainsyncer} component, with the corresponding execution guarantees.
+
+The callbacks will receive the following arguments
+
+@enumerate
+@item result
+A complex representation of the transaction (see section ?)
+@item transfertype
+A string describing the type of transaction detected@footnote{See appendix ? for an overview of possible values}
+@item status
+0 if contract code executed successfully. Any other value is an error@footnote{The values 1-1024 are reserved for system specific errors. In the current implementation only a general error state with value 1 is defined. See appendix ?.}
+@end enumerate
+
+
