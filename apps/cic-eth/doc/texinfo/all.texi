@@ -1,0 +1,18 @@
+\input texinfo
+@setfilename index.html
+@settitle CIC custodial services reference deployment
+
+@copying
+Released 2021 under GPL3
+@end copying
+
+@titlepage
+@title CIC custodial services reference deployment
+@author Louis Holbrook
+@end titlepage
+
+@c
+@contents
+
+@include index.texi
+

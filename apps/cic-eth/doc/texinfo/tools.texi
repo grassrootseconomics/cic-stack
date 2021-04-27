@@ -1,0 +1,51 @@
+@node cic-eth-tools
+@section Tools
+
+A collection of CLI tools have been provided to help with diagnostics and other administrative tasks. These use the same configuration infrastructure as the daemons.
+
+Tool scripts are located in the @file{cic_eth.runnable} package. If @var{cic-eth} is installed as a python package, they are installed as executables in @var{PATH}.
+
+
+@subsection info (cic-eth-info)
+
+Returns self-explanatory metadata for the blockchain network, and optionally an address.
+
+
+@subsection inspect (cic-eth-inspect)
+
+Returns information about a specific resource related to the tranasaction queue. The results returned depend on the type of the argument.
+
+@table @var
+@item lock
+If the argument is the literal string @kbd{lock}, it will list all active lock settings currently in effect. (see @strong{[reference locking section]})
+@item <address>
+If the argument is a 0x-prefixed hex string of 42 characters, it returns all transactions where the specified address is a sender or recipient@footnote{If the address is the gas gifter or the accounts index writer, this may be a @emph{lot} of transactions. Use with care!}
+@item <tx_hash>
+If the argument is a 0x-prefixed hex string of 66 characters, it returns data from the custodial queueing system aswell as the network for a single transaction whose hash matches the input. Fails if the transaction does not exist in the queue
+@item <code>
+If the argument is a 0x-prefixed hex string longer than 66 bytes, the argument will be interpreted as raw RLP serialized transaction data, and attempt to match this with an entry in the queue. If a match is found, the result is the same as for @var{<tx_hash>}
+@end table
+
+
+@subsection create (cic-eth-create)
+
+Create a new account, optionally registering the account in the accounts registry, and optionally receiving the newly created address through a redis subscription.
+
+@subsection transfer (cic-eth-transfer)
+
+Execute a token transfer on behalf of a custodial account.
+
+@subsection tag (cic-eth-tag)
+
+Associate an account address with a string identifier. See @strong{[reference SYSTEM ACCOUNTS]}.
+
+
+@anchor{cic-eth-tools-ctrl}
+@subsection ctrl (cic-eth-ctrl)
+
+Set or reset lock bits, globally or per account address.
+
+@subsection resend (cic-eth-resend)
+
+Resend a transaction. This can either be done "in-place," which means increasing the gas price and re-queueing@footnote{this is the same thing that the retrier does}. It can also be used to @emph{clone} a transaction, which obviously will duplicate the effect of the cloned transaction on the blockchain network.
+

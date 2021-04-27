@@ -1,0 +1,63 @@
+@node cic-eth system maintenance
+@section System maintenance
+
+@subsection Admin API
+
+The admin API is still in an early stage of refinement. User friendliness can be considerably improved.
+
+All of the API calls are celery task proxies, and return @code{Celery.AsyncResult} unless otherwise noted.
+
+In contrast to the client API module, this API does not currently implement a pluggable callback.
+
+@subsubsection registry
+
+Returns the @code{ContractRegistry} this instance of @code{cic-eth-tasker} is running on.
+
+@subsubsection proxy-do
+
+Execute an arbitary JSON-RPC request using the @code{cic-eth-tasker} blockchain node RPC connection.
+
+@subsubsection default_token
+
+Returns the default token symbol and address.
+
+@subsubsection lock
+
+Set lock bits, globally or per address
+
+@subsubsection unlock
+
+Opposite of lock
+
+@subsubsection get_lock
+
+Get the current state of a lock
+
+@subsubsection tag_account
+
+Associate an identifier with an account address (@xref{cic-eth system accounts})
+
+@subsubsection have_account
+
+Check whether a private key exists in the keystore able to sign on behalf of the given account (it actually performs a signature).
+
+@subsubsection resend
+
+Clone or resend a transaction
+
+@subsubsection check_nonce
+
+Returns diagnostics for nonce sequences per account, e.g. detect nonce gaps that block execution of further transactions.
+
+@subsubsection fix_nonce
+
+Re-orders all nonces by shifting all transaction nonces after the given transaction down by one. This has the additional effect of obsoleting the given transaction. Can be used to close gaps in the nonce sequencing. Use with care!
+
+@subsubsection account
+
+Return brief transaction info lists per account
+
+@subsubsection tx
+
+Return a complex transaction metadata object for a single transaction. The object assembles state from both the blockchain node and the custodial queue system.
+

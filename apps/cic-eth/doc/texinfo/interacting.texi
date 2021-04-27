@@ -1,0 +1,109 @@
+@node cic-eth-interacting
+@section Interacting with the system
+
+The API to the @var{cic-eth} component is a proxy for executing @emph{chains of Celery tasks}. The tasks that compose individual chains are documented in appendix (?), which also describes a CLI tool that can generate graph representationso of them.
+
+There are two API classes, @var{Api} and @var{AdminApi}. The former is described later in this section, the latter described in section (?).
+
+
+@subsection Interface
+
+API calls are constructed by creating @emph{Celery task signatures} and linking them together, sequentially and/or in parallell. In turn, the tasks themselves may spawn other asynchronous tasks. This means that the code in @file{cic_eth.api.*} does not necessarily specify the full task graph that will be executed for any one command.
+
+The operational guarantee that tasks will be executed, not forgotten, and retried under certain circumstances is deferred to @var{Celery}. On top of this, the @var{chainqueue} component ensures that semantic state changes requested of it by the tasks are valid.
+
+
+@anchor{cic-eth-locking}
+@subsection Locking
+
+All methods that make a change to the blockchain network are subject to the locking layer. Locks may be applied on a global or per-address basis. Lock states are defined by a combination of bit flags. The implemented lock bits are:
+
+@table @var
+@item INIT
+The system has not yet been initialized. In this state, writes are limited to creating unregistered accounts only.
+@item QUEUE
+Items may not be added to the queue
+@item SEND
+Queued items may not be attempted sent to the network
+@item CREATE (global-only)
+New accounts may not be created
+@item STICKY
+Until reset, no other part of the locking state can be reset
+@end table 
+
+
+@subsection Callback
+
+All API calls provide the option to attach a callback to the end of the task chain. This callback will be executed regardless of whether task chain execution successed or not.
+
+Refer to @file{cic-eth.callbacks.noop.noop} for the expected callback signature.
+
+
+@subsection API Methods that change state
+
+
+@subsubsection create_account
+
+Creates a new account in the keystore, optionally registering the account with the @var{AccountRegistry} contract.
+
+
+@subsubsection transfer
+
+Attempts to execute a token transaction between two addresses. It is the caller's responsibility to check whether the token balance is sufficient for the transactions.
+
+
+@subsubsection refill_gas
+
+Executes a gas token transfer to a custodial address from the @var{GAS GIFTER} system account.
+
+
+@subsubsection convert
+
+Converts a token to another token for the given custodial account. Currently not implemented.
+
+
+@anchor{cic-eth-convert-and-transfer}
+@subsubsection convert_and_transfer
+
+Same as convert, but will automatically execute a token transfer to another custodial account when conversion has been completed. Currently not implemented.
+
+
+@subsection Read-only API methods
+
+@subsubsection balance
+
+Retrieves a complex balance statement of a single account, including:
+
+@itemize
+@item The network balance at the current block height
+@item Value reductions due to by pending outgoing transactions
+@item Value increments due to by pending incoming transactions
+@end itemize
+
+Only the first of these balance items has guaranteed finality. The reduction by outgoing transaction can be reasonably be assumed to eventually become final. The same appied for the increment by incoming transaction, @emph{unless} the transfer is part of a multiple-transaction operation. For example, a @ref{cic-eth-convert-and-transfer,convert_and_transfer} operation may fail in the convert stage and/or may yield less tokens then expected after conversion.
+
+
+@subsubsection list
+
+Returns an aggregate iist of all token value changes for a given address. As not all value transfers are a result of literal value transfer contract calls (e.g. @var{transfer} and @var{transferFrom} in @var{ERC20}), this data may come from a number of sources, including:
+
+@itemize
+@item Literal value transfers within the custodial system
+@item Literal value transfers from or to an external address
+@item Faucet invocations (token minting)
+@item Demurrage and redistribution built into the token contract
+@end itemize
+
+
+@subsubsection default_token
+
+Return the symbol and address of the token used by default in the network.
+
+
+@subsubsection ping
+
+Convenience method for the caller to check whether the @var{cic-eth} engine is alive.
+
+
+
+
