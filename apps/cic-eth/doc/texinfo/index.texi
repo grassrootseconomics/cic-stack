@@ -1,12 +1,6 @@
-@node CIC-ETH
-@chapter CIC-ETH
+@top cic-eth
 
-The goal of the @code{cic-eth} project is to create a fully autonomous, high-performance microservices environment that holds keys and signs on behalf of an arbitrary client, and @emph{guarantees} that transactions will be sent to the blockchain network. 
-
-When execution of transactions have been included in the chain state, it also provides clients executing tasks to attach callbacks both on delivery of a task to the queue, but also when the transaction is mined by the network.
-
-The current implementation is in its entirety based on the EVM network and with Solidity-based EVM bytecode. The ambition is to enable cross-chain operability, also across @emph{types} of chains.
-
+@include intro.texi
 @include dependencies.texi
 @include configuration.texi
 @include system.texi
