@@ -31,15 +31,6 @@ RUN echo Install confini schema files && \
 	git checkout $cic_config_commit && \	
 	cp -v *.ini $CONFINI_DIR
 
-ARG cic_contracts_commit=698ef3a30fde8d7f2c498f1208fb0ff45d665501
-ARG cic_contracts_url=https://gitlab.com/grassrootseconomics/cic-contracts.git/
-RUN echo Install ABI collection for solidity interfaces used across all components && \
-	git clone --depth 1 $cic_contracts_url cic-contracts && \
-	cd cic-contracts && \
-	git fetch --depth 1 origin $cic_contracts_commit && \
-	git checkout $cic_contracts_commit && \
-	make install
-
 # Install nvm with node and npm
 # https://stackoverflow.com/questions/25899912/how-to-install-nvm-in-docker
 ENV NVM_DIR /root/.nvm
