@@ -13,6 +13,11 @@ DEV_PIP_EXTRA_INDEX_URL=${DEV_PIP_EXTRA_INDEX_URL:-https://pip.grassrootseconomi
 DEV_DATABASE_NAME_CIC_ETH=${DEV_DATABASE_NAME_CIC_ETH:-"cic-eth"}
 CIC_DATA_DIR=${CIC_DATA_DIR:-/tmp/cic} 
 ETH_PASSPHRASE=''
+CIC_DEFAULT_TOKEN_SYMBOL=${CIC_DEFAULT_TOKEN_SYMBOL:-GFT}
+if [[ $CIC_DEFAULT_TOKEN_SYMBOL != 'GFT' && $CIC_DEFAULT_TOKEN_SYMBOL != 'SRF' ]]; then
+	>&2 echo CIC_DEFAULT_TOKEN_SYMBOL must be one of [GFT,SRF], but was $CIC_DEFAULT_TOKEN_SYMBOL
+	exit 1
+fi
 
 # Debug flag
 DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER=0xEb3907eCad74a0013c259D5874AE7f22DcBcC95C
@@ -33,11 +38,11 @@ set -a
 # get required addresses from registries
 DEV_TOKEN_INDEX_ADDRESS=`eth-contract-registry-list -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -r $CIC_REGISTRY_ADDRESS -f brief TokenRegistry`
 DEV_ACCOUNT_INDEX_ADDRESS=`eth-contract-registry-list -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -r $CIC_REGISTRY_ADDRESS -f brief AccountRegistry`
-DEV_RESERVE_ADDRESS=`eth-token-index-list -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_TOKEN_INDEX_ADDRESS -f brief SRF`
+DEV_RESERVE_ADDRESS=`eth-token-index-list -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_TOKEN_INDEX_ADDRESS -f brief $CIC_DEFAULT_TOKEN_SYMBOL`
 cat <<EOF
 Token registry: $DEV_TOKEN_INDEX_ADDRESS
 Account reigstry: $DEV_ACCOUNT_INDEX_ADDRESS
-Reserve address: $DEV_RESERVE_ADDRESS
+Reserve address: $DEV_RESERVE_ADDRESS ($CIC_DEFAULT_TOKEN_SYMBOL)
 EOF
 
 >&2 echo "create account for gas gifter"
@@ -45,6 +50,7 @@ old_gas_provider=$DEV_ETH_ACCOUNT_GAS_PROVIDER
 DEV_ETH_ACCOUNT_GAS_GIFTER=`cic-eth-create $debug --redis-host-callback=$REDIS_HOST --redis-port-callback=$REDIS_PORT --no-register`
 echo DEV_ETH_ACCOUNT_GAS_GIFTER=$DEV_ETH_ACCOUNT_GAS_GIFTER >> $env_out_file
 cic-eth-tag -i $CIC_CHAIN_SPEC GAS_GIFTER $DEV_ETH_ACCOUNT_GAS_GIFTER
+
 
 >&2 echo "create account for sarafu gifter"
 DEV_ETH_ACCOUNT_SARAFU_GIFTER=`cic-eth-create $debug --redis-host-callback=$REDIS_HOST --redis-port-callback=$REDIS_PORT --no-register`
@@ -96,6 +102,11 @@ export DEV_ETH_SARAFU_TOKEN_ADDRESS=$DEV_ETH_RESERVE_ADDRESS
 >&2 eth-transfer -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER --token-address $DEV_RESERVE_ADDRESS -w $debug $DEV_ETH_ACCOUNT_SARAFU_GIFTER ${token_amount:0:-1}
 
 #echo -n 0 > $init_level_file
+
+# Remove the SEND (8), QUEUE (16) and INIT (2) locks (or'ed), set by default at migration
+cic-eth-ctl -i :: unlock INIT
+cic-eth-ctl -i :: unlock SEND
+cic-eth-ctl -i :: unlock QUEUE
 
 set +a
 set +e

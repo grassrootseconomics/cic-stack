@@ -337,12 +337,11 @@ class Verifier:
         address_recovered = address_recovered.replace('"', '')
 
         try:
-            address = strip_0x(address)
-            address_recovered = strip_0x(address_recovered)
+            upper_address_recovered = strip_0x(address_recovered).upper()
         except ValueError:
             raise VerifierError(address_recovered, 'metadata (phone) address {} address recovered {}'.format(address, address_recovered))
 
-        if address != address_recovered:
+        if upper_address != upper_address_recovered:
             raise VerifierError(address_recovered, 'metadata (phone)')
 
 

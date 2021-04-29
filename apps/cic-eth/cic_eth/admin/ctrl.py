@@ -2,7 +2,7 @@
 import datetime
 import logging
 
-# third-party imports
+# external imports
 import celery
 from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.chain import ChainSpec
@@ -32,7 +32,9 @@ def lock(chained_input, chain_spec_dict, address=ZERO_ADDRESS, flags=LockEnum.AL
     :returns: New lock state for address
     :rtype: number
     """
-    chain_str = str(ChainSpec.from_dict(chain_spec_dict))
+    chain_str = '::'
+    if chain_spec_dict != None:
+        chain_str = str(ChainSpec.from_dict(chain_spec_dict))
     r = Lock.set(chain_str, flags, address=address, tx_hash=tx_hash)
     logg.debug('Locked {} for {}, flag now {}'.format(flags, address, r))
     return chained_input
@@ -51,7 +53,9 @@ def unlock(chained_input, chain_spec_dict, address=ZERO_ADDRESS, flags=LockEnum.
     :returns: New lock state for address
     :rtype: number
     """
-    chain_str = str(ChainSpec.from_dict(chain_spec_dict))
+    chain_str = '::'
+    if chain_spec_dict != None:
+        chain_str = str(ChainSpec.from_dict(chain_spec_dict))
     r = Lock.reset(chain_str, flags, address=address)
     logg.debug('Unlocked {} for {}, flag now {}'.format(flags, address, r))
     return chained_input
@@ -127,7 +131,9 @@ def unlock_queue(chained_input, chain_spec_dict, address=ZERO_ADDRESS):
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
 def check_lock(chained_input, chain_spec_dict, lock_flags, address=None):
-    chain_str = str(ChainSpec.from_dict(chain_spec_dict))
+    chain_str = '::'
+    if chain_spec_dict != None:
+        chain_str = str(ChainSpec.from_dict(chain_spec_dict))
     session = SessionBase.create_session()
     r = Lock.check(chain_str, lock_flags, address=ZERO_ADDRESS, session=session)
     if address != None:
@@ -139,3 +145,9 @@ def check_lock(chained_input, chain_spec_dict, lock_flags, address=None):
     session.flush()
     session.close()
     return chained_input
+
+
+@celery_app.task()
+def shutdown(message):
+    logg.critical('shutdown called: {}'.format(message))
+    celery_app.control.shutdown() #broadcast('shutdown')

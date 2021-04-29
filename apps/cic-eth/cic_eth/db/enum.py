@@ -74,10 +74,11 @@ class LockEnum(enum.IntEnum):
     QUEUE: Disable queueing new or modified transactions
     """
     STICKY=1
-    CREATE=2
-    SEND=4
-    QUEUE=8
-    QUERY=16
+    INIT=2
+    CREATE=4
+    SEND=8
+    QUEUE=16
+    QUERY=32
     ALL=int(0xfffffffffffffffe)
 
 

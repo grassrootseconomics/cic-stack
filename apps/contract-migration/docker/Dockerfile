@@ -4,9 +4,13 @@ FROM python:3.8.6-slim-buster as compile-image
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends git gcc g++ libpq-dev gawk jq telnet wget openssl iputils-ping gnupg socat bash procps make python2 cargo
 
-RUN apt-get install -y software-properties-common
-RUN add-apt-repository ppa:ethereum/ethereum
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1C52189C923F6CA9
+RUN touch /etc/apt/sources.list.d/ethereum.list
+RUN echo 'deb http://ppa.launchpad.net/ethereum/ethereum/ubuntu bionic main' > /etc/apt/sources.list.d/ethereum.list
+RUN echo 'deb-src http://ppa.launchpad.net/ethereum/ethereum/ubuntu bionic main' >> /etc/apt/sources.list.d/ethereum.list
+
+RUN cat etc/apt/sources.list.d/ethereum.list
+RUN apt-key adv --keyserver keyserver.ubuntu.com  --recv-keys 2A518C819BE37D2C2031944D1C52189C923F6CA9
+
 RUN apt-get update
 RUN apt-get install solc
 RUN pip install --upgrade pip
@@ -57,19 +61,22 @@ WORKDIR /home/grassroots
 USER grassroots
 
 ARG pip_extra_index_url=https://pip.grassrootseconomics.net:8433
-ARG cic_base_version=0.1.2a77
-ARG cic_eth_version=0.11.0b6
+ARG cic_base_version=0.1.2a79
+ARG cic_eth_version=0.11.0b8+build.c2286e5c
 ARG sarafu_faucet_version=0.0.2a28
+ARG sarafu_token_version==0.0.1a6
 ARG cic_contracts_version=0.0.2a2
 RUN pip install --user --extra-index-url $pip_extra_index_url cic-base[full_graph]==$cic_base_version \
 	cic-eth==$cic_eth_version \
 	cic-contracts==$cic_contracts_version \
-	sarafu-faucet==$sarafu_faucet_version
+	sarafu-faucet==$sarafu_faucet_version \
+	sarafu-token==$sarafu_token_version
 
 FROM python:3.8.6-slim-buster as runtime-image
 
 RUN apt-get update
-RUN apt-get install -y --no-install-recommends gnupg libpq-dev
+RUN apt-get install -y --no-install-recommends gnupg libpq-dev 
+RUN apt-get install -y --no-install-recommends jq
 
 COPY --from=compile-image /usr/local/bin/ /usr/local/bin/
 COPY --from=compile-image /usr/local/etc/cic/ /usr/local/etc/cic/

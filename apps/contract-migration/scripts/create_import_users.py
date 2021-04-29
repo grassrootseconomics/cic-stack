@@ -37,6 +37,7 @@ config_dir = os.environ.get('CONFINI_DIR', os.path.join(script_dir, 'config'))
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument('-c', type=str, default=config_dir, help='Config dir')
+argparser.add_argument('--tag', type=str, action='append', help='Tags to add to record')
 argparser.add_argument('--gift-threshold', type=int, help='If set, users will be funded with additional random balance (in token integer units)')
 argparser.add_argument('-v', action='store_true', help='Be verbose')
 argparser.add_argument('-vv', action='store_true', help='Be more verbose')
@@ -80,6 +81,10 @@ phone_idx = []
 
 user_dir = args.dir
 user_count = args.user_count
+
+tags = args.tag
+if tags == None or len(tags) == 0:
+    tags = ['individual']
 
 random.seed()
 
@@ -189,6 +194,7 @@ if __name__ == '__main__':
     os.makedirs(base_dir, exist_ok=True)
 
     fa = open(os.path.join(user_dir, 'balances.csv'), 'w')
+    ft = open(os.path.join(user_dir, 'tags.csv'), 'w')
 
     i = 0
     while i < user_count:
@@ -215,10 +221,12 @@ if __name__ == '__main__':
         f.write(eth)
         f.close()
 
+        ft.write('{}:{}\n'.format(eth, ','.join(tags)))
         amount = genAmount()
         fa.write('{},{}\n'.format(eth,amount))
         logg.debug('pidx {}, uid {}, eth {}, amount {}, phone {}'.format(pidx, uid, eth, amount, phone))
         
         i += 1
 
+    ft.close()
     fa.close()

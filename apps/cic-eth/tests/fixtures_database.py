@@ -53,6 +53,9 @@ def init_database(
     alembic.command.downgrade(ac, 'base')
     alembic.command.upgrade(ac, 'head')
 
+    session.execute('DELETE FROM lock')
+    session.commit()
+
     yield session
     session.commit()
     session.close()

@@ -11,10 +11,19 @@ import websocket
 # external imports
 import celery
 import confini
-from chainlib.connection import RPCConnection
-from chainlib.eth.connection import EthUnixSignerConnection
+from chainlib.connection import (
+        RPCConnection,
+        ConnType,
+        )
+from chainlib.eth.connection import (
+        EthUnixSignerConnection,
+        EthHTTPSignerConnection,
+        )
 from chainlib.chain import ChainSpec
 from chainqueue.db.models.otx import Otx
+from cic_eth_registry.error import UnknownContractError
+import liveness.linux
+
 
 # local imports
 from cic_eth.eth import (
@@ -51,6 +60,8 @@ from cic_eth.registry import (
         connect_declarator,
         connect_token_registry,
         )
+from cic_eth.task import BaseTask
+
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -62,6 +73,7 @@ argparser.add_argument('-p', '--provider', dest='p', type=str, help='rpc provide
 argparser.add_argument('-c', type=str, default=config_dir, help='config file')
 argparser.add_argument('-q', type=str, default='cic-eth', help='queue name for worker tasks')
 argparser.add_argument('-r', type=str, help='CIC registry address')
+argparser.add_argument('--default-token-symbol', dest='default_token_symbol', type=str, help='Symbol of default token to use')
 argparser.add_argument('--abi-dir', dest='abi_dir', type=str, help='Directory containing bytecode and abi')
 argparser.add_argument('--trace-queue-status', default=None, dest='trace_queue_status', action='store_true', help='set to perist all queue entry status changes to storage')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
@@ -81,6 +93,7 @@ config.process()
 args_override = {
         'CIC_CHAIN_SPEC': getattr(args, 'i'),
         'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
+        'CIC_DEFAULT_TOKEN_SYMBOL': getattr(args, 'default_token_symbol'),
         'ETH_PROVIDER': getattr(args, 'p'),
         'TASKS_TRACE_QUEUE_STATUS': getattr(args, 'trace_queue_status'),
         }
@@ -90,14 +103,15 @@ config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
 logg.debug('config loaded from {}:\n{}'.format(args.c, config))
 
+health_modules = config.get('CIC_HEALTH_MODULES', [])
+if len(health_modules) != 0:
+    health_modules = health_modules.split(',')
+logg.debug('health mods {}'.format(health_modules))
+
 # connect to database
 dsn = dsn_from_config(config)
 SessionBase.connect(dsn, pool_size=int(config.get('DATABASE_POOL_SIZE')), debug=config.true('DATABASE_DEBUG'))
 
-# verify database connection with minimal sanity query
-session = SessionBase.create_session()
-session.execute('select version_num from alembic_version')
-session.close()
 
 # set up celery
 current_app = celery.Celery(__name__)
@@ -134,11 +148,18 @@ else:
         })
 
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
+RPCConnection.register_constructor(ConnType.UNIX, EthUnixSignerConnection, 'signer')
+RPCConnection.register_constructor(ConnType.HTTP, EthHTTPSignerConnection, 'signer')
+RPCConnection.register_constructor(ConnType.HTTP_SSL, EthHTTPSignerConnection, 'signer')
 RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, 'default')
-RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 'signer', constructor=EthUnixSignerConnection)
+RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 'signer')
 
 Otx.tracing = config.true('TASKS_TRACE_QUEUE_STATUS')
 
+#import cic_eth.checks.gas
+#if not cic_eth.checks.gas.health(config=config):
+#    raise RuntimeError()
+liveness.linux.load(health_modules, rundir=config.get('CIC_RUN_DIR'), config=config, unit='cic-eth-tasker')
 
 def main():
     argv = ['worker']
@@ -162,7 +183,11 @@ def main():
 
     rpc = RPCConnection.connect(chain_spec, 'default')
 
-    connect_registry(rpc, chain_spec, config.get('CIC_REGISTRY_ADDRESS'))
+    try:
+        registry = connect_registry(rpc, chain_spec, config.get('CIC_REGISTRY_ADDRESS'))
+    except UnknownContractError as e:
+        logg.exception('Registry contract connection failed for {}: {}'.format(config.get('CIC_REGISTRY_ADDRESS'), e))
+        sys.exit(1)
 
     trusted_addresses_src = config.get('CIC_TRUST_ADDRESS')
     if trusted_addresses_src == None:
@@ -171,10 +196,18 @@ def main():
     trusted_addresses = trusted_addresses_src.split(',')
     for address in trusted_addresses:
         logg.info('using trusted address {}'.format(address))
+
     connect_declarator(rpc, chain_spec, trusted_addresses)
     connect_token_registry(rpc, chain_spec)
-    
+
+    BaseTask.default_token_symbol = config.get('CIC_DEFAULT_TOKEN_SYMBOL')
+    BaseTask.default_token_address = registry.by_name(BaseTask.default_token_symbol)
+    BaseTask.run_dir = config.get('CIC_RUN_DIR')
+    logg.info('default token set to {} {}'.format(BaseTask.default_token_symbol, BaseTask.default_token_address))
+   
+    liveness.linux.set(rundir=config.get('CIC_RUN_DIR'))
     current_app.worker_main(argv)
+    liveness.linux.reset(rundir=config.get('CIC_RUN_DIR'))
 
 
 @celery.signals.eventlet_pool_postshutdown.connect

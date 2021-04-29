@@ -273,7 +273,7 @@ def test_tx(
     eth_signer,
     agent_roles,
     contract_roles,
-    celery_worker,
+    celery_session_worker,
     ):
 
     nonce_oracle = RPCNonceOracle(agent_roles['ALICE'], eth_rpc)

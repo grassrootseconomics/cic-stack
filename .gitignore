@@ -1,6 +1,10 @@
 service-configs/*
 !service-configs/.gitkeep
-node_modules
+**/node_modules/
 __pycache__
 *.pyc
 *.o
+gmon.out
+*.egg-info
+dist/
+build/
