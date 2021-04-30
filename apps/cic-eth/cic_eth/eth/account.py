@@ -3,7 +3,7 @@ import logging
 
 # external imports
 import celery
-from erc20_single_shot_faucet import SingleShotFaucet as Faucet
+from erc20_faucet import Faucet
 from hexathon import (
         strip_0x,
         )
@@ -21,7 +21,7 @@ from chainlib.eth.tx import (
 from chainlib.chain import ChainSpec
 from chainlib.error import JSONRPCException
 from eth_accounts_index import AccountRegistry
-from sarafu_faucet import MinterFaucet as Faucet
+from sarafu_faucet import MinterFaucet
 from chainqueue.db.models.tx import TxCache
 
 # local import
@@ -185,7 +185,7 @@ def gift(self, account_address, chain_spec_dict):
     # Generate and sign transaction
     rpc_signer = RPCConnection.connect(chain_spec, 'signer')
     nonce_oracle = CustodialTaskNonceOracle(account_address, self.request.root_id, session=session) #, default_nonce)
-    gas_oracle = self.create_gas_oracle(rpc, Faucet.gas)
+    gas_oracle = self.create_gas_oracle(rpc, MinterFaucet.gas)
     faucet = Faucet(chain_spec, signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
     (tx_hash_hex, tx_signed_raw_hex) = faucet.give_to(faucet_address, account_address, account_address, tx_format=TxFormat.RLP_SIGNED)
     rpc_signer.disconnect()
