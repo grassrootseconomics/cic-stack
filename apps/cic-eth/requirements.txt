@@ -2,7 +2,7 @@ cic-base==0.1.2b6
 celery==4.4.7
 crypto-dev-signer~=0.4.14b3
 confini~=0.3.6rc3
-cic-eth-registry~=0.5.5a1
+cic-eth-registry~=0.5.5a2
 redis==3.5.3
 alembic==1.4.2
 websockets==8.1
@@ -16,9 +16,9 @@ moolb~=0.1.1b2
 eth-address-index~=0.1.1a10
 chainlib~=0.0.2b1
 hexathon~=0.0.1a7
+pysha3==1.0.2
 chainsyncer[sql]~=0.0.2a2
 chainqueue~=0.0.2a2
-pysha3==1.0.2
-coincurve==15.0.0
 sarafu-faucet==0.0.3a1
+coincurve==15.0.0
 potaahto~=0.0.1a1

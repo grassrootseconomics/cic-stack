@@ -20,7 +20,7 @@ from chainlib.eth.tx import (
         )
 from chainlib.chain import ChainSpec
 from chainlib.error import JSONRPCException
-from eth_accounts_index import AccountRegistry
+from eth_accounts_index.registry import AccountRegistry # TODO, use interface module instead (needs gas limit method)
 from sarafu_faucet import MinterFaucet
 from chainqueue.db.models.tx import TxCache
 

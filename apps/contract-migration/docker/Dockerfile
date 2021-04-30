@@ -51,16 +51,17 @@ RUN useradd --create-home grassroots
 WORKDIR /home/grassroots
 USER grassroots
 
+ARG pip_extra_args=""
 ARG pip_index_url=https://pypi.org/simple
 ARG pip_extra_index_url=https://pip.grassrootseconomics.net:8433
 ARG cic_base_version=0.1.2b6
 ARG cic_eth_version=0.11.0b12
 ARG sarafu_faucet_version=0.0.3a1
 ARG sarafu_token_version=0.0.1a6
-RUN pip install --user --index-url $pip_index_url --extra-index-url $pip_extra_index_url cic-base[full_graph]==$cic_base_version \
-	cic-eth==$cic_eth_version \
+RUN pip install --user $pip_extra_args --index-url $pip_index_url --extra-index-url $pip_extra_index_url cic-base[full_graph]==$cic_base_version \
 	sarafu-faucet==$sarafu_faucet_version \
-	sarafu-token==$sarafu_token_version
+	sarafu-token==$sarafu_token_version \
+	cic-eth==$cic_eth_version 
 
 FROM python:3.8.6-slim-buster as runtime-image
 
