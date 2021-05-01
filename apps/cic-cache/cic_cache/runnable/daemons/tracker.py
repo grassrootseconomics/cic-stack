@@ -7,9 +7,10 @@ import argparse
 import sys
 import re
 
-# third-party imports
+# external imports
 import confini
 import celery
+import sqlalchemy
 import rlp
 import cic_base.config
 import cic_base.log
@@ -34,7 +35,10 @@ from chainsyncer.driver import (
 from chainsyncer.db.models.base import SessionBase
 
 # local imports
-from cic_cache.db import dsn_from_config
+from cic_cache.db import (
+        dsn_from_config,
+        add_tag,
+        )
 from cic_cache.runnable.daemons.filters import (
         ERC20TransferFilter,
         )
@@ -57,6 +61,17 @@ chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 
 #RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, 'default')
 cic_base.rpc.setup(chain_spec, config.get('ETH_PROVIDER'))
+
+
+def register_filter_tags(filters, session):
+    for f in filters:
+        tag = f.tag()
+        try:
+            add_tag(session, tag[0], domain=tag[1])
+            session.commit()
+            logg.info('added tag name "{}" domain "{}"'.format(tag[0], tag[1]))
+        except sqlalchemy.exc.IntegrityError:
+            logg.debug('already have tag name "{}" domain "{}"'.format(tag[0], tag[1]))
 
 
 def main():
@@ -98,10 +113,19 @@ def main():
 
     erc20_transfer_filter = ERC20TransferFilter(chain_spec)
 
+    filters = [
+        erc20_transfer_filter,
+            ]
+
+    session = SessionBase.create_session()
+    register_filter_tags(filters, session)
+    session.close()
+
     i = 0
     for syncer in syncers:
         logg.debug('running syncer index {}'.format(i))
-        syncer.add_filter(erc20_transfer_filter)
+        for f in filters:
+            syncer.add_filter(f)
         r = syncer.loop(int(config.get('SYNCER_LOOP_INTERVAL')), rpc)
         sys.stderr.write("sync {} done at block {}\n".format(syncer, r))
 

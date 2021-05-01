@@ -3,7 +3,7 @@ import os
 import sys
 import datetime
 
-# third-party imports
+# external imports
 import pytest
 
 # local imports

@@ -15,7 +15,7 @@ from cic_eth_registry.error import (
         )
 
 # local imports
-from .base import SyncFilter
+from .base import TagSyncFilter
 from cic_cache import db as cic_cache_db
 
 logg = logging.getLogger().getChild(__name__)
@@ -24,7 +24,7 @@ logg = logging.getLogger().getChild(__name__)
 class ERC20TransferFilter(TagSyncFilter):
 
     def __init__(self, chain_spec):
-        super(TagSyncFilter, self).__init__('transfer', 'erc20')
+        super(ERC20TransferFilter, self).__init__('transfer', domain='erc20')
         self.chain_spec = chain_spec
 
 
@@ -47,6 +47,9 @@ class ERC20TransferFilter(TagSyncFilter):
         except RequestMismatchException:
             logg.debug('erc20 match but not a transfer, skipping')
             return False
+        except ValueError:
+            logg.debug('erc20 match but bogus data, skipping')
+            return False
 
         token_sender = tx.outputs[0]
         token_recipient = transfer_data[0]
@@ -68,7 +71,13 @@ class ERC20TransferFilter(TagSyncFilter):
                 tx.status == Status.SUCCESS,
                 block.timestamp,
                 )
-        #db_session.flush()
+        db_session.flush()
+        cic_cache_db.tag_transaction(
+                db_session,
+                tx.hash,
+                self.tag_name,
+                domain=self.tag_domain,
+                )
         db_session.commit()
 
         return True

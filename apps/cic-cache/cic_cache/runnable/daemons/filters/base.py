@@ -10,6 +10,6 @@ class TagSyncFilter:
 
 
     def __str__(self):
-        if tag_domain == None:
+        if self.tag_domain == None:
             return self.tag_name
         return '{}.{}'.format(self.tag_domain, self.tag_name)
