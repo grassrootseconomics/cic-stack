@@ -57,7 +57,7 @@ ARG pip_extra_index_url=https://pip.grassrootseconomics.net:8433
 ARG cic_base_version=0.1.2b6
 ARG cic_eth_version=0.11.0b12
 ARG sarafu_faucet_version=0.0.3a1
-ARG sarafu_token_version=0.0.1a6
+ARG sarafu_token_version=0.0.1a7
 RUN pip install --user $pip_extra_args --index-url $pip_index_url --extra-index-url $pip_extra_index_url cic-base[full_graph]==$cic_base_version \
 	sarafu-faucet==$sarafu_faucet_version \
 	sarafu-token==$sarafu_token_version \
