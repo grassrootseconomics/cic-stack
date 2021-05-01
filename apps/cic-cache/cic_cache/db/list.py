@@ -64,6 +64,33 @@ def add_transaction(
         success,
         timestamp,
         ):
+    """Adds a single transaction to the cache persistent storage. Sensible interpretation of all fields is the responsibility of the caller.
+
+    :param session: Persistent storage session object
+    :type session: SQLAlchemy session
+    :param tx_hash: Transaction hash
+    :type tx_hash: str, 0x-hex
+    :param block_number: Block number
+    :type block_number: int
+    :param tx_index: Transaction index in block
+    :type tx_index: int
+    :param sender: Ethereum address of effective sender
+    :type sender: str, 0x-hex
+    :param receiver: Ethereum address of effective recipient
+    :type receiver: str, 0x-hex
+    :param source_token: Ethereum address of token used by sender
+    :type source_token: str, 0x-hex
+    :param destination_token: Ethereum address of token received by recipient
+    :type destination_token: str, 0x-hex
+    :param from_value: Source token value spent in transaction
+    :type from_value: int
+    :param to_value: Destination token value received in transaction
+    :type to_value: int
+    :param success: True if code execution on network was successful
+    :type success: bool
+    :param date_block: Block timestamp
+    :type date_block: datetime
+    """
     date_block = datetime.datetime.fromtimestamp(timestamp)
     s = "INSERT INTO tx (tx_hash, block_number, tx_index, sender, recipient, source_token, destination_token, from_value, to_value, success, date_block) VALUES ('{}', {}, {}, '{}', '{}', '{}', '{}', {}, {}, {}, '{}')".format(
             tx_hash,
@@ -88,6 +115,21 @@ def tag_transaction(
         name,
         domain=None,
         ):
+    """Tag a single transaction with a single tag.
+
+    Tag must already exist in storage.
+
+    :param session: Persistent storage session object
+    :type session: SQLAlchemy session
+    :param tx_hash: Transaction hash
+    :type tx_hash: str, 0x-hex
+    :param name: Tag value
+    :type name: str
+    :param domain: Tag domain
+    :type domain: str
+    :raises ValueError: Unknown tag or transaction hash
+
+    """
 
     s = text("SELECT id from tx where tx_hash = :a")
     r = session.execute(s, {'a': tx_hash}).fetchall()
@@ -118,6 +160,16 @@ def add_tag(
         name,
         domain=None,
         ):
+    """Add a single tag to storage.
+
+    :param session: Persistent storage session object
+    :type session: SQLAlchemy session
+    :param name: Tag value
+    :type name: str
+    :param domain: Tag domain
+    :type domain: str
+    :raises sqlalchemy.exc.IntegrityError: Tag already exists
+    """
 
     s = None
     if domain == None: 

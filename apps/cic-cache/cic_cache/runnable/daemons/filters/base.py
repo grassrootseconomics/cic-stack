@@ -1,4 +1,11 @@
 class TagSyncFilter:
+    """Holds tag name and domain for an implementing filter.
+
+    :param name: Tag value 
+    :type name: str
+    :param domain: Tag domain
+    :type domain: str
+    """
 
     def __init__(self, name, domain=None):
         self.tag_name = name
@@ -6,6 +13,11 @@ class TagSyncFilter:
 
 
     def tag(self):
+        """Return tag value/domain.
+
+        :rtype: Tuple
+        :returns: tag value/domain.
+        """
         return (self.tag_name, self.tag_domain)
 
 
