@@ -84,3 +84,7 @@ def txs(
     
     session.commit()
 
+    return [
+            tx_hash_first,
+            tx_hash_second,
+            ]

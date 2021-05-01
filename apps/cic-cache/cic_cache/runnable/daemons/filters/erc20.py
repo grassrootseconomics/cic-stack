@@ -21,9 +21,10 @@ from cic_cache import db as cic_cache_db
 logg = logging.getLogger().getChild(__name__)
 
 
-class ERC20TransferFilter(SyncFilter):
+class ERC20TransferFilter(TagSyncFilter):
 
     def __init__(self, chain_spec):
+        super(TagSyncFilter, self).__init__('transfer', 'erc20')
         self.chain_spec = chain_spec
 
 

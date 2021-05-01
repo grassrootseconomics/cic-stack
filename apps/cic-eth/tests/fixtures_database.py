@@ -2,7 +2,7 @@
 import os
 import logging
 
-# third-party imports
+# external imports
 import pytest
 import alembic
 from alembic.config import Config as AlembicConfig

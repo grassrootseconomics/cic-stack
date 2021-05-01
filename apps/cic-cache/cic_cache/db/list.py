@@ -2,8 +2,9 @@
 import logging
 import datetime
 
-# third-party imports
+# external imports
 from cic_cache.db.models.base import SessionBase
+from sqlalchemy import text
 
 logg = logging.getLogger()
 
@@ -50,7 +51,8 @@ def list_transactions_account_mined(
 
 
 def add_transaction(
-        session, tx_hash,
+        session,
+        tx_hash,
         block_number,
         tx_index,
         sender,
@@ -77,3 +79,49 @@ def add_transaction(
             date_block,
             )
     session.execute(s)
+
+
+
+def tag_transaction(
+        session,
+        tx_hash,
+        name,
+        domain=None,
+        ):
+
+    s = text("SELECT id from tx where tx_hash = :a")
+    r = session.execute(s, {'a': tx_hash}).fetchall()
+    tx_id = r[0].values()[0]
+
+    if tx_id == None:
+        raise ValueError('unknown tx hash {}'.format(tx_hash))
+
+    #s = text("SELECT id from tag where value = :a and domain = :b")
+    if domain == None:
+        s = text("SELECT id from tag where value = :a")
+    else:
+        s = text("SELECT id from tag where value = :a and domain = :b")
+    r = session.execute(s, {'a': name, 'b': domain}).fetchall()
+    tag_id = r[0].values()[0]
+
+    logg.debug('type {} {}'.format(type(tag_id), type(tx_id)))
+
+    if tag_id == None:
+        raise ValueError('unknown tag name {} domain {}'.format(name, domain))
+
+    s = text("INSERT INTO tag_tx_link (tag_id, tx_id) VALUES (:a, :b)")
+    r = session.execute(s, {'a': int(tag_id), 'b': int(tx_id)})
+
+
+def add_tag(
+        session,
+        name,
+        domain=None,
+        ):
+
+    s = None
+    if domain == None: 
+        s = text("INSERT INTO tag (value) VALUES (:b)")
+    else:
+        s = text("INSERT INTO tag (domain, value) VALUES (:a, :b)")
+    session.execute(s, {'a': domain, 'b': name})
