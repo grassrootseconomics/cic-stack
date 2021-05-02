@@ -1,6 +1,6 @@
 {
 	"name": "cic-client-meta",
-	"version": "0.0.7-alpha.6",
+	"version": "0.0.7-alpha.8",
 	"description": "Signed CRDT metadata graphs for the CIC network",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
@@ -10,13 +10,15 @@
 		"build-server": "tsc -d --outDir dist-server scripts/server/*.ts",
 		"pack": "node_modules/typescript/bin/tsc -d --outDir dist && webpack",
 		"clean": "rm -rf dist",
-		"prepare": "npm run build && npm run build-server"
+		"prepare": "npm run build && npm run build-server",
+                "start": "./node_modules/ts-node/dist/bin.js ./scripts/server/server.ts" 
 	},
 	"dependencies": {
 		"@ethereumjs/tx": "^3.0.0-beta.1",
 		"automerge": "^0.14.1",
+		"crdt-meta": "0.0.8",
 		"ethereumjs-wallet": "^1.0.1",
-		"ini": "^1.3.5",
+		"ini": "^1.3.8",
 		"openpgp": "^4.10.8",
 		"pg": "^8.4.2",
 		"sqlite3": "^5.0.0",
@@ -40,6 +42,6 @@
 	],
 	"license": "GPL-3.0-or-later",
 	"engines": {
-		"node": "~14.16.1"
+		"node": ">=14.16.1"
 	}
 }

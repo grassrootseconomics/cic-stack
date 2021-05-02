@@ -29,7 +29,7 @@ RUN /usr/local/bin/python -m pip install --upgrade pip
 #	python merge_requirements.py | tee merged_requirements.txt 
 #RUN cd cic-base && \
 #	pip install $pip_extra_index_url_flag -r ./merged_requirements.txt 
-RUN pip install $pip_extra_index_url_flag cic-base[full_graph]==0.1.2a77
+RUN pip install $pip_extra_index_url_flag cic-base[full_graph]==0.1.2b8
 
 COPY cic-eth/scripts/ scripts/
 COPY cic-eth/setup.cfg cic-eth/setup.py ./
@@ -49,9 +49,5 @@ COPY cic-eth/tests/ tests/
 COPY cic-eth/config/ /usr/local/etc/cic-eth/
 COPY cic-eth/cic_eth/db/migrations/ /usr/local/share/cic-eth/alembic/
 COPY cic-eth/crypto_dev_signer_config/ /usr/local/etc/crypto-dev-signer/
-
-RUN git clone https://gitlab.com/grassrootseconomics/cic-contracts.git && \
-	mkdir -p /usr/local/share/cic/solidity && \
-	cp -R cic-contracts/abis /usr/local/share/cic/solidity/abi
 
 COPY util/liveness/health.sh /usr/local/bin/health.sh

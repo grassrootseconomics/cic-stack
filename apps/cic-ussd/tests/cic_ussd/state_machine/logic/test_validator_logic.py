@@ -36,7 +36,7 @@ def test_has_cached_user_metadata(create_in_db_ussd_session,
     user = create_activated_user
     key = generate_metadata_pointer(
         identifier=blockchain_address_to_metadata_pointer(blockchain_address=user.blockchain_address),
-        cic_type='cic.person'
+        cic_type=':cic.person'
     )
     cache_data(key=key, data=json.dumps(person_metadata))
     result = has_cached_user_metadata(state_machine_data=state_machine_data)

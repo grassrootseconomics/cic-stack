@@ -20,7 +20,7 @@ def define_account_tx_metadata(user: Account):
     )
     key = generate_metadata_pointer(
         identifier=identifier,
-        cic_type='cic.person'
+        cic_type=':cic.person'
     )
     account_metadata = get_cached_data(key=key)
 

@@ -105,7 +105,7 @@ def test_get_user_metadata(caplog,
         assert 'Get latest data status: 200' in caplog.text
     key = generate_metadata_pointer(
         identifier=identifier,
-        cic_type='cic.person'
+        cic_type=':cic.person'
     )
     cached_user_metadata = get_cached_data(key=key)
     assert cached_user_metadata

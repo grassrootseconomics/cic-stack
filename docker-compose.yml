@@ -53,8 +53,6 @@ services:
     command: [ "-c", "max_connections=200" ]
     volumes:
       - ./scripts/initdb/create_db.sql:/docker-entrypoint-initdb.d/1-create_all_db.sql 
-      - ./apps/cic-meta/scripts/initdb/postgresql.sh:/docker-entrypoint-initdb.d/2-init-cic-meta.sh
-      - ./apps/cic-cache/db/psycopg2/db.sql:/docker-entrypoint-initdb.d/3-init-cic-meta.sql
       - postgres-db:/var/lib/postgresql/data
 
   redis:
@@ -78,6 +76,9 @@ services:
 
   contract-migration:
     build:
+      args:
+        pip_index_url: ${PIP_DEFAULT_INDEX_URL:-https://pypi.org/simple}
+        pip_extra_args: $PIP_EXTRA_ARGS
       context: apps/
       dockerfile: contract-migration/docker/Dockerfile
     # image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:latest
@@ -477,6 +478,7 @@ services:
       PGP_PUBLICKEY_TRUSTED_FILE: publickeys.asc
       PGP_PUBLICKEY_ACTIVE_FILE: publickeys.asc
       PGP_PUBLICKEY_ENCRYPT_FILE: publickeys.asc
+      SCHEMA_SQL_PATH: scripts/initdb/server.postgres.sql
     ports:
       - ${HTTP_PORT_CIC_META:-63380}:8000
     depends_on:
@@ -488,8 +490,7 @@ services:
       - ${LOCAL_VOLUME_DIR:-/tmp/cic}/pgp:/tmp/cic/pgp
     # command: "/root/start_server.sh -vv"
 
-  cic-ussd-server:
-    # image: grassrootseconomics:cic-ussd
+  cic-user-ussd-server:
     build:
       context: apps/
       dockerfile: cic-ussd/docker/Dockerfile
@@ -507,7 +508,7 @@ services:
       SERVER_PORT: 9000
       CIC_META_URL: ${CIC_META_URL:-http://meta:8000}
     ports:
-      - ${HTTP_PORT_CIC_USSD:-63315}:9000
+      - ${HTTP_PORT_CIC_USER_USSD_SERVER:-63315}:9000
     depends_on:
       - postgres
       - redis
@@ -516,10 +517,31 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-    command: "/root/start_uwsgi.sh -vv"
+    command: "/root/start_cic_user_ussd_server.sh -vv"
 
-  cic-ussd-tasker:
-    # image: grassrootseconomics:cic-ussd
+  cic-user-server:
+    build:
+      context: apps
+      dockerfile: cic-ussd/docker/Dockerfile
+    environment:
+      DATABASE_USER: grassroots
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_PASSWORD: tralala
+      DATABASE_NAME: cic_ussd
+      DATABASE_ENGINE: postgresql
+      DATABASE_DRIVER: psycopg2
+      DATABASE_POOL_SIZE: 0
+    ports:
+      - ${HTTP_PORT_CIC_USER_SERVER:-63415}:9500
+    depends_on:
+      - postgres
+    deploy:
+      restart_policy:
+        condition: on-failure
+    command: "/root/start_cic_user_server.sh -vv"
+
+  cic-user-tasker:
     build:
       context: apps
       dockerfile: cic-ussd/docker/Dockerfile
@@ -544,4 +566,4 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-    command: "/root/start_tasker.sh -q cic-ussd -vv"
+    command: "/root/start_cic_user_tasker.sh -q cic-ussd -vv"
