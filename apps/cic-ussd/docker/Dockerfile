@@ -38,8 +38,9 @@ COPY cic-ussd/transitions/ cic-ussd/transitions/
 COPY cic-ussd/var/ cic-ussd/var/
 
 COPY cic-ussd/docker/db.sh \
-     cic-ussd/docker/start_tasker.sh \
-     cic-ussd/docker/start_uwsgi.sh \
+     cic-ussd/docker/start_cic_user_tasker.sh \
+     cic-ussd/docker/start_cic_user_ussd_server.sh\
+     cic-ussd/docker/start_cic_user_server.sh\
      /root/
 
 RUN chmod +x /root/*.sh

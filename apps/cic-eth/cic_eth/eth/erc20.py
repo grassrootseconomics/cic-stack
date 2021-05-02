@@ -6,7 +6,6 @@ import celery
 from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.chain import ChainSpec
 from chainlib.connection import RPCConnection
-from chainlib.eth.erc20 import ERC20
 from chainlib.eth.tx import (
         TxFormat,
         unpack,
@@ -16,6 +15,7 @@ from cic_eth_registry.erc20 import ERC20Token
 from hexathon import strip_0x
 from chainqueue.db.models.tx import TxCache
 from chainqueue.error import NotLocalTxError
+from eth_erc20 import ERC20
 
 # local imports
 from cic_eth.db.models.base import SessionBase

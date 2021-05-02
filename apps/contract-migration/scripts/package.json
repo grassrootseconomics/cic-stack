@@ -1,6 +1,7 @@
 {
   "dependencies": {
-    "cic-client-meta": "0.0.7-alpha.6",
+    "cic-client-meta": "^0.0.7-alpha.8",
+    "crdt-meta": "0.0.8",
     "vcard-parser": "^1.0.0"
   }
 }
