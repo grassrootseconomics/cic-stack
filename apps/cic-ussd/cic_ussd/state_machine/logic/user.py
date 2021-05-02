@@ -176,7 +176,7 @@ def edit_user_metadata_attribute(state_machine_data: Tuple[str, dict, Account]):
     blockchain_address = user.blockchain_address
     key = generate_metadata_pointer(
         identifier=blockchain_address_to_metadata_pointer(blockchain_address=user.blockchain_address),
-        cic_type='cic.person'
+        cic_type=':cic.person'
     )
     user_metadata = get_cached_data(key=key)
 

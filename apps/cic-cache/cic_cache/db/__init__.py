@@ -2,9 +2,14 @@
 import logging
 
 # local imports
-from .list import list_transactions_mined
-from .list import list_transactions_account_mined
-from .list import add_transaction
+from .list import (
+        list_transactions_mined,
+        list_transactions_account_mined,
+        add_transaction,
+        tag_transaction,
+        add_tag,
+    )
+
 
 logg = logging.getLogger()
 

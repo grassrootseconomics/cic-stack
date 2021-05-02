@@ -3,13 +3,16 @@ import os
 import logging
 import re
 
-# third-party imports
+# external imports
 import pytest
 import sqlparse
+import alembic
+from alembic.config import Config as AlembicConfig
 
 # local imports
 from cic_cache.db.models.base import SessionBase
 from cic_cache.db import dsn_from_config
+from cic_cache.db import add_tag
 
 logg = logging.getLogger(__file__)
 
@@ -26,11 +29,10 @@ def database_engine(
         except FileNotFoundError:
             pass
     dsn = dsn_from_config(load_config)
-    SessionBase.connect(dsn)
+    SessionBase.connect(dsn, debug=load_config.true('DATABASE_DEBUG'))
     return dsn
 
 
-# TODO: use alembic instead to migrate db, here we have to keep separate schema than migration script in script/migrate.py
 @pytest.fixture(scope='function')
 def init_database(
         load_config,
@@ -38,52 +40,23 @@ def init_database(
         ):
 
     rootdir = os.path.dirname(os.path.dirname(__file__))
-    schemadir = os.path.join(rootdir, 'db', load_config.get('DATABASE_DRIVER'))
-
-    if load_config.get('DATABASE_ENGINE') == 'sqlite':
-        rconn = SessionBase.engine.raw_connection()
-        f = open(os.path.join(schemadir, 'db.sql'))
-        s = f.read()
-        f.close()
-        rconn.executescript(s)
-
-    else:
-        rconn = SessionBase.engine.raw_connection()
-        rcursor = rconn.cursor()
-
-        #rcursor.execute('DROP FUNCTION IF EXISTS public.transaction_list')
-        #rcursor.execute('DROP FUNCTION IF EXISTS public.balances')
-
-        f = open(os.path.join(schemadir, 'db.sql'))
-        s = f.read()
-        f.close()
-        r = re.compile(r'^[A-Z]', re.MULTILINE)
-        for l in sqlparse.parse(s):
-            strl = str(l)
-            # we need to check for empty query lines, as sqlparse doesn't do that on its own (and psycopg complains when it gets them)
-            if not re.search(r, strl):
-                logg.warning('skipping parsed query line {}'.format(strl))
-                continue
-            rcursor.execute(strl)
-        rconn.commit()
-
-        rcursor.execute('SET search_path TO public')
-
-# this doesn't work when run separately, no idea why
-# functions have been manually added to original schema from cic-eth 
-#        f = open(os.path.join(schemadir, 'proc_transaction_list.sql'))
-#        s = f.read()
-#        f.close()
-#        rcursor.execute(s)
-# 
-#        f = open(os.path.join(schemadir, 'proc_balances.sql'))
-#        s = f.read()
-#        f.close()
-#        rcursor.execute(s)
-
-        rcursor.close()
+    dbdir = os.path.join(rootdir, 'cic_cache', 'db')
+    migrationsdir = os.path.join(dbdir, 'migrations', load_config.get('DATABASE_ENGINE'))
+    if not os.path.isdir(migrationsdir):
+        migrationsdir = os.path.join(dbdir, 'migrations', 'default')
+    logg.info('using migrations directory {}'.format(migrationsdir))
 
     session = SessionBase.create_session()
+
+    ac = AlembicConfig(os.path.join(migrationsdir, 'alembic.ini'))
+    ac.set_main_option('sqlalchemy.url', database_engine)
+    ac.set_main_option('script_location', migrationsdir)
+
+    alembic.command.downgrade(ac, 'base')
+    alembic.command.upgrade(ac, 'head')
+
+    session.commit()
+
     yield session
     session.commit()
     session.close()
@@ -116,3 +89,14 @@ def list_defaults(
     return {
         'block': 420000,
     }
+
+
+@pytest.fixture(scope='function')
+def tags(
+        init_database,
+        ):
+
+    add_tag(init_database, 'foo') 
+    add_tag(init_database, 'baz', domain='bar') 
+    add_tag(init_database, 'xyzzy', domain='bar') 
+    init_database.commit()

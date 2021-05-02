@@ -47,9 +47,9 @@ RUN wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | 
 ENV NODE_PATH $NVM_DIR/versions/node//v$NODE_VERSION/lib/node_modules
 ENV PATH      $NVM_DIR/versions/node//v$NODE_VERSION/bin:$PATH
 
-RUN useradd --create-home grassroots
-WORKDIR /home/grassroots
-USER grassroots
+#RUN useradd --create-home grassroots
+# WORKDIR /home/grassroots
+# USER grassroots
 
 ARG pip_extra_args=""
 ARG pip_index_url=https://pypi.org/simple
@@ -63,38 +63,43 @@ RUN pip install --user $pip_extra_args --index-url $pip_index_url --extra-index-
 	sarafu-token==$sarafu_token_version \
 	cic-eth==$cic_eth_version 
 
+# -------------- begin runtime container ---------------- 
 FROM python:3.8.6-slim-buster as runtime-image
 
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends gnupg libpq-dev 
-RUN apt-get install -y --no-install-recommends jq
+RUN apt-get install -y jq bash iputils-ping socat
 
 COPY --from=compile-image /usr/local/bin/ /usr/local/bin/
 COPY --from=compile-image /usr/local/etc/cic/ /usr/local/etc/cic/
+COPY --from=compile-image /usr/local/lib/python3.8/site-packages/ \
+                          /usr/local/lib/python3.8/site-packages/
 
-RUN useradd --create-home grassroots
-WORKDIR /home/grassroots
-# COPY python dependencies to user dir
-COPY --from=compile-image /home/grassroots/.local .local
-ENV PATH=/home/grassroots/.local/bin:$PATH
+ENV EXTRA_INDEX_URL https://pip.grassrootseconomics.net:8433
+# RUN useradd -u 1001 --create-home grassroots
+# RUN adduser grassroots sudo && \
+#     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+# WORKDIR /home/grassroots
 
 COPY contract-migration/testdata/pgp testdata/pgp
 COPY contract-migration/sarafu_declaration.json sarafu_declaration.json
 COPY contract-migration/keystore keystore
 COPY contract-migration/envlist .
+COPY contract-migration/scripts scripts/ 
 
-# RUN chown grassroots:grassroots .local/
-
-RUN mkdir -p /tmp/cic/config
-RUN chown grassroots:grassroots /tmp/cic/config
 # A shared output dir for environment configs
+RUN mkdir -p /tmp/cic/config
+# RUN chown grassroots:grassroots /tmp/cic/config
 RUN chmod a+rwx /tmp/cic/config 
 
 COPY contract-migration/*.sh ./
-RUN chown grassroots:grassroots -R .
+# RUN chown grassroots:grassroots -R .
 RUN chmod gu+x *.sh
 
+# we copied these from the root build container.
+# this is dumb though...I guess the compile image should have the same user
+# RUN chown grassroots:grassroots -R /usr/local/lib/python3.8/site-packages/ 
 
-USER grassroots
+# USER grassroots
 
 ENTRYPOINT [ ]
