@@ -48,10 +48,9 @@ def define_response_with_content(headers: list, response: str) -> tuple:
     content_length_header = ('Content-Length', str(content_length))
     # check for content length defaulted to zero in error headers
     for position, header in enumerate(headers):
-        if header[0] == 'Content-Length':
-            headers[position] = content_length_header
-        else:
-            headers.append(content_length_header)
+        if 'Content-Length' in header:
+            headers.pop(position)
+    headers.append(content_length_header)
     return response_bytes, headers
 
 

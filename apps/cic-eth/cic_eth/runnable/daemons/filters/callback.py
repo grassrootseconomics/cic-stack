@@ -13,9 +13,7 @@ from hexathon import (
         strip_0x,
         add_0x,
         )
-# TODO: use sarafu_Faucet for both when inheritance has been implemented
-from erc20_single_shot_faucet import SingleShotFaucet
-from sarafu_faucet import MinterFaucet as Faucet
+from erc20_faucet import Faucet
 
 # local imports
 from .base import SyncFilter
@@ -71,14 +69,13 @@ class CallbackFilter(SyncFilter):
         #transfer_data['token_address'] = tx.inputs[0]
         faucet_contract = tx.inputs[0]
 
-        c = SingleShotFaucet(self.chain_spec)
-        o = c.token(faucet_contract, sender_address=self.caller_address)
+        o = Faucet.token(faucet_contract, sender_address=self.caller_address)
         r = conn.do(o)
         transfer_data['token_address'] = add_0x(c.parse_token(r))
 
-        o = c.amount(faucet_contract, sender_address=self.caller_address)
+        o = c.token_amount(faucet_contract, sender_address=self.caller_address)
         r = conn.do(o)
-        transfer_data['value'] = c.parse_amount(r)
+        transfer_data['value'] = c.parse_token_amount(r)
 
         return ('tokengift', transfer_data)
 

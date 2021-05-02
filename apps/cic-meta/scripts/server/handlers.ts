@@ -1,8 +1,7 @@
 import * as Automerge from 'automerge';
 import * as pgp from 'openpgp';
-import * as pg from 'pg';
 
-import { Envelope, Syncable } from '../../src/sync';
+import { Envelope, Syncable } from 'crdt-meta';
 
 
 function handleNoMergeGet(db, digest, keystore) {

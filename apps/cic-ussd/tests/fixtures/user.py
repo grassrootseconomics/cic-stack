@@ -115,6 +115,6 @@ def cached_user_metadata(create_activated_user, init_redis_cache, person_metadat
     user_metadata = json.dumps(person_metadata)
     key = generate_metadata_pointer(
         identifier=blockchain_address_to_metadata_pointer(blockchain_address=create_activated_user.blockchain_address),
-        cic_type='cic.person'
+        cic_type=':cic.person'
     )
     cache_data(key=key, data=user_metadata)

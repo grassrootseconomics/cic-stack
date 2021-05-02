@@ -43,10 +43,6 @@ COPY cic-cache/config/ /usr/local/etc/cic-cache/
 RUN git clone https://github.com/vishnubob/wait-for-it.git /usr/local/bin/wait-for-it/
 COPY cic-cache/cic_cache/db/migrations/ /usr/local/share/cic-cache/alembic/
 
-RUN git clone https://gitlab.com/grassrootseconomics/cic-contracts.git && \
-	mkdir -p /usr/local/share/cic/solidity && \
-	cp -R cic-contracts/abis /usr/local/share/cic/solidity/abi
-
 COPY cic-cache/docker/start_tracker.sh ./start_tracker.sh
 COPY cic-cache/docker/db.sh ./db.sh
 RUN chmod 755 ./*.sh

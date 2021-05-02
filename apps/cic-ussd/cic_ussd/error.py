@@ -38,3 +38,13 @@ class MetadataStoreError(Exception):
     pass
 
 
+class SeppukuError(Exception):
+    """Exception base class for all errors that should cause system shutdown"""
+    pass
+
+
+class InitializationError(Exception):
+    """Exception raised when initialization state is insufficient to run component"""
+    pass
+
+

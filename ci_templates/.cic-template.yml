@@ -3,7 +3,7 @@ image:
   entrypoint: [""]
 
 variables:
-  KANIKO_CACHE_ARGS: "--cache=true --cache-copy-layers=true --cache-ttl=24h"
+  KANIKO_CACHE_ARGS: "--cache=false --cache-copy-layers=true --cache-ttl=24h"
   CONTEXT: $CI_PROJECT_DIR/apps/
 
 .py_build_merge_request:

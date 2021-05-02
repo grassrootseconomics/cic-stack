@@ -2,7 +2,7 @@
 import os
 import logging
 
-# third-party imports
+# external imports
 import pytest
 import confini
 
@@ -13,7 +13,7 @@ logg = logging.getLogger(__file__)
 
 @pytest.fixture(scope='session')
 def load_config():
-    config_dir = os.path.join(root_dir, '.config/test')
+    config_dir = os.path.join(root_dir, 'config/test')
     conf = confini.Config(config_dir, 'CICTEST')
     conf.process()
     logg.debug('config {}'.format(conf))

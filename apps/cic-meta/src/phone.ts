@@ -1,5 +1,4 @@
-import { ArgPair, Syncable } from '../sync';
-import { Addressable, mergeKey } from '../digest';
+import { Syncable, Addressable, mergeKey } from 'crdt-meta';
 
 class Phone extends Syncable implements Addressable {
 
