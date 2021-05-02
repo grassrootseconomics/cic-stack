@@ -1,4 +1,4 @@
-cic-base~=0.1.2b7
+cic-base~=0.1.2b8
 alembic==1.4.2
 confini~=0.3.6rc3
 uwsgi==2.0.19.1
@@ -9,4 +9,4 @@ semver==2.13.0
 psycopg2==2.8.6
 celery==4.4.7
 redis==3.5.3
-chainsyncer[sql]~=0.0.2a2
+chainsyncer[sql]~=0.0.2a4

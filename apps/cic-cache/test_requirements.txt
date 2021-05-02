@@ -8,6 +8,4 @@ eth_tester==0.5.0b3
 py-evm==0.3.0a20
 web3==5.12.2
 cic-eth-registry~=0.5.5a3
-giftable-erc20-token~=0.0.8a10
-eth-address-index~=0.1.1a10
-sarafu-faucet~=0.0.3a1
+cic-base[full]==0.1.2b8

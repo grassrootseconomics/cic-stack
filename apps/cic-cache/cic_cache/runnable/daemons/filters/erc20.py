@@ -2,7 +2,6 @@
 import logging
 
 # external imports
-from chainlib.eth.erc20 import ERC20
 from chainlib.eth.address import (
         to_checksum_address,
         )
@@ -13,6 +12,7 @@ from cic_eth_registry.error import (
         NotAContractError,
         ContractMismatchError,
         )
+from eth_erc20 import ERC20
 
 # local imports
 from .base import TagSyncFilter

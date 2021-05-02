@@ -76,6 +76,9 @@ services:
 
   contract-migration:
     build:
+      args:
+        pip_index_url: ${PIP_DEFAULT_INDEX_URL:-https://pypi.org/simple}
+        pip_extra_args: $PIP_EXTRA_ARGS
       context: apps/
       dockerfile: contract-migration/docker/Dockerfile
     # image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:latest
