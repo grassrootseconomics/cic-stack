@@ -14,13 +14,13 @@ from chainlib.eth.tx import (
         )
 from chainlib.eth.block import block_by_number
 from chainlib.eth.contract import abi_decode_single
-from chainlib.eth.erc20 import ERC20
 from hexathon import strip_0x
 from cic_eth_registry import CICRegistry
 from cic_eth_registry.erc20 import ERC20Token
 from chainqueue.db.models.otx import Otx
 from chainqueue.db.enum import StatusEnum
 from chainqueue.query import get_tx_cache
+from eth_erc20 import ERC20
 
 # local imports
 from cic_eth.queue.time import tx_times

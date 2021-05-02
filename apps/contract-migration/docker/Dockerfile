@@ -52,14 +52,15 @@ WORKDIR /home/grassroots
 USER grassroots
 
 ARG pip_extra_index_url=https://pip.grassrootseconomics.net:8433
-ARG cic_base_version=0.1.2a79
-ARG cic_eth_version=0.11.0b8+build.c2286e5c
-ARG sarafu_faucet_version=0.0.2a28
-ARG sarafu_token_version=0.0.1a6
-ARG cic_contracts_version=0.0.2a2
-RUN pip install --user --index-url https://pypi.org/simple --extra-index-url $pip_extra_index_url cic-base[full_graph]==$cic_base_version \
+ARG cic_base_version=0.1.2b8
+ARG cic_eth_version=0.11.0b12
+ARG sarafu_faucet_version=0.0.3a2
+ARG sarafu_token_version=0.0.1a8
+#ARG cic_contracts_version=0.0.2a2
+RUN pip install --user --index-url https://pypi.org/simple --extra-index-url $pip_extra_index_url \
+	cic-base[full_graph]==$cic_base_version \
 	cic-eth==$cic_eth_version \
-	cic-contracts==$cic_contracts_version \
+#	cic-contracts==$cic_contracts_version \
 	sarafu-faucet==$sarafu_faucet_version \
 	sarafu-token==$sarafu_token_version
 
