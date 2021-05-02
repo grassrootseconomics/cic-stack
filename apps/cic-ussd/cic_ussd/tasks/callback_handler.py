@@ -136,7 +136,7 @@ def process_balances_callback(result: list, param: str, status_code: int):
         blockchain_address = balances_data.get('address')
         key = create_cached_data_key(
             identifier=bytes.fromhex(blockchain_address[2:]),
-            salt='cic.balances_data'
+            salt=':cic.balances_data'
         )
         cache_data(key=key, data=json.dumps(balances_data))
     else:
@@ -226,7 +226,7 @@ def process_statement_callback(result, param: str, status_code: int):
 
         # cache account statement
         identifier = bytes.fromhex(param[2:])
-        key = create_cached_data_key(identifier=identifier, salt='cic.statement')
+        key = create_cached_data_key(identifier=identifier, salt=':cic.statement')
         data = json.dumps(processed_transactions)
 
         # cache statement data

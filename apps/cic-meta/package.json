@@ -10,7 +10,8 @@
 		"build-server": "tsc -d --outDir dist-server scripts/server/*.ts",
 		"pack": "node_modules/typescript/bin/tsc -d --outDir dist && webpack",
 		"clean": "rm -rf dist",
-		"prepare": "npm run build && npm run build-server"
+		"prepare": "npm run build && npm run build-server",
+                "start": "./node_modules/ts-node/dist/bin.js ./scripts/server/server.ts" 
 	},
 	"dependencies": {
 		"@ethereumjs/tx": "^3.0.0-beta.1",

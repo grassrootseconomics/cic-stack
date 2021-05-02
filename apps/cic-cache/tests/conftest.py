@@ -3,7 +3,7 @@ import os
 import sys
 import datetime
 
-# third-party imports
+# external imports
 import pytest
 
 # local imports
@@ -84,3 +84,7 @@ def txs(
     
     session.commit()
 
+    return [
+            tx_hash_first,
+            tx_hash_second,
+            ]

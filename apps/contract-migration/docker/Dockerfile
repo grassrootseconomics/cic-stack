@@ -31,15 +31,6 @@ RUN echo Install confini schema files && \
 	git checkout $cic_config_commit && \	
 	cp -v *.ini $CONFINI_DIR
 
-ARG cic_contracts_commit=698ef3a30fde8d7f2c498f1208fb0ff45d665501
-ARG cic_contracts_url=https://gitlab.com/grassrootseconomics/cic-contracts.git/
-RUN echo Install ABI collection for solidity interfaces used across all components && \
-	git clone --depth 1 $cic_contracts_url cic-contracts && \
-	cd cic-contracts && \
-	git fetch --depth 1 origin $cic_contracts_commit && \
-	git checkout $cic_contracts_commit && \
-	make install
-
 # Install nvm with node and npm
 # https://stackoverflow.com/questions/25899912/how-to-install-nvm-in-docker
 ENV NVM_DIR /root/.nvm
@@ -64,9 +55,9 @@ ARG pip_extra_index_url=https://pip.grassrootseconomics.net:8433
 ARG cic_base_version=0.1.2a79
 ARG cic_eth_version=0.11.0b8+build.c2286e5c
 ARG sarafu_faucet_version=0.0.2a28
-ARG sarafu_token_version==0.0.1a6
+ARG sarafu_token_version=0.0.1a6
 ARG cic_contracts_version=0.0.2a2
-RUN pip install --user --extra-index-url $pip_extra_index_url cic-base[full_graph]==$cic_base_version \
+RUN pip install --user --index-url https://pypi.org/simple --extra-index-url $pip_extra_index_url cic-base[full_graph]==$cic_base_version \
 	cic-eth==$cic_eth_version \
 	cic-contracts==$cic_contracts_version \
 	sarafu-faucet==$sarafu_faucet_version \

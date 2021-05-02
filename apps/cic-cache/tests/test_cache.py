@@ -4,7 +4,7 @@ import datetime
 import logging
 import json
 
-# third-party imports
+# external imports
 import pytest
 
 # local imports

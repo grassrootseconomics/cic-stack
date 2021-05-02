@@ -23,7 +23,7 @@ def has_cached_user_metadata(state_machine_data: Tuple[str, dict, Account]):
     # check for user metadata in cache
     key = generate_metadata_pointer(
         identifier=blockchain_address_to_metadata_pointer(blockchain_address=user.blockchain_address),
-        cic_type='cic.person'
+        cic_type=':cic.person'
     )
     user_metadata = get_cached_data(key=key)
     return user_metadata is not None

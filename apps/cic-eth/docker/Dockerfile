@@ -50,8 +50,4 @@ COPY cic-eth/config/ /usr/local/etc/cic-eth/
 COPY cic-eth/cic_eth/db/migrations/ /usr/local/share/cic-eth/alembic/
 COPY cic-eth/crypto_dev_signer_config/ /usr/local/etc/crypto-dev-signer/
 
-RUN git clone https://gitlab.com/grassrootseconomics/cic-contracts.git && \
-	mkdir -p /usr/local/share/cic/solidity && \
-	cp -R cic-contracts/abis /usr/local/share/cic/solidity/abi
-
 COPY util/liveness/health.sh /usr/local/bin/health.sh
