@@ -68,7 +68,7 @@ FROM python:3.8.6-slim-buster as runtime-image
 
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends gnupg libpq-dev 
-RUN apt-get install -y jq bash sudo 
+RUN apt-get install -y jq bash iputils-ping socat
 
 COPY --from=compile-image /usr/local/bin/ /usr/local/bin/
 COPY --from=compile-image /usr/local/etc/cic/ /usr/local/etc/cic/
