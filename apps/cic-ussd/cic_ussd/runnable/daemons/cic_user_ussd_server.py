@@ -17,6 +17,7 @@ from cic_ussd.chain import Chain
 from cic_ussd.db import dsn_from_config
 from cic_ussd.db.models.base import SessionBase
 from cic_ussd.encoder import PasswordEncoder
+from cic_ussd.error import InitializationError
 from cic_ussd.files.local_files import create_local_file_data_stores, json_file_parser
 from cic_ussd.menu.ussd_menu import UssdMenu
 from cic_ussd.metadata.signer import Signer
@@ -25,7 +26,8 @@ from cic_ussd.operations import (define_response_with_content,
                                  process_menu_interaction_requests,
                                  define_multilingual_responses)
 from cic_ussd.phone_number import process_phone_number
-from cic_ussd.redis import InMemoryStore
+from cic_ussd.processor import get_default_token_data
+from cic_ussd.redis import cache_data, create_cached_data_key, InMemoryStore
 from cic_ussd.requests import (get_request_endpoint,
                                get_request_method)
 from cic_ussd.runnable.server_base import exportable_parser, logg
@@ -106,6 +108,20 @@ chain_spec = ChainSpec(
 Chain.spec = chain_spec
 UssdStateMachine.states = states
 UssdStateMachine.transitions = transitions
+
+# retrieve default token data
+default_token_data = get_default_token_data()
+chain_str = Chain.spec.__str__()
+
+# cache default token for re-usability
+if default_token_data:
+    cache_key = create_cached_data_key(
+        identifier=chain_str.encode('utf-8'),
+        salt=':cic.default_token_data'
+    )
+    cache_data(key=cache_key, data=json.dumps(default_token_data))
+else:
+    raise InitializationError(f'Default token data for: {chain_str} not found.')
 
 
 def application(env, start_response):

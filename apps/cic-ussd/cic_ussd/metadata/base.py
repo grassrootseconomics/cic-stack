@@ -118,7 +118,7 @@ class MetadataRequestsHandler(Metadata):
         metadata_http_error_handler(result=result)
         response_data = result.content
         data = json.loads(response_data.decode('utf-8'))
-        if result.status_code == 200 and self.cic_type == 'cic.person':
+        if result.status_code == 200 and self.cic_type == ':cic.person':
             person = Person()
             deserialized_person = person.deserialize(person_data=json.loads(data))
             data = json.dumps(deserialized_person.serialize())

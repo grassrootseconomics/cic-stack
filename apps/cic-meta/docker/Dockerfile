@@ -2,7 +2,7 @@ FROM node:15.3.0-alpine3.10
 
 WORKDIR /tmp/src/cic-meta
 
-RUN apk add --no-cache postgresql
+RUN apk add --no-cache postgresql bash
 
 COPY cic-meta/package.json \
      ./

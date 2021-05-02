@@ -64,7 +64,7 @@ def has_sufficient_balance(state_machine_data: Tuple[str, dict, Account]) -> boo
     # get cached balance
     key = create_cached_data_key(
         identifier=bytes.fromhex(user.blockchain_address[2:]),
-        salt='cic.balances_data'
+        salt=':cic.balances_data'
     )
     cached_balance = get_cached_data(key=key)
     operational_balance = compute_operational_balance(balances=json.loads(cached_balance))

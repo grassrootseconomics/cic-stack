@@ -80,7 +80,7 @@ def get_cached_operational_balance(blockchain_address: str):
     """
     key = create_cached_data_key(
         identifier=bytes.fromhex(blockchain_address[2:]),
-        salt='cic.balances_data'
+        salt=':cic.balances_data'
     )
     cached_balance = get_cached_data(key=key)
     if cached_balance:
