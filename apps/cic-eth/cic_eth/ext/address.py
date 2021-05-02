@@ -7,7 +7,7 @@ from chainlib.chain import ChainSpec
 from chainlib.connection import RPCConnection
 from chainlib.eth.constant import ZERO_ADDRESS
 from cic_eth_registry import CICRegistry
-from eth_address_declarator import AddressDeclarator
+from eth_address_declarator import Declarator
 
 # local imports
 from cic_eth.task import BaseTask
@@ -22,13 +22,13 @@ def translate_address(address, trusted_addresses, chain_spec, sender_address=ZER
     rpc = RPCConnection.connect(chain_spec, 'default')
     registry = CICRegistry(chain_spec, rpc)
     
-    declarator_address = registry.by_name('AddressDeclarator', sender_address=sender_address)
-    c = AddressDeclarator(chain_spec)
+    declarator_address = registry.by_name('Declarator', sender_address=sender_address)
+    c = Declarator(chain_spec)
 
     for trusted_address in trusted_addresses:
         o = c.declaration(declarator_address, trusted_address, address, sender_address=sender_address)
         r = rpc.do(o)
-        declaration_hex = AddressDeclarator.parse_declaration(r)
+        declaration_hex = Declarator.parse_declaration(r)
         declaration_hex = declaration_hex[0].rstrip('0')
         declaration_bytes = bytes.fromhex(declaration_hex)
         declaration = None
