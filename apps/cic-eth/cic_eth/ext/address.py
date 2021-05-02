@@ -22,7 +22,7 @@ def translate_address(address, trusted_addresses, chain_spec, sender_address=ZER
     rpc = RPCConnection.connect(chain_spec, 'default')
     registry = CICRegistry(chain_spec, rpc)
     
-    declarator_address = registry.by_name('Declarator', sender_address=sender_address)
+    declarator_address = registry.by_name('AddressDeclarator', sender_address=sender_address)
     c = Declarator(chain_spec)
 
     for trusted_address in trusted_addresses:
