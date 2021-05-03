@@ -325,6 +325,14 @@ def process_menu_interaction_requests(chain_str: str,
         # get user
         user = Account.session.query(Account).filter_by(phone_number=phone_number).first()
 
+        # retrieve and cache user's metadata
+        blockchain_address = user.blockchain_address
+        s_query_person_metadata = celery.signature(
+            'cic_ussd.tasks.metadata.query_person_metadata',
+            [blockchain_address]
+        )
+        s_query_person_metadata.apply_async(queue='cic-ussd')
+
         # find any existing ussd session
         existing_ussd_session = UssdSession.session.query(UssdSession).filter_by(
             external_session_id=external_session_id).first()
