@@ -63,23 +63,28 @@ if __name__ == '__main__':
 
     for x in os.walk(user_old_dir):
         for y in x[2]:
+            # skip non-json files
             if y[len(y) - 5:] != '.json':
                 continue
-            filepath = os.path.join(x[0], y)
-            f = open(filepath, 'r')
-            try:
-                o = json.load(f)
-            except json.decoder.JSONDecodeError as e:
-                f.close()
-                logg.error('load error for {}: {}'.format(y, e))
-                continue
-            f.close()
-            u = Person.deserialize(o)
 
-            phone_object = phonenumbers.parse(u.tel)
-            phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
-            password_hash = generate_password_hash()
-            pins_file.write(f'{phone},{password_hash}\n')
-            logg.debug(f'Writing phone: {phone}, password_hash: {password_hash}')
+            # define file path for
+            filepath = None
+            if y != 'ussd_data.json':
+                filepath = os.path.join(x[0], y)
+                f = open(filepath, 'r')
+                try:
+                    o = json.load(f)
+                except json.decoder.JSONDecodeError as e:
+                    f.close()
+                    logg.error('load error for {}: {}'.format(y, e))
+                    continue
+                f.close()
+                u = Person.deserialize(o)
+
+                phone_object = phonenumbers.parse(u.tel)
+                phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
+                password_hash = generate_password_hash()
+                pins_file.write(f'{phone},{password_hash}\n')
+                logg.info(f'Writing phone: {phone}, password_hash: {password_hash}')
 
     pins_file.close()
