@@ -20,7 +20,8 @@ from chainlib.eth.tx import (
         )
 from chainlib.chain import ChainSpec
 from chainlib.error import JSONRPCException
-from eth_accounts_index.registry import AccountRegistry # TODO, use interface module instead (needs gas limit method)
+from eth_accounts_index.registry import AccountRegistry
+from eth_accounts_index import AccountsIndex 
 from sarafu_faucet import MinterFaucet
 from chainqueue.db.models.tx import TxCache
 
@@ -127,12 +128,12 @@ def register(self, account_address, chain_spec_dict, writer_address=None):
     if writer_address == ZERO_ADDRESS:
         session.close()
         raise RoleMissingError('call address for resgistering {}'.format(account_address))
-    account_registry_address = registry.by_name('AccountsIndex', sender_address=call_address)
+    account_registry_address = registry.by_name('AccountRegistry', sender_address=call_address)
    
     # Generate and sign transaction
     rpc_signer = RPCConnection.connect(chain_spec, 'signer')
     nonce_oracle = CustodialTaskNonceOracle(writer_address, self.request.root_id, session=session) #, default_nonce)
-    gas_oracle = self.create_gas_oracle(rpc, AccountsIndex.gas)
+    gas_oracle = self.create_gas_oracle(rpc, AccountRegistry.gas)
     account_registry = AccountsIndex(chain_spec, signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
     (tx_hash_hex, tx_signed_raw_hex) = account_registry.add(account_registry_address, writer_address, account_address, tx_format=TxFormat.RLP_SIGNED)
     rpc_signer.disconnect()

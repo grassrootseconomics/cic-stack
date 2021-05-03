@@ -72,6 +72,7 @@ def register_filter_tags(filters, session):
             session.commit()
             logg.info('added tag name "{}" domain "{}"'.format(tag[0], tag[1]))
         except sqlalchemy.exc.IntegrityError:
+            session.rollback()
             logg.debug('already have tag name "{}" domain "{}"'.format(tag[0], tag[1]))
 
 

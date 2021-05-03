@@ -8,11 +8,11 @@ from chainlib.status import Status as TxStatus
 from chainlib.eth.address import to_checksum_address
 from chainlib.eth.error import RequestMismatchException
 from chainlib.eth.constant import ZERO_ADDRESS
-from chainlib.eth.erc20 import ERC20
 from hexathon import (
         strip_0x,
         add_0x,
         )
+from eth_erc20 import ERC20
 from erc20_faucet import Faucet
 
 # local imports

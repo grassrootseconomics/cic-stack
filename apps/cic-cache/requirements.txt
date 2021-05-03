@@ -1,4 +1,4 @@
-cic-base~=0.1.2b8
+cic-base~=0.1.2b9
 alembic==1.4.2
 confini~=0.3.6rc3
 uwsgi==2.0.19.1

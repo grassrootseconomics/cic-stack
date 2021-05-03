@@ -25,7 +25,10 @@ class FaucetFilter(TagSyncFilter):
 
 
     def filter(self, conn, block, tx, db_session=None):
-        data = strip_0x(tx.payload)
+        try:
+            data = strip_0x(tx.payload)
+        except ValueError:
+            return False
         logg.debug('data {}'.format(data))
         if Faucet.method_for(data[:8]) == None:
             return False
