@@ -87,6 +87,13 @@ chain_str = str(chain_spec)
 batch_size = args.batch_size
 batch_delay = args.batch_delay
 
+db_configs = {
+    'database': config.get('DATABASE_NAME'),
+    'host': config.get('DATABASE_HOST'),
+    'port': config.get('DATABASE_PORT'),
+    'user': config.get('DATABASE_USER'),
+    'password': config.get('DATABASE_PASSWORD')
+}
   
 
 def build_ussd_request(phone, host, port, service_code, username, password, ssl=False):
@@ -135,57 +142,60 @@ if __name__ == '__main__':
         for y in x[2]:
             if y[len(y)-5:] != '.json':
                 continue
-            filepath = os.path.join(x[0], y)
-            f = open(filepath, 'r')
-            try:
-                o = json.load(f)
-            except json.decoder.JSONDecodeError as e:
+            # handle json containing person object
+            filepath = None
+            if y != 'ussd_data.json':
+                filepath = os.path.join(x[0], y)
+                f = open(filepath, 'r')
+                try:
+                    o = json.load(f)
+                except json.decoder.JSONDecodeError as e:
+                    f.close()
+                    logg.error('load error for {}: {}'.format(y, e))
+                    continue
                 f.close()
-                logg.error('load error for {}: {}'.format(y, e))
-                continue
-            f.close()
-            u = Person.deserialize(o)
+                u = Person.deserialize(o)
 
-            new_address = register_ussd(i, u)
+                new_address = register_ussd(i, u)
 
-            phone_object = phonenumbers.parse(u.tel)
-            phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
+                phone_object = phonenumbers.parse(u.tel)
+                phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
 
-            s_phone = celery.signature(
-                    'import_task.resolve_phone',
-                    [
-                        phone,
-                        ],
-                    queue='cic-import-ussd',
-                    )
+                s_phone = celery.signature(
+                        'import_task.resolve_phone',
+                        [
+                            phone,
+                            ],
+                        queue='cic-import-ussd',
+                        )
 
-            s_meta = celery.signature(
-                    'import_task.generate_metadata',
-                    [
-                        phone,
-                        ],
-                    queue='cic-import-ussd',
-                    )
+                s_meta = celery.signature(
+                        'import_task.generate_metadata',
+                        [
+                            phone,
+                            ],
+                        queue='cic-import-ussd',
+                        )
 
-            s_balance = celery.signature(
-                    'import_task.opening_balance_tx',
-                    [
-                        phone,
-                        i,
-                        ],
-                    queue='cic-import-ussd',
-                    )
+                s_balance = celery.signature(
+                        'import_task.opening_balance_tx',
+                        [
+                            phone,
+                            i,
+                            ],
+                        queue='cic-import-ussd',
+                        )
 
-            s_meta.link(s_balance)
-            s_phone.link(s_meta)
-            s_phone.apply_async(countdown=7) # block time plus a bit of time for ussd processing
+                s_meta.link(s_balance)
+                s_phone.link(s_meta)
+                # block time plus a bit of time for ussd processing
+                s_phone.apply_async(countdown=7)
 
-            i += 1
-            sys.stdout.write('imported {} {}'.format(i, u).ljust(200) + "\r")
-        
-            j += 1
-            if j == batch_size:
-                time.sleep(batch_delay)
-                j = 0
+                i += 1
+                sys.stdout.write('imported {} {}'.format(i, u).ljust(200) + "\r")
 
-    #fi.close()
+                j += 1
+                if j == batch_size:
+                    time.sleep(batch_delay)
+                    j = 0
+
