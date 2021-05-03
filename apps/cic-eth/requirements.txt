@@ -18,7 +18,6 @@ chainlib~=0.0.3a1
 hexathon~=0.0.1a7
 chainsyncer[sql]~=0.0.2a4
 chainqueue~=0.0.2a2
-sarafu-faucet==0.0.3a1
 coincurve==15.0.0
 sarafu-faucet==0.0.3a2
 potaahto~=0.0.1a1
