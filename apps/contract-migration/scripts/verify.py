@@ -163,6 +163,39 @@ if logg.isEnabledFor(logging.DEBUG):
     outfunc = logg.debug
 
 
+def send_ussd_request(address, data_dir):
+    upper_address = strip_0x(address).upper()
+    f = open(os.path.join(
+        data_dir,
+        'new',
+        upper_address[:2],
+        upper_address[2:4],
+        upper_address + '.json',
+    ), 'r'
+    )
+    o = json.load(f)
+    f.close()
+
+    p = Person.deserialize(o)
+    phone = p.tel
+
+    session = uuid.uuid4().hex
+    data = {
+        'sessionId': session,
+        'serviceCode': config.get('APP_SERVICE_CODE'),
+        'phoneNumber': phone,
+        'text': '',
+    }
+
+    req = urllib.request.Request(config.get('_USSD_PROVIDER'))
+    data_str = json.dumps(data)
+    data_bytes = data_str.encode('utf-8')
+    req.add_header('Content-Type', 'application/json')
+    req.data = data_bytes
+    response = urllib.request.urlopen(req)
+    return response.read().decode('utf-8')
+
+
 class VerifierState:
 
     def __init__(self, item_keys, active_tests=None):
@@ -346,69 +379,17 @@ class Verifier:
 
 
     def verify_ussd(self, address, balance=None):
-        upper_address = strip_0x(address).upper()
-        f = open(os.path.join(
-            self.data_dir,
-            'new',
-            upper_address[:2],
-            upper_address[2:4],
-            upper_address + '.json',
-            ), 'r'
-            )
-        o = json.load(f)
-        f.close()
-
-        p = Person.deserialize(o)
-        phone = p.tel
-
-        session = uuid.uuid4().hex
-        data = {
-                'sessionId': session,
-                'serviceCode': config.get('APP_SERVICE_CODE'),
-                'phoneNumber': phone,
-                'text': config.get('APP_SERVICE_CODE'),
-            }
-
-        req = urllib.request.Request(config.get('_USSD_PROVIDER'))
-        data_str = json.dumps(data)
-        data_bytes = data_str.encode('utf-8')
-        req.add_header('Content-Type', 'application/json')
-        req.data = data_bytes
-        response = urllib.request.urlopen(req)
-        response_data = response.read().decode('utf-8')
+        response_data = send_ussd_request(address, self.data_dir)
         state = response_data[:3]
         out = response_data[4:]
         m = '{} {}'.format(state, out[:7])
         if m != 'CON Welcome':
             raise VerifierError(response_data, 'ussd')
 
-    def verify_ussd_pins(self):
-        # read file with pin exports
-        pins_file = f'{args.userdir}/pins.csv'
-        exported_phone_to_pins = [tuple(row) for row in csv.reader(pins_file)]
-
-        # get columns with pins and phone numbers
-        db_conn = psycopg2.connect(
-            database=config.get('DATABASE_NAME'),
-            host=config.get('DATABASE_HOST'),
-            port=config.get('DATABASE_PORT'),
-            user=config.get('DATABASE_USER'),
-            password=config.get('DATABASE_PASSWORD')
-        )
-        db_cursor = db_conn.cursor()
-
-        sql = 'SELECT phone_number, password_hash FROM account'
-        db_cursor.execute(sql)
-        phone_to_pins = db_cursor.fetchall()
-
-        db_cursor.close()
-        db_conn.close()
-
-        if Counter(exported_phone_to_pins) == Counter(phone_to_pins):
-            logg.debug(f'verified {len(exported_phone_to_pins)} exported pins match {len(phone_to_pins)} imported pins in db')
-        else:
-            raise VerifierError('Irregular pins import', 'pins')
-
+    def verify_ussd_pins(self, address, balance):
+        response_data = send_ussd_request(address, self.data_dir)
+        if response_data[:11] != 'CON Balance':
+            raise VerifierError(response_data, 'pins')
 
 
     def verify(self, address, balance, debug_stem=None):
