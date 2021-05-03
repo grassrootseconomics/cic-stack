@@ -55,7 +55,7 @@ class MetadataTask(ImportTask):
     def meta_url(self):
         scheme = 'http'
         if self.meta_ssl:
-            scheme += s
+            scheme += 's'
         url = urllib.parse.urlparse('{}://{}:{}/{}'.format(scheme, self.meta_host, self.meta_port, self.meta_path))
         return urllib.parse.urlunparse(url)
 
@@ -233,7 +233,7 @@ def set_pins(config: dict, phone_to_pins: list):
 
     # update db
     for element in phone_to_pins:
-        sql = f'UPDATE account SET password_hash = %s WHERE phone_number = %s'
+        sql = 'UPDATE account SET password_hash = %s WHERE phone_number = %s'
         db_cursor.execute(sql, (element[1], element[0]))
         logg.debug(f'Updating: {element[0]} with: {element[1]}')
 
@@ -243,3 +243,34 @@ def set_pins(config: dict, phone_to_pins: list):
     # close connections
     db_cursor.close()
     db_conn.close()
+
+
+@celery_app.task
+def set_ussd_data(config: dict, ussd_data: dict):
+    # define db connection
+    db_conn = psycopg2.connect(
+        database=config.get('database'),
+        host=config.get('host'),
+        port=config.get('port'),
+        user=config.get('user'),
+        password=config.get('password')
+    )
+    db_cursor = db_conn.cursor()
+
+    # process ussd_data
+    account_status = 1
+    if ussd_data['is_activated'] == 1:
+        account_status = 2
+    preferred_language = ussd_data['preferred_language']
+    phone_number = ussd_data['phone']
+
+    sql = 'UPDATE account SET account_status = %s, preferred_language = %s WHERE phone_number = %s'
+    db_cursor.execute(sql, (account_status, preferred_language, phone_number))
+
+    # commit changes
+    db_conn.commit()
+
+    # close connections
+    db_cursor.close()
+    db_conn.close()
+
