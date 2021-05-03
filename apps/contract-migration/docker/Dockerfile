@@ -58,7 +58,7 @@ ARG cic_base_version=0.1.2b8
 ARG cic_eth_version=0.11.0b12
 ARG sarafu_token_version=0.0.1a8
 ARG sarafu_faucet_version=0.0.3a2
-RUN pip install --user --index-url https://pypi.org/simple --extra-index-url $pip_extra_index_url \
+RUN pip install --index-url https://pypi.org/simple --extra-index-url $pip_extra_index_url \
 	cic-base[full_graph]==$cic_base_version \
 	cic-eth==$cic_eth_version \
 	sarafu-faucet==$sarafu_faucet_version \
