@@ -27,7 +27,6 @@ from chainlib.eth.block import (
         )
 from chainlib.hash import keccak256_string_to_hex
 from chainlib.eth.address import to_checksum_address
-from chainlib.eth.erc20 import ERC20
 from chainlib.eth.gas import OverrideGasOracle
 from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.tx import TxFactory
@@ -37,6 +36,7 @@ from chainlib.chain import ChainSpec
 from crypto_dev_signer.eth.signer import ReferenceSigner as EIP155Signer
 from crypto_dev_signer.keystore.dict import DictKeystore
 from cic_types.models.person import Person
+from eth_erc20 import ERC20
 
 
 logging.basicConfig(level=logging.WARNING)
