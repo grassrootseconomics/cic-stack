@@ -2,14 +2,14 @@
 FROM python:3.8.6-slim-buster as compile-image
 
 RUN apt-get update
-RUN apt-get install -y --no-install-recommends git gcc g++ libpq-dev gawk openssl gnupg  bash procps make python2 cargo
+RUN apt-get install -y --no-install-recommends git gcc g++ libpq-dev gawk jq telnet wget openssl iputils-ping gnupg socat bash procps make python2 cargo
 
 WORKDIR /root
 RUN mkdir -vp /usr/local/etc/cic
 
-COPY requirements.txt . 
+COPY data-seeding/requirements.txt . 
 
-ARG EXTRA_INDEX_URL https://pip.grassrootseconomics.net:8433
+ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
 RUN pip install --extra-index-url $EXTRA_INDEX_URL -r requirements.txt 
 
 # -------------- begin runtime container ---------------- 

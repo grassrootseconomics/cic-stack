@@ -87,7 +87,6 @@ COPY contract-migration/testdata/pgp testdata/pgp
 COPY contract-migration/sarafu_declaration.json sarafu_declaration.json
 COPY contract-migration/keystore keystore
 COPY contract-migration/envlist .
-COPY contract-migration/scripts scripts/ 
 
 # A shared output dir for environment configs
 RUN mkdir -p /tmp/cic/config
