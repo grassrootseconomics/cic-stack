@@ -21,4 +21,4 @@ chainqueue~=0.0.2a2
 sarafu-faucet==0.0.3a3
 erc20-faucet==0.2.1a4
 coincurve==15.0.0
-potaahto~=0.0.1a1
+potaahto~=0.0.1a2
