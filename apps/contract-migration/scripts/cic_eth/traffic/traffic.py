@@ -12,6 +12,7 @@ from cic_eth_registry.registry import CICRegistry
 from chainsyncer.backend.memory import MemBackend
 from chainsyncer.driver import HeadSyncer
 from chainlib.eth.connection import EthHTTPConnection
+from chainlib.chain import ChainSpec
 from chainlib.eth.gas import RPCGasOracle
 from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.block import block_latest
@@ -33,6 +34,10 @@ from cmd.traffic import (
         TrafficSyncHandler,
         )
 from cmd.traffic import add_args as add_traffic_args
+from cmd.cache import (
+        AccountRegistryCache,
+        TokenRegistryCache,
+        )
 
 
 # common basics
@@ -59,6 +64,7 @@ config.add(args.q, '_CELERY_QUEUE', True)
 
 logg.debug(config)
 
+chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 
 def main():
     # create signer (not currently in use, but needs to be accessible for custom traffic item generators)
@@ -71,7 +77,8 @@ def main():
     rpc.setup(config.get('CIC_CHAIN_SPEC'), config.get('ETH_PROVIDER')) # replace with HTTPConnection when registry has been so refactored
     conn = EthHTTPConnection(config.get('ETH_PROVIDER'))
     #registry = registry.init_legacy(config, w3)
-    registry = CICRegistry(config.get('CIC_CHAIN_SPEC'), conn)
+    CICRegistry.address = config.get('CIC_REGISTRY_ADDRESS')
+    registry = CICRegistry(chain_spec, conn)
 
     # Connect to blockchain with chainlib
     gas_oracle = RPCGasOracle(conn)
@@ -80,9 +87,8 @@ def main():
     # Set up magic traffic handler
     traffic_router = TrafficRouter()
     traffic_router.apply_import_dict(config.all(), config)
-    handler = TrafficSyncHandler(config, traffic_router)
+    handler = TrafficSyncHandler(config, traffic_router, conn)
 
-    return
     # Set up syncer
     syncer_backend = MemBackend(config.get('CIC_CHAIN_SPEC'), 0)
     o = block_latest()
@@ -90,9 +96,21 @@ def main():
     block_offset = int(strip_0x(r), 16) + 1
     syncer_backend.set(block_offset, 0)
 
+    # get relevant registry entries
+    token_registry = registry.lookup('TokenRegistry')
+    logg.info('using token registry {}'.format(token_registry))
+    token_cache = TokenRegistryCache(chain_spec, token_registry)
+
+    account_registry = registry.lookup('TokenRegistry')
+    logg.info('using account registry {}'.format(account_registry))
+    account_cache = AccountRegistryCache(chain_spec, account_registry)
+   
     # Set up provisioner for common task input data
-    TrafficProvisioner.oracles['token']= common.registry.TokenOracle(w3, config.get('CIC_CHAIN_SPEC'), registry)
-    TrafficProvisioner.oracles['account'] = common.registry.AccountsOracle(w3, config.get('CIC_CHAIN_SPEC'), registry)
+    #TrafficProvisioner.oracles['token']= common.registry.TokenOracle(w3, config.get('CIC_CHAIN_SPEC'), registry)
+    #TrafficProvisioner.oracles['account'] = common.registry.AccountsOracle(w3, config.get('CIC_CHAIN_SPEC'), registry)
+    TrafficProvisioner.oracles['token']= token_cache
+    TrafficProvisioner.oracles['account'] = account_cache
+    
     TrafficProvisioner.default_aux = {
             'chain_spec': config.get('CIC_CHAIN_SPEC'),
             'registry': registry,
@@ -102,7 +120,7 @@ def main():
             'api_queue': config.get('_CELERY_QUEUE'),
             }
 
-    syncer = HeadSyncer(syncer_backend, loop_callback=handler.refresh)
+    syncer = HeadSyncer(syncer_backend, block_callback=handler.refresh)
     syncer.add_filter(handler)
     syncer.loop(1, conn)
 

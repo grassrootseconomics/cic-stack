@@ -11,7 +11,7 @@ queue = 'cic-eth'
 name = 'account'
 
 
-def do(token_pair, sender, recipient, sender_balance, aux, block_number, tx_index):
+def do(token_pair, sender, recipient, sender_balance, aux, block_number):
     """Triggers creation and registration of new account through the custodial cic-eth component.
 
     It expects the following aux parameters to exist:
