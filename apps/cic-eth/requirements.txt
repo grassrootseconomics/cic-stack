@@ -1,4 +1,4 @@
-cic-base==0.1.2b10
+cic-base~=0.1.2b11
 celery==4.4.7
 crypto-dev-signer~=0.4.14b3
 confini~=0.3.6rc3
@@ -7,7 +7,7 @@ redis==3.5.3
 alembic==1.4.2
 websockets==8.1
 requests~=2.24.0
-eth_accounts_index~=0.0.11a11
+eth_accounts_index~=0.0.11a12
 erc20-transfer-authorization~=0.3.1a6
 uWSGI==2.0.19.1
 semver==2.13.0
