@@ -3,7 +3,7 @@ import logging
 import copy
 
 # external imports
-from cic_registry import CICRegistry
+from cic_registry.registry import Registry
 from eth_token_index import TokenUniqueSymbolIndex
 from eth_accounts_index import AccountRegistry
 from chainlib.chain import ChainSpec

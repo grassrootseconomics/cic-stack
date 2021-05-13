@@ -8,16 +8,24 @@ import json
 # external imports
 import redis
 import celery
-from chainsyncer.backend import MemBackend
+from cic_eth_registry.registry import CICRegistry
+from chainsyncer.backend.memory import MemBackend
 from chainsyncer.driver import HeadSyncer
-from chainlib.eth.connection import HTTPConnection
-from chainlib.eth.gas import DefaultGasOracle
-from chainlib.eth.nonce import DefaultNonceOracle
+from chainlib.eth.connection import EthHTTPConnection
+from chainlib.eth.gas import RPCGasOracle
+from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.block import block_latest
 from hexathon import strip_0x
+from cic_base import (
+        argparse,
+        config,
+        log,
+        rpc,
+        signer as signer_funcs,
+        )
 
 # local imports
-import common
+#import common
 from cmd.traffic import (
         TrafficItem,
         TrafficRouter,
@@ -29,11 +37,11 @@ from cmd.traffic import add_args as add_traffic_args
 
 # common basics
 script_dir = os.path.realpath(os.path.dirname(__file__))
-logg = common.log.create()
-argparser = common.argparse.create(script_dir, common.argparse.full_template)
-argparser = common.argparse.add(argparser, add_traffic_args, 'traffic')
-args = common.argparse.parse(argparser, logg)
-config = common.config.create(args.c, args, args.env_prefix)
+logg = log.create()
+argparser = argparse.create(script_dir, argparse.full_template)
+argparser = argparse.add(argparser, add_traffic_args, 'traffic')
+args = argparse.parse(argparser, logg)
+config = config.create(args.c, args, args.env_prefix)
 
 # map custom args to local config entries
 batchsize = args.batch_size
@@ -49,30 +57,32 @@ config.add(args.y, '_KEYSTORE_FILE', True)
 
 config.add(args.q, '_CELERY_QUEUE', True)
 
-common.config.log(config)
+logg.debug(config)
 
 
 def main():
     # create signer (not currently in use, but needs to be accessible for custom traffic item generators)
-    (signer_address, signer) = common.signer.from_keystore(config.get('_KEYSTORE_FILE'))
+    (signer_address, signer) = signer_funcs.from_keystore(config.get('_KEYSTORE_FILE'))
 
     # connect to celery
     celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
     # set up registry
-    w3 = common.rpc.create(config.get('ETH_PROVIDER')) # replace with HTTPConnection when registry has been so refactored
-    registry = common.registry.init_legacy(config, w3)
+    rpc.setup(config.get('CIC_CHAIN_SPEC'), config.get('ETH_PROVIDER')) # replace with HTTPConnection when registry has been so refactored
+    conn = EthHTTPConnection(config.get('ETH_PROVIDER'))
+    #registry = registry.init_legacy(config, w3)
+    registry = CICRegistry(config.get('CIC_CHAIN_SPEC'), conn)
 
     # Connect to blockchain with chainlib
-    conn = HTTPConnection(config.get('ETH_PROVIDER'))
-    gas_oracle = DefaultGasOracle(conn)
-    nonce_oracle = DefaultNonceOracle(signer_address, conn)
+    gas_oracle = RPCGasOracle(conn)
+    nonce_oracle = RPCNonceOracle(signer_address, conn)
 
     # Set up magic traffic handler
     traffic_router = TrafficRouter()
     traffic_router.apply_import_dict(config.all(), config)
     handler = TrafficSyncHandler(config, traffic_router)
 
+    return
     # Set up syncer
     syncer_backend = MemBackend(config.get('CIC_CHAIN_SPEC'), 0)
     o = block_latest()
