@@ -3,6 +3,7 @@ from cic_types.pytest import *
 
 
 # local imports
+from tests.fixtures.accounts import *
 from tests.fixtures.config import *
 from tests.fixtures.db import *
 from tests.fixtures.celery import *
