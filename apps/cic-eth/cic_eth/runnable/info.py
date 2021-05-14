@@ -67,6 +67,8 @@ def main():
     token_info = t.get()
     print('Default token symbol: {}'.format(token_info['symbol']))
     print('Default token address: {}'.format(token_info['address']))
+    logg.debug('Default token name: {}'.format(token_info['name']))
+    logg.debug('Default token decimals: {}'.format(token_info['decimals']))
 
 
 if __name__ == '__main__':
