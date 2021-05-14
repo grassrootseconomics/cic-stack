@@ -1,0 +1,6 @@
+name: values to be included/reused in tests.
+description: used for describing utils used across the entire test suite.
+variables:
+  test_token_symbol: "{tavern.env_vars.TEST_TOKEN_SYMBOL}"
+  test_gift_value: "{tavern.env_vars.TEST_GIFT_VALUE}"
+  test_server_url: "{tavern.env_vars.TEST_SERVER_URL}"
