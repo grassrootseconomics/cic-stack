@@ -4,6 +4,7 @@
 # standard imports
 import json
 import logging
+from urllib.parse import parse_qs
 
 # third-party imports
 import celery
@@ -33,8 +34,7 @@ from cic_ussd.requests import (get_request_endpoint,
 from cic_ussd.runnable.server_base import exportable_parser, logg
 from cic_ussd.session.ussd_session import UssdSession as InMemoryUssdSession
 from cic_ussd.state_machine import UssdStateMachine
-from cic_ussd.validator import check_ip, check_request_content_length, check_service_code, validate_phone_number, \
-    validate_presence
+from cic_ussd.validator import check_ip, check_request_content_length, validate_phone_number, validate_presence
 
 args = exportable_parser.parse_args()
 
@@ -124,6 +124,9 @@ else:
     raise InitializationError(f'Default token data for: {chain_str} not found.')
 
 
+valid_service_codes = config.get('APP_SERVICE_CODE').split(",")
+
+
 def application(env, start_response):
     """Loads python code for application to be accessible over web server
     :param env: Object containing server and request information
@@ -139,13 +142,27 @@ def application(env, start_response):
 
     if get_request_method(env=env) == 'POST' and get_request_endpoint(env=env) == '/':
 
-        # get post data
-        post_data = json.load(env.get('wsgi.input'))
+        if env.get('CONTENT_TYPE') != 'application/x-www-form-urlencoded':
+            start_response('405 Play by the rules', errors_headers)
+            return []
 
-        service_code = post_data.get('serviceCode')
-        phone_number = post_data.get('phoneNumber')
-        external_session_id = post_data.get('sessionId')
-        user_input = post_data.get('text')
+        post_data = env.get('wsgi.input').read()
+        post_data = post_data.decode('utf-8')
+
+        try:
+            post_data = parse_qs(post_data)
+        except TypeError:
+            start_response('400 Size matters', errors_headers)
+            return []
+
+        service_code = post_data.get('serviceCode')[0]
+        phone_number = post_data.get('phoneNumber')[0]
+        external_session_id = post_data.get('sessionId')[0]
+
+        try:
+            user_input = post_data.get('text')[0]
+        except TypeError:
+            user_input = ""
 
         # add validation for phone number
         if phone_number:
@@ -162,14 +179,14 @@ def application(env, start_response):
             return []
 
         # validate service code
-        if not check_service_code(code=service_code, config=config):
+        if service_code not in valid_service_codes:
             response = define_multilingual_responses(
                 key='ussd.kenya.invalid_service_code',
                 locales=['en', 'sw'],
                 prefix='END',
-                valid_service_code=config.get('APP_SERVICE_CODE'))
-            response_bytes, headers = define_response_with_content(headers=errors_headers, response=response)
-            start_response('400 Invalid service code', headers)
+                valid_service_code=valid_service_codes[0])
+            response_bytes, headers = define_response_with_content(headers=headers, response=response)
+            start_response('200 OK', headers)
             return [response_bytes]
 
         # validate phone number
@@ -192,3 +209,8 @@ def application(env, start_response):
         start_response('200 OK,', headers)
         SessionBase.session.close()
         return [response_bytes]
+
+    else:
+        start_response('405 Play by the rules', errors_headers)
+        return []
+

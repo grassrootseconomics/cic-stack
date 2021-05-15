@@ -45,19 +45,6 @@ def check_request_content_length(config: Config, env: dict):
         config.get('APP_MAX_BODY_LENGTH'))
 
 
-def check_service_code(code: str, config: Config):
-    """Checks whether provided code matches expected service code
-    :param config: A dictionary object containing configuration values
-    :type config: Config
-    :param code: Service code passed over request
-    :type code: str
-
-    :return: Service code validity
-    :rtype: boolean
-    """
-    return code == config.get('APP_SERVICE_CODE')
-
-
 def check_known_user(phone: str):
     """
     This method attempts to ascertain whether the user already exists and is known to the system.

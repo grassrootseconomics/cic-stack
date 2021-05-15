@@ -22,7 +22,7 @@ from cic_cache.runnable.daemons.filters.erc20 import ERC20TransferFilter
 logg = logging.getLogger()
 
 
-def test_cache(
+def test_erc20_filter(
         eth_rpc,
         foo_token,
         init_database,

@@ -34,7 +34,6 @@ from chainlib.eth.block import (
         )
 from chainlib.hash import keccak256_string_to_hex
 from chainlib.eth.address import to_checksum_address
-from chainlib.eth.erc20 import ERC20
 from chainlib.eth.gas import (
         OverrideGasOracle,
         balance,
@@ -46,7 +45,8 @@ from cic_types.models.person import (
         Person,
         generate_metadata_pointer,
         )
-from erc20_single_shot_faucet import SingleShotFaucet
+from erc20_faucet import Faucet
+from eth_erc20 import ERC20
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -224,7 +224,7 @@ class Verifier:
         self.api = cic_eth_api
         self.data_dir = data_dir
         self.exit_on_error = exit_on_error
-        self.faucet_tx_factory = SingleShotFaucet(chain_spec, gas_oracle=gas_oracle)
+        self.faucet_tx_factory = Faucet(chain_spec, gas_oracle=gas_oracle)
 
         verifymethods = []
         for k in dir(self):

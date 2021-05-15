@@ -19,7 +19,7 @@ RUN apt-get update && \
 	apt install -y gcc gnupg libpq-dev wget make g++ gnupg bash procps git
 
 # Copy shared requirements from top of mono-repo
-RUN echo "copying root req file ${root_requirement_file}"
+RUN echo "copying root req file:  ${root_requirement_file}"
 #COPY $root_requirement_file .
 #RUN pip install -r $root_requirement_file $pip_extra_index_url_flag
 RUN /usr/local/bin/python -m pip install --upgrade pip
@@ -29,7 +29,7 @@ RUN /usr/local/bin/python -m pip install --upgrade pip
 #	python merge_requirements.py | tee merged_requirements.txt 
 #RUN cd cic-base && \
 #	pip install $pip_extra_index_url_flag -r ./merged_requirements.txt 
-RUN pip install $pip_extra_index_url_flag cic-base[full_graph]==0.1.2b8
+RUN  pip install $pip_extra_index_url_flag cic-base[full_graph]==0.1.2b9
 
 COPY cic-eth/scripts/ scripts/
 COPY cic-eth/setup.cfg cic-eth/setup.py ./

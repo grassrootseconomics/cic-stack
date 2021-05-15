@@ -158,6 +158,8 @@ sw:
       Akaunti yako ya Sarafu-Network ina salio ifuatayo: %{token_balance}
       00. Nyuma
       99. Ondoka
+    invalid_service_code: |-
+      Bonyeza %{valid_service_code} kutumia mtandao wa Sarafu
     help: |-
       CON Kwa usaidizi piga simu %{support_phone}
       0. Nyuma

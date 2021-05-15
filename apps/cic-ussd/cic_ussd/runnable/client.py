@@ -13,7 +13,7 @@ import argparse
 import logging
 import urllib
 from xdg.BaseDirectory import xdg_config_home
-from urllib import request
+from urllib import parse, request
 
 # third-party imports
 from confini import Config
@@ -92,9 +92,9 @@ def main():
             data['text'] = user_input
 
         req = urllib.request.Request(url)
-        data_str = json.dumps(data)
-        data_bytes = data_str.encode('utf-8')
-        req.add_header('Content-Type', 'application/json')
+        urlencoded_data = parse.urlencode(data)
+        data_bytes = urlencoded_data.encode('utf-8')
+        req.add_header('Content-Type', 'application/x-www-form-urlencoded')
         req.data = data_bytes
         response = urllib.request.urlopen(req)
         response_data = response.read().decode('utf-8')

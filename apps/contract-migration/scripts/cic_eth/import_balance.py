@@ -27,16 +27,17 @@ from chainlib.eth.block import (
         )
 from chainlib.hash import keccak256_string_to_hex
 from chainlib.eth.address import to_checksum_address
-from chainlib.eth.erc20 import ERC20
 from chainlib.eth.gas import OverrideGasOracle
 from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.tx import TxFactory
 from chainlib.jsonrpc import jsonrpc_template
 from chainlib.eth.error import EthException
 from chainlib.chain import ChainSpec
+from chainlib.eth.constant import ZERO_ADDRESS
 from crypto_dev_signer.eth.signer import ReferenceSigner as EIP155Signer
 from crypto_dev_signer.keystore.dict import DictKeystore
 from cic_types.models.person import Person
+from eth_erc20 import ERC20
 
 
 logging.basicConfig(level=logging.WARNING)
@@ -51,7 +52,7 @@ argparser.add_argument('-c', type=str, default=config_dir, help='config root to 
 argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:oldchain:1', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
-argparser.add_argument('--token-symbol', default='SRF', type=str, dest='token_symbol', help='Token symbol to use for trnsactions')
+argparser.add_argument('--token-symbol', default='GFT', type=str, dest='token_symbol', help='Token symbol to use for trnsactions')
 argparser.add_argument('--head', action='store_true', help='start at current block height (overrides --offset)')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
@@ -252,6 +253,10 @@ def main():
     except ValueError as e:
         logg.critical('lookup failed for token {}: {}'.format(token_symbol, e))
         sys.exit(1)
+
+    if sarafu_token_address == ZERO_ADDRESS:
+        raise KeyError('token address for symbol {} is zero'.format(token_symbol))
+
     logg.info('found token address {}'.format(sarafu_token_address))
 
     syncer_backend = MemBackend(chain_str, 0)

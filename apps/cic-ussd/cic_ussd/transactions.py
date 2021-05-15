@@ -120,7 +120,7 @@ class OutgoingTransactionProcessor:
         self.from_address = from_address
         self.to_address = to_address
 
-    def process_outgoing_transfer_transaction(self, amount: int, token_symbol='SRF'):
+    def process_outgoing_transfer_transaction(self, amount: int, token_symbol: str):
         """This function initiates standard transfers between one account to another
         :param amount: The amount of tokens to be sent
         :type amount: int
