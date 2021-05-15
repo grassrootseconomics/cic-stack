@@ -37,3 +37,18 @@ def first_metadata_entry_session_id() -> str:
 @pytest.fixture(scope='session')
 def second_metadata_entry_session_id() -> str:
     return session_id()
+
+
+@pytest.fixture(scope='session')
+def gift_value(load_config):
+    return load_config.get('TEST_GIFT_VALUE')
+
+
+@pytest.fixture(scope='session')
+def server_url(load_config):
+    return load_config.get('TEST_SERVER_URL')
+
+
+@pytest.fixture(scope='session')
+def token_symbol(load_config):
+    return load_config.get('TEST_TOKEN_SYMBOL')

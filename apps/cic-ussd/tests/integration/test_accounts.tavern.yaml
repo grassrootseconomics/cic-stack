@@ -1,18 +1,18 @@
 test_name: Create an account through the cic_user_ussd_server entrypoint.
 marks:
   - usefixtures:
-    - generate_phone_number
+    - gift_value
+    - server_url
+    - token_symbol
     - generate_session_id
     - first_account_phone_number
     - second_account_phone_number
     - first_metadata_entry_session_id
     - second_metadata_entry_session_id
-includes:
-  - !include common.yaml
 stages:
   - name: Initiate account creation process [first account].
     request:
-      url: "{test_server_url}"
+      url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{generate_session_id}"
@@ -34,7 +34,7 @@ stages:
 
   - name: Initiate account creation process [second account].
     request:
-      url: "{test_server_url}"
+      url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{generate_session_id}"
@@ -57,7 +57,7 @@ stages:
 
   - name: Initaite account metadata entry [first account]
     request:
-      url: "{test_server_url}"
+      url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{first_metadata_entry_session_id}"
@@ -79,7 +79,7 @@ stages:
 
   - name: Initaite account metadata entry [second account]
     request:
-      url: "{test_server_url}"
+      url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{second_metadata_entry_session_id}"
@@ -101,7 +101,7 @@ stages:
 
   - name: Select preferred language [English]
     request:
-      url: "{test_server_url}"
+      url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{first_metadata_entry_session_id}"
@@ -123,7 +123,7 @@ stages:
 
   - name: Select preferred language [Kiswahili]
     request:
-      url: "{test_server_url}"
+      url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{second_metadata_entry_session_id}"
@@ -145,7 +145,7 @@ stages:
 
   - name: Enter pin number [0000 - first account]
     request:
-      url: "{test_server_url}"
+      url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{first_metadata_entry_session_id}"
@@ -167,7 +167,7 @@ stages:
 
   - name: Enter pin number [1212 - second account]
     request:
-      url: "{test_server_url}"
+      url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{second_metadata_entry_session_id}"
@@ -189,7 +189,7 @@ stages:
 
   - name: Pin number confirmation [0000 - first account]
     request:
-      url: "{test_server_url}"
+      url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{first_metadata_entry_session_id}"
@@ -211,7 +211,7 @@ stages:
 
   - name: Pin number confirmation [1212 - second account]
     request:
-      url: "{test_server_url}"
+      url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{second_metadata_entry_session_id}"
@@ -233,7 +233,7 @@ stages:
 
   - name: Enter first name [Kimani - first account]
     request:
-      url: "{test_server_url}"
+      url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{first_metadata_entry_session_id}"
@@ -255,7 +255,7 @@ stages:
 
   - name: Enter first name [Chebet - second account]
     request:
-      url: "{test_server_url}"
+      url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{second_metadata_entry_session_id}"
@@ -277,7 +277,7 @@ stages:
 
   - name: Enter last name [Omollo - first account]
     request:
-      url: "{test_server_url}"
+      url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{first_metadata_entry_session_id}"
@@ -299,7 +299,7 @@ stages:
 
   - name: Enter last name [Musau - second account]
     request:
-      url: "{test_server_url}"
+      url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{second_metadata_entry_session_id}"
@@ -321,7 +321,7 @@ stages:
 
   - name: Select gender [Male - first account]
     request:
-      url: "{test_server_url}"
+      url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{first_metadata_entry_session_id}"
@@ -343,7 +343,7 @@ stages:
 
   - name: Select gender [Female - second account]
     request:
-      url: "{test_server_url}"
+      url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{second_metadata_entry_session_id}"
@@ -365,7 +365,7 @@ stages:
 
   - name: Enter location [Kangemi - first account]
     request:
-      url: "{test_server_url}"
+      url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{first_metadata_entry_session_id}"
@@ -387,7 +387,7 @@ stages:
 
   - name: Enter location [Gachororo - second account]
     request:
-      url: "{test_server_url}"
+      url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{second_metadata_entry_session_id}"
@@ -409,7 +409,7 @@ stages:
 
   - name: Enter product [Potatoes - first account]
     request:
-      url: "{test_server_url}"
+      url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{first_metadata_entry_session_id}"
@@ -427,12 +427,12 @@ stages:
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "CON Balance {test_gift_value} {test_token_symbol}\n1. Send\n2. My Account\n3. Help"
-    delay_before: 3
+          expected_response: "CON Balance {gift_value} {token_symbol}\n1. Send\n2. My Account\n3. Help"
+    delay_before: 5
 
   - name: Enter product [Mkalimani - second account]
     request:
-      url: "{test_server_url}"
+      url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{second_metadata_entry_session_id}"
@@ -450,5 +450,5 @@ stages:
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "CON Salio {test_gift_value} {test_token_symbol}\n1. Tuma\n2. Akaunti yangu\n3. Usaidizi"
-    delay_before: 3
+          expected_response: "CON Salio {gift_value} {token_symbol}\n1. Tuma\n2. Akaunti yangu\n3. Usaidizi"
+    delay_before: 5
