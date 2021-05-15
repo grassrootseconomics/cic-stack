@@ -23,7 +23,7 @@ from chainlib.eth.connection import EthHTTPConnection
 from chainlib.eth.gas import RPCGasOracle
 from chainlib.eth.nonce import RPCNonceOracle
 from cic_types.processor import generate_metadata_pointer
-from eth_accounts_index import AccountRegistry
+from eth_accounts_index.registry import AccountRegistry
 from eth_contract_registry import Registry
 from crypto_dev_signer.keystore.dict import DictKeystore
 from crypto_dev_signer.eth.signer.defaultsigner import ReferenceSigner as EIP155Signer
