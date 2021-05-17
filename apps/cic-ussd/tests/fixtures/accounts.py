@@ -6,7 +6,7 @@ import pytest
 # local imports
 
 # test imports
-from tests.helpers.accounts import phone_number, session_id
+from tests.helpers.accounts import given_name, family_name, phone_number, session_id
 
 
 @pytest.fixture(scope='function')
@@ -37,6 +37,36 @@ def first_metadata_entry_session_id() -> str:
 @pytest.fixture(scope='session')
 def second_metadata_entry_session_id() -> str:
     return session_id()
+
+
+@pytest.fixture(scope='session')
+def first_transaction_session_id() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
+def second_transaction_session_id() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
+def first_account_given_name() -> str:
+    return given_name()
+
+
+@pytest.fixture(scope='session')
+def second_account_given_name() -> str:
+    return given_name()
+
+
+@pytest.fixture(scope='session')
+def first_account_family_name() -> str:
+    return family_name()
+
+
+@pytest.fixture(scope='session')
+def second_account_family_name() -> str:
+    return family_name()
 
 
 @pytest.fixture(scope='session')
