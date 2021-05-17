@@ -1,12 +1,17 @@
 # standard imports
 
 # external imports
+
 import pytest
+from faker import Faker
 
 # local imports
 
 # test imports
-from tests.helpers.accounts import given_name, family_name, phone_number, session_id
+from tests.helpers.accounts import phone_number, pin_number, session_id
+
+
+fake = Faker()
 
 
 @pytest.fixture(scope='function')
@@ -27,6 +32,16 @@ def first_account_phone_number() -> str:
 @pytest.fixture(scope='session')
 def second_account_phone_number() -> str:
     return phone_number()
+
+
+@pytest.fixture(scope='session')
+def first_account_pin_number() -> str:
+    return pin_number()
+
+
+@pytest.fixture(scope='session')
+def second_account_pin_number() -> str:
+    return pin_number()
 
 
 @pytest.fixture(scope='session')
@@ -51,22 +66,52 @@ def second_transaction_session_id() -> str:
 
 @pytest.fixture(scope='session')
 def first_account_given_name() -> str:
-    return given_name()
+    return fake.first_name()
 
 
 @pytest.fixture(scope='session')
 def second_account_given_name() -> str:
-    return given_name()
+    return fake.first_name()
 
 
 @pytest.fixture(scope='session')
 def first_account_family_name() -> str:
-    return family_name()
+    return fake.last_name()
 
 
 @pytest.fixture(scope='session')
 def second_account_family_name() -> str:
-    return family_name()
+    return fake.last_name()
+
+
+@pytest.fixture(scope='session')
+def first_account_location() -> str:
+    return fake.city()
+
+
+@pytest.fixture(scope='session')
+def second_account_location() -> str:
+    return fake.city()
+
+
+@pytest.fixture(scope='session')
+def first_account_product() -> str:
+    return fake.job()
+
+
+@pytest.fixture(scope='session')
+def second_account_product() -> str:
+    return fake.job()
+
+
+@pytest.fixture(scope='session')
+def first_account_verify_balance_session_id() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
+def second_account_verify_balance_session_id() -> str:
+    return session_id()
 
 
 @pytest.fixture(scope='session')
