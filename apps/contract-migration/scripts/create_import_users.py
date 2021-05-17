@@ -105,7 +105,7 @@ def genId(addr, typ):
 def genDate():
 
     ts = random.randint(ts_then, ts_now)
-    return datetime.datetime.fromtimestamp(ts).timestamp()
+    return int(datetime.datetime.fromtimestamp(ts).timestamp())
 
 
 def genPhone():
@@ -193,6 +193,7 @@ def prepareLocalFilePath(datadir, address):
 if __name__ == '__main__':
 
     base_dir = os.path.join(user_dir, 'old')
+    ussd_dir = os.path.join(user_dir, 'ussd')
     os.makedirs(base_dir, exist_ok=True)
 
     fa = open(os.path.join(user_dir, 'balances.csv'), 'w')
@@ -223,6 +224,8 @@ if __name__ == '__main__':
         f = open('{}/{}'.format(d, uid + '.json'), 'w')
         json.dump(o.serialize(), f)
         f.close()
+
+        d = prepareLocalFilePath(ussd_dir, uid)
         x = open('{}/{}'.format(d, uid + '_ussd_data.json'), 'w')
         json.dump(ussd_data, x)
         x.close()
