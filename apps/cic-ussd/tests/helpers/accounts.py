@@ -1,4 +1,5 @@
 # standard imports
+import random
 import uuid
 
 # external imports
@@ -21,9 +22,5 @@ def session_id() -> str:
     return uuid.uuid4().hex
 
 
-def given_name() -> str:
-    return fake.first_name()
-
-
-def family_name() -> str:
-    return fake.last_name()
+def pin_number() -> int:
+    return random.randint(1000, 9999)
