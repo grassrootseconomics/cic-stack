@@ -12,6 +12,7 @@ from cic_ussd.chain import Chain
 from cic_ussd.db.models.account import AccountStatus, Account
 from cic_ussd.operations import save_to_in_memory_ussd_session_data
 from cic_ussd.phone_number import get_user_by_phone_number
+from cic_ussd.processor import retrieve_token_symbol
 from cic_ussd.redis import create_cached_data_key, get_cached_data
 from cic_ussd.transactions import OutgoingTransactionProcessor
 
@@ -124,14 +125,18 @@ def process_transaction_request(state_machine_data: Tuple[str, dict, Account]):
     """
     user_input, ussd_session, user = state_machine_data
 
+    # retrieve token symbol
+    chain_str = Chain.spec.__str__()
+
     # get user from phone number
     recipient_phone_number = ussd_session.get('session_data').get('recipient_phone_number')
     recipient = get_user_by_phone_number(phone_number=recipient_phone_number)
     to_address = recipient.blockchain_address
     from_address = user.blockchain_address
     amount = int(ussd_session.get('session_data').get('transaction_amount'))
-    chain_str = Chain.spec.__str__()
+    token_symbol = retrieve_token_symbol(chain_str=chain_str)
+
     outgoing_tx_processor = OutgoingTransactionProcessor(chain_str=chain_str,
                                                          from_address=from_address,
                                                          to_address=to_address)
-    outgoing_tx_processor.process_outgoing_transfer_transaction(amount=amount)
+    outgoing_tx_processor.process_outgoing_transfer_transaction(amount=amount, token_symbol=token_symbol)

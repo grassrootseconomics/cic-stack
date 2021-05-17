@@ -158,6 +158,8 @@ en:
       Your Sarafu-Network balances is: %{token_balance}
       00. Back
       99. Exit
+    invalid_service_code: |-
+      Please dial %{valid_service_code} to access Sarafu Network
     help: |-
       CON For assistance call %{support_phone}
       00. Back

@@ -12,7 +12,10 @@ import confini
 import celery
 
 # local imports
-from cic_eth.api import Api
+from cic_eth.api import (
+        Api,
+        AdminApi,
+        )
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -53,13 +56,18 @@ celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=confi
 queue = args.q
 
 api = Api(config.get('CIC_CHAIN_SPEC'), queue=queue)
+admin_api = AdminApi(None)
 
 def main():
+    t = admin_api.registry()
+    registry_address = t.get()
+    print('Registry: {}'.format(registry_address))
+
     t = api.default_token()
     token_info = t.get()
     print('Default token symbol: {}'.format(token_info['symbol']))
     print('Default token address: {}'.format(token_info['address']))
 
-
+    
 if __name__ == '__main__':
     main()

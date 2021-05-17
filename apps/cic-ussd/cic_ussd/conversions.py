@@ -24,7 +24,7 @@ def from_wei(value: int) -> float:
     """This function converts values in Wei to a token in the cic network.
     :param value: Value in Wei
     :type value: int
-    :return: SRF equivalent of value in Wei
+    :return: platform's default token equivalent of value in Wei
     :rtype: float
     """
     value = float(value) / 1e+6
@@ -33,9 +33,9 @@ def from_wei(value: int) -> float:
 
 def to_wei(value: int) -> int:
     """This functions converts values from a token in the cic network to Wei.
-    :param value: Value in SRF
+    :param value: Value in platform's default token
     :type value: int
-    :return: Wei equivalent of value in SRF
+    :return: Wei equivalent of value in platform's default token
     :rtype: int
     """
     return int(value * 1e+6)

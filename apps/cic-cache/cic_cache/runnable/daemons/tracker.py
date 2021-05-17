@@ -41,15 +41,25 @@ from cic_cache.db import (
         )
 from cic_cache.runnable.daemons.filters import (
         ERC20TransferFilter,
+        FaucetFilter,
         )
 
 script_dir = os.path.realpath(os.path.dirname(__file__))
 
+def add_block_args(argparser):
+    argparser.add_argument('--history-start', type=int, default=0, dest='history_start', help='Start block height for initial history sync')
+    argparser.add_argument('--no-history', action='store_true', dest='no_history', help='Skip initial history sync')
+    return argparser
+
+
 logg = cic_base.log.create()
 argparser = cic_base.argparse.create(script_dir, cic_base.argparse.full_template)
-#argparser = cic_base.argparse.add(argparser, add_traffic_args, 'traffic')
+argparser = cic_base.argparse.add(argparser, add_block_args, 'block')
 args = cic_base.argparse.parse(argparser, logg)
 config = cic_base.config.create(args.c, args, args.env_prefix)
+
+config.add(args.history_start, 'SYNCER_HISTORY_START', True)
+config.add(args.no_history, '_NO_HISTORY', True)
 
 cic_base.config.log(config)
 
@@ -59,7 +69,6 @@ SessionBase.connect(dsn, debug=config.true('DATABASE_DEBUG'))
 
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 
-#RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, 'default')
 cic_base.rpc.setup(chain_spec, config.get('ETH_PROVIDER'))
 
 
@@ -71,6 +80,7 @@ def register_filter_tags(filters, session):
             session.commit()
             logg.info('added tag name "{}" domain "{}"'.format(tag[0], tag[1]))
         except sqlalchemy.exc.IntegrityError:
+            session.rollback()
             logg.debug('already have tag name "{}" domain "{}"'.format(tag[0], tag[1]))
 
 
@@ -82,7 +92,7 @@ def main():
     r = rpc.do(o)
     block_offset = int(strip_0x(r), 16) + 1
 
-    logg.debug('starting at block {}'.format(block_offset))
+    logg.debug('current block height {}'.format(block_offset))
 
     syncers = []
 
@@ -91,8 +101,13 @@ def main():
     syncer_backends = SQLBackend.resume(chain_spec, block_offset)
 
     if len(syncer_backends) == 0:
-        logg.info('found no backends to resume')
-        syncer_backends.append(SQLBackend.initial(chain_spec, block_offset))
+        initial_block_start = config.get('SYNCER_HISTORY_START')
+        initial_block_offset = block_offset
+        if config.get('_NO_HISTORY'):
+            initial_block_start = block_offset
+            initial_block_offset += 1
+        syncer_backends.append(SQLBackend.initial(chain_spec, initial_block_offset, start_block_height=initial_block_start))
+        logg.info('found no backends to resume, adding initial sync from history start {} end {}'.format(initial_block_start, initial_block_offset))
     else:
         for syncer_backend in syncer_backends:
             logg.info('resuming sync session {}'.format(syncer_backend))
@@ -112,9 +127,11 @@ def main():
         logg.info('using trusted address {}'.format(address))
 
     erc20_transfer_filter = ERC20TransferFilter(chain_spec)
+    faucet_filter = FaucetFilter(chain_spec)
 
     filters = [
         erc20_transfer_filter,
+        faucet_filter,
             ]
 
     session = SessionBase.create_session()

@@ -14,7 +14,7 @@ from .base import SyncFilter
 
 logg = logging.getLogger().getChild(__name__)
 
-account_registry_add_log_hash = '0x5ed3bdd47b9af629827a8d129aa39c870b10c03f0153fe9ddb8e84b665061acd'
+account_registry_add_log_hash = '0x9cc987676e7d63379f176ea50df0ae8d2d9d1141d1231d4ce15b5965f73c9430'
 
 
 class RegistrationFilter(SyncFilter):
