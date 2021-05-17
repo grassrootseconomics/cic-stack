@@ -440,7 +440,8 @@ def process_request(user_input: str, user: Account, ussd_session: Optional[dict]
                     'exit_invalid_pin',
                     'exit_invalid_new_pin',
                     'exit_pin_mismatch',
-                    'exit_invalid_request'
+                    'exit_invalid_request',
+                    'exit_successful_transaction'
                 ] and person_metadata is not None:
                     return UssdMenu.find_by_name(name='start')
                 else:
