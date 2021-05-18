@@ -1,5 +1,6 @@
 # standard imports
 import logging
+import datetime
 
 # external imports
 import moolb
@@ -101,13 +102,19 @@ class DataCache(Cache):
         tx_cache = []
         highest_block = -1;
         lowest_block = -1;
+        date_is_str = None # stick this in startup
         for r in rows:
             if highest_block == -1:
                 highest_block = r['block_number']
             lowest_block = r['block_number']
             tx_type = 'unknown'
+
             if r['value'] != None:
                 tx_type = '{}.{}'.format(r['domain'], r['value'])
+
+            if date_is_str == None:
+                date_is_str = type(r['date_block']).__name__ == 'str'
+
             o = {
                 'block_number': r['block_number'],
                 'tx_hash': r['tx_hash'],
@@ -120,5 +127,9 @@ class DataCache(Cache):
                 'destination_token': r['destination_token'],
                 'tx_type': tx_type,
             }
+
+            if date_is_str:
+                o['date_block'] = datetime.datetime.fromisoformat(r['date_block'])
+
             tx_cache.append(o)
         return (lowest_block, highest_block, tx_cache)

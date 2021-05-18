@@ -1,12 +1,16 @@
 # standard imports
+import logging
 import json
 import re
+import base64
 
 # local imports
 from cic_cache.cache import (
         BloomCache,
         DataCache,
     )
+
+logg = logging.getLogger(__name__)
 
 re_transactions_all_bloom = r'/tx/(\d+)?/?(\d+)/?'
 re_transactions_account_bloom = r'/tx/user/((0x)?[a-fA-F0-9]+)/?(\d+)?/?(\d+)/?'
@@ -93,12 +97,16 @@ def process_transactions_all_data(session, env):
     c = DataCache(session)
     (lowest_block, highest_block, tx_cache) = c.load_transactions_with_data(offset, limit)
 
+    for r in tx_cache:
+        r['date_block'] = r['date_block'].timestamp()
+
     o = {
         'low': lowest_block,
         'high': highest_block,
         'data': tx_cache,
     }
 
+    
     j = json.dumps(o)
 
     return ('application/json', j.encode('utf-8'),)
