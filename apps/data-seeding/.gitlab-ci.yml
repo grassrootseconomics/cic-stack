@@ -1,0 +1,21 @@
+.data_seeding_variables:
+    variables:
+        APP_NAME: data-seeding
+        DOCKERFILE_PATH: $APP_NAME/docker/Dockerfile
+
+.data_seeding_changes_target:
+    rules:
+        - changes:
+            - $CONTEXT/$APP_NAME/*
+
+build-mr-contract-migration:
+    extends:
+        - .data_seeding_changes_target
+        - .py_build_merge_request
+        - .data_seeding_variables
+
+build-push-contract-migration:
+    extends:
+        - .py_build_push
+        - .data_seeding_variables
+
