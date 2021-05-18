@@ -14,7 +14,7 @@ logg = logging.getLogger(__name__)
 
 re_transactions_all_bloom = r'/tx/(\d+)?/?(\d+)/?'
 re_transactions_account_bloom = r'/tx/user/((0x)?[a-fA-F0-9]+)/?(\d+)?/?(\d+)/?'
-re_transactions_all_data = re_transactions_all_bloom
+re_transactions_all_data = r'/txa/(\d+)/(\d+)/?'
 
 DEFAULT_LIMIT = 100
 
@@ -87,15 +87,13 @@ def process_transactions_all_data(session, env):
     if env.get('HTTP_X_CIC_CACHE_MODE') != 'all':
         return None
 
-    offset = DEFAULT_LIMIT
-    if r.lastindex > 0:
-        offset = r[1]
-    limit = 0
-    if r.lastindex > 1:
-        limit = r[2]
+    offset = r[1]
+    end = r[2]
+    if r[2] < r[1]:
+        raise ValueError('cart before the horse, dude')
 
     c = DataCache(session)
-    (lowest_block, highest_block, tx_cache) = c.load_transactions_with_data(offset, limit)
+    (lowest_block, highest_block, tx_cache) = c.load_transactions_with_data(offset, end)
 
     for r in tx_cache:
         r['date_block'] = r['date_block'].timestamp()

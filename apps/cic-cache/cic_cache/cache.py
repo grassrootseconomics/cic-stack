@@ -97,8 +97,8 @@ class BloomCache(Cache):
 
 class DataCache(Cache):
 
-    def load_transactions_with_data(self, offset, limit):
-        rows = list_transactions_mined_with_data(self.session, offset, limit) 
+    def load_transactions_with_data(self, offset, end):
+        rows = list_transactions_mined_with_data(self.session, offset, end) 
         tx_cache = []
         highest_block = -1;
         lowest_block = -1;

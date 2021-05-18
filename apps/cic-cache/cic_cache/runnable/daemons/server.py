@@ -59,7 +59,12 @@ def application(env, start_response):
             process_transactions_all_bloom,
             process_transactions_account_bloom,
             ]:
-        r = handler(session, env)
+        r = None
+        try:
+            r = handler(session, env)
+        except ValueError as e:
+            start_response('400 {}'.format(str(e)))
+            return []
         if r != None:
             (mime_type, content) = r
             break
