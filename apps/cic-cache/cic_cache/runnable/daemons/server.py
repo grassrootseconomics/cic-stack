@@ -1,19 +1,16 @@
 # standard imports
 import os
-import re
 import logging
 import argparse
-import json
 import base64
 
 # external imports
 import confini
 
 # local imports
-from cic_cache import BloomCache
 from cic_cache.db import dsn_from_config
 from cic_cache.db.models.base import SessionBase
-from .query import (
+from cic_cache.runnable.daemons.query import (
         process_transactions_account_bloom,
         process_transactions_all_bloom,
         process_transactions_all_data,
