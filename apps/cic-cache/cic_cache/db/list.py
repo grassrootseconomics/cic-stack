@@ -28,6 +28,26 @@ def list_transactions_mined(
     return r
 
 
+def list_transactions_mined_with_data(
+        session,
+        offset,
+        limit,
+        ):
+    """Executes db query to return all confirmed transactions according to the specified offset and limit.
+
+    :param offset: Offset in data set to return transactions from
+    :type offset: int
+    :param limit: Max number of transactions to retrieve
+    :type limit: int
+    :result: Result set
+    :rtype: SQLAlchemy.ResultProxy
+    """
+    s = "SELECT tx_hash, block_number, date_block, sender, recipient, from_value, to_value, source_token, destination_token, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id"
+    r = session.execute(s)
+    return r
+
+
+
 def list_transactions_account_mined(
         session,
         address,

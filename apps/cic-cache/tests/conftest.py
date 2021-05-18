@@ -88,3 +88,16 @@ def txs(
             tx_hash_first,
             tx_hash_second,
             ]
+
+
+@pytest.fixture(scope='function')
+def tag_txs(
+        init_database,
+        txs,
+        ):
+
+    db.add_tag(init_database, 'taag', domain='test')
+    init_database.commit()
+
+    db.tag_transaction(init_database, txs[1], 'taag', domain='test')
+

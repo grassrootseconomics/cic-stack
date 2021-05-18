@@ -1,21 +1,26 @@
 # standard imports
 import logging
 
-# third-party imports
+# external imports
 import moolb
 
 # local imports
-from cic_cache.db import list_transactions_mined
-from cic_cache.db import list_transactions_account_mined
+from cic_cache.db.list import (
+        list_transactions_mined,
+        list_transactions_account_mined,
+        list_transactions_mined_with_data,
+        )
 
 logg = logging.getLogger()
 
 
-class BloomCache:
+class Cache:
 
     def __init__(self, session):
         self.session = session
 
+
+class BloomCache(Cache):
 
     @staticmethod
     def __get_filter_size(n):
@@ -87,3 +92,33 @@ class BloomCache:
             f_blocktx.add(block + tx)
             logg.debug('added block {} tx {} lo {} hi {}'.format(r[0], r[1], lowest_block, highest_block))
         return (lowest_block, highest_block, f_block.to_bytes(), f_blocktx.to_bytes(),)
+
+
+class DataCache(Cache):
+
+    def load_transactions_with_data(self, offset, limit):
+        rows = list_transactions_mined_with_data(self.session, offset, limit) 
+        tx_cache = []
+        highest_block = -1;
+        lowest_block = -1;
+        for r in rows:
+            if highest_block == -1:
+                highest_block = r['block_number']
+            lowest_block = r['block_number']
+            tx_type = 'unknown'
+            if r['value'] != None:
+                tx_type = '{}.{}'.format(r['domain'], r['value'])
+            o = {
+                'block_number': r['block_number'],
+                'tx_hash': r['tx_hash'],
+                'date_block': r['date_block'],
+                'sender': r['sender'],
+                'recipient': r['recipient'],
+                'from_value': r['from_value'],
+                'to_value': r['to_value'],
+                'source_token': r['source_token'],
+                'destination_token': r['destination_token'],
+                'tx_type': tx_type,
+            }
+            tx_cache.append(o)
+        return (lowest_block, highest_block, tx_cache)
