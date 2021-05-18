@@ -55,9 +55,9 @@ def application(env, start_response):
 
     session = SessionBase.create_session()
     for handler in [
+            process_transactions_all_data,
             process_transactions_all_bloom,
             process_transactions_account_bloom,
-            process_transactions_all_data,
             ]:
         r = handler(session, env)
         if r != None:
