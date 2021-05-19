@@ -22,6 +22,7 @@ from chainlib.eth.connection import (
 from chainlib.chain import ChainSpec
 from chainqueue.db.models.otx import Otx
 from cic_eth_registry.error import UnknownContractError
+from cic_eth_registry.erc20 import ERC20Token
 import liveness.linux
 
 
@@ -207,6 +208,11 @@ def main():
 
     BaseTask.default_token_symbol = config.get('CIC_DEFAULT_TOKEN_SYMBOL')
     BaseTask.default_token_address = registry.by_name(BaseTask.default_token_symbol)
+    default_token = ERC20Token(chain_spec, rpc, BaseTask.default_token_address)
+    default_token.load(rpc)
+    BaseTask.default_token_decimals = default_token.decimals
+    BaseTask.default_token_name = default_token.name
+
     BaseTask.run_dir = config.get('CIC_RUN_DIR')
     logg.info('default token set to {} {}'.format(BaseTask.default_token_symbol, BaseTask.default_token_address))
    

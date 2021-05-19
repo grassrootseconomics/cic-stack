@@ -1,29 +1,30 @@
 en:
   kenya:
     initial_language_selection: |-
-      CON Welcome to Sarafu
+      CON Welcome to Sarafu Network
       1. English
       2. Kiswahili
       3. Help
     initial_pin_entry: |-
-      CON Please enter a PIN to manage your account.
+      CON Please enter a new four number PIN for your account. 
       0. Back
     initial_pin_confirmation: |-
-      CON Enter your PIN again
+      CON Enter your four number PIN again
       0. Back
     enter_given_name: |-
       CON Enter first name
       0. Back
     enter_family_name: |-
-      CON Enter last name
+      CON Enter family name
       0. Back
     enter_gender: |-
       CON Enter gender
       1. Male
       2. Female
+      3. Other
       0. Back
     enter_location: |-
-      CON Enter location
+      CON Enter your location
       0. Back
     enter_products: |-
       CON Please enter a product or service you offer
@@ -83,34 +84,34 @@ en:
         Please enter your PIN to confirm.
         0. Back
       retry: |-
-        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
+        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
         0. Back
     display_metadata_pin_authorization:
       first: |-
-        CON Please enter your PIN.
+        CON Please enter your PIN
         0. Back
       retry: |-
-        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
+        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
         0. Back
     account_balances_pin_authorization:
       first: |-
-        CON Please enter your PIN to view balances.
+        CON Please enter your PIN to view balances
         0. Back
       retry: |-
-        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
+        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
         0. Back
     account_statement_pin_authorization:
       first: |-
-        CON Please enter your PIN to view statement.
+        CON Please enter your PIN to view statement
         0. Back
       retry: |-
-        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining.
+        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
         0. Back
     account_balances: |-
       CON Your balances are as follows:
         balance: %{operational_balance} %{token_symbol}
-        taxes: %{tax} %{token_symbol}
-        bonsuses: %{bonus} %{token_symbol}
+        fees: %{tax} %{token_symbol}
+        rewards: %{bonus} %{token_symbol}
       0. Back
     first_transaction_set: |-
       CON %{first_transaction_set}
@@ -140,9 +141,9 @@ en:
     exit_pin_blocked: |-
       END Your PIN has been blocked. For help, please call %{support_phone}.
     exit_invalid_pin: |-
-      END The PIN you have entered is Invalid. PIN must consist of 4 digits. For help, call %{support_phone}.
+      END The PIN you have entered is invalid. PIN must consist of 4 digits. For help, call %{support_phone}.
     exit_invalid_new_pin: |-
-      END The PIN you have entered is Invalid. PIN must be different from your current PIN. For help, call %{support_phone}.
+      END The PIN you have entered is invalid. PIN must be different from your current PIN. For help, call %{support_phone}.
     exit_pin_mismatch: |-
       END The new PIN does not match the one you entered. Please try again. For help, call %{support_phone}.
     exit_invalid_recipient: |-
