@@ -1,0 +1,33 @@
+test_name: Test that account management functionality is intact.
+marks:
+  - usefixtures:
+    - server_url
+    - token_symbol
+    - first_account_phone_number
+    - second_account_phone_number
+    - first_account_management_session_id
+    - second_account_management_session_id
+  - last
+
+stages:
+  - name: Start menu [first menu]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{first_account_management_session_id}"
+        phoneNumber: "{first_account_phone_number}"
+        text: ""
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '51'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Balance 58.00 {token_symbol}\n1. Send\n2. My Account\n3. Help"
