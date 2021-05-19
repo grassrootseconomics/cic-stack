@@ -26,7 +26,6 @@ from cic_eth.runnable.daemons.filters.callback import CallbackFilter
 logg = logging.getLogger()
 
 
-@pytest.mark.skip()
 def test_transfer_tx(
         default_chain_spec,
         init_database,
@@ -66,7 +65,6 @@ def test_transfer_tx(
     assert transfer_type == 'transfer'
 
 
-@pytest.mark.skip()
 def test_transfer_from_tx(
         default_chain_spec,
         init_database,
