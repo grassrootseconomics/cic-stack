@@ -171,6 +171,7 @@ if __name__ == '__main__':
                 logg.error('load error for {}: {}'.format(y, e))
                 continue
             f.close()
+            logg.debug('deserializing {} {}'.format(filepath, o))
             u = Person.deserialize(o)
 
             new_address = register_eth(i, u)

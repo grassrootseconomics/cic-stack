@@ -105,7 +105,7 @@ def genId(addr, typ):
 def genDate():
 
     ts = random.randint(ts_then, ts_now)
-    return datetime.datetime.fromtimestamp(ts).timestamp()
+    return int(datetime.datetime.fromtimestamp(ts).timestamp())
 
 
 def genPhone():
@@ -129,6 +129,7 @@ def genCats():
 
 def genAmount():
     return random.randint(0, gift_max) * gift_factor
+
 
 def genDob():
     dob_src = fake.date_of_birth(minimum_age=15)
@@ -168,8 +169,9 @@ def gen():
             }
     p.location['area_name'] = city
     if random.randint(0, 1):
-        p.identities['latitude'] = (random.random() + 180) - 90 #fake.local_latitude()
-        p.identities['longitude'] = (random.random() + 360) - 180 #fake.local_latitude()
+        p.location['latitude'] = (random.random() + 180) - 90 #fake.local_latitude()
+        p.location['longitude'] = (random.random() + 360) - 180 #fake.local_latitude()
+
     
     return (old_blockchain_checksum_address, phone, p)
 
@@ -191,6 +193,7 @@ def prepareLocalFilePath(datadir, address):
 if __name__ == '__main__':
 
     base_dir = os.path.join(user_dir, 'old')
+    ussd_dir = os.path.join(user_dir, 'ussd')
     os.makedirs(base_dir, exist_ok=True)
 
     fa = open(os.path.join(user_dir, 'balances.csv'), 'w')
@@ -210,10 +213,22 @@ if __name__ == '__main__':
 
         print(o)
 
+        ussd_data = {
+            'phone': phone,
+            'is_activated': 1,
+            'preferred_language': random.sample(['en', 'sw'], 1)[0],
+            'is_disabled': False
+        }
+
         d = prepareLocalFilePath(base_dir, uid)
         f = open('{}/{}'.format(d, uid + '.json'), 'w')
         json.dump(o.serialize(), f)
         f.close()
+
+        d = prepareLocalFilePath(ussd_dir, uid)
+        x = open('{}/{}'.format(d, uid + '_ussd_data.json'), 'w')
+        json.dump(ussd_data, x)
+        x.close()
 
         pidx = genPhoneIndex(phone)
         d = prepareLocalFilePath(os.path.join(user_dir, 'phone'), pidx)

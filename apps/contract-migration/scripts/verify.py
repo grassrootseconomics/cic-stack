@@ -1,52 +1,37 @@
 # standard imports
+import argparse
+import copy
+import hashlib
+import json
+import logging
 import os
 import sys
-import logging
-import time
-import argparse
-import sys
-import re
-import hashlib
-import csv
-import json
 import urllib
-import copy
-import uuid
 import urllib.request
+import uuid
 
 # external imports
 import celery
-import eth_abi
 import confini
-from hexathon import (
-        strip_0x,
-        add_0x,
-        )
-from chainsyncer.backend.memory import MemBackend
-from chainsyncer.driver import HeadSyncer
+import eth_abi
 from chainlib.chain import ChainSpec
+from chainlib.eth.address import to_checksum_address
 from chainlib.eth.connection import EthHTTPConnection
 from chainlib.eth.constant import ZERO_ADDRESS
-from chainlib.eth.block import (
-        block_latest,
-        block_by_number,
-        Block,
-        )
-from chainlib.hash import keccak256_string_to_hex
-from chainlib.eth.address import to_checksum_address
 from chainlib.eth.gas import (
-        OverrideGasOracle,
-        balance,
-        )
+    OverrideGasOracle,
+    balance,
+)
 from chainlib.eth.tx import TxFactory
+from chainlib.hash import keccak256_string_to_hex
 from chainlib.jsonrpc import jsonrpc_template
-from chainlib.eth.error import EthException
 from cic_types.models.person import (
-        Person,
-        generate_metadata_pointer,
-        )
+    Person,
+    generate_metadata_pointer,
+)
 from erc20_faucet import Faucet
 from eth_erc20 import ERC20
+from hexathon.parse import strip_0x, add_0x
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -72,6 +57,7 @@ eth_tests = [
 
 phone_tests = [
         'ussd',
+        'ussd_pins'
         ]
 
 all_tests = eth_tests + custodial_tests + metadata_tests + phone_tests
@@ -169,6 +155,39 @@ def default_outfunc(s):
 outfunc = default_outfunc
 if logg.isEnabledFor(logging.DEBUG):
     outfunc = logg.debug
+
+
+def send_ussd_request(address, data_dir):
+    upper_address = strip_0x(address).upper()
+    f = open(os.path.join(
+        data_dir,
+        'new',
+        upper_address[:2],
+        upper_address[2:4],
+        upper_address + '.json',
+    ), 'r'
+    )
+    o = json.load(f)
+    f.close()
+
+    p = Person.deserialize(o)
+    phone = p.tel
+
+    session = uuid.uuid4().hex
+    data = {
+        'sessionId': session,
+        'serviceCode': config.get('APP_SERVICE_CODE'),
+        'phoneNumber': phone,
+        'text': '',
+    }
+
+    req = urllib.request.Request(config.get('_USSD_PROVIDER'))
+    data_str = json.dumps(data)
+    data_bytes = data_str.encode('utf-8')
+    req.add_header('Content-Type', 'application/json')
+    req.data = data_bytes
+    response = urllib.request.urlopen(req)
+    return response.read().decode('utf-8')
 
 
 class VerifierState:
@@ -354,41 +373,17 @@ class Verifier:
 
 
     def verify_ussd(self, address, balance=None):
-        upper_address = strip_0x(address).upper()
-        f = open(os.path.join(
-            self.data_dir,
-            'new',
-            upper_address[:2],
-            upper_address[2:4],
-            upper_address + '.json',
-            ), 'r'
-            )
-        o = json.load(f)
-        f.close()
-
-        p = Person.deserialize(o)
-        phone = p.tel
-
-        session = uuid.uuid4().hex
-        data = {
-                'sessionId': session,
-                'serviceCode': config.get('APP_SERVICE_CODE'),
-                'phoneNumber': phone,
-                'text': config.get('APP_SERVICE_CODE'),
-            }
-
-        req = urllib.request.Request(config.get('_USSD_PROVIDER'))
-        data_str = json.dumps(data)
-        data_bytes = data_str.encode('utf-8')
-        req.add_header('Content-Type', 'application/json')
-        req.data = data_bytes
-        response = urllib.request.urlopen(req)
-        response_data = response.read().decode('utf-8')
+        response_data = send_ussd_request(address, self.data_dir)
         state = response_data[:3]
         out = response_data[4:]
         m = '{} {}'.format(state, out[:7])
         if m != 'CON Welcome':
             raise VerifierError(response_data, 'ussd')
+
+    def verify_ussd_pins(self, address, balance):
+        response_data = send_ussd_request(address, self.data_dir)
+        if response_data[:11] != 'CON Balance':
+            raise VerifierError(response_data, 'pins')
 
 
     def verify(self, address, balance, debug_stem=None):

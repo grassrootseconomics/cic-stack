@@ -16,4 +16,6 @@ def default_token(self):
     return {
             'symbol': self.default_token_symbol,
             'address': self.default_token_address,
+            'name': self.default_token_name,
+            'decimals': self.default_token_decimals,
             }

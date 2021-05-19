@@ -1,0 +1,17 @@
+@node cic-eth system accounts
+@section System initialization
+
+When the system starts for the first time, it is locked for any state change request other than account creation@footnote{Specifically, the @code{INIT}, @code{SEND} and @code{QUEUE} lock bits are set.}. These locks should be @emph{reset} once system initialization has been completed. Currently, system initialization only involves creating and tagging required system accounts, as specified below.
+
+See @ref{cic-eth-locking,Locking} and @ref{cic-eth-tools-ctrl,ctrl in Tools} for details on locking.
+
+@subsection System accounts
+
+Certain accounts in the system have special roles. These are defined by @emph{tagging} certain accounts addresses with well-known identifiers.
+
+@table @var
+@item GAS_GIFTER
+This account @strong{must} at all times have enough gas token to fund any custodial account address in need.
+@item ACCOUNT_REGISTRY_WRITER
+This account @strong{must} have access to add newly created account addresses to the (@xref{cic-eth-dependencies-smart-contracts,Smart contract dependencies})
+@end table

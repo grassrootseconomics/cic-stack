@@ -1,0 +1,22 @@
+@node cic-eth-accounts
+@section Accounts
+
+Accounts are private keys in the signer component keyed by "addresses," a one-way transformation of a public key. Data can be signed by using the account as identifier for corresponding RPC requests.
+
+Any account to be managed by @code{cic-eth} must be created by the corresponding task. This is because @code{cic-eth} creates a @code{nonce} entry for each newly created account, and guarantees that every nonce will only be used once in its threaded environment.
+
+The calling code receives the account address upon creation. It never receives or has access to the private key.
+
+
+@subsection Signer RPC 
+
+The signer is expected to handle a subset of the standard JSON-RPC:
+
+@table @code
+@item personal_newAccount(password)
+Creates a new account, returning the account address.
+@item eth_signTransactions(tx_dict)
+Sign the transaction represented as a dictionary.
+@item eth_sign(address, message)
+Signs an arbtirary message with the standard Ethereum prefix.
+@end table

@@ -9,6 +9,7 @@ import pytest
 
 # local imports
 from cic_cache import BloomCache
+from cic_cache.cache import DataCache
 
 logg = logging.getLogger()
 
@@ -33,3 +34,23 @@ def test_cache(
 
     assert b[0] == list_defaults['block'] - 1
 
+
+def test_cache_data(
+        init_database,
+        list_defaults,
+        list_actors,
+        list_tokens,
+        txs,
+        tag_txs,
+        ):
+
+    session = init_database
+
+    c = DataCache(session)
+    b = c.load_transactions_with_data(410000, 420000)
+
+    assert len(b[2]) == 2
+    assert b[2][0]['tx_hash'] == txs[1]
+    assert b[2][1]['tx_type'] == 'unknown'
+    assert b[2][0]['tx_type'] == 'test.taag'
+    
