@@ -1,0 +1,46 @@
+@node cic-eth-dependencies
+@section Dependencies
+
+This application is written in Python 3.8. It is tightly coupled with @code{python-celery}, which provides the task worker ecosystem. It also uses @code{SQLAlchemy} which provides useful abstractions for persistent storage though SQL, and @code{alembic} for database schema migrations.
+
+There is currently also a somewhat explicit coupling with @code{Redis}, which is used as message broker for @code{python-celery}. @code{Redis} is also explicitly used by some CLI tools to retrieve results from command execution. This coupling may be relaxed in the future to allow other key-value pubsub solutions instead. 
+
+
+@subsection Generalized project dependencies
+
+The core features are built around four main independent components that have been developed for the purpose of this project, but are separated and maintained as general-purpose libraries.
+
+@table @samp
+@item chainlib
+A cross-chain library prototype that can provide encodings for transactions on a Solidity-based EVM contract network.
+@item chainqueue
+Queue manager that guarantees delivery of outgoing blockchain transactions.
+@item chainsyncer
+Monitors blockchains and guarantees execution of an arbitrary count of pluggable code objects for each block transaction.
+@item crypto-dev-signer
+An keystore capable of signing for the EVM chain through a standard Ethereum JSON-RPC interface.
+@end table
+
+@anchor{cic-eth-dependencies-smart-contracts}
+@subsection Smart contract dependencies
+
+The Smart contracts needed by the network must be discoverable through a single entry point called the Contract Registry. The contract registry is expected to reference itself in its records. The authenticity of the contract registry must be guaranteed by external sources of trust.
+
+The contract registry maps contract addresses to well-known identifiers. The contracts are as follows:
+
+@table @code
+@item ContractRegistry (points to self)
+Resolves plaintext identifiers to contract addresses.
+@item AccountRegistry
+An append-only store of accounts hosted by the custodial system
+@item TokenRegistry
+Unique symbol-to-address mappings for token contracts
+@item AddressDeclarator
+Reverse address to resource lookup
+@item TokenAuthorization
+Escrow contract for external spending on behalf of custodial users
+@item Faucet
+Called by newly created accounts to receive initial token balance
+@end table
+
+The dependency @code{cic-eth-registry} abstracts and facilitates lookups of resources on the blockchain network. In its current state it resolves tokens by symbol or address, and contracts by common-name identifiers. In the @code{cic-eth} code all lookups for EVM network resources will be performed through this dependency.

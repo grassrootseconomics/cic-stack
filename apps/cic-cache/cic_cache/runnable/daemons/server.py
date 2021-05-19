@@ -1,18 +1,20 @@
 # standard imports
 import os
-import re
 import logging
 import argparse
-import json
 import base64
 
-# third-party imports
+# external imports
 import confini
 
 # local imports
-from cic_cache import BloomCache
 from cic_cache.db import dsn_from_config
 from cic_cache.db.models.base import SessionBase
+from cic_cache.runnable.daemons.query import (
+        process_transactions_account_bloom,
+        process_transactions_all_bloom,
+        process_transactions_all_data,
+        )
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -44,72 +46,6 @@ logg.debug('config:\n{}'.format(config))
 dsn = dsn_from_config(config)
 SessionBase.connect(dsn, config.true('DATABASE_DEBUG'))
 
-re_transactions_all_bloom = r'/tx/(\d+)?/?(\d+)/?'
-re_transactions_account_bloom = r'/tx/user/((0x)?[a-fA-F0-9]+)/?(\d+)?/?(\d+)/?'
-
-DEFAULT_LIMIT = 100
-
-
-def process_transactions_account_bloom(session, env):
-    r = re.match(re_transactions_account_bloom, env.get('PATH_INFO'))
-    if not r:
-        return None
-
-    address = r[1]
-    if r[2] == None:
-        address = '0x' + address
-    offset = DEFAULT_LIMIT
-    if r.lastindex > 2:
-        offset = r[3]
-    limit = 0
-    if r.lastindex > 3:
-        limit = r[4]
-
-    c = BloomCache(session)
-    (lowest_block, highest_block, bloom_filter_block, bloom_filter_tx) = c.load_transactions_account(address, offset, limit)
-
-    o = {
-        'alg': 'sha256',
-        'low': lowest_block,
-        'high': highest_block,
-        'block_filter': base64.b64encode(bloom_filter_block).decode('utf-8'),
-        'blocktx_filter': base64.b64encode(bloom_filter_tx).decode('utf-8'),
-        'filter_rounds': 3,
-            }
-
-    j = json.dumps(o)
-
-    return ('application/json', j.encode('utf-8'),)
-
-
-def process_transactions_all_bloom(session, env):
-    r = re.match(re_transactions_all_bloom, env.get('PATH_INFO'))
-    if not r:
-        return None
-
-    offset = DEFAULT_LIMIT
-    if r.lastindex > 0:
-        offset = r[1]
-    limit = 0
-    if r.lastindex > 1:
-        limit = r[2]
-
-    c = BloomCache(session)
-    (lowest_block, highest_block, bloom_filter_block, bloom_filter_tx) = c.load_transactions(offset, limit)
-
-    o = {
-        'alg': 'sha256',
-        'low': lowest_block,
-        'high': highest_block,
-        'block_filter': base64.b64encode(bloom_filter_block).decode('utf-8'),
-        'blocktx_filter': base64.b64encode(bloom_filter_tx).decode('utf-8'),
-        'filter_rounds': 3,
-            }
-
-    j = json.dumps(o)
-
-    return ('application/json', j.encode('utf-8'),)
-
 
 # uwsgi application
 def application(env, start_response):
@@ -119,10 +55,16 @@ def application(env, start_response):
 
     session = SessionBase.create_session()
     for handler in [
+            process_transactions_all_data,
             process_transactions_all_bloom,
             process_transactions_account_bloom,
             ]:
-        r = handler(session, env)
+        r = None
+        try:
+            r = handler(session, env)
+        except ValueError as e:
+            start_response('400 {}'.format(str(e)))
+            return []
         if r != None:
             (mime_type, content) = r
             break

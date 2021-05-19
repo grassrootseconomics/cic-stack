@@ -371,13 +371,6 @@ def process_start_menu(display_key: str, user: Account):
     # get operational balance
     operational_balance = compute_operational_balance(balances=balances_data)
 
-    # retrieve and cache account's metadata
-    s_query_person_metadata = celery.signature(
-        'cic_ussd.tasks.metadata.query_person_metadata',
-        [blockchain_address]
-    )
-    s_query_person_metadata.apply_async(queue='cic-ussd')
-
     # retrieve and cache account's statement
     retrieve_account_statement(blockchain_address=blockchain_address)
 

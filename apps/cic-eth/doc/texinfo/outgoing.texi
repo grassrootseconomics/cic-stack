@@ -1,0 +1,74 @@
+@node cic-eth-outgoing
+@section Outgoing transactions
+
+@strong{Important! A pre-requisite for proper functioning of the component is that no other agent is sending transactions to the network for any of the keys in the keystore.}
+
+The term @var{state bit} refers to the bits definining the @code{chainqueue} state.
+
+@subsection Lock
+
+Any task that changes blockchain state @strong{must} apply a @code{QUEUE} lock for the address it operates on. This is to ensure that transactions are sent to the network in order.@footnote{If too many transactions arrive out of order to the blockchain node, it may arbitrarily prune those that cannot directly be included in a block. This puts unnecessary strain (and reliance) on the transaction retry mechanism.}
+
+This lock will be released once the blockchain node confirms handover of the transaction.@footnote{This is the responsibility of the @var{dispatcher} service}
+
+
+@subsection Nonce
+
+A separate task step is executed for binding a transaction nonce to a Celery task root id, which uniquely identifies the task chain. This provides atomicity of the nonce across the parallell task environment, and also recoverability in case unexpected program interruption.
+
+The nonce of a permanently failed task must be @emph{manually} unlocked. Celery tasks that involve nonces who permanently fail are to be considered @emph{critical anomalies} and should not happen. The queue locking mechanism is designed to prevent the amount of out-of-sequence transactions for an account to escalate.
+
+
+@subsection Choosing fee prices
+
+@code{cic-eth} uses the @code{chainlib} module to resolve gas price lookups.
+
+Optimizing gas price discovery should be the responsibility of the chainlib layer. It already accommodates using an separate RPC for the @code{eth_gasPrice} call.@footnote{A sample implementation of a gas price tracker speaking JSON-RPC (also built using chainlib/chainsyncer) can be found at @url{https://gitlab.com/nolash/eth-stat-syncer}.}
+
+
+@subsection Choosing gas limits
+
+To determine the gas limit of a transaction, normally the EVM node will be used to perform a dry-run exection of the inputs against the current chain state.
+
+As the current state of the custodial system should only rely on known, trusted contract bytecode, there is no real need for this mechanism. The @code{chainlib}-based contract interfaces are expected to provide a method call that return safe gas limit values for contract interactions.@footnote{Of course, this method call may in turn conceal more sophisticated gas limit heuristics.}
+
+Note that it is still the responsibility of @code{cic-eth} to make sure that the gas limit of the network is sufficient to allow execution of all needed contracts.
+
+
+@subsection Gas refills
+
+If the gas balance of a custodial account is below a certain threshold, a gas refill task will be spawned. The gas will be transferred from the @code{GAS GIFTER} system account.
+
+In the event that the balance is insufficient even for the imminent transaction@footnote{This will of course be the case when an account is first created, whereupon it has a balance of 0. The subsequent faucet call will spawn a gas refill task.}, execution of the transaction will be deferred until the gas refill transaction is completed. In this case the transaction will be marked with the @code{GAS ISSUES} state bit.
+
+The value chosen for the gas refill threshold should ideally allow enough of a margin to avoid the need of deferring transactions in the future.
+
+
+@subsection Queueing transactions
+
+Once the lock, nonce and gas processing parts has been completed, the transaction will be queued for sending. This means that the @code{QUEUED} state bit is set. From here the @ref{cic-eth-services-dispatcher,dispatcher service} takes over responsibility.
+
+
+@subsection Retrying transactions
+
+There are three conditions create the need to defer and retry transactions.
+
+The first is communication problems with the blockchain node itself, for example if it is overloaded or being restarted. As far as possible, retries of this nature will be left to the Celery task workers. There may be cases, however, where it is appropriate to hand the responsibility to the @code{chainqueue} instead. In this case, the queue item will have the @code{NODE ERROR} state bit set.
+
+The second condition occurs when transactions take too long to be confirmed by the network. In this case, the transaction will be re-submitted, but with a higher gas price.
+
+The third condition occurs when the blockchain node purges the transaction from the mempool before it is sent to the network. @code{cic-eth} does not distinguish this case from the second, as the issue is solved using the same mechanism.
+
+
+@subsubsection Transaction obsoletion
+
+"Re-submitting" a transaction means creating a transaction with a previously used nonce for an account address.
+
+When this happens, The @code{chainqueue} will still contain all previous transactions with the same nonce. The transaction being superseded will have the @code{OBSOLETED} state bit set.
+
+Once a transaction has been mined, all other transactions with the same node will have the @code{OBSOLETED} and @code{FINAL} state bits set.
+
+
+@subsection Unexpected conditions
+
+Any unexpected condition exposing the need for urgent code improvement and/or manual intervention will be signalled by marking the transaction with the @code{FUBAR} state bit set.

@@ -1,7 +1,7 @@
 sw:
   account_successfully_created: |-
-    Habari, umesajiliwa kwa huduma ya sarafu! Salio lako ni %{token_symbol} %{balance}. Kutumia bonyeza *483*46#. Kwa Usaidizi 0757628885.
+    Umesajiliwa kwa huduma ya Sarafu! Kutumia bonyeza *384*96# Safaricom ama *483*46# kwa utandao tofauti. Kwa Usaidizi %{support_phone}.
   received_tokens: |-
     Umepokea %{amount} %{token_symbol} kutoka kwa %{tx_sender_information} %{timestamp}. Salio la %{token_symbol} ni %{balance}.
   terms: |-
-    Kwa kutumia hii huduma, umekubali sheria na masharti yafuatayo https://www.grassrootseconomics.org/terms-and-conditions.
+    Kwa kutumia hii huduma, umekubali sheria na masharti yafuatayo http://grassecon.org/tos
