@@ -72,7 +72,9 @@ class CallbackFilter(SyncFilter):
         #transfer_data['token_address'] = tx.inputs[0]
         faucet_contract = tx.inputs[0]
 
-        o = Faucet.token(faucet_contract, sender_address=self.caller_address)
+        c = Faucet(self.chain_spec)
+
+        o = c.token(faucet_contract, sender_address=self.caller_address)
         r = conn.do(o)
         transfer_data['token_address'] = add_0x(c.parse_token(r))
 

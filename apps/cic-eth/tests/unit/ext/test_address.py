@@ -3,7 +3,7 @@ from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.tx import (
         receipt,
         )
-from eth_address_declarator import AddressDeclarator
+from eth_address_declarator import Declarator
 from hexathon import add_0x
 
 # local imports
@@ -23,7 +23,7 @@ def test_translate(
 
     nonce_oracle = RPCNonceOracle(contract_roles['CONTRACT_DEPLOYER'], eth_rpc)
 
-    c = AddressDeclarator(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle)
+    c = Declarator(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle)
 
     description = 'alice'.encode('utf-8').ljust(32, b'\x00').hex()
     (tx_hash_hex, o) = c.add_declaration(address_declarator, contract_roles['CONTRACT_DEPLOYER'], agent_roles['ALICE'], add_0x(description))

@@ -9,7 +9,7 @@ import celery
 from chainlib.connection import RPCConnection
 from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.tx import receipt
-from eth_accounts_index import AccountRegistry
+from eth_accounts_index.registry import AccountRegistry
 from hexathon import strip_0x
 from chainqueue.db.enum import StatusEnum
 from chainqueue.db.models.otx import Otx

@@ -14,9 +14,9 @@ from chainlib.eth.tx import (
         Tx,
         )
 from chainlib.eth.block import Block
-from chainlib.eth.erc20 import ERC20
+from eth_erc20 import ERC20
 from sarafu_faucet import MinterFaucet
-from eth_accounts_index import AccountRegistry
+from eth_accounts_index.registry import AccountRegistry
 from potaahto.symbols import snake_and_camel
 from hexathon import add_0x
 

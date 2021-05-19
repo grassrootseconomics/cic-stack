@@ -8,7 +8,7 @@ from chainlib.eth.tx import (
         count,
         receipt,
         )
-from chainlib.eth.erc20 import ERC20
+from eth_erc20 import ERC20
 from chainlib.eth.nonce import RPCNonceOracle
 
 # local imports
