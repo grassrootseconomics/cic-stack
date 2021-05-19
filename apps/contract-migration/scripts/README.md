@@ -89,7 +89,12 @@ After this step is run, you can find top-level ethereum addresses (like the cic 
 
 
 #### Custodial provisions
-
+response_data = send_ussd_request(address, self.data_dir)
+        state = response_data[:3]
+        out = response_data[4:]
+        m = '{} {}'.format(state, out[:7])
+        if m != 'CON Welcome':
+            raise VerifierError(response_data, 'ussd')
 This step is _only_ needed if you are importing using `cic_eth` or `cic_ussd`
 
 `RUN_MASK=2 docker-compose up contract-migration`
@@ -104,8 +109,8 @@ If importing using `cic_eth` or `cic_ussd` also run:
 * cic-eth-retrier
 
 If importing using `cic_ussd` also run:
-* cic-ussd-tasker
-* cic-ussd-server
+* cic-user-tasker
+* cic-user-ussd-server
 * cic-notify-tasker
 
 If metadata is to be imported, also run:
@@ -168,6 +173,26 @@ Then, in sequence, run in first terminal:
 In second terminal:
 
 `python cic_ussd/import_users.py -v -c config out`
+
+
+##### Importing pins and ussd data (optional)
+Once the user imports are complete the next step should be importing the user's pins and auxiliary ussd data. This can be done in 3 steps:
+
+In one terminal run:
+
+`python create_import_pins.py -c config -v --userdir <path to the users export dir tree> pinsdir <path to pin export dir tree>`
+
+This script will recursively walk through all the directories defining user data in the users export directory and generate a csv file containing phone numbers and password hashes generated using fernet in a manner reflecting the nature of said hashes in the old system.
+This csv file will be stored in the pins export dir defined as the positional argument.
+
+Once the creation of the pins file is complete, proceed to import the pins and ussd data as follows:
+
+- To import the pins:
+
+`python cic_ussd/import_pins.py -c config -v pinsdir <path to pin export dir tree>`
+
+- To import ussd data:
+`python cic_ussd/import_ussd_data.py -c config -v userdir <path to the users export dir tree>`
 
 The balance script is a celery task worker, and will not exit by itself in its current version. However, after it's done doing its job, you will find "reached nonce ... exiting" among the last lines of the log.
 

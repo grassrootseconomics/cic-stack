@@ -120,7 +120,7 @@ class MetadataRequestsHandler(Metadata):
         data = json.loads(response_data.decode('utf-8'))
         if result.status_code == 200 and self.cic_type == ':cic.person':
             person = Person()
-            deserialized_person = person.deserialize(person_data=json.loads(data))
+            deserialized_person = person.deserialize(person_data=data)
             data = json.dumps(deserialized_person.serialize())
             cache_data(self.metadata_pointer, data=data)
             logg.debug(f'caching: {data} with key: {self.metadata_pointer}')

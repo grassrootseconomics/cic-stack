@@ -1,0 +1,49 @@
+@node cic-eth-incoming
+@section Incoming transactions
+
+All transactions in mined blocks will be passed to a selection of plugin filters to the @code{chainsyncer} component. Each of these filters are individual python module files in @code{cic_eth.runnable.daemons.filters}. This section describes their function.
+
+The status bits refer to the bits definining the @code{chainqueue} state.
+
+
+@subsection tx
+
+Looks up the transaction in the local queue, and if found it sets the @code{FINAL} state bit. If the contract code execution was unsuccessful, the @code{NETWORK ERROR} state bit is also set.
+
+
+@subsection gas
+
+If the transaction is a gas token transfer, it checks if the recipient is a custodial account awaiting gas refill to execute a transaction (the queue item will have the @code{GAS ISSUES} bit set). If this is the case, the transaction will be activated by setting the @code{QUEUED} bit.
+
+
+@subsection register
+
+If the transaction is an account registration@footnote{The contract keyed by @var{AccountRegistry} in the @var{ContractRegistry} contract}, a Faucet transaction will be triggered for the registered account@footnote{The faucet contract used in the reference implementation will verify whether the account calling it is registered in the @var{AccountRegistry}. Thus it cannot be called before the account registration has succeeded.}
+
+
+@subsection callback
+
+Executes, in order, Celery tasks defined in the configuration variable @var{TASKS_TRANSFER_CALLBACKS}. Each of these tasks are registered as individual filters in the @code{chainsyncer} component, with the corresponding execution guarantees.
+
+The callbacks will receive the following arguments
+
+@enumerate
+@item @strong{result}
+A complex representation of the transaction (see section ?)
+@item @strong{transfertype}
+A string describing the type of transaction found@footnote{See appendix ? for an overview of possible values}
+@item @strong{status}
+0 if contract code executed successfully. Any other value is an error@footnote{The values 1-1024 are reserved for system specific errors. In the current implementation only a general error state with value 1 is defined. See appendix ?.}
+@end enumerate
+
+
+@subsection transferauth
+If a valid transfer authorization request has been made, a token @emph{allowance}@footnote{@code{approve} for ERC20 tokens} transaction is executed on behalf of the custodial account, with the @var{TransferAuthorization} contract as spender.
+
+
+
+@subsection convert
+If the transaction is a token conversion, @emph{and} there is a pending transfer registered for the conversion, the corresponding token transfer transaction will be executed. Not currently implemented
+
+
+

@@ -22,6 +22,7 @@ from chainlib.eth.connection import (
 from chainlib.chain import ChainSpec
 from chainqueue.db.models.otx import Otx
 from cic_eth_registry.error import UnknownContractError
+from cic_eth_registry.erc20 import ERC20Token
 import liveness.linux
 
 
@@ -36,7 +37,7 @@ from cic_eth.eth import (
 from cic_eth.admin import (
         debug,
         ctrl,
-        token
+        token,
         )
 from cic_eth.queue import (
         query,
@@ -75,7 +76,6 @@ argparser.add_argument('-c', type=str, default=config_dir, help='config file')
 argparser.add_argument('-q', type=str, default='cic-eth', help='queue name for worker tasks')
 argparser.add_argument('-r', type=str, help='CIC registry address')
 argparser.add_argument('--default-token-symbol', dest='default_token_symbol', type=str, help='Symbol of default token to use')
-argparser.add_argument('--abi-dir', dest='abi_dir', type=str, help='Directory containing bytecode and abi')
 argparser.add_argument('--trace-queue-status', default=None, dest='trace_queue_status', action='store_true', help='set to perist all queue entry status changes to storage')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
@@ -121,20 +121,25 @@ broker = config.get('CELERY_BROKER_URL')
 if broker[:4] == 'file':
     bq = tempfile.mkdtemp()
     bp = tempfile.mkdtemp()
-    current_app.conf.update({
+    conf_update = {
             'broker_url': broker,
             'broker_transport_options': {
                 'data_folder_in': bq,
                 'data_folder_out': bq,
                 'data_folder_processed': bp,
             },
-            },
-            )
+            }
+    if config.true('CELERY_DEBUG'):
+        conf_update['result_extended'] = True
+    current_app.conf.update(conf_update)
     logg.warning('celery broker dirs queue i/o {} processed {}, will NOT be deleted on shutdown'.format(bq, bp))
 else:
-    current_app.conf.update({
-        'broker_url': broker,
-        })
+    conf_update = {
+            'broker_url': broker,
+            }
+    if config.true('CELERY_DEBUG'):
+        conf_update['result_extended'] = True
+    current_app.conf.update(conf_update)
 
 result = config.get('CELERY_RESULT_URL')
 if result[:4] == 'file':
@@ -203,6 +208,11 @@ def main():
 
     BaseTask.default_token_symbol = config.get('CIC_DEFAULT_TOKEN_SYMBOL')
     BaseTask.default_token_address = registry.by_name(BaseTask.default_token_symbol)
+    default_token = ERC20Token(chain_spec, rpc, BaseTask.default_token_address)
+    default_token.load(rpc)
+    BaseTask.default_token_decimals = default_token.decimals
+    BaseTask.default_token_name = default_token.name
+
     BaseTask.run_dir = config.get('CIC_RUN_DIR')
     logg.info('default token set to {} {}'.format(BaseTask.default_token_symbol, BaseTask.default_token_address))
    

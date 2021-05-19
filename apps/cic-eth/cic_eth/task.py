@@ -33,6 +33,8 @@ class BaseTask(celery.Task):
     create_gas_oracle = RPCGasOracle
     default_token_address = None
     default_token_symbol = None
+    default_token_name = None
+    default_token_decimals = None
     run_dir = '/run'
 
     def create_session(self):

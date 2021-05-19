@@ -51,15 +51,23 @@ from cic_eth.registry import (
 
 script_dir = os.path.realpath(os.path.dirname(__file__))
 
+def add_block_args(argparser):
+    argparser.add_argument('--history-start', type=int, default=0, dest='history_start', help='Start block height for initial history sync')
+    argparser.add_argument('--no-history', action='store_true', dest='no_history', help='Skip initial history sync')
+    return argparser
+
+
 logg = cic_base.log.create()
 argparser = cic_base.argparse.create(script_dir, cic_base.argparse.full_template)
-#argparser = cic_base.argparse.add(argparser, add_traffic_args, 'traffic')
+argparser = cic_base.argparse.add(argparser, add_block_args, 'block')
 args = cic_base.argparse.parse(argparser, logg)
+
 config = cic_base.config.create(args.c, args, args.env_prefix)
 
 config.add(args.y, '_KEYSTORE_FILE', True)
-
 config.add(args.q, '_CELERY_QUEUE', True)
+config.add(args.history_start, 'SYNCER_HISTORY_START', True)
+config.add(args.no_history, '_NO_HISTORY', True)
 
 cic_base.config.log(config)
 
@@ -69,8 +77,8 @@ SessionBase.connect(dsn, pool_size=16, debug=config.true('DATABASE_DEBUG'))
 
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 
-#RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, 'default')
 cic_base.rpc.setup(chain_spec, config.get('ETH_PROVIDER'))
+
 
 def main():
     # connect to celery
@@ -89,7 +97,7 @@ def main():
         stat = init_chain_stat(rpc, block_start=block_current)
         loop_interval = stat.block_average()
 
-    logg.debug('starting at block {}'.format(block_offset))
+    logg.debug('current block height {}'.format(block_offset))
 
     syncers = []
 
@@ -98,8 +106,13 @@ def main():
     syncer_backends = SQLBackend.resume(chain_spec, block_offset)
 
     if len(syncer_backends) == 0:
-        logg.info('found no backends to resume')
-        syncer_backends.append(SQLBackend.initial(chain_spec, block_offset))
+        initial_block_start = config.get('SYNCER_HISTORY_START')
+        initial_block_offset = block_offset
+        if config.get('_NO_HISTORY'):
+            initial_block_start = block_offset
+            initial_block_offset += 1
+        syncer_backends.append(SQLBackend.initial(chain_spec, initial_block_offset, start_block_height=initial_block_start))
+        logg.info('found no backends to resume, adding initial sync from history start {} end {}'.format(initial_block_start, initial_block_offset))
     else:
         for syncer_backend in syncer_backends:
             logg.info('resuming sync session {}'.format(syncer_backend))
@@ -155,7 +168,6 @@ def main():
         for cf in callback_filters:
             syncer.add_filter(cf)
 
-        #r = syncer.loop(int(config.get('SYNCER_LOOP_INTERVAL')), rpc)
         r = syncer.loop(int(loop_interval), rpc)
         sys.stderr.write("sync {} done at block {}\n".format(syncer, r))
 

@@ -1,0 +1,11 @@
+@node cic-eth Appendix Transaction types
+@appendix Transfer types
+
+@table @var
+@item transfer
+A regular token transfer, e.g. ERC20 @code{transfer}
+@item transferfrom
+A token transfer performed on behalf of another party, e.g. ERC20 @code{transferFrom}
+@item tokengift
+Result of a successful faucet request.
+@end table
