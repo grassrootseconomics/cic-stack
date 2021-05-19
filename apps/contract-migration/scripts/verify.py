@@ -72,6 +72,7 @@ argparser.add_argument('--ussd-provider', type=str, dest='ussd_provider', defaul
 argparser.add_argument('--skip-custodial', dest='skip_custodial', action='store_true', help='skip all custodial verifications')
 argparser.add_argument('--exclude', action='append', type=str, default=[], help='skip specified verification')
 argparser.add_argument('--include', action='append', type=str, help='include specified verification')
+argparser.add_argument('--token-symbol', default='SRF', type=str, dest='token_symbol', help='Token symbol to use for trnsactions')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-x', '--exit-on-error', dest='x', action='store_true', help='Halt exection on error')
@@ -100,6 +101,8 @@ config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
 config.add(args.meta_provider, '_META_PROVIDER', True)
 config.add(args.ussd_provider, '_USSD_PROVIDER', True)
+
+token_symbol = args.token_symbol
 
 logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
 
@@ -273,7 +276,10 @@ class Verifier:
     def verify_balance(self, address, balance):
         o = self.erc20_tx_factory.balance(self.token_address, address)
         r = self.conn.do(o)
-        actual_balance = int(strip_0x(r), 16)
+        try:
+            actual_balance = int(strip_0x(r), 16)
+        except ValueError:
+            actual_balance = int(r)
         balance = int(balance / 1000000) * 1000000
         logg.debug('balance for {}: {}'.format(address, balance))
         if balance != actual_balance:
@@ -461,7 +467,7 @@ def main():
     tx = txf.template(ZERO_ADDRESS, token_index_address)
     data = add_0x(registry_addressof_method)
     h = hashlib.new('sha256')
-    h.update(b'SRF')
+    h.update(token_symbol.encode('utf-8'))
     z = h.digest()
     data += eth_abi.encode_single('bytes32', z).hex()
     txf.set_code(tx, data)

@@ -101,14 +101,14 @@ def main():
     logg.info('using token registry {}'.format(token_registry))
     token_cache = TokenRegistryCache(chain_spec, token_registry)
 
-    account_registry = registry.lookup('TokenRegistry')
+    account_registry = registry.lookup('AccountRegistry')
     logg.info('using account registry {}'.format(account_registry))
     account_cache = AccountRegistryCache(chain_spec, account_registry)
    
     # Set up provisioner for common task input data
     #TrafficProvisioner.oracles['token']= common.registry.TokenOracle(w3, config.get('CIC_CHAIN_SPEC'), registry)
     #TrafficProvisioner.oracles['account'] = common.registry.AccountsOracle(w3, config.get('CIC_CHAIN_SPEC'), registry)
-    TrafficProvisioner.oracles['token']= token_cache
+    TrafficProvisioner.oracles['token'] = token_cache
     TrafficProvisioner.oracles['account'] = account_cache
     
     TrafficProvisioner.default_aux = {

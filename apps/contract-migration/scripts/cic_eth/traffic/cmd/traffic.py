@@ -352,7 +352,14 @@ class TrafficSyncHandler:
             recipient_index = random.randint(0, len(traffic_provisioner.accounts)-1)
             recipient = traffic_provisioner.accounts[recipient_index]
           
-            logg.debug('trigger item {} tokens {} sender {} recipient {} balance {}')
+            logg.debug('trigger item {} tokens {} sender {} recipient {} balance {}'.format(
+                traffic_item,
+                token_pair,
+                sender,
+                recipient,
+                balance_full,
+                )
+                )
             (e, t, balance_result,) = traffic_item.method(
                     token_pair,
                     sender,

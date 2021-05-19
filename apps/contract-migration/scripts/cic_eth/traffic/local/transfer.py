@@ -33,7 +33,7 @@ def do(token_pair, sender, recipient, sender_balance, aux, block_number):
     balance_units = int(sender_balance_value / decimals)
 
     if balance_units <= 0:
-        return (AttributeError('sender {} has zero balance'), None, 0,)
+        return (AttributeError('sender {} has zero balance ({} / {})'.format(sender, sender_balance_value, decimals)), None, 0,)
 
     spend_units = random.randint(1, balance_units)
     spend_value = spend_units * decimals
