@@ -6,7 +6,8 @@ import celery
 import africastalking
 
 # local imports
-from cic_notify.error import NotInitializedError, AlreadyInitializedError
+from cic_notify.error import NotInitializedError, AlreadyInitializedError, NotificationSendError
+from cic_notify.ext.enums import AfricasTalkingStatusCodes
 
 logg = logging.getLogger()
 celery_app = celery.current_app
@@ -50,9 +51,26 @@ class AfricasTalkingNotifier:
         if self.sender_id:
             response = self.api_client.send(message=message, recipients=[recipient], sender_id=self.sender_id)
             logg.debug(f'Africastalking response sender-id {response}')
+
         else:
             response = self.api_client.send(message=message, recipients=[recipient])
             logg.debug(f'africastalking response no-sender-id {response}')
+
+        recipients = response.get('Recipients')
+
+        if len(recipients) != 1:
+            status = response.get('SMSMessageData').get('Message')
+            raise NotificationSendError(f'Unexpected number of recipients: {len(recipients)}. Status: {status}')
+
+        status_code = recipients[0].get('statusCode')
+        status = recipients[0].get('status')
+
+        if status_code not in [
+            AfricasTalkingStatusCodes.PROCESSED.value,
+            AfricasTalkingStatusCodes.SENT.value,
+            AfricasTalkingStatusCodes.QUEUED.value
+        ]:
+            raise NotificationSendError(f'Sending notification failed due to: {status}')
 
 
 @celery_app.task

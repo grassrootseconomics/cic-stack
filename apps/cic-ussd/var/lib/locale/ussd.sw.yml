@@ -1,12 +1,12 @@
 sw:
   kenya:
     initial_language_selection: |-
-      CON Welcome to Sarafu
+      CON Karibu Sarafu Network
       1. English
       2. Kiswahili
       3. Help
     initial_pin_entry: |-
-      CON Tafadhali weka PIN ili kudhibiti akaunti yako.
+      CON Tafadhali weka pin mpya yenye nambari nne kwa akaunti yako
       0. Nyuma
     initial_pin_confirmation: |-
       CON Weka PIN yako tena
@@ -21,12 +21,13 @@ sw:
       CON Weka jinsia yako
       1. Mwanaume
       2. Mwanamke
+      3. Nyngine 
       0. Nyuma
     enter_location: |-
       CON Weka eneo lako
       0. Nyuma
     enter_products: |-
-      CON Tafadhali weka bidhaa ama huduma unauza
+      CON Weka bidhaa ama huduma unauza
       0. Nyuma
     start: |-
       CON Salio %{account_balance} %{account_token_name}
@@ -155,7 +156,7 @@ sw:
       99. Ondoka
     exit_insufficient_balance: |-
       CON Malipo ya %{amount} %{token_symbol} kwa %{recipient_information} halijakamilika kwa sababu salio lako haitoshi.
-      Akaunti yako ya Sarafu-Network ina salio ifuatayo: %{token_balance}
+      Akaunti yako ya Sarafu ina salio ifuatayo: %{token_balance}
       00. Nyuma
       99. Ondoka
     invalid_service_code: |-

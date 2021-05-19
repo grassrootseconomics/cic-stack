@@ -4,7 +4,7 @@ import sys
 import logging
 
 # external imports
-from chainlib.eth.erc20 import ERC20
+from eth_erc20 import ERC20
 
 # local imports
 from cic_eth.api import Api

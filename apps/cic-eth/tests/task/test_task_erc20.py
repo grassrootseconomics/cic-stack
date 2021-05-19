@@ -4,7 +4,7 @@ import logging
 # external imports
 import pytest
 import celery
-from chainlib.eth.erc20 import ERC20
+from eth_erc20 import ERC20
 from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.tx import (
         receipt,

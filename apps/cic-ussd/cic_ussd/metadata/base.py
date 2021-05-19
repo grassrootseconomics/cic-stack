@@ -102,7 +102,7 @@ class MetadataRequestsHandler(Metadata):
                 'digest': json.loads(data).get('digest'),
             }
         }
-        formatted_data = json.dumps(formatted_data).encode('utf-8')
+        formatted_data = json.dumps(formatted_data)
         result = make_request(method='PUT', url=self.url, data=formatted_data, headers=self.headers)
         logg.info(f'signed metadata submission status: {result.status_code}.')
         metadata_http_error_handler(result=result)
@@ -116,8 +116,10 @@ class MetadataRequestsHandler(Metadata):
         """This function is responsible for querying the metadata server for data corresponding to a unique pointer."""
         result = make_request(method='GET', url=self.url)
         metadata_http_error_handler(result=result)
-        response_data = result.content
-        data = json.loads(response_data.decode('utf-8'))
+        response_data = result.json()
+        data = json.loads(response_data)
+        if not isinstance(data, dict):
+            raise ValueError(f'Invalid data object: {data}.')
         if result.status_code == 200 and self.cic_type == ':cic.person':
             person = Person()
             deserialized_person = person.deserialize(person_data=data)

@@ -14,9 +14,9 @@ from chainlib.eth.tx import (
         Tx,
         )
 from chainlib.eth.block import Block
-from chainlib.eth.erc20 import ERC20
+from eth_erc20 import ERC20
 from sarafu_faucet import MinterFaucet
-from eth_accounts_index import AccountRegistry
+from eth_accounts_index.registry import AccountRegistry
 from potaahto.symbols import snake_and_camel
 from hexathon import add_0x
 
@@ -26,7 +26,6 @@ from cic_eth.runnable.daemons.filters.callback import CallbackFilter
 logg = logging.getLogger()
 
 
-@pytest.mark.skip()
 def test_transfer_tx(
         default_chain_spec,
         init_database,
@@ -66,7 +65,6 @@ def test_transfer_tx(
     assert transfer_type == 'transfer'
 
 
-@pytest.mark.skip()
 def test_transfer_from_tx(
         default_chain_spec,
         init_database,
