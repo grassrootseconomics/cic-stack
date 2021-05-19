@@ -115,6 +115,16 @@ def second_account_verify_balance_session_id() -> str:
 
 
 @pytest.fixture(scope='session')
+def first_account_management_session_id() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
+def second_account_management_session_id() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
 def gift_value(load_config):
     return load_config.get('TEST_GIFT_VALUE')
 
