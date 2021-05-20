@@ -13,6 +13,8 @@ build-mr-cic-eth:
         - .cic_eth_changes_target
         - .py_build_merge_request
         - .cic_eth_variables
+    after_script:
+        - cd cic-eth && PYTHONPATH=. pytest tests/unit
 
 build-push-cic-eth:
     extends:
