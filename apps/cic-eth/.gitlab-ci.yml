@@ -13,8 +13,13 @@ build-mr-cic-eth:
         - .cic_eth_changes_target
         - .py_build_merge_request
         - .cic_eth_variables
+    variables:
+        PYTHONPATH=.
     after_script:
-        - PYTHONPATH=. pytest tests/unit
+        - pip install -r test_requirements.txt
+        - pytest tests/unit/
+        - pytest tests/task/
+        - pytest tests/filters/
 
 build-push-cic-eth:
     extends:
