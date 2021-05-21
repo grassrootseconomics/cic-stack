@@ -35,7 +35,7 @@ variables:
 
 .py_unittest_merge_request:
   stage: test
-  scripts:
+  script:
     - docker load -i $APP-test-image.tar
     - docker images
 
