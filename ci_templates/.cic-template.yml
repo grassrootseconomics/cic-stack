@@ -9,11 +9,38 @@ variables:
 .py_build_merge_request:
   stage: build
   variables:
-    - CI_DEBUG_TRACE: "true"
+    CI_DEBUG_TRACE: "true"
   script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > "/kaniko/.docker/config.json"
     - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --cache-repo $CI_REGISTRY_IMAGE --no-push
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+
+.py_build_unittest_merge_request:
+  stage: build
+  variables:
+    CI_DEBUG_TRACE: "true"
+  artifacts:
+    paths:
+      - $APP-test-image.tar
+    expire_in: 1 week
+    when: on_success
+  script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > "/kaniko/.docker/config.json"
+    - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --cache-repo $CI_REGISTRY_IMAGE --target test --tarPath $APP-test-image.tar --no-push
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+
+
+.py_unittest_merge_request:
+  stage: test
+  script:
+    - docker load -i $APP-test-image.tar
+    - docker images
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: always
