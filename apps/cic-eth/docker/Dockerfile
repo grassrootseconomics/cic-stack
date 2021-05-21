@@ -15,6 +15,7 @@ RUN pip install semver
 # TODO use a packaging style that lets us copy requirments only ie. pip-tools 
 COPY cic-eth/ .
 RUN	pip install $pip_extra_index_url_flag .
+RUN	pip install $pip_extra_index_url_flag pycryptodome==3.10.1
 
 # --- TEST IMAGE ---
 FROM python:3.8.6-slim-buster as test 
@@ -36,6 +37,7 @@ COPY --from=compile /usr/local/lib/python3.8/site-packages/ \
 COPY cic-eth/test_requirements.txt .
 RUN	pip install $pip_extra_index_url_flag -r test_requirements.txt 
 
+
 ENV PYTHONPATH .
 
 ENTRYPOINT ["pytest"]
@@ -44,7 +46,7 @@ ENTRYPOINT ["pytest"]
 FROM python:3.8.6-slim-buster as runtime 
 
 RUN apt-get update && \
-	apt install -y gnupg libpq-dev
+	apt install -y gnupg libpq-dev procps
 
 WORKDIR /usr/src/cic-eth
 
