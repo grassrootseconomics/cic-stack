@@ -2,12 +2,12 @@ const fs = require('fs');
 const path = require('path');
 const http = require('http');
 
-const cic = require('cic-client-meta');
-const vcfp = require('vcard-parser');
+const cic = require('@cicnet/cic-client-meta');
+const crdt = require('@cicnet/crdt-meta');
 
 //const conf = JSON.parse(fs.readFileSync('./cic.conf'));
 
-const config = new cic.Config('./config'); 
+const config = new crdt.Config('./config');
 config.process();
 console.log(config);
 
@@ -42,24 +42,18 @@ function sendit(uid, envelope) {
 }
 
 function doOne(keystore, filePath, identifier) {
-	const signer = new cic.PGPSigner(keystore);
+	const signer = new crdt.PGPSigner(keystore);
 
 	const o = JSON.parse(fs.readFileSync(filePath).toString());
-	//const b = Buffer.from(j['vcard'], 'base64');
-	//const s = b.toString();
-	//const o = vcfp.parse(s);
-	//const phone = o.tel[0].value;
 
-	//cic.Phone.toKey(phone).then((uid) => {
-	//const o = fs.readFileSync(filePath, 'utf-8');
-
-	const s = new cic.Syncable(identifier, o);
-	s.setSigner(signer);
-	s.onwrap = (env) => {
-		sendit(identifier, env);
-	};
-	s.sign();
-	//});
+	cic.Custom.toKey(identifier).then((uid) => {
+		const s = new crdt.Syncable(uid, o);
+		s.setSigner(signer);
+		s.onwrap = (env) => {
+			sendit(identifier, env);
+		};
+		s.sign();
+	});
 }
 
 const privateKeyPath = path.join(config.get('PGP_EXPORTS_DIR'), config.get('PGP_PRIVATE_KEY_FILE'));
@@ -67,7 +61,7 @@ const publicKeyPath = path.join(config.get('PGP_EXPORTS_DIR'), config.get('PGP_P
 pk = fs.readFileSync(privateKeyPath);
 pubk = fs.readFileSync(publicKeyPath);
 
-new cic.PGPKeyStore(
+new crdt.PGPKeyStore(
 	config.get('PGP_PASSPHRASE'),
 	pk,
 	pubk,
@@ -94,7 +88,7 @@ function importMetaCustom(keystore) {
 		err, files = fs.readdirSync(workDir);
 	} catch {
 		console.error('source directory not yet ready', workDir);
-		setTimeout(importMetaPhone, batchDelay, keystore);
+		setTimeout(importMetaCustom, batchDelay, keystore);
 		return;
 	}
 	let limit = batchSize;
@@ -128,7 +122,7 @@ function importMetaCustom(keystore) {
 		if (batchCount == batchSize) {
 			console.debug('reached batch size, breathing');
 			batchCount=0;
-			setTimeout(importMeta, batchDelay, keystore);
+			setTimeout(importMetaCustom, batchDelay, keystore);
 			return;
 		}
 	}

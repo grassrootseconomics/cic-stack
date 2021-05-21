@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const http = require('http');
 
-const cic = require('cic-client-meta');
-const crdt = require('crdt-meta');
+const cic = require('@cicnet/cic-client-meta');
+const crdt = require('@cicnet/crdt-meta');
 
 //const conf = JSON.parse(fs.readFileSync('./cic.conf'));
 

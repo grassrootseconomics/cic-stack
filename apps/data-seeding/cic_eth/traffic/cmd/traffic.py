@@ -163,9 +163,9 @@ class TrafficProvisioner:
     """Aux parameter template to be passed to the traffic generator module"""
 
 
-    def __init__(self):
-        self.tokens = self.oracles['token'].get_tokens()
-        self.accounts = self.oracles['account'].get_accounts()
+    def __init__(self, conn):
+        self.tokens = self.oracles['token'].get_tokens(conn)
+        self.accounts = self.oracles['account'].get_accounts(conn)
         self.aux = copy.copy(self.default_aux)
         self.__balances = {}
         for a in self.accounts:
@@ -277,13 +277,14 @@ class TrafficSyncHandler:
     :type traffic_router: TrafficRouter
     :raises Exception: Any Exception redis may raise on connection attempt.
     """
-    def __init__(self, config, traffic_router):
+    def __init__(self, config, traffic_router, conn):
         self.traffic_router = traffic_router
         self.redis_channel = str(uuid.uuid4())
         self.pubsub = self.__connect_redis(self.redis_channel, config)
         self.traffic_items = {}
         self.config = config
         self.init = False
+        self.conn = conn
 
 
     # connects to redis
@@ -307,7 +308,7 @@ class TrafficSyncHandler:
         :param tx_index: Syncer block transaction index at time of call.
         :type tx_index: number
         """
-        traffic_provisioner = TrafficProvisioner()
+        traffic_provisioner = TrafficProvisioner(self.conn)
         traffic_provisioner.add_aux('redis_channel', self.redis_channel)
 
         refresh_accounts = None
@@ -343,7 +344,7 @@ class TrafficSyncHandler:
             sender = traffic_provisioner.accounts[sender_index]
             #balance_full = balances[sender][token_pair[0].symbol()]
             if len(sender_indices) == 1:
-                sender_indices[m] = sender_sender_indices[len(senders)-1]
+                sender_indices[sender_index] = sender_indices[len(sender_indices)-1]
             sender_indices = sender_indices[:len(sender_indices)-1]
 
             balance_full = traffic_provisioner.balance(sender, token_pair[0])
@@ -351,7 +352,14 @@ class TrafficSyncHandler:
             recipient_index = random.randint(0, len(traffic_provisioner.accounts)-1)
             recipient = traffic_provisioner.accounts[recipient_index]
           
-            logg.debug('trigger item {} tokens {} sender {} recipient {} balance {}')
+            logg.debug('trigger item {} tokens {} sender {} recipient {} balance {}'.format(
+                traffic_item,
+                token_pair,
+                sender,
+                recipient,
+                balance_full,
+                )
+                )
             (e, t, balance_result,) = traffic_item.method(
                     token_pair,
                     sender,
@@ -359,7 +367,6 @@ class TrafficSyncHandler:
                     balance_full,
                     traffic_provisioner.aux,
                     block_number,
-                    tx_index,
                     )
             traffic_provisioner.update_balance(sender, token_pair[0], balance_result)
             sender_indices.append(recipient_index)

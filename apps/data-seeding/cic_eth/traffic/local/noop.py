@@ -5,7 +5,7 @@ logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
 
-def do(token_pair, sender, recipient, sender_balance, aux, block_number, tx_index):
+def do(token_pair, sender, recipient, sender_balance, aux, block_number):
     """Defines the function signature for a traffic generator. The method itself only logs the input parameters.
 
     If the error position in the return tuple is not None, the calling code should consider the generation as failed, and not count it towards the limit of simultaneous traffic items that can be simultaneously in flight.
@@ -26,12 +26,10 @@ def do(token_pair, sender, recipient, sender_balance, aux, block_number, tx_inde
     :type aux: dict
     :param block_number: Syncer block number position at time of method call
     :type block_number: number
-    :param tx_index: Syncer block transaction index position at time of method call
-    :type tx_index: number
     :raises KeyError: Missing required aux element
     :returns: Exception|None, task_id|None and adjusted_sender_balance respectively
     :rtype: tuple
     """
-    logg.debug('running {} {} {} {} {} {} {} {}'.format(__name__, token_pair, sender, recipient, sender_balance, aux, block_number, tx_index))
+    logg.debug('running {} {} {} {} {} {} {}'.format(__name__, token_pair, sender, recipient, sender_balance, aux, block_number))
 
     return (None, None, sender_balance, )

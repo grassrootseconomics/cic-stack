@@ -2,9 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const http = require('http');
 
-const cic = require('cic-client-meta');
+const cic = require('@cicnet/cic-client-meta');
 const vcfp = require('vcard-parser');
-const crdt = require('crdt-meta');
+const crdt = require('@cicnet/crdt-meta');
 
 //const conf = JSON.parse(fs.readFileSync('./cic.conf'));
 

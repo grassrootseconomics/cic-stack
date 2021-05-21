@@ -4,7 +4,8 @@ import pgp = require('openpgp');
 import sqlite = require('sqlite3');
 
 import * as handlers from '../scripts/server/handlers';
-import { Envelope, Syncable, ArgPair, PGPKeyStore, PGPSigner, KeyStore, Signer, SqliteAdapter } from 'crdt-meta';
+import { Envelope, Syncable, ArgPair, PGPKeyStore, PGPSigner, KeyStore, Signer } from '@cicnet/crdt-meta';
+import { SqliteAdapter } from '../src/db';
 
 function createKeystore() {
 	const pksa = fs.readFileSync(__dirname + '/privatekeys.asc', 'utf-8');

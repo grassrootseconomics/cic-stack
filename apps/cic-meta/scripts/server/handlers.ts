@@ -1,7 +1,7 @@
 import * as Automerge from 'automerge';
 import * as pgp from 'openpgp';
 
-import { Envelope, Syncable } from 'crdt-meta';
+import { Envelope, Syncable } from '@cicnet/crdt-meta';
 
 
 function handleNoMergeGet(db, digest, keystore) {

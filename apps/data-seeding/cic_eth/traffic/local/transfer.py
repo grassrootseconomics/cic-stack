@@ -12,7 +12,7 @@ queue = 'cic-eth'
 name = 'erc20_transfer'
 
 
-def do(token_pair, sender, recipient, sender_balance, aux, block_number, tx_index):
+def do(token_pair, sender, recipient, sender_balance, aux, block_number):
     """Triggers an ERC20 token transfer through the custodial cic-eth component, with a randomly chosen amount in integer resolution.
 
     It expects the following aux parameters to exist:
@@ -33,7 +33,7 @@ def do(token_pair, sender, recipient, sender_balance, aux, block_number, tx_inde
     balance_units = int(sender_balance_value / decimals)
 
     if balance_units <= 0:
-        return (AttributeError('sender {} has zero balance'), None, 0,)
+        return (AttributeError('sender {} has zero balance ({} / {})'.format(sender, sender_balance_value, decimals)), None, 0,)
 
     spend_units = random.randint(1, balance_units)
     spend_value = spend_units * decimals

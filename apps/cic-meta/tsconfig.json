@@ -19,6 +19,7 @@
   "include": [
     "src/**/*",
     "scripts/server/*",
-    "index.ts"
+    "index.ts",
+    "bin"
   ]
 }

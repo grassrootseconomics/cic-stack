@@ -1,4 +1,4 @@
-import { Syncable, Addressable, toAddressKey } from 'crdt-meta';
+import { Syncable, Addressable, toAddressKey } from '@cicnet/crdt-meta';
 
 const keySalt = new TextEncoder().encode(':cic.person');
 class User extends Syncable implements Addressable {

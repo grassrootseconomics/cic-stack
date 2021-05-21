@@ -1,7 +1,7 @@
 {
   "dependencies": {
-    "cic-client-meta": "^0.0.7-alpha.8",
-    "crdt-meta": "0.0.8",
+    "@cicnet/cic-client-meta": "^0.0.11",
+    "@cicnet/crdt-meta": "^0.0.10",
     "vcard-parser": "^1.0.0"
   }
 }
