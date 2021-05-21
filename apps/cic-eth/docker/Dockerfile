@@ -1,52 +1,61 @@
-# FROM grassrootseconomics:cic
-
-#FROM python:3.8.6-alpine
-FROM python:3.8.6-slim-buster
-
-#COPY --from=0 /usr/local/share/cic/solidity/ /usr/local/share/cic/solidity/
+FROM python:3.8.6-slim-buster as compile
 
 WORKDIR /usr/src/cic-eth
 
-ARG pip_extra_index_url_flag='--index https://pypi.org/simple --extra-index-url https://pip.grassrootseconomics.net:8433'
-ARG root_requirement_file='requirements.txt'
 
-#RUN apk update && \
-#	apk add gcc musl-dev gnupg libpq
-#RUN apk add postgresql-dev
-#RUN apk add linux-headers
-#RUN apk add libffi-dev
 RUN apt-get update && \
 	apt install -y gcc gnupg libpq-dev wget make g++ gnupg bash procps git
 
-# Copy shared requirements from top of mono-repo
-RUN echo "copying root req file:  ${root_requirement_file}"
-#COPY $root_requirement_file .
-#RUN pip install -r $root_requirement_file $pip_extra_index_url_flag
-RUN /usr/local/bin/python -m pip install --upgrade pip
-#RUN git clone https://gitlab.com/grassrootseconomics/cic-base.git && \
-#	cd cic-base && \
-#	git checkout 7ae1f02efc206b13a65873567b0f6d1c3b7f9bc0 && \
-#	python merge_requirements.py | tee merged_requirements.txt 
-#RUN cd cic-base && \
-#	pip install $pip_extra_index_url_flag -r ./merged_requirements.txt 
-# RUN  pip install $pip_extra_index_url_flag cic-base[full_graph]==0.1.2b9
+#RUN python -m venv venv && . venv/bin/activate
 
+ARG pip_extra_index_url_flag='--index https://pypi.org/simple --extra-index-url https://pip.grassrootseconomics.net:8433'
+RUN /usr/local/bin/python -m pip install --upgrade pip
 RUN pip install semver
-COPY cic-eth/scripts/ scripts/
-COPY cic-eth/setup.cfg cic-eth/setup.py ./
-COPY cic-eth/cic_eth/ cic_eth/
-# Copy app specific requirements
-COPY cic-eth/requirements.txt .
-COPY cic-eth/test_requirements.txt .
+
+# TODO use a packaging style that lets us copy requirments only ie. pip-tools 
+COPY cic-eth/ .
 RUN	pip install $pip_extra_index_url_flag .
+
+# --- TEST IMAGE ---
+FROM python:3.8.6-slim-buster as test 
+
+RUN apt-get update && \
+	apt install -y gcc gnupg libpq-dev wget make g++ gnupg bash procps git
+
+WORKDIR /usr/src/cic-eth
+
+RUN /usr/local/bin/python -m pip install --upgrade pip
+
+COPY --from=compile /usr/local/bin/ /usr/local/bin/
+COPY --from=compile /usr/local/lib/python3.8/site-packages/ \
+                          /usr/local/lib/python3.8/site-packages/
+# TODO we could use venv inside container to isolate the system and app deps further
+# COPY --from=compile /usr/src/cic-eth/ .
+# RUN . venv/bin/activate
+
+COPY cic-eth/test_requirements.txt .
+RUN	pip install $pip_extra_index_url_flag -r test_requirements.txt 
+
+ENV PYTHONPATH .
+
+ENTRYPOINT ["pytest"]
+
+# --- RUNTIME ---
+FROM python:3.8.6-slim-buster as runtime 
+
+RUN apt-get update && \
+	apt install -y gnupg libpq-dev
+
+WORKDIR /usr/src/cic-eth
+
+COPY --from=compile /usr/local/bin/ /usr/local/bin/
+COPY --from=compile /usr/local/lib/python3.8/site-packages/ \
+                          /usr/local/lib/python3.8/site-packages/
 
 COPY cic-eth/docker/* ./ 
 RUN chmod 755 *.sh
-# --- TESTING ---
-COPY cic-eth/tests/ tests/
-COPY cic-eth/config/test /usr/src/cic-eth/config/test/
 
-
+COPY cic-eth/scripts/ scripts/
 # # ini files in config directory defines the configurable parameters for the application
 # # they can all be overridden by environment variables
 # # to generate a list of environment variables from configuration, use: confini-dump -z <dir> (executable provided by confini package)
