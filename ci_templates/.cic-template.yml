@@ -9,7 +9,7 @@ variables:
 .py_build_merge_request:
   stage: build
   variables:
-    - CI_DEBUG_TRACE: "true"
+    CI_DEBUG_TRACE: "true"
   script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > "/kaniko/.docker/config.json"
@@ -21,7 +21,7 @@ variables:
 .py_build_unittest_merge_request:
   stage: build
   variables:
-    - CI_DEBUG_TRACE: "true"
+    CI_DEBUG_TRACE: "true"
   artifacts:
     paths:
       - $APP-test-image.tar
