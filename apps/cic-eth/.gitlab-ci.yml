@@ -8,11 +8,11 @@
         - changes:
             - $CONTEXT/$APP_NAME/*
 
-build-mr-cic-eth:
-    extends:
-        - .cic_eth_changes_target
-        - .py_build_merge_request
-        - .cic_eth_variables
+# build-mr-cic-eth:
+#     extends:
+#         - .cic_eth_changes_target
+#         - .py_build_merge_request
+#         - .cic_eth_variables
 
 build-mr-unittest-cic-eth:
     extends:
