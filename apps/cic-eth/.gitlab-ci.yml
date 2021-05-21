@@ -14,7 +14,7 @@ build-mr-cic-eth:
         - .py_build_merge_request
         - .cic_eth_variables
     variables:
-        PYTHONPATH=.
+        PYTHONPATH: .
     after_script:
         - pip install -r test_requirements.txt
         - pytest tests/unit/
