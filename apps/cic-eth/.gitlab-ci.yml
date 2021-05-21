@@ -3,28 +3,30 @@
         APP_NAME: cic-eth
         DOCKERFILE_PATH: $APP_NAME/docker/Dockerfile
 
-.cic_eth_changes_target:
-    rules:
-        - changes:
-            - $CONTEXT/$APP_NAME/*
-
 # build-mr-cic-eth:
 #     extends:
-#         - .cic_eth_changes_target
 #         - .py_build_merge_request
 #         - .cic_eth_variables
 
 build-mr-unittest-cic-eth:
     extends:
-        - .cic_eth_changes_target
         - .cic_eth_variables
         - .py_build_unittest_merge_request
+    rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+      - $CONTEXT/$APP_NAME/**/*
+      when: always
 
 test-mr-unittest-cic-eth:
     extends:
-        - .cic_eth_changes_target
         - .cic_eth_variables
         - .py_unittest_merge_request
+    rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+      - $CONTEXT/$APP_NAME/**/*
+      when: always
     
 
 build-push-cic-eth:
