@@ -35,9 +35,10 @@ variables:
 
 
 .py_unittest_merge_request:
+  image: docker:latest
   stage: test
   script:
-    - docker load -i $APP_NAME-test-image.tar"
+    - docker load -i $APP_NAME-test-image.tar
     - docker images
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
