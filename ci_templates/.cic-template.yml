@@ -28,7 +28,7 @@ variables:
     expire_in: 1 day
     when: on_success
   script:
-    - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --cache-repo $CI_REGISTRY_IMAGE --target test --tarPath $APP_NAME-test-image.tar" --no-push --destination $CI_REGISTRY_IMAGE/$APP_NAME:latest
+    - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --cache-repo $CI_REGISTRY_IMAGE --target test --tarPath $APP_NAME-test-image.tar --no-push --destination $CI_REGISTRY_IMAGE/$APP_NAME:latest
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: always
