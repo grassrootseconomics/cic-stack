@@ -30,7 +30,7 @@ test-mr-cic-eth:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     #   changes:
     #   - $CONTEXT/$APP_NAME/**/*
-    when: always
+      when: always
     
 
 build-push-cic-eth:
