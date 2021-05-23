@@ -14,8 +14,8 @@ build-mr-unittest-cic-eth:
         - .py_build_unittest_merge_request
     rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-      - $CONTEXT/$APP_NAME/**/*
+    #   changes:
+    #   - $CONTEXT/$APP_NAME/**/*
       when: always
 
 test-mr-unittest-cic-eth:
@@ -24,8 +24,8 @@ test-mr-unittest-cic-eth:
         - .py_unittest_merge_request
     rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-      - $CONTEXT/$APP_NAME/**/*
+    #   changes:
+    #   - $CONTEXT/$APP_NAME/**/*
       when: always
     
 
