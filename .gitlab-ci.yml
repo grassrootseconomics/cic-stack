@@ -9,6 +9,6 @@ include:
   - local: 'apps/data-seeding/.gitlab-ci.yml'
 
 stages:
-  # - build
+  - build
   - test
   - release

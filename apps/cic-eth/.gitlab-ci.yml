@@ -21,12 +21,16 @@ build-mr-unittest-cic-eth:
 test-mr-cic-eth:
     extends:
         - .cic_eth_variables
-        - .py_unittest_merge_request
+    stage: test
+    image: $CI_REGISTRY_IMAGE/$APP_NAME-test:latest
+    script:
+        - cd apps/$APP_NAME/
+        - pytest tests/unit/
     rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     #   changes:
     #   - $CONTEXT/$APP_NAME/**/*
-      when: always
+    when: always
     
 
 build-push-cic-eth:
