@@ -2,7 +2,6 @@ FROM python:3.8.6-slim-buster as compile
 
 WORKDIR /usr/src/cic-eth
 
-
 RUN apt-get update && \
 	apt install -y gcc gnupg libpq-dev wget make g++ gnupg bash procps git
 
@@ -37,6 +36,7 @@ COPY --from=compile /usr/local/lib/python3.8/site-packages/ \
 COPY cic-eth/test_requirements.txt .
 RUN	pip install $pip_extra_index_url_flag -r test_requirements.txt 
 
+COPY cic-eth . 
 
 ENV PYTHONPATH .
 
