@@ -37,6 +37,8 @@ variables:
   script:
     - ls
     - pwd
+    - apps/$APP_NAME/
+    - pytest
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: always
