@@ -34,8 +34,9 @@ variables:
 .py_unittest_merge_request:
   stage: test
   image: $CI_REGISTRY_IMAGE/$APP_NAME-test:latest
-  script: 
-    - pytest
+  script:
+    - ls
+    - pwd
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: always
