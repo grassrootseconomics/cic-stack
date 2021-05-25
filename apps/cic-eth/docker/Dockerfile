@@ -66,3 +66,4 @@ COPY cic-eth/cic_eth/db/migrations/ /usr/local/share/cic-eth/alembic/
 COPY cic-eth/crypto_dev_signer_config/ /usr/local/etc/crypto-dev-signer/
 
 COPY util/liveness/health.sh /usr/local/bin/health.sh
+
