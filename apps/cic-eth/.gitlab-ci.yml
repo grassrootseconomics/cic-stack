@@ -20,6 +20,7 @@ test-mr-cic-eth:
     extends:
         - .cic_eth_variables
         - .cic_eth_changes_target
+        - .cic_eth_changes_target
     stage: test
     image: $CI_REGISTRY_IMAGE/$APP_NAME-test:latest
     script:
