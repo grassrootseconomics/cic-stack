@@ -128,6 +128,8 @@ The keystore file used for transferring external opening balances tracker is rel
 
 All external balance transactions are saved in raw wire format in `<datadir>/txs`, with transaction hash as file name.
 
+If the contract migrations have been executed with the default "giftable" token contract, then the `token_symbol` in the `import_balance` scripts should be set to `GFT`.
+
 
 
 #### Alternative 1 - Sovereign wallet import - `eth` 
@@ -143,7 +145,7 @@ After the script completes, keystore files for all generated accouts will be fou
 
 Then run:
 
-`python eth/import_balance.py -v -c config -r <cic_registry_address> -p <eth_provider> --offset <block_height_at_start> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c <datadir>` 
+`python eth/import_balance.py -v -c config -r <cic_registry_address> -p <eth_provider> --token-symbol <token_symbol> --offset <block_height_at_start> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c <datadir>` 
 
 
 
@@ -151,7 +153,7 @@ Then run:
 
 Run in sequence, in first terminal:
 
-`python cic_eth/import_balance.py -v -c config -p <eth_provider> -r <cic_registry_address> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c --head out`
+`python cic_eth/import_balance.py -v -c config -p <eth_provider> -r <cic_registry_address> --token-symbol <token_symbol> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c --head out`
 
 In another terminal:
 
