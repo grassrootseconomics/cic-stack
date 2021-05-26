@@ -8,9 +8,10 @@ import uuid
 import datetime
 import time
 import urllib.request
+from urllib.parse import urlencode
 from glob import glob
 
-# third-party imports
+# external imports
 import redis
 import confini
 import celery
@@ -87,21 +88,13 @@ chain_str = str(chain_spec)
 batch_size = args.batch_size
 batch_delay = args.batch_delay
 
-db_configs = {
-    'database': config.get('DATABASE_NAME'),
-    'host': config.get('DATABASE_HOST'),
-    'port': config.get('DATABASE_PORT'),
-    'user': config.get('DATABASE_USER'),
-    'password': config.get('DATABASE_PASSWORD')
-}
-  
 
 def build_ussd_request(phone, host, port, service_code, username, password, ssl=False):
     url = 'http'
     if ssl:
         url += 's'
     url += '://{}:{}'.format(host, port)
-    url += '/?username={}&password={}'.format(username, password) #config.get('USSD_USER'), config.get('USSD_PASS'))
+    url += '/?username={}&password={}'.format(username, password)
 
     logg.info('ussd service url {}'.format(url))
     logg.info('ussd phone {}'.format(phone))
@@ -114,9 +107,10 @@ def build_ussd_request(phone, host, port, service_code, username, password, ssl=
             'text': service_code,
         }
     req = urllib.request.Request(url)
-    data_str = json.dumps(data)
+    req.method=('POST')
+    data_str = urlencode(data)
     data_bytes = data_str.encode('utf-8')
-    req.add_header('Content-Type', 'application/json')
+    req.add_header('Content-Type', 'application/x-www-form-urlencoded')
     req.data = data_bytes
 
     return req

@@ -114,7 +114,7 @@ def main():
     conn = EthHTTPConnection(config.get('ETH_PROVIDER'))
    
     ImportTask.balance_processor = BalanceProcessor(conn, chain_spec, config.get('CIC_REGISTRY_ADDRESS'), signer_address, signer)
-    ImportTask.balance_processor.init()
+    ImportTask.balance_processor.init(token_symbol)
 
     # TODO get decimals from token
     balances = {}

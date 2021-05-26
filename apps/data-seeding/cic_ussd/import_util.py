@@ -6,7 +6,7 @@ from eth_contract_registry import Registry
 from eth_token_index import TokenUniqueSymbolIndex
 from chainlib.eth.gas import OverrideGasOracle
 from chainlib.eth.nonce import OverrideNonceOracle
-from chainlib.eth.erc20 import ERC20
+from eth_erc20 import ERC20
 from chainlib.eth.tx import (
         count,
         TxFormat,
@@ -37,7 +37,7 @@ class BalanceProcessor:
         self.value_multiplier = 1
     
 
-    def init(self):
+    def init(self, token_symbol):
         # Get Token registry address
         registry = Registry(self.chain_spec)
         o = registry.address_of(self.registry_address, 'TokenRegistry')
@@ -46,7 +46,7 @@ class BalanceProcessor:
         logg.info('found token index address {}'.format(self.token_index_address))
 
         token_registry = TokenUniqueSymbolIndex(self.chain_spec)
-        o = token_registry.address_of(self.token_index_address, 'SRF')
+        o = token_registry.address_of(self.token_index_address, token_symbol)
         r = self.conn.do(o)
         self.token_address = token_registry.parse_address_of(r)
         logg.info('found SRF token address {}'.format(self.token_address))

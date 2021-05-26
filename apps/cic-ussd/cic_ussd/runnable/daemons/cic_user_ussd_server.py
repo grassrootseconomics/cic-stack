@@ -31,12 +31,16 @@ from cic_ussd.processor import get_default_token_data
 from cic_ussd.redis import cache_data, create_cached_data_key, InMemoryStore
 from cic_ussd.requests import (get_request_endpoint,
                                get_request_method)
-from cic_ussd.runnable.server_base import exportable_parser, logg
+#from cic_ussd.runnable.server_base import exportable_parser, logg
+from cic_ussd.runnable.server_base import exportable_parser
 from cic_ussd.session.ussd_session import UssdSession as InMemoryUssdSession
 from cic_ussd.state_machine import UssdStateMachine
 from cic_ussd.validator import check_ip, check_request_content_length, validate_phone_number, validate_presence
 
 args = exportable_parser.parse_args()
+
+logging.basicConfig(level=logging.WARNING)
+logg = logging.getLogger()
 
 # define log levels
 if args.vv:
@@ -139,6 +143,7 @@ def application(env, start_response):
     # define headers
     errors_headers = [('Content-Type', 'text/plain'), ('Content-Length', '0')]
     headers = [('Content-Type', 'text/plain')]
+    logg.debug('foo {}'.format(headers))
 
     if get_request_method(env=env) == 'POST' and get_request_endpoint(env=env) == '/':
 
@@ -211,6 +216,9 @@ def application(env, start_response):
         return [response_bytes]
 
     else:
+        logg.error('invalid query {}'.format(env))
+        for r in env:
+            logg.debug('{}: {}'.format(r, env))
         start_response('405 Play by the rules', errors_headers)
         return []
 
