@@ -2,7 +2,7 @@ cic-base~=0.1.2b11
 celery==4.4.7
 crypto-dev-signer~=0.4.14b3
 confini~=0.3.6rc3
-cic-eth-registry~=0.5.5a4
+cic-eth-registry~=0.5.5a5
 redis==3.5.3
 alembic==1.4.2
 websockets==8.1

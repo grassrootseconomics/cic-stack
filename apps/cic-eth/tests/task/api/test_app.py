@@ -37,16 +37,15 @@ def test_transfer_api(
         custodial_roles,
         agent_roles,
         cic_registry,
-        register_tokens,
+        token_registry,
         register_lookups,
         celery_session_worker,
+        register_tokens,
+        foo_token_symbol,
         ):
 
-    #token = CICRegistry.get_address(default_chain_spec, bancor_tokens[0])
-    foo_token_cache = ERC20Token(default_chain_spec, eth_rpc, foo_token)
-
     api = Api(str(default_chain_spec), callback_param='transfer', callback_task='cic_eth.callbacks.noop.noop', queue=None)
-    t = api.transfer(custodial_roles['FOO_TOKEN_GIFTER'], agent_roles['ALICE'], 1024, foo_token_cache.symbol)
+    t = api.transfer(custodial_roles['FOO_TOKEN_GIFTER'], agent_roles['ALICE'], 1, foo_token_symbol) 
     t.get_leaf()
     assert t.successful()
 
