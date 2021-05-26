@@ -130,7 +130,9 @@ If the contract migrations have been executed with the default "giftable" token 
 #### Alternative 1 - Sovereign wallet import - `eth` 
 
 
-First, make a note of the **block height** before running anything.
+First, make a note of the **block height** before running anything:
+
+`eth-info -p http://localhost:63545`
 
 To import, run to _completion_:
 
@@ -198,6 +200,7 @@ If you imported using `cic_ussd`, the phone pointer is _already added_ and this 
 
 
 ##### Importing pins and ussd data (optional)
+
 Once the user imports are complete the next step should be importing the user's pins and auxiliary ussd data. This can be done in 3 steps:
 
 In one terminal run:
