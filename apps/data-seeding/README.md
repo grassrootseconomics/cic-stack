@@ -89,12 +89,7 @@ After this step is run, you can find top-level ethereum addresses (like the cic 
 
 
 #### Custodial provisions
-response_data = send_ussd_request(address, self.data_dir)
-        state = response_data[:3]
-        out = response_data[4:]
-        m = '{} {}'.format(state, out[:7])
-        if m != 'CON Welcome':
-            raise VerifierError(response_data, 'ussd')
+
 This step is _only_ needed if you are importing using `cic_eth` or `cic_ussd`
 
 `RUN_MASK=2 docker-compose up contract-migration`
