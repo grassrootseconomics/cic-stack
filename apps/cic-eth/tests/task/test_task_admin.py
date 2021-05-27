@@ -31,7 +31,7 @@ def test_shift_nonce(
         eth_rpc,
         eth_signer,
         agent_roles,
-        celery_worker,
+        celery_session_worker,
         caplog,
         ):
 
