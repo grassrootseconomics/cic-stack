@@ -8,7 +8,7 @@
   {
     "trigger": "scan_data",
     "source": "metadata_management",
-    "dest": "enter_age",
+    "dest": "enter_gender",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_two_selected"
   },
   {

@@ -6,7 +6,10 @@
   "enter_new_pin",
   "new_pin_confirmation",
   "display_user_metadata",
-  "standard_pin_authorization",
+  "name_edit_pin_authorization",
+  "gender_edit_pin_authorization",
+  "location_edit_pin_authorization",
+  "products_edit_pin_authorization",
   "account_balances_pin_authorization",
   "account_statement_pin_authorization",
   "account_balances"

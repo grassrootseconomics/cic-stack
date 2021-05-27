@@ -78,6 +78,9 @@ en:
     enter_new_pin: |-
       CON Enter new PIN again
       0. Back
+    new_pin_confirmation: |-
+      CON Enter your new four number PIN again
+      0. Back
     transaction_pin_authorization:
       first: |-
         CON %{recipient_information} will receive %{transaction_amount} %{token_symbol} from %{sender_information}.
@@ -103,6 +106,34 @@ en:
     account_statement_pin_authorization:
       first: |-
         CON Please enter your PIN to view statement
+        0. Back
+      retry: |-
+        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
+        0. Back
+    name_edit_pin_authorization:
+      first: |-
+        CON Please enter your PIN
+        0. Back
+      retry: |-
+        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
+        0. Back
+    gender_edit_pin_authorization:
+      first: |-
+        CON Please enter your PIN
+        0. Back
+      retry: |-
+        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
+        0. Back
+    location_edit_pin_authorization:
+      first: |-
+        CON Please enter your PIN
+        0. Back
+      retry: |-
+        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
+        0. Back
+    products_edit_pin_authorization:
+      first: |-
+        CON Please enter your PIN
         0. Back
       retry: |-
         CON Please enter your PIN. You have %{remaining_attempts} attempts remaining

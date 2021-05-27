@@ -2,7 +2,7 @@
   {
     "trigger": "scan_data",
     "source": "enter_products",
-    "dest": "standard_pin_authorization",
+    "dest": "products_edit_pin_authorization",
     "conditions": "cic_ussd.state_machine.logic.validator.has_cached_user_metadata",
     "after": "cic_ussd.state_machine.logic.user.save_metadata_attribute_to_session_data"
   },
@@ -17,14 +17,14 @@
   },
   {
     "trigger": "scan_data",
-    "source": "standard_pin_authorization",
+    "source": "products_edit_pin_authorization",
     "dest": "exit",
     "conditions": "cic_ussd.state_machine.logic.pin.is_authorized_pin",
     "after": "cic_ussd.state_machine.logic.user.edit_user_metadata_attribute"
   },
   {
     "trigger": "scan_data",
-    "source": "standard_pin_authorization",
+    "source": "products_edit_pin_authorization",
     "dest": "exit_pin_blocked",
     "conditions": "cic_ussd.state_machine.logic.pin.is_locked_account"
   }

@@ -245,6 +245,36 @@
             "display_key": "ussd.kenya.exit_invalid_recipient",
             "name": "exit_invalid_recipient",
             "parent": null
+        },
+        "42": {
+            "description": "Pin entry menu for changing name data.",
+            "display_key": "ussd.kenya.name_edit_pin_authorization",
+            "name": "name_edit_pin_authorization",
+            "parent": "metadata_management"
+        },
+        "43": {
+            "description": "Pin entry menu for changing gender data.",
+            "display_key": "ussd.kenya.gender_edit_pin_authorization",
+            "name": "gender_edit_pin_authorization",
+            "parent": "metadata_management"
+        },
+        "44": {
+            "description": "Pin entry menu for changing location data.",
+            "display_key": "ussd.kenya.location_edit_pin_authorization",
+            "name": "location_edit_pin_authorization",
+            "parent": "metadata_management"
+        },
+        "45": {
+            "description": "Pin entry menu for changing products data.",
+            "display_key": "ussd.kenya.products_edit_pin_authorization",
+            "name": "products_edit_pin_authorization",
+            "parent": "metadata_management"
+        },
+        "46": {
+            "description": "Pin confirmation for pin change.",
+            "display_key": "ussd.kenya.new_pin_confirmation",
+            "name": "new_pin_confirmation",
+            "parent": "metadata_management"
         }
 
     }
