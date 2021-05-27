@@ -92,16 +92,9 @@ def shift_nonce(self, chain_str, tx_hash_orig_hex, delta=1):
         logg.debug('tx_nex {}'.format(tx_new))
         gas_oracle = OverrideGasOracle(limit=tx_new['gas'], price=tx_new['gas_price'] + 1) # TODO: it should be possible to merely set this price here and if missing in the existing struct then fill it in (chainlib.eth.tx)
         c = TxFactory(chain_spec, signer=rpc_signer, gas_oracle=gas_oracle)
-        #(tx_hash_hex, tx_signed_raw_hex) = sign_tx(tx_new, chain_str)
         (tx_hash_hex, tx_signed_raw_hex) = c.build_raw(tx_new)
         logg.debug('tx {} -> {} nonce {} -> {}'.format(tx_previous_hash_hex, tx_hash_hex, tx_previous_nonce, tx_new['nonce']))
 
-#        otx = Otx(
-#            nonce=tx_new['nonce'],
-#            address=tx_new['from'],
-#            tx_hash=tx_hash_hex,
-#            signed_tx=tx_signed_raw_hex,
-#                )
         otx = Otx(
             tx_new['nonce'],
             tx_hash_hex,

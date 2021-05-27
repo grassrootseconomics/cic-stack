@@ -188,6 +188,7 @@ class AdminApi:
         s_manual = celery.signature(
             'cic_eth.queue.state.set_manual',
             [
+                chain_spec.asdict(),
                 tx_hash_hex,
                 ],
             queue=self.queue,
@@ -206,7 +207,8 @@ class AdminApi:
             s.link(s_gas)
 
         return s_manual.apply_async()
-                        
+                    
+
     def check_nonce(self, address):
         s = celery.signature(
                 'cic_eth.queue.query.get_account_tx',
