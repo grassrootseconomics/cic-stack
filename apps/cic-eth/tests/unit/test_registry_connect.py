@@ -7,6 +7,7 @@ def test_registry_connect(
         address_declarator,
         token_registry,
         contract_roles,
+        purge_lookups,
         registry,
         agent_roles,
         ):
