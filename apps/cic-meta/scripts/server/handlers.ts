@@ -31,7 +31,7 @@ function handleNoMergeGet(db, digest, keystore) {
 					doh(e);
 				});
 			}).catch((e) => {
-				console.error('mesage', e);
+				console.error('message', e);
 				doh(e);
 			});
 		})
@@ -46,7 +46,7 @@ function handleServerMergePost(data, db, digest, keystore, signer) {
 			let e = undefined;
 			let s = undefined;
 			if (v === undefined) {
-				s = new Syncable(digest, data);
+				s = new Syncable(digest, o);
 				s.onwrap = (e) => {
 					whohoo(e.toJSON());
 				};
