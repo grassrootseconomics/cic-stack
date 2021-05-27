@@ -47,7 +47,6 @@ from cic_eth.queue.tx import queue_create
 logg = logging.getLogger()
 
 
-@pytest.mark.skip()
 def test_have_account(
     default_chain_spec,
     custodial_roles,
@@ -66,7 +65,6 @@ def test_have_account(
     assert t.get() == None
 
 
-@pytest.mark.skip()
 def test_locking(
     default_chain_spec,
     init_database,
@@ -90,7 +88,6 @@ def test_locking(
     assert len(r) == 0
 
 
-@pytest.mark.skip()
 def test_tag_account(
     default_chain_spec,
     init_database,
@@ -113,29 +110,6 @@ def test_tag_account(
     assert AccountRole.get_address('bar', init_database) == agent_roles['CAROL']
 
 
-#def test_ready(
-#    init_database,
-#    agent_roles,
-#    eth_rpc,
-#    ):
-#
-#    api = AdminApi(eth_rpc)
-#   
-#    with pytest.raises(InitializationError):
-#        api.ready()
-#
-#    bogus_account = os.urandom(20)
-#    bogus_account_hex = '0x' + bogus_account.hex()
-#
-#    api.tag_account('ETH_GAS_PROVIDER_ADDRESS', web3.Web3.toChecksumAddress(bogus_account_hex))
-#    with pytest.raises(KeyError):
-#        api.ready()
-#
-#    api.tag_account('ETH_GAS_PROVIDER_ADDRESS', eth_empty_accounts[0])
-#    api.ready()
-
-
-@pytest.mark.skip()
 def test_tx(
     default_chain_spec,
     cic_registry,
@@ -167,7 +141,7 @@ def test_check_nonce_gap(
         eth_signer,
         agent_roles,
         contract_roles,
-        celery_worker,
+        celery_session_worker,
         caplog,
         ):
 
@@ -219,7 +193,7 @@ def test_check_nonce_localfail(
         eth_signer,
         agent_roles,
         contract_roles,
-        celery_worker,
+        celery_session_worker,
         caplog,
         ):
 

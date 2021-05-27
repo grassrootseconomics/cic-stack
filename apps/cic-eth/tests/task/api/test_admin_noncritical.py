@@ -25,7 +25,6 @@ from cic_eth.api.api_admin import AdminApi
 from cic_eth.eth.gas import cache_gas_data
 
 
-@pytest.mark.skip()
 def test_registry(
         eth_rpc,
         cic_registry,
@@ -39,7 +38,6 @@ def test_registry(
     assert r == cic_registry
 
 
-@pytest.mark.skip()
 def test_proxy_do(
         default_chain_spec,
         eth_rpc,
@@ -64,7 +62,7 @@ def test_resend_inplace(
         eth_signer,
         agent_roles,
         contract_roles,
-        celery_worker,
+        celery_session_worker,
         ):
 
     rpc = RPCConnection.connect(default_chain_spec, 'default')
@@ -115,7 +113,7 @@ def test_resend_clone(
         eth_signer,
         agent_roles,
         contract_roles,
-        celery_worker,
+        celery_session_worker,
         ):
 
     rpc = RPCConnection.connect(default_chain_spec, 'default')
