@@ -31,6 +31,7 @@ def test_filter_transferauth(
         transfer_auth,
         foo_token,
         celery_session_worker,
+        register_lookups,
         init_custodial,
         cic_registry,
     ):

@@ -21,6 +21,7 @@ from tests.fixtures_config import *
 from tests.fixtures_database import *
 from tests.fixtures_celery import *
 from tests.fixtures_role import *
+from tests.fixtures_contract import *
 from chainlib.eth.pytest import *
 from eth_contract_registry.pytest import *
 from cic_eth_registry.pytest.fixtures_contracts import *
@@ -80,3 +81,5 @@ def have_redis(
         return e 
 
     return None
+
+

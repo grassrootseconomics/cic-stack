@@ -50,7 +50,8 @@ class RegistrationFilter(SyncFilter):
                     queue=self.queue,
                     )
                 s_nonce.link(s_gift)
-                s_nonce.apply_async()
+                t = s_nonce.apply_async()
+                return t
 
 
     def __str__(self):
