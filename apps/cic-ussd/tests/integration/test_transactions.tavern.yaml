@@ -258,7 +258,7 @@ stages:
         extra_kwargs:
           expected_response: "CON Balance 58.00 {token_symbol}\n1. Send\n2. My Account\n3. Help"
 
-  - name: Verify balance changes [first account]
+  - name: Verify balance changes [second account]
     delay_before: 10
     request:
       url: "{server_url}"
