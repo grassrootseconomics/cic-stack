@@ -58,6 +58,9 @@ def hashes_to_txs(self, tx_hashes):
     if len(tx_hashes) == 0:
         raise ValueError('no transaction to send')
 
+    for i in range(len(tx_hashes)):
+        tx_hashes[i] = strip_0x(tx_hashes[i])
+
     queue = self.request.delivery_info['routing_key']
 
     session = SessionBase.create_session()
