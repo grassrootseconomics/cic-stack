@@ -177,7 +177,6 @@ def check_gas(self, tx_hashes, chain_spec_dict, txs=[], address=None, gas_requir
             if address == None:
                 address = o['address']
 
-    #if not web3.Web3.isChecksumAddress(address):
     if not is_checksum_address(address):
         raise ValueError('invalid address {}'.format(address))
 
