@@ -209,7 +209,7 @@ class AdminApi:
         return s_manual.apply_async()
                     
 
-    def check_nonce(self, address):
+    def check_nonce(self, chain_spec, address):
         s = celery.signature(
                 'cic_eth.queue.query.get_account_tx',
                 [
@@ -230,13 +230,12 @@ class AdminApi:
             s_get_tx = celery.signature(
                     'cic_eth.queue.query.get_tx',
                     [
-                    chain_spec.asdict(),
+                        chain_spec.asdict(),
                         k,
                         ],
                     queue=self.queue,
                     )
             tx = s_get_tx.apply_async().get()
-            #tx = get_tx(k)
             logg.debug('checking nonce {} (previous {})'.format(tx['nonce'], last_nonce))
             nonce_otx = tx['nonce']
             if not is_alive(tx['status']) and tx['status'] & local_fail > 0:
@@ -244,7 +243,9 @@ class AdminApi:
                 blocking_tx = k
                 blocking_nonce = nonce_otx
             elif nonce_otx - last_nonce > 1:
-                logg.error('nonce gap; {} followed {} for account {}'.format(nonce_otx, last_nonce, tx['from']))
+                logg.debug('tx {}'.format(tx))
+                tx_obj = unpack(bytes.fromhex(strip_0x(tx['signed_tx'])), chain_spec)
+                logg.error('nonce gap; {} followed {} for account {}'.format(nonce_otx, last_nonce, tx_obj['from']))
                 blocking_tx = k
                 blocking_nonce = nonce_otx
                 break
@@ -258,9 +259,9 @@ class AdminApi:
                 'blocking': blocking_nonce,
             },
             'tx': {
-                'blocking': blocking_tx,
-                }
+                'blocking': add_0x(blocking_tx),
             }
+        }
 
 
     def fix_nonce(self, address, nonce, chain_spec):

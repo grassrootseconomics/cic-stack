@@ -9,8 +9,14 @@ from chainlib.eth.tx import (
         unpack,
         TxFormat,
         )
-from chainlib.eth.nonce import RPCNonceOracle
-from chainlib.eth.gas import Gas
+from chainlib.eth.nonce import (
+        RPCNonceOracle,
+        OverrideNonceOracle,
+        )
+from chainlib.eth.gas import (
+        Gas,
+        OverrideGasOracle,
+        )
 from chainlib.eth.address import to_checksum_address
 from hexathon import (
         strip_0x,
@@ -22,6 +28,11 @@ from chainqueue.db.enum import (
         StatusEnum,
         StatusBits,
         status_str,
+        )
+from chainqueue.state import (
+        set_fubar,
+        set_ready,
+        set_reserved,
         )
 from chainqueue.query import get_tx
 
@@ -36,6 +47,7 @@ from cic_eth.queue.tx import queue_create
 logg = logging.getLogger()
 
 
+@pytest.mark.skip()
 def test_have_account(
     default_chain_spec,
     custodial_roles,
@@ -54,6 +66,7 @@ def test_have_account(
     assert t.get() == None
 
 
+@pytest.mark.skip()
 def test_locking(
     default_chain_spec,
     init_database,
@@ -77,6 +90,7 @@ def test_locking(
     assert len(r) == 0
 
 
+@pytest.mark.skip()
 def test_tag_account(
     default_chain_spec,
     init_database,
@@ -121,6 +135,7 @@ def test_tag_account(
 #    api.ready()
 
 
+@pytest.mark.skip()
 def test_tx(
     default_chain_spec,
     cic_registry,
@@ -142,3 +157,108 @@ def test_tx(
     api = AdminApi(eth_rpc, queue=None, call_address=contract_roles['DEFAULT'])
     tx = api.tx(default_chain_spec, tx_hash=tx_hash_hex)
     logg.warning('code missing to verify tx contents {}'.format(tx))
+
+
+
+def test_check_nonce_gap(
+        default_chain_spec,
+        init_database,
+        eth_rpc,
+        eth_signer,
+        agent_roles,
+        contract_roles,
+        celery_worker,
+        caplog,
+        ):
+
+    # NOTE: this only works as long as agents roles start at nonce 0
+    nonce_oracle = OverrideNonceOracle(agent_roles['ALICE'], 0)
+    gas_oracle = OverrideGasOracle(limit=21000, conn=eth_rpc)
+
+    tx_hashes = []
+    txs = []
+
+    j = 0
+    for i in range(10):
+        c = Gas(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
+        (tx_hash_hex, tx_signed_raw_hex) = c.create(agent_roles['ALICE'], agent_roles['BOB'], 100 * (10 ** 6), tx_format=TxFormat.RLP_SIGNED)
+        if i == 3:
+            j = 1
+            nonce_oracle = OverrideNonceOracle(agent_roles['ALICE'], i+1)
+
+        queue_create(
+                default_chain_spec,
+                i+j,
+                agent_roles['ALICE'],
+                tx_hash_hex,
+                tx_signed_raw_hex,
+                session=init_database,
+                )
+        cache_gas_data(
+                tx_hash_hex,
+                tx_signed_raw_hex,
+                default_chain_spec.asdict(),
+                )
+        tx_hashes.append(tx_hash_hex)
+        txs.append(tx_signed_raw_hex)
+
+
+    init_database.commit()
+
+    api = AdminApi(eth_rpc, queue=None, call_address=contract_roles['DEFAULT'])
+    r = api.check_nonce(default_chain_spec, agent_roles['ALICE'])
+
+    assert r['nonce']['blocking'] == 4
+    assert r['tx']['blocking'] == tx_hashes[3] # one less because there is a gap
+
+
+def test_check_nonce_localfail(
+        default_chain_spec,
+        init_database,
+        eth_rpc,
+        eth_signer,
+        agent_roles,
+        contract_roles,
+        celery_worker,
+        caplog,
+        ):
+
+    # NOTE: this only works as long as agents roles start at nonce 0
+    nonce_oracle = OverrideNonceOracle(agent_roles['ALICE'], 0)
+    gas_oracle = OverrideGasOracle(limit=21000, conn=eth_rpc)
+
+    tx_hashes = []
+    txs = []
+
+    j = 0
+    for i in range(10):
+        c = Gas(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
+        (tx_hash_hex, tx_signed_raw_hex) = c.create(agent_roles['ALICE'], agent_roles['BOB'], 100 * (10 ** 6), tx_format=TxFormat.RLP_SIGNED)
+
+        queue_create(
+                default_chain_spec,
+                i,
+                agent_roles['ALICE'],
+                tx_hash_hex,
+                tx_signed_raw_hex,
+                session=init_database,
+                )
+        cache_gas_data(
+                tx_hash_hex,
+                tx_signed_raw_hex,
+                default_chain_spec.asdict(),
+                )
+        tx_hashes.append(tx_hash_hex)
+        txs.append(tx_signed_raw_hex)
+
+    set_ready(default_chain_spec, tx_hashes[4], session=init_database)
+    set_reserved(default_chain_spec, tx_hashes[4], session=init_database)
+    set_fubar(default_chain_spec, tx_hashes[4], session=init_database)
+
+    init_database.commit()
+
+    api = AdminApi(eth_rpc, queue=None, call_address=contract_roles['DEFAULT'])
+    r = api.check_nonce(default_chain_spec, agent_roles['ALICE'])
+
+    assert r['nonce']['blocking'] == 4
+    assert r['tx']['blocking'] == tx_hashes[4]
