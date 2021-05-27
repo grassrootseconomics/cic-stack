@@ -64,13 +64,17 @@ def process_gender_user_input(user: Account, user_input: str):
     if user.preferred_language == 'en':
         if user_input == '1':
             gender = 'Male'
-        else:
+        elif user_input == '2':
             gender = 'Female'
+        elif user_input == '3':
+            gender = 'Other'
     else:
         if user_input == '1':
             gender = 'Mwanaume'
-        else:
+        elif user_input == '2':
             gender = 'Mwanamke'
+        elif user_input == '3':
+            gender = 'Nyingine'
     return gender
 
 
@@ -88,14 +92,18 @@ def save_metadata_attribute_to_session_data(state_machine_data: Tuple[str, dict,
     key = ''
     if 'given_name' in current_state:
         key = 'given_name'
-    elif 'family_name' in current_state:
+
+    if 'family_name' in current_state:
         key = 'family_name'
-    elif 'gender' in current_state:
+
+    if 'gender' in current_state:
         key = 'gender'
         user_input = process_gender_user_input(user=user, user_input=user_input)
-    elif 'location' in current_state:
+
+    if 'location' in current_state:
         key = 'location'
-    elif 'products' in current_state:
+
+    if 'products' in current_state:
         key = 'products'
 
     # check if there is existing session data
@@ -121,12 +129,20 @@ def format_user_metadata(metadata: dict, user: Account):
     gender = metadata.get('gender')
     given_name = metadata.get('given_name')
     family_name = metadata.get('family_name')
-    location = {
-        "area_name": metadata.get('location')
-    }
-    products = []
-    if metadata.get('products'):
+
+    # check whether there's existing location data
+    if isinstance(metadata.get('location'), dict):
+        location = metadata.get('location')
+    else:
+        location = {
+            "area_name": metadata.get('location')
+        }
+    # check whether it is a list
+    if isinstance(metadata.get('products'), list):
+        products = metadata.get('products')
+    else:
         products = metadata.get('products').split(',')
+
     phone_number = user.phone_number
     date_registered = int(user.created.replace().timestamp())
     blockchain_address = user.blockchain_address
@@ -192,28 +208,27 @@ def edit_user_metadata_attribute(state_machine_data: Tuple[str, dict, Account]):
     # validate user metadata
     person = Person()
     user_metadata = json.loads(user_metadata)
-    deserialized_person = person.deserialize(person_data=user_metadata)
 
     # edit specific metadata attribute
     if given_name:
-        deserialized_person.given_name = given_name
-    elif family_name:
-        deserialized_person.family_name = family_name
-    elif gender:
-        deserialized_person.gender = gender
-    elif location:
+        user_metadata['given_name'] = given_name
+    if family_name:
+        user_metadata['family_name'] = family_name
+    if gender:
+        user_metadata['gender'] = gender
+    if location:
         # get existing location metadata:
         location_data = user_metadata.get('location')
         location_data['area_name'] = location
-        deserialized_person.location = location_data
-    elif products:
-        deserialized_person.products = products
+        user_metadata['location'] = location_data
+    if products:
+        user_metadata['products'] = products
 
-    edited_metadata = deserialized_person.serialize()
+    user_metadata = format_user_metadata(metadata=user_metadata, user=user)
 
     s_edit_person_metadata = celery.signature(
-        'cic_ussd.tasks.metadata.edit_person_metadata',
-        [blockchain_address, edited_metadata]
+        'cic_ussd.tasks.metadata.create_person_metadata',
+        [blockchain_address, user_metadata]
     )
     s_edit_person_metadata.apply_async(queue='cic-ussd')
 
