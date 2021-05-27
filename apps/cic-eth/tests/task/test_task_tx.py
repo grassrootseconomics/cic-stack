@@ -33,7 +33,6 @@ from cic_eth.eth.gas import cache_gas_data
 logg = logging.getLogger()
 
 
-@pytest.mark.skip()
 def test_tx_send(
         init_database,
         default_chain_spec,
@@ -127,7 +126,6 @@ def test_sync_tx(
     assert o.status & StatusBits.FINAL == StatusBits.FINAL
 
 
-@pytest.mark.skip()
 def test_resend_with_higher_gas(
         init_database,
         default_chain_spec,

@@ -6,7 +6,10 @@ import logging
 import pytest
 import celery
 from chainqueue.tx import create as queue_create
-from chainlib.eth.nonce import RPCNonceOracle
+from chainlib.eth.nonce import (
+        RPCNonceOracle,
+        OverrideNonceOracle,
+        )
 from chainlib.eth.gas import (
         OverrideGasOracle,
         Gas,
@@ -28,7 +31,6 @@ from chainqueue.state import (
 logg = logging.getLogger()
 
 
-@pytest.mark.skip()
 def test_hashes_to_txs(
         init_database,
         default_chain_spec,
@@ -99,7 +101,7 @@ def test_hashes_to_txs(
 
 
 
-def test_hashes_to_txs(
+def test_double_send(
         init_database,
         default_chain_spec,
         agent_roles,            
