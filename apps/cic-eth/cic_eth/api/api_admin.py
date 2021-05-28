@@ -30,13 +30,13 @@ from chainqueue.db.enum import (
         status_str,
     )
 from chainqueue.error import TxStateChangeError
+from chainqueue.query import get_tx
 
 # local imports
 from cic_eth.db.models.base import SessionBase
 from cic_eth.db.models.role import AccountRole
 from cic_eth.db.models.nonce import Nonce
 from cic_eth.error import InitializationError
-from cic_eth.queue.query import get_tx
 
 app = celery.current_app
 
@@ -264,7 +264,8 @@ class AdminApi:
         }
 
 
-    def fix_nonce(self, address, nonce, chain_spec):
+    # TODO: is risky since it does not validate that there is actually a nonce problem?
+    def fix_nonce(self, chain_spec, address, nonce):
         s = celery.signature(
                 'cic_eth.queue.query.get_account_tx',
                 [
@@ -278,15 +279,17 @@ class AdminApi:
         txs = s.apply_async().get()
 
         tx_hash_hex = None
+        session = SessionBase.create_session()
         for k in txs.keys():
-            tx_dict = get_tx(k)
+            tx_dict = get_tx(chain_spec, k, session=session)
             if tx_dict['nonce'] == nonce:
                 tx_hash_hex = k
+        session.close()
 
         s_nonce = celery.signature(
                 'cic_eth.admin.nonce.shift_nonce',
                 [
-                    self.rpc.chain_spec.asdict(),
+                    chain_spec.asdict(),
                     tx_hash_hex, 
                 ],
                 queue=self.queue

@@ -34,7 +34,10 @@ from chainqueue.state import (
         set_ready,
         set_reserved,
         )
-from chainqueue.query import get_tx
+from chainqueue.query import (
+        get_tx,
+        get_nonce_tx_cache,
+        )
 
 # local imports
 from cic_eth.api import AdminApi
@@ -131,7 +134,6 @@ def test_tx(
     api = AdminApi(eth_rpc, queue=None, call_address=contract_roles['DEFAULT'])
     tx = api.tx(default_chain_spec, tx_hash=tx_hash_hex)
     logg.warning('code missing to verify tx contents {}'.format(tx))
-
 
 
 def test_check_nonce_gap(
@@ -236,3 +238,64 @@ def test_check_nonce_localfail(
 
     assert r['nonce']['blocking'] == 4
     assert r['tx']['blocking'] == tx_hashes[4]
+
+
+def test_fix_nonce(
+        default_chain_spec,
+        init_database,
+        eth_rpc,
+        eth_signer,
+        agent_roles,
+        contract_roles,
+        celery_session_worker,
+        init_celery_tasks,
+        caplog,
+        ):
+
+    nonce_oracle = OverrideNonceOracle(agent_roles['ALICE'], 0)
+    gas_oracle = OverrideGasOracle(limit=21000, conn=eth_rpc)
+
+    tx_hashes = []
+    txs = []
+
+    for i in range(10):
+        c = Gas(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
+        (tx_hash_hex, tx_signed_raw_hex) = c.create(agent_roles['ALICE'], agent_roles['BOB'], 100 * (10 ** 6), tx_format=TxFormat.RLP_SIGNED)
+
+        queue_create(
+                default_chain_spec,
+                i,
+                agent_roles['ALICE'],
+                tx_hash_hex,
+                tx_signed_raw_hex,
+                session=init_database,
+                )
+        cache_gas_data(
+                tx_hash_hex,
+                tx_signed_raw_hex,
+                default_chain_spec.asdict(),
+                )
+        tx_hashes.append(tx_hash_hex)
+        txs.append(tx_signed_raw_hex)
+
+    init_database.commit()
+
+    api = AdminApi(eth_rpc, queue=None, call_address=contract_roles['DEFAULT'])
+    t = api.fix_nonce(default_chain_spec, agent_roles['ALICE'], 3)
+    r = t.get_leaf()
+    assert t.successful()
+
+    init_database.commit()
+    
+    txs = get_nonce_tx_cache(default_chain_spec, 3, agent_roles['ALICE'], session=init_database)
+    ks = txs.keys()
+    assert len(ks) == 2
+    for k in ks:
+        hsh = add_0x(k)
+        otx = Otx.load(hsh, session=init_database)
+        init_database.refresh(otx)
+        logg.debug('checking nonce {} tx {} status {}'.format(3, otx.tx_hash, otx.status))
+        if add_0x(k) == tx_hashes[3]:
+            assert otx.status & StatusBits.OBSOLETE == StatusBits.OBSOLETE
+        else:
+            assert otx.status == 1

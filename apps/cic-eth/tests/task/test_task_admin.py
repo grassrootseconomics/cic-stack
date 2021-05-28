@@ -65,7 +65,7 @@ def test_shift_nonce(
     s = celery.signature(
             'cic_eth.admin.nonce.shift_nonce',
             [
-                str(default_chain_spec),
+                default_chain_spec.asdict(),
                 tx_hashes[3],
                 ],
             queue=None
@@ -76,7 +76,7 @@ def test_shift_nonce(
     init_database.commit()
 
 
-    for i in range(42+4, 42+10):
+    for i in range(42+3, 42+10):
         txs = get_nonce_tx_cache(default_chain_spec, i, agent_roles['ALICE'], session=init_database)
         for k in txs.keys():
             hsh = add_0x(k)
