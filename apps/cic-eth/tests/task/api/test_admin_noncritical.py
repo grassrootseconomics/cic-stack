@@ -6,9 +6,15 @@ import json
 # external imports
 import pytest
 from chainlib.connection import RPCConnection
-from chainlib.eth.nonce import OverrideNonceOracle
+from chainlib.eth.nonce import (
+        nonce,
+        OverrideNonceOracle,
+        RPCNonceOracle,
+        )
 from chainqueue.tx import create as queue_create
 from chainlib.eth.tx import (
+        raw,
+        receipt,
         TxFormat,
         Tx,
         )
@@ -25,12 +31,82 @@ from chainqueue.state import (
 from chainqueue.db.models.otx import Otx
 from chainqueue.db.enum import StatusBits
 from chainqueue.query import get_nonce_tx_cache
+from eth_erc20 import ERC20
 
 # local imports
 from cic_eth.api.api_admin import AdminApi
 from cic_eth.eth.gas import cache_gas_data
 
 logg = logging.getLogger()
+
+
+def test_admin_api_tx(
+        default_chain_spec,
+        init_database,
+        init_celery_tasks,
+        eth_rpc,
+        eth_signer,
+        agent_roles,
+        contract_roles,
+        custodial_roles,
+        celery_session_worker,
+        foo_token,
+        address_declarator,
+        cic_registry,
+        register_tokens,
+        register_lookups,
+        caplog,
+        ):
+
+    nonce_oracle = RPCNonceOracle(custodial_roles['FOO_TOKEN_GIFTER'], conn=eth_rpc)
+    gas_oracle = OverrideGasOracle(limit=100000, conn=eth_rpc)
+
+    o = nonce(custodial_roles['FOO_TOKEN_GIFTER'])
+    r = eth_rpc.do(o)
+    gifter_nonce = int(r, 16)
+
+    #c = Gas(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
+    c = ERC20(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
+    (tx_hash_hex, tx_signed_raw_hex) = c.transfer(foo_token, custodial_roles['FOO_TOKEN_GIFTER'], agent_roles['ALICE'], 100 * (10 ** 6), tx_format=TxFormat.RLP_SIGNED)
+    queue_create(
+            default_chain_spec,
+            gifter_nonce, # will only work if agent starts at 0
+            agent_roles['ALICE'],
+            tx_hash_hex,
+            tx_signed_raw_hex,
+            session=init_database,
+            )
+    cache_gas_data(
+            tx_hash_hex,
+            tx_signed_raw_hex,
+            default_chain_spec.asdict(),
+            )
+
+    init_database.commit()
+
+    o = raw(tx_signed_raw_hex)
+    eth_rpc.do(o)
+
+    o = receipt(tx_hash_hex)
+    r = eth_rpc.do(o)
+    assert r['status'] == 1
+
+    set_ready(default_chain_spec, tx_hash_hex, session=init_database)
+    set_reserved(default_chain_spec, tx_hash_hex, session=init_database)
+    set_sent(default_chain_spec, tx_hash_hex, session=init_database)
+
+    api = AdminApi(eth_rpc, queue=None, call_address=contract_roles['CONTRACT_DEPLOYER'])
+    tx = api.tx(default_chain_spec, tx_hash=tx_hash_hex)
+    logg.debug('deployed {}'.format(contract_roles['CONTRACT_DEPLOYER']))
+    assert tx['tx_hash'] == tx_hash_hex 
+
+    tx = api.tx(default_chain_spec, tx_raw=tx_signed_raw_hex)
+    assert tx['tx_hash'] == tx_hash_hex 
+
+    buf = io.StringIO()
+    api.tx(default_chain_spec, tx_hash=tx_hash_hex, renderer=json.dumps, w=buf)
+    tx = json.loads(buf.getvalue())
+    assert tx['tx_hash'] == tx_hash_hex 
 
 
 def test_admin_api_account(
@@ -144,7 +220,7 @@ def test_admin_api_account_writer(
 
     buf = io.StringIO()
     api = AdminApi(eth_rpc, queue=None, call_address=contract_roles['CONTRACT_DEPLOYER'])
-    api.account(default_chain_spec, agent_roles['ALICE'], include_recipient=False, renderer=json.dumps, w=buf)
+    api.account(default_chain_spec, agent_roles['ALICE'], renderer=json.dumps, w=buf)
 
     # TODO: improve eval
     tx = json.loads(buf.getvalue())
