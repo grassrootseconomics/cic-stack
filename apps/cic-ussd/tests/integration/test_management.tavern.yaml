@@ -3,8 +3,18 @@ marks:
   - usefixtures:
     - server_url
     - token_symbol
+    - first_account_pin_number
+    - second_account_pin_number
     - first_account_phone_number
     - second_account_phone_number
+    - first_account_family_name
+    - second_account_family_name
+    - first_account_given_name
+    - second_account_given_name
+    - first_account_location
+    - second_account_location
+    - first_account_product
+    - second_account_product
     - first_account_management_session_id
     - second_account_management_session_id
     - first_account_change_family_name
@@ -15,10 +25,12 @@ marks:
     - second_account_change_location
     - first_account_change_product
     - second_account_change_product
+    - first_account_management_session_id_1
+    - second_account_management_session_id_1
   - last
 
 stages:
-  - name: Start menu [first menu]
+  - name: Account management start menu [first account]
     request:
       url: "{server_url}"
       data:
@@ -40,7 +52,7 @@ stages:
         extra_kwargs:
           expected_response: "CON Balance 58.00 {token_symbol}\n1. Send\n2. My Account\n3. Help"
 
-  - name: Start menu [second account]
+  - name: Account management start menu [second account]
     request:
       url: "{server_url}"
       data:
@@ -77,12 +89,12 @@ stages:
       status_code:
         - 200
       headers:
-        Content-Length: '111'
+        Content-Length: '105'
         Content-Type: "text/plain"
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "CON My account/n1. My profile/n2. Change language/n3. Check balance/n4. Check statement/n5. Change PIN/n0. Back"
+          expected_response: "CON My account\n1. My profile\n2. Change language\n3. Check balance\n4. Check statement\n5. Change PIN\n0. Back"
 
   - name: Account management [second account]
     request:
@@ -99,12 +111,12 @@ stages:
       status_code:
         - 200
       headers:
-        Content-Length: '154'
+        Content-Length: '148'
         Content-Type: "text/plain"
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "CON Akaunti yangu/n1. Wasifu wangu/n2. Chagua lugha utakayotumia/n3. Angalia salio/n4. Angalia taarifa ya matumizi/n5. Badilisha nambari ya siri/n0. Nyuma"
+          expected_response: "CON Akaunti yangu\n1. Wasifu wangu\n2. Chagua lugha utakayotumia\n3. Angalia salio\n4. Angalia taarifa ya matumizi\n5. Badilisha nambari ya siri\n0. Nyuma"
 
   - name: Profile management [first account]
     request:
@@ -121,12 +133,12 @@ stages:
       status_code:
         - 200
       headers:
-        Content-Length: '109'
+        Content-Length: '103'
         Content-Type: "text/plain"
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "CON My profile/n1. Edit name/n2. Edit gender/n3. Edit location/n4. Edit products/n5. View my profile/n0. Back"
+          expected_response: "CON My profile\n1. Edit name\n2. Edit gender\n3. Edit location\n4. Edit products\n5. View my profile\n0. Back"
 
   - name: Profile management [second account]
     request:
@@ -143,12 +155,142 @@ stages:
       status_code:
         - 200
       headers:
-        Content-Length: '110'
+        Content-Length: '104'
         Content-Type: "text/plain"
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "CON Wasifu wangu/n1. Weka jina/n2. Weka jinsia/n3. Weka eneo/n4. Weka bidhaa/n5. Angalia wasifu wako/n0. Nyuma"
+          expected_response: "CON Wasifu wangu\n1. Weka jina\n2. Weka jinsia\n3. Weka eneo\n4. Weka bidhaa\n5. Angalia wasifu wako\n0. Nyuma"
+
+  - name: Enter pin to view profile [first account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{first_account_management_session_id}"
+        phoneNumber: "{first_account_phone_number}"
+        text: "2*5"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '33'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Please enter your PIN\n0. Back"
+
+  - name: Enter pin to view profile [second account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{second_account_management_session_id}"
+        phoneNumber: "{second_account_phone_number}"
+        text: "2*5"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '36'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Tafadhali weka PIN yako\n0. Nyuma"
+
+  - name: Display profile [first account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{first_account_management_session_id}"
+        phoneNumber: "{first_account_phone_number}"
+        text: "2*5*{first_account_pin_number}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Your details are:\n  Name: {first_account_given_name} {first_account_family_name}\n  Gender: Male\n  Location: {first_account_location}\n  You sell: {first_account_product}\n0. Back"
+
+  - name: Display profile [second account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{second_account_management_session_id}"
+        phoneNumber: "{second_account_phone_number}"
+        text: "2*5*{second_account_pin_number}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Wasifu wako una maelezo yafuatayo:\n  Jina: {second_account_given_name} {second_account_family_name}\n  Jinsia: Mwanamke\n  Eneo: {second_account_location}\n  Unauza: {second_account_product}\n0. Nyuma"
+
+  - name: Second profile management [first account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{first_account_management_session_id}"
+        phoneNumber: "{first_account_phone_number}"
+        text: "2*5*{first_account_pin_number}*0"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '103'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON My profile\n1. Edit name\n2. Edit gender\n3. Edit location\n4. Edit products\n5. View my profile\n0. Back"
+
+  - name: Second profile management [second account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{second_account_management_session_id}"
+        phoneNumber: "{second_account_phone_number}"
+        text: "2*5*{second_account_pin_number}*0"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '104'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Wasifu wangu\n1. Weka jina\n2. Weka jinsia\n3. Weka eneo\n4. Weka bidhaa\n5. Angalia wasifu wako\n0. Nyuma"
 
   - name: Edit name [first account]
     request:
@@ -165,12 +307,12 @@ stages:
       status_code:
         - 200
       headers:
-        Content-Length: '29'
+        Content-Length: '28'
         Content-Type: "text/plain"
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "CON Enter first name/n0. Back"
+          expected_response: "CON Enter first name\n0. Back"
 
   - name: Edit name [second account]
     request:
@@ -187,12 +329,12 @@ stages:
       status_code:
         - 200
       headers:
-        Content-Length: '38'
+        Content-Length: '37'
         Content-Type: "text/plain"
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "CON Weka jina lako la kwanza/n0. Nyuma"
+          expected_response: "CON Weka jina lako la kwanza\n0. Nyuma"
 
   - name: Enter given name [first account]
     request:
@@ -209,12 +351,12 @@ stages:
       status_code:
         - 200
       headers:
-        Content-Length: '30'
+        Content-Length: '29'
         Content-Type: "text/plain"
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "CON Enter family name/n0. Back"
+          expected_response: "CON Enter family name\n0. Back"
 
   - name: Enter given name [second account]
     request:
@@ -231,12 +373,12 @@ stages:
       status_code:
         - 200
       headers:
-        Content-Length: '38'
+        Content-Length: '37'
         Content-Type: "text/plain"
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "CON Weka jina lako la mwisho/n0. Nyuma"
+          expected_response: "CON Weka jina lako la mwisho\n0. Nyuma"
 
   - name: Enter family name [first account]
     request:
@@ -253,21 +395,21 @@ stages:
       status_code:
         - 200
       headers:
-        Content-Length: '30'
+        Content-Length: '33'
         Content-Type: "text/plain"
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "CON Enter family name/n0. Back"
+          expected_response: "CON Please enter your PIN\n0. Back"
 
-  - name: Enter given name [second account]
+  - name: Enter family name [second account]
     request:
       url: "{server_url}"
       data:
         serviceCode: "*483*46#"
         sessionId: "{second_account_management_session_id}"
         phoneNumber: "{second_account_phone_number}"
-        text: "2*1*1*{second_account_change_given_name}"
+        text: "2*1*1*{second_account_change_given_name}*{second_account_change_family_name}"
       headers:
         content-type: "application/x-www-form-urlencoded"
       method: POST
@@ -275,9 +417,97 @@ stages:
       status_code:
         - 200
       headers:
-        Content-Length: '38'
+        Content-Length: '36'
         Content-Type: "text/plain"
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "CON Weka jina lako la mwisho/n0. Nyuma"
+          expected_response: "CON Tafadhali weka PIN yako\n0. Nyuma"
+
+  - name: Enter name change pin [first account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{first_account_management_session_id}"
+        phoneNumber: "{first_account_phone_number}"
+        text: "2*1*1*{first_account_change_given_name}*{first_account_change_family_name}*{first_account_pin_number}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '36'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "END Thank you for using the service."
+
+  - name: Enter name change pin [second account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{second_account_management_session_id}"
+        phoneNumber: "{second_account_phone_number}"
+        text: "2*1*1*{second_account_change_given_name}*{second_account_change_family_name}*{second_account_pin_number}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '30'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "END Asante kwa kutumia huduma."
+
+  - name: Second start menu [first account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{first_account_management_session_id_1}"
+        phoneNumber: "{first_account_phone_number}"
+        text: ""
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '51'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Balance 58.00 {token_symbol}\n1. Send\n2. My Account\n3. Help"
+
+  - name: Second start menu [second account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{second_account_management_session_id_1}"
+        phoneNumber: "{second_account_phone_number}"
+        text: ""
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '56'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Salio 42.00 {token_symbol}\n1. Tuma\n2. Akaunti yangu\n3. Usaidizi"
