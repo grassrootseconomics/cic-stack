@@ -10,7 +10,7 @@ def test_default_token(
         register_tokens,
         register_lookups,
         cic_registry,
-        celery_worker,
+        celery_session_worker,
         ):
 
     api = Api(str(default_chain_spec), queue=None)     
