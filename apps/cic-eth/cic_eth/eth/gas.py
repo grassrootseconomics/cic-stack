@@ -57,10 +57,12 @@ celery_app = celery.current_app
 logg = logging.getLogger()
 
 
+MAXIMUM_FEE_UNITS = 8000000
+
 class MaxGasOracle:
 
     def gas(code=None):
-        return 8000000
+        return MAXIMUM_FEE_UNITS
 
 
 def create_check_gas_task(tx_signed_raws_hex, chain_spec, holder_address, gas=None, tx_hashes_hex=None, queue=None):
@@ -150,7 +152,7 @@ def cache_gas_data(
 
 
 @celery_app.task(bind=True, throws=(OutOfGasError), base=CriticalSQLAlchemyAndWeb3Task)
-def check_gas(self, tx_hashes, chain_spec_dict, txs=[], address=None, gas_required=None):
+def check_gas(self, tx_hashes, chain_spec_dict, txs=[], address=None, gas_required=MAXIMUM_FEE_UNITS):
     """Check the gas level of the sender address of a transaction.
 
     If the account balance is not sufficient for the required gas, gas refill is requested and OutOfGasError raiser.
@@ -170,17 +172,22 @@ def check_gas(self, tx_hashes, chain_spec_dict, txs=[], address=None, gas_requir
     :return: Signed raw transaction data list
     :rtype: param txs, unchanged
     """
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
+
+    addresses = []
     if len(txs) == 0:
         for i in range(len(tx_hashes)):
-            o = get_tx(tx_hashes[i])
+            o = get_tx(chain_spec_dict, tx_hashes[i])
             txs.append(o['signed_tx'])
+            logg.debug('sender {}'.format(o))
+            tx = unpack(bytes.fromhex(strip_0x(o['signed_tx'])), chain_spec)
             if address == None:
-                address = o['address']
+                address = tx['from']
+            elif address != tx['from']:
+                raise ValueError('txs passed to check gas must all have same sender')
 
     if not is_checksum_address(address):
         raise ValueError('invalid address {}'.format(address))
-
-    chain_spec = ChainSpec.from_dict(chain_spec_dict)
 
     queue = self.request.delivery_info.get('routing_key')
 
