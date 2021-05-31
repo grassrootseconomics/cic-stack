@@ -19,7 +19,7 @@ marks:
   - second
 
 stages:
-  - name: Start menu [first account]
+  - name: Transactions start menu [first account]
     request:
       url: "{server_url}"
       data:
@@ -41,7 +41,7 @@ stages:
         extra_kwargs:
           expected_response: "CON Balance {gift_value} {token_symbol}\n1. Send\n2. My Account\n3. Help"
 
-  - name: Start menu [second account]
+  - name: Transactions start menu [second account]
     request:
       url: "{server_url}"
       data:
