@@ -238,7 +238,7 @@
             "description": "Menu to display a user's entire profile",
             "display_key": "ussd.kenya.display_user_metadata",
             "name": "display_user_metadata",
-            "parent": "account_management"
+            "parent": "metadata_management"
         },
         "41": {
             "description": "The recipient is not in the system",

@@ -6,7 +6,7 @@ en:
       2. Kiswahili
       3. Help
     initial_pin_entry: |-
-      CON Please enter a new four number PIN for your account. 
+      CON Please enter a new four number PIN for your account.
       0. Back
     initial_pin_confirmation: |-
       CON Enter your four number PIN again
