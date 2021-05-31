@@ -1,3 +1,6 @@
+# standard imports
+import logging
+
 # external imports
 import celery
 from chainlib.connection import RPCConnection
@@ -24,6 +27,8 @@ from chainqueue.db.enum import StatusBits
 from cic_eth.eth.gas import cache_gas_data
 from cic_eth.error import OutOfGasError
 
+logg = logging.getLogger()
+
 
 def test_task_check_gas_ok(
         default_chain_spec,
@@ -36,14 +41,14 @@ def test_task_check_gas_ok(
         ):
 
     rpc = RPCConnection.connect(default_chain_spec, 'default')
-    nonce_oracle = OverrideNonceOracle(agent_roles['ALICE'], 42)
+    nonce_oracle = RPCNonceOracle(agent_roles['ALICE'], conn=eth_rpc) 
     gas_oracle = OverrideGasOracle(price=1000000000, limit=21000)
     c = Gas(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
     (tx_hash_hex, tx_signed_raw_hex) = c.create(agent_roles['ALICE'], agent_roles['BOB'], 100 * (10 ** 6), tx_format=TxFormat.RLP_SIGNED)
 
     queue_create(
             default_chain_spec,
-            42,
+            0,
             agent_roles['ALICE'],
             tx_hash_hex,
             tx_signed_raw_hex,
@@ -64,11 +69,14 @@ def test_task_check_gas_ok(
                     tx_hash_hex,
                     ],
                 default_chain_spec.asdict(),
+                [],
+                None,
+                8000000,
                 ],
             queue=None
             )
     t = s.apply_async()
-    r = t.get_leaf()
+    t.get_leaf()
     assert t.successful()
 
     init_database.commit()
@@ -117,6 +125,9 @@ def test_task_check_gas_insufficient(
                     tx_hash_hex,
                     ],
                 default_chain_spec.asdict(),
+                [],
+                None,
+                None,
                 ],
             queue=None
             )
@@ -150,13 +161,13 @@ def test_task_check_gas_low(
     r = eth_rpc.do(o)
 
     rpc = RPCConnection.connect(default_chain_spec, 'default')
-    nonce_oracle = OverrideNonceOracle(whoever, 42)
+    nonce_oracle = RPCNonceOracle(whoever, conn=eth_rpc) 
     c = Gas(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
     (tx_hash_hex, tx_signed_raw_hex) = c.create(whoever, agent_roles['BOB'], 100 * (10 ** 6), tx_format=TxFormat.RLP_SIGNED)
 
     queue_create(
             default_chain_spec,
-            42,
+            0,
             whoever,
             tx_hash_hex,
             tx_signed_raw_hex,
@@ -178,10 +189,13 @@ def test_task_check_gas_low(
                     ],
                 default_chain_spec.asdict(),
                 ],
+                [],
+                None,
+                None,
             queue=None
             )
     t = s.apply_async()
-    r = t.get_leaf()
+    t.get_leaf()
     assert t.successful()
 
     init_database.commit()

@@ -173,9 +173,11 @@ def check_gas(self, tx_hashes, chain_spec_dict, txs=[], address=None, gas_requir
     :rtype: param txs, unchanged
     """
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
+    logg.debug('txs {} tx_hashes {}'.format(txs, tx_hashes))
 
-    addresses = []
+    addresspass = None
     if len(txs) == 0:
+        addresspass = []
         for i in range(len(tx_hashes)):
             o = get_tx(chain_spec_dict, tx_hashes[i])
             txs.append(o['signed_tx'])
@@ -184,7 +186,8 @@ def check_gas(self, tx_hashes, chain_spec_dict, txs=[], address=None, gas_requir
             if address == None:
                 address = tx['from']
             elif address != tx['from']:
-                raise ValueError('txs passed to check gas must all have same sender')
+                raise ValueError('txs passed to check gas must all have same sender; had {} got {}'.format(address, tx['from']))
+            addresspass.append(address)
 
     if not is_checksum_address(address):
         raise ValueError('invalid address {}'.format(address))
@@ -193,7 +196,6 @@ def check_gas(self, tx_hashes, chain_spec_dict, txs=[], address=None, gas_requir
 
     conn = RPCConnection.connect(chain_spec)
 
-    # TODO: it should not be necessary to pass address explicitly, if not passed should be derived from the tx
     gas_balance = 0
     try:
         o = balance(address)
@@ -203,6 +205,9 @@ def check_gas(self, tx_hashes, chain_spec_dict, txs=[], address=None, gas_requir
     except EthException as e:
         conn.disconnect()
         raise EthError('gas_balance call for {}: {}'.format(address, e))
+
+    if gas_required == None:
+        gas_required = MAXIMUM_FEE_UNITS
 
     logg.debug('address {} has gas {} needs {}'.format(address, gas_balance, gas_required))
     session = SessionBase.create_session()
@@ -274,7 +279,8 @@ def check_gas(self, tx_hashes, chain_spec_dict, txs=[], address=None, gas_requir
             queue=queue,
             )
         ready_tasks.append(s)
-    celery.group(ready_tasks)()
+    t = celery.group(ready_tasks)()
+    logg.debug('group {}'.format(t))
 
     return txs
 
