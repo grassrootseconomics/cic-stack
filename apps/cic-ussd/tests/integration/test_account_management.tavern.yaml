@@ -11,6 +11,8 @@ marks:
     - second_account_management_session_id
     - first_account_management_session_id_1
     - second_account_management_session_id_1
+    - first_account_new_pin_number
+    - second_account_new_pin_number
   - fourth
 
 stages:
@@ -363,3 +365,223 @@ stages:
         function: ext.validator:validate_response
         extra_kwargs:
           expected_response: "CON Your balances are as follows:\n  balance: 42.00 {token_symbol}\n  fees:  {token_symbol}\n  rewards:  {token_symbol}\n0. Back"
+
+  - name: Resume account management menu [first account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{first_account_management_session_id_1}"
+        phoneNumber: "{first_account_phone_number}"
+        text: "2*3*{first_account_pin_number}*0"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '148'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Akaunti yangu\n1. Wasifu wangu\n2. Chagua lugha utakayotumia\n3. Angalia salio\n4. Angalia taarifa ya matumizi\n5. Badilisha nambari ya siri\n0. Nyuma"
+
+  - name: Resume account management menu [second account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{second_account_management_session_id_1}"
+        phoneNumber: "{second_account_phone_number}"
+        text: "2*3*{second_account_pin_number}*0"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '105'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON My account\n1. My profile\n2. Change language\n3. Check balance\n4. Check statement\n5. Change PIN\n0. Back"
+
+  - name: Change pin number [first account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{first_account_management_session_id_1}"
+        phoneNumber: "{first_account_phone_number}"
+        text: "2*3*{first_account_pin_number}*0*5"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '34'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Weka nambari ya siri.\n0. Nyuma"
+
+  - name: Change pin number [second account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{second_account_management_session_id_1}"
+        phoneNumber: "{second_account_phone_number}"
+        text: "2*3*{second_account_pin_number}*0*5"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '30'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Enter current PIN.\n0. Back"
+
+  - name: Enter old pin [first account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{first_account_management_session_id_1}"
+        phoneNumber: "{first_account_phone_number}"
+        text: "2*3*{first_account_pin_number}*0*5*{first_account_pin_number}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '38'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Weka nambari ya siri mpya\n0. Nyuma"
+
+  - name: Enter old pin [second account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{second_account_management_session_id_1}"
+        phoneNumber: "{second_account_phone_number}"
+        text: "2*3*{second_account_pin_number}*0*5*{second_account_pin_number}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '42'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Enter your new four number PIN\n0. Back"
+
+  - name: Enter new pin [first account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{first_account_management_session_id_1}"
+        phoneNumber: "{first_account_phone_number}"
+        text: "2*3*{first_account_pin_number}*0*5*{first_account_pin_number}*{first_account_new_pin_number}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '31'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Weka PIN yako tena\n0. Nyuma"
+
+  - name: Enter new pin [second account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{second_account_management_session_id_1}"
+        phoneNumber: "{second_account_phone_number}"
+        text: "2*3*{second_account_pin_number}*0*5*{second_account_pin_number}*{second_account_new_pin_number}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '48'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Enter your new four number PIN again\n0. Back"
+
+  - name: Enter new pin confirmation [first account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{first_account_management_session_id_1}"
+        phoneNumber: "{first_account_phone_number}"
+        text: "2*3*{first_account_pin_number}*0*5*{first_account_pin_number}*{first_account_new_pin_number}*{first_account_new_pin_number}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '91'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Ombi lako limetumwa. Utapokea uthibitishaji wa SMS kwa muda mfupi.\n00. Nyuma\n99. Ondoka"
+
+  - name: Enter new pin confirmation [second account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{second_account_management_session_id_1}"
+        phoneNumber: "{second_account_phone_number}"
+        text: "2*3*{second_account_pin_number}*0*5*{second_account_pin_number}*{second_account_new_pin_number}*{second_account_new_pin_number}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '82'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Your request has been sent. You will receive an SMS shortly.\n00. Back\n99. Exit"
