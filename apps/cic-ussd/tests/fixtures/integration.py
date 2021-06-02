@@ -225,6 +225,16 @@ def second_account_management_session_id_1() -> str:
 
 
 @pytest.fixture(scope='session')
+def first_account_new_pin_number() -> str:
+    return pin_number()
+
+
+@pytest.fixture(scope='session')
+def second_account_new_pin_number() -> str:
+    return pin_number()
+
+
+@pytest.fixture(scope='session')
 def gift_value(load_config):
     return load_config.get('TEST_GIFT_VALUE')
 
