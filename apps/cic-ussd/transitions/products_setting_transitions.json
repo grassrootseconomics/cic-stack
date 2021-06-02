@@ -13,7 +13,8 @@
     "after": [
       "cic_ussd.state_machine.logic.user.save_metadata_attribute_to_session_data",
       "cic_ussd.state_machine.logic.user.save_complete_user_metadata"
-    ]
+    ],
+    "unless": "cic_ussd.state_machine.logic.validator.has_cached_user_metadata"
   },
   {
     "trigger": "scan_data",
