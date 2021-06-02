@@ -2,27 +2,24 @@
 
 # standard imports
 import json
-import time
 import datetime
 import random
 import logging
 import os
-import base64
 import hashlib
-import sys
 import argparse
 import random
 
 # external imports
-import vobject
 import celery
 from faker import Faker
+from collections import OrderedDict
 import confini
 from cic_types.models.person import (
-        Person,
-        generate_vcard_from_contact_data,
-        get_contact_data_from_vcard,
-        )
+    Person,
+    generate_vcard_from_contact_data,
+    get_contact_data_from_vcard,
+)
 from chainlib.eth.address import to_checksum_address
 import phonenumbers
 
@@ -32,17 +29,21 @@ logg = logging.getLogger()
 fake = Faker(['sl', 'en_US', 'no', 'de', 'ro'])
 
 script_dir = os.path.realpath(os.path.dirname(__file__))
-#config_dir = os.environ.get('CONFINI_DIR', '/usr/local/etc/cic')
+# config_dir = os.environ.get('CONFINI_DIR', '/usr/local/etc/cic')
 config_dir = os.environ.get('CONFINI_DIR', os.path.join(script_dir, 'config'))
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument('-c', type=str, default=config_dir, help='Config dir')
-argparser.add_argument('--tag', type=str, action='append', help='Tags to add to record')
-argparser.add_argument('--gift-threshold', type=int, help='If set, users will be funded with additional random balance (in token integer units)')
+argparser.add_argument('--tag', type=str, action='append',
+                       help='Tags to add to record')
+argparser.add_argument('--gift-threshold', type=int,
+                       help='If set, users will be funded with additional random balance (in token integer units)')
 argparser.add_argument('-v', action='store_true', help='Be verbose')
 argparser.add_argument('-vv', action='store_true', help='Be more verbose')
-argparser.add_argument('--dir', default='out', type=str, help='path to users export dir tree')
-argparser.add_argument('user_count', type=int, help='amount of users to generate')
+argparser.add_argument('--dir', default='out', type=str,
+                       help='path to users export dir tree')
+argparser.add_argument('user_count', type=int,
+                       help='amount of users to generate')
 args = argparser.parse_args()
 
 if args.v:
@@ -60,22 +61,23 @@ dt_then = dt_now - datetime.timedelta(weeks=150)
 ts_now = int(dt_now.timestamp())
 ts_then = int(dt_then.timestamp())
 
-celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
+celery_app = celery.Celery(broker=config.get(
+    'CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
 gift_max = args.gift_threshold or 0
 gift_factor = (10**6)
 
 categories = [
-        "food/water",
-        "fuel/energy",
-        "education",
-        "health",
-        "shop",
-        "environment",
-        "transport",
-        "farming/labor",
-        "savingsgroup",
-        ]
+    "food/water",
+    "fuel/energy",
+    "education",
+    "health",
+    "shop",
+    "environment",
+    "transport",
+    "farming/labor",
+    "savingsgroup",
+]
 
 phone_idx = []
 
@@ -87,6 +89,7 @@ if tags == None or len(tags) == 0:
     tags = ['individual']
 
 random.seed()
+
 
 def genPhoneIndex(phone):
     h = hashlib.new('sha256')
@@ -141,16 +144,16 @@ def genDob():
         if random.random() > 0.5:
             dob['month'] = dob_src.month
             dob['day'] = dob_src.day
-    
+
     return dob
 
 
 def gen():
     old_blockchain_address = '0x' + os.urandom(20).hex()
-    old_blockchain_checksum_address = to_checksum_address(old_blockchain_address)
+    old_blockchain_checksum_address = to_checksum_address(
+        old_blockchain_address)
     gender = random.choice(['female', 'male', 'other'])
     phone = genPhone()
-    city = fake.city_name()
     v = genPersonal(phone)
 
     contact_data = get_contact_data_from_vcard(v)
@@ -161,31 +164,63 @@ def gen():
     p.date_of_birth = genDob()
     p.gender = gender
     p.identities = {
-            'evm': {
-                'oldchain:1': [
-                        old_blockchain_checksum_address,
-                    ],
-                },
-            }
-    p.location['area_name'] = city
+        'evm': {
+            'oldchain:1': [
+                old_blockchain_checksum_address,
+            ],
+        },
+    }
+    p.products = [fake.random_element(elements=OrderedDict(
+        [('fruit', 0.25),
+         ('maji', 0.05),
+         ('milk', 0.1),
+         ('teacher', 0.1),
+         ('doctor', 0.05),
+         ('boutique', 0.15),
+         ('recycling', 0.05),
+         ('farmer', 0.05),
+         ('oil', 0.05),
+         ('pastor', 0.1),
+         ('chama', 0.03),
+         ('pastor', 0.01),
+         ('bzrTsuZieaq', 0.01)
+         ]))]
+    p.location['area_name'] = fake.random_element(elements=OrderedDict(
+        [('mnarani', 0.05),
+         ('chilumani', 0.1),
+         ('madewani', 0.1),
+         ('kisauni', 0.05),
+         ('bangla', 0.1),
+         ('kabiro', 0.1),
+         ('manyani', 0.05),
+         ('ruben', 0.15),
+         ('makupa', 0.05),
+         ('kingston', 0.05),
+         ('rangala', 0.05),
+         ('homabay', 0.1),
+         ('nakuru', 0.03),
+         ('kajiado', 0.01),
+         ('zurtWicKtily', 0.01)
+         ]))
     if random.randint(0, 1):
-        p.location['latitude'] = (random.random() + 180) - 90 #fake.local_latitude()
-        p.location['longitude'] = (random.random() + 360) - 180 #fake.local_latitude()
+        # fake.local_latitude()
+        p.location['latitude'] = (random.random() + 180) - 90
+        # fake.local_latitude()
+        p.location['longitude'] = (random.random() + 360) - 180
 
-    
     return (old_blockchain_checksum_address, phone, p)
 
 
 def prepareLocalFilePath(datadir, address):
     parts = [
-                address[:2],
-                address[2:4],
-            ]
+        address[:2],
+        address[2:4],
+    ]
     dirs = '{}/{}/{}'.format(
-            datadir,
-            parts[0],
-            parts[1],
-            )
+        datadir,
+        parts[0],
+        parts[1],
+    )
     os.makedirs(dirs, exist_ok=True)
     return dirs
 
@@ -238,9 +273,10 @@ if __name__ == '__main__':
 
         ft.write('{}:{}\n'.format(eth, ','.join(tags)))
         amount = genAmount()
-        fa.write('{},{}\n'.format(eth,amount))
-        logg.debug('pidx {}, uid {}, eth {}, amount {}, phone {}'.format(pidx, uid, eth, amount, phone))
-        
+        fa.write('{},{}\n'.format(eth, amount))
+        logg.debug('pidx {}, uid {}, eth {}, amount {}, phone {}'.format(
+            pidx, uid, eth, amount, phone))
+
         i += 1
 
     ft.close()

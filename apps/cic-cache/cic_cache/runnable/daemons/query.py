@@ -89,7 +89,7 @@ def process_transactions_all_data(session, env):
 
     offset = r[1]
     end = r[2]
-    if r[2] < r[1]:
+    if int(r[2]) < int(r[1]):
         raise ValueError('cart before the horse, dude')
 
     c = DataCache(session)

@@ -17,7 +17,8 @@ from cic_eth.db.models.base import SessionBase
 from cic_eth.eth.gas import create_check_gas_task
 from .base import SyncFilter
 
-logg = logging.getLogger().getChild(__name__)
+#logg = logging.getLogger().getChild(__name__)
+logg = logging.getLogger()
 
 
 class GasFilter(SyncFilter):
@@ -27,11 +28,11 @@ class GasFilter(SyncFilter):
         self.chain_spec = chain_spec
 
 
-    def filter(self, conn, block, tx, session):
+    def filter(self, conn, block, tx, db_session):
         if tx.value > 0:
             tx_hash_hex = add_0x(tx.hash)
             logg.debug('gas refill tx {}'.format(tx_hash_hex))
-            session = SessionBase.bind_session(session)
+            session = SessionBase.bind_session(db_session)
             q = session.query(TxCache.recipient)
             q = q.join(Otx)
             q = q.filter(Otx.tx_hash==strip_0x(tx_hash_hex))
@@ -56,7 +57,7 @@ class GasFilter(SyncFilter):
                         tx_hashes_hex=list(txs.keys()),
                         queue=self.queue,
                 )
-                s.apply_async()
+                return s.apply_async()
 
 
     def __str__(self):

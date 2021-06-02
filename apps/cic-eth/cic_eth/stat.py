@@ -20,7 +20,11 @@ def init_chain_stat(rpc, block_start=0):
     if block_start == 0:
         o = block_latest()
         r = rpc.do(o)
-        block_start = int(r, 16)
+        try:
+            block_start = int(r, 16)
+        except TypeError:
+            block_start = int(r)
+        logg.debug('blockstart {}'.format(block_start))
 
     for i in range(BLOCK_SAMPLES):
         o = block_by_number(block_start-10+i)

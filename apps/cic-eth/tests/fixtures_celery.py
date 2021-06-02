@@ -22,7 +22,6 @@ def init_celery_tasks(
 @pytest.fixture(scope='session')
 def celery_includes():
     return [
-#        'cic_eth.eth.bancor',
         'cic_eth.eth.erc20',
         'cic_eth.eth.tx',
         'cic_eth.ext.tx',
@@ -47,8 +46,8 @@ def celery_config():
     bq = tempfile.mkdtemp()
     bp = tempfile.mkdtemp()
     rq = tempfile.mkdtemp()
-    logg.debug('celery broker queue {} processed {}'.format(bq, bp))
-    logg.debug('celery backend store {}'.format(rq))
+    logg.debug('celery broker session queue {} processed {}'.format(bq, bp))
+    logg.debug('celery backend session store {}'.format(rq))
     yield {
         'broker_url': 'filesystem://',
         'broker_transport_options': {
@@ -58,11 +57,10 @@ def celery_config():
             },
         'result_backend': 'file://{}'.format(rq),
             }
-    logg.debug('cleaning up celery filesystem backend files {} {} {}'.format(bq, bp, rq))
+    logg.debug('cleaning up celery session filesystem backend files {} {} {}'.format(bq, bp, rq))
     shutil.rmtree(bq)
     shutil.rmtree(bp)
     shutil.rmtree(rq)
-
 
 @pytest.fixture(scope='session')
 def celery_worker_parameters():

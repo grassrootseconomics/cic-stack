@@ -2,9 +2,11 @@
 import os
 import sys
 import logging
+import uuid
 
 # external imports
 from eth_erc20 import ERC20
+import redis
 
 # local imports
 from cic_eth.api import Api
@@ -19,6 +21,7 @@ from tests.fixtures_config import *
 from tests.fixtures_database import *
 from tests.fixtures_celery import *
 from tests.fixtures_role import *
+from tests.fixtures_contract import *
 from chainlib.eth.pytest import *
 from eth_contract_registry.pytest import *
 from cic_eth_registry.pytest.fixtures_contracts import *
@@ -55,3 +58,28 @@ def default_token(
         ):
     BaseTask.default_token_symbol = foo_token_symbol
     BaseTask.default_token_address = foo_token   
+
+
+
+@pytest.fixture(scope='session')
+def have_redis(
+        config,
+        ):
+
+    r = redis.Redis(
+            host = config.get('REDIS_HOST'),
+            port = config.get('REDIS_PORT'),
+            db = config.get('REDIS_DB'),
+            ) 
+    k = str(uuid.uuid4())
+    try:
+        r.set(k, 'foo')
+        r.delete(k)
+    except redis.exceptions.ConnectionError as e:
+        return e
+    except TypeError as e:
+        return e 
+
+    return None
+
+

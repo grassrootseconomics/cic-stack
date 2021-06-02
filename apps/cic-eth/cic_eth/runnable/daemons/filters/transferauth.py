@@ -32,7 +32,7 @@ class TransferAuthFilter(SyncFilter):
         self.transfer_request_contract = registry.by_name('TransferAuthorization', sender_address=call_address)
 
 
-    def filter(self, conn, block, tx, session): #rcpt, chain_str, session=None):
+    def filter(self, conn, block, tx, db_session): #rcpt, chain_str, session=None):
 
         if tx.payload == None:
             logg.debug('no payload')
@@ -45,16 +45,17 @@ class TransferAuthFilter(SyncFilter):
             return False
 
         recipient = tx.inputs[0]
-        if recipient != self.transfer_request_contract.address():
+        #if recipient != self.transfer_request_contract.address():
+        if recipient != self.transfer_request_contract:
             logg.debug('not our transfer auth contract address {}'.format(recipient))
             return False
 
         r = TransferAuthorization.parse_create_request_request(tx.payload) 
-           
-        sender = abi_decode_single(ABIContractType.ADDRESS, r[0]) 
-        recipient = abi_decode_single(ABIContractType.ADDRESS, r[1])
-        token = abi_decode_single(ABIContractType.ADDRESS, r[2]) 
-        value = abi_decode_single(ABIContractType.UINT256, r[3])
+          
+        sender = r[0]
+        recipient = r[1]
+        token = r[2]
+        value = r[3]
 
         token_data = {
             'address': token,
@@ -64,6 +65,7 @@ class TransferAuthFilter(SyncFilter):
             'cic_eth.eth.nonce.reserve_nonce',
             [
                 [token_data],
+                self.chain_spec.asdict(), 
                 sender,
                 ],
             queue=self.queue,
@@ -80,7 +82,7 @@ class TransferAuthFilter(SyncFilter):
             )
         s_nonce.link(s_approve)
         t = s_nonce.apply_async()
-        return True
+        return t
 
 
     def __str__(self):

@@ -21,6 +21,7 @@ from chainqueue.db.models.tx import Otx
 from chainqueue.db.models.tx import TxCache
 from chainqueue.db.enum import StatusBits
 from chainqueue.error import NotLocalTxError
+from potaahto.symbols import snake_and_camel
 
 # local imports
 from cic_eth.db import SessionBase
@@ -57,6 +58,9 @@ def hashes_to_txs(self, tx_hashes):
     """
     if len(tx_hashes) == 0:
         raise ValueError('no transaction to send')
+
+    for i in range(len(tx_hashes)):
+        tx_hashes[i] = strip_0x(tx_hashes[i])
 
     queue = self.request.delivery_info['routing_key']
 
@@ -148,7 +152,7 @@ def send(self, txs, chain_spec_dict):
 
 @celery_app.task(bind=True, throws=(NotFoundEthException,), base=CriticalWeb3Task)
 def sync_tx(self, tx_hash_hex, chain_spec_dict):
-    """Force update of network status of a simgle transaction
+    """Force update of network status of a single transaction
 
     :param tx_hash_hex: Transaction hash
     :type tx_hash_hex: str, 0x-hex
@@ -173,12 +177,14 @@ def sync_tx(self, tx_hash_hex, chain_spec_dict):
 
     # TODO: apply receipt in tx object to validate and normalize input
     if rcpt != None:
+        rcpt = snake_and_camel(rcpt)
         success = rcpt['status'] == 1
-        logg.debug('sync tx {} mined block {} success {}'.format(tx_hash_hex, rcpt['blockNumber'], success))
+        logg.debug('sync tx {} mined block {} tx index {} success {}'.format(tx_hash_hex, rcpt['blockNumber'], rcpt['transactionIndex'], success))
 
         s = celery.signature(
             'cic_eth.queue.state.set_final',
             [
+                chain_spec_dict,
                 tx_hash_hex,
                 rcpt['blockNumber'],
                 rcpt['transactionIndex'],
@@ -186,12 +192,14 @@ def sync_tx(self, tx_hash_hex, chain_spec_dict):
                 ],
                 queue=queue,
             )
+    # TODO: it's not entirely clear how we can reliable determine that its in mempool without explicitly checking
     else:
         logg.debug('sync tx {} mempool'.format(tx_hash_hex))
 
         s = celery.signature(
             'cic_eth.queue.state.set_sent',
             [
+                chain_spec_dict,
                 tx_hash_hex,
                 ],
                 queue=queue,

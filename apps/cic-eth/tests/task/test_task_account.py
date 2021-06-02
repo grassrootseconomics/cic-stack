@@ -156,6 +156,7 @@ def test_gift(
     eth_signer,
     init_celery_tasks,
     cic_registry,
+    register_lookups,
     celery_session_worker,
     ):
 

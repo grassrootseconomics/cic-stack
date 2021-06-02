@@ -37,7 +37,7 @@ def get_tx_cache(chain_spec_dict, tx_hash):
 def get_tx(chain_spec_dict, tx_hash):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
     session = SessionBase.create_session()
-    r =  chainqueue.query.get_tx(chain_spec, tx_hash)
+    r =  chainqueue.query.get_tx(chain_spec, tx_hash, session=session)
     session.close()
     return r
 
