@@ -76,7 +76,7 @@ en:
         CON Enter current PIN. You have %{remaining_attempts} attempts remaining.
         0. Back
     enter_new_pin: |-
-      CON Enter new PIN again
+      CON Enter your new four number PIN
       0. Back
     new_pin_confirmation: |-
       CON Enter your new four number PIN again
