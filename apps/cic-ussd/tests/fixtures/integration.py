@@ -96,12 +96,12 @@ def second_account_location() -> str:
 
 @pytest.fixture(scope='session')
 def first_account_product() -> str:
-    return fake.job()
+    return fake.color_name()
 
 
 @pytest.fixture(scope='session')
 def second_account_product() -> str:
-    return fake.job()
+    return fake.color_name()
 
 
 @pytest.fixture(scope='session')
@@ -156,12 +156,12 @@ def second_account_change_location() -> str:
 
 @pytest.fixture(scope='session')
 def first_account_change_product() -> str:
-    return fake.job()
+    return fake.color_name()
 
 
 @pytest.fixture(scope='session')
 def second_account_change_product() -> str:
-    return fake.job()
+    return fake.color_name()
 
 
 @pytest.fixture(scope='session')
@@ -171,6 +171,36 @@ def first_account_management_session_id_1() -> str:
 
 @pytest.fixture(scope='session')
 def second_account_management_session_id_1() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
+def first_account_management_session_id_2() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
+def second_account_management_session_id_2() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
+def first_account_management_session_id_3() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
+def second_account_management_session_id_3() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
+def first_account_management_session_id_4() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
+def second_account_management_session_id_4() -> str:
     return session_id()
 
 
