@@ -115,12 +115,12 @@ def second_account_verify_balance_session_id() -> str:
 
 
 @pytest.fixture(scope='session')
-def first_account_management_session_id() -> str:
+def first_profile_management_session_id() -> str:
     return session_id()
 
 
 @pytest.fixture(scope='session')
-def second_account_management_session_id() -> str:
+def second_profile_management_session_id() -> str:
     return session_id()
 
 
@@ -165,42 +165,62 @@ def second_account_change_product() -> str:
 
 
 @pytest.fixture(scope='session')
+def first_profile_management_session_id_1() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
+def second_profile_management_session_id_1() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
+def first_profile_management_session_id_2() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
+def second_profile_management_session_id_2() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
+def first_profile_management_session_id_3() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
+def second_profile_management_session_id_3() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
+def first_profile_management_session_id_4() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
+def second_profile_management_session_id_4() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
+def first_account_management_session_id() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
+def second_account_management_session_id() -> str:
+    return session_id()
+
+
+@pytest.fixture(scope='session')
 def first_account_management_session_id_1() -> str:
     return session_id()
 
 
 @pytest.fixture(scope='session')
 def second_account_management_session_id_1() -> str:
-    return session_id()
-
-
-@pytest.fixture(scope='session')
-def first_account_management_session_id_2() -> str:
-    return session_id()
-
-
-@pytest.fixture(scope='session')
-def second_account_management_session_id_2() -> str:
-    return session_id()
-
-
-@pytest.fixture(scope='session')
-def first_account_management_session_id_3() -> str:
-    return session_id()
-
-
-@pytest.fixture(scope='session')
-def second_account_management_session_id_3() -> str:
-    return session_id()
-
-
-@pytest.fixture(scope='session')
-def first_account_management_session_id_4() -> str:
-    return session_id()
-
-
-@pytest.fixture(scope='session')
-def second_account_management_session_id_4() -> str:
     return session_id()
 
 

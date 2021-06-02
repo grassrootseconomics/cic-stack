@@ -1,4 +1,4 @@
-test_name: Create an account through the cic_user_ussd_server entrypoint.
+test_name: Test the creation of accounts through the cic_user_ussd_server entrypoint.
 marks:
   - usefixtures:
     - gift_value
