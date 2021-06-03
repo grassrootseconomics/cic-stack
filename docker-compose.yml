@@ -6,11 +6,7 @@ volumes:
   bee-data: {}
   signer-data: {}
   bloxberg-data: {}
-  contract-config: 
-    driver_opts:
-      type: local
-      o: bind
-      device: ./service-configs
+  contract-config: {} 
 
 networks:
   default:
