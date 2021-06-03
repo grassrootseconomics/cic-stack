@@ -12,7 +12,7 @@ from eth_accounts_index import AccountsIndex
 from chainlib.eth.tx import (
         transaction,
         )
-from chainqueue.state import (
+from chainqueue.sql.state import (
         set_reserved,
         )
 

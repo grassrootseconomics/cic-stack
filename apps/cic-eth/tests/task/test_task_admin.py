@@ -5,7 +5,7 @@ import logging
 import celery
 from chainlib.connection import RPCConnection
 from chainlib.eth.nonce import OverrideNonceOracle
-from chainqueue.tx import (
+from chainqueue.sql.tx import (
         create as queue_create,
         )
 from chainlib.eth.gas import (
@@ -13,7 +13,7 @@ from chainlib.eth.gas import (
         OverrideGasOracle,
         )
 from chainlib.eth.tx import TxFormat
-from chainqueue.query import get_nonce_tx_cache
+from chainqueue.sql.query import get_nonce_tx_cache
 from chainqueue.db.models.otx import Otx
 from chainqueue.db.enum import StatusBits
 from hexathon import add_0x

@@ -15,7 +15,7 @@ from chainlib.eth.block import (
         Block,
         )
 from hexathon import strip_0x
-from chainqueue.query import get_account_tx
+from chainqueue.sql.query import get_account_tx
 
 # local imports
 from cic_eth.runnable.daemons.filters.transferauth import TransferAuthFilter

@@ -31,7 +31,7 @@ from chainqueue.db.enum import (
         status_str,
     )
 from chainqueue.error import TxStateChangeError
-from chainqueue.query import get_tx
+from chainqueue.sql.query import get_tx
 from eth_erc20 import ERC20
 
 # local imports

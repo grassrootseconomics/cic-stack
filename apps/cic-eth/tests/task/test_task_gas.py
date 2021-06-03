@@ -21,10 +21,10 @@ from chainlib.eth.constant import (
         MINIMUM_FEE_UNITS,
         MINIMUM_FEE_PRICE,
         )
-from chainqueue.tx import create as queue_create
-from chainqueue.query import get_tx
+from chainqueue.sql.tx import create as queue_create
+from chainqueue.sql.query import get_tx
 from chainqueue.db.enum import StatusBits
-from chainqueue.state import (
+from chainqueue.sql.state import (
         set_ready,
         set_reserved,
         set_sent,

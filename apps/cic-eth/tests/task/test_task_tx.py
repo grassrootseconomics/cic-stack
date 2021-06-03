@@ -18,8 +18,8 @@ from chainlib.eth.tx import (
         )
 from hexathon import strip_0x
 from chainqueue.db.models.otx import Otx
-from chainqueue.tx import create as queue_create
-from chainqueue.state import (
+from chainqueue.sql.tx import create as queue_create
+from chainqueue.sql.state import (
         set_reserved,
         set_ready,
         set_sent,

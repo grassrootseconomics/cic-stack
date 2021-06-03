@@ -10,7 +10,7 @@ from chainlib.eth.tx import unpack
 from chainqueue.db.enum import StatusBits
 from chainqueue.db.models.tx import TxCache
 from chainqueue.db.models.otx import Otx
-from chainqueue.query import get_paused_tx_cache as get_paused_tx
+from chainqueue.sql.query import get_paused_tx_cache as get_paused_tx
 
 # local imports
 from cic_eth.db.models.base import SessionBase

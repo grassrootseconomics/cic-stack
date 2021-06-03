@@ -5,7 +5,7 @@ import logging
 # external imports
 import pytest
 import celery
-from chainqueue.tx import create as queue_create
+from chainqueue.sql.tx import create as queue_create
 from chainlib.eth.nonce import (
         RPCNonceOracle,
         OverrideNonceOracle,
@@ -23,7 +23,7 @@ from hexathon import (
         add_0x,
         strip_0x,
         )
-from chainqueue.state import (
+from chainqueue.sql.state import (
         set_reserved,
         set_ready,
         )

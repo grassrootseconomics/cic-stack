@@ -11,7 +11,7 @@ from chainlib.eth.nonce import (
         OverrideNonceOracle,
         RPCNonceOracle,
         )
-from chainqueue.tx import create as queue_create
+from chainqueue.sql.tx import create as queue_create
 from chainlib.eth.tx import (
         raw,
         receipt,
@@ -23,14 +23,14 @@ from chainlib.eth.gas import (
         Gas,
         OverrideGasOracle,
         )
-from chainqueue.state import (
+from chainqueue.sql.state import (
         set_reserved,
         set_sent,
         set_ready,
         )
 from chainqueue.db.models.otx import Otx
 from chainqueue.db.enum import StatusBits
-from chainqueue.query import get_nonce_tx_cache
+from chainqueue.sql.query import get_nonce_tx_cache
 from eth_erc20 import ERC20
 from cic_eth_registry import CICRegistry
 

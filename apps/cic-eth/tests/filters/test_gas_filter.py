@@ -1,7 +1,7 @@
 # external imports
 from chainlib.connection import RPCConnection
 from chainlib.eth.nonce import OverrideNonceOracle
-from chainqueue.tx import create as queue_create
+from chainqueue.sql.tx import create as queue_create
 from chainlib.eth.tx import (
         TxFormat,
         unpack,
@@ -16,7 +16,7 @@ from chainlib.eth.block import (
         block_by_number,
         Block,
         )
-from chainqueue.state import (
+from chainqueue.sql.state import (
         set_waitforgas,
         )
 from hexathon import strip_0x

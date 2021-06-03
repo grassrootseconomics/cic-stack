@@ -17,8 +17,8 @@ from chainlib.eth.block import (
         )
 from chainqueue.db.models.otx import Otx
 from chainqueue.db.enum import StatusBits
-from chainqueue.tx import create as queue_create
-from chainqueue.state import (
+from chainqueue.sql.tx import create as queue_create
+from chainqueue.sql.state import (
         set_reserved,
         set_ready,
         set_sent,

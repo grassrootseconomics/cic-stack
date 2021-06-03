@@ -29,12 +29,12 @@ from chainqueue.db.enum import (
         StatusBits,
         status_str,
         )
-from chainqueue.state import (
+from chainqueue.sql.state import (
         set_fubar,
         set_ready,
         set_reserved,
         )
-from chainqueue.query import (
+from chainqueue.sql.query import (
         get_tx,
         get_nonce_tx_cache,
         )
