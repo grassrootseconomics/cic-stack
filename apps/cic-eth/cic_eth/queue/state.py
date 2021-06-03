@@ -1,6 +1,6 @@
 # external imports
 from chainlib.chain import ChainSpec
-import chainqueue.state
+import chainqueue.sql.state
 
 # local imports
 import celery

@@ -15,14 +15,14 @@ from sqlalchemy import tuple_
 from sqlalchemy import func
 from chainlib.chain import ChainSpec
 from chainlib.eth.tx import unpack
-import chainqueue.state
+import chainqueue.sql.state
 from chainqueue.db.enum import (
         StatusEnum,
         StatusBits,
         is_alive,
         dead,
         )
-from chainqueue.tx import create
+from chainqueue.sql.tx import create
 from chainqueue.error import NotLocalTxError
 from chainqueue.db.enum import status_str
 

@@ -5,7 +5,7 @@ import datetime
 import celery
 from chainlib.chain import ChainSpec
 from chainlib.eth.tx import unpack
-import chainqueue.query
+import chainqueue.sql.query
 from chainqueue.db.enum import (
         StatusEnum,
         is_alive,
