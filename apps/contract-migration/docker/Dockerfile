@@ -54,8 +54,8 @@ ENV PATH      $NVM_DIR/versions/node//v$NODE_VERSION/bin:$PATH
 ARG pip_extra_args=""
 ARG pip_index_url=https://pypi.org/simple
 ARG pip_extra_index_url=https://pip.grassrootseconomics.net:8433
-ARG cic_base_version=0.1.2b11
-ARG cic_eth_version=0.11.0b14
+ARG cic_base_version=0.1.2b15
+ARG cic_eth_version=0.11.0b16
 ARG sarafu_token_version=0.0.1a8
 ARG sarafu_faucet_version=0.0.3a3
 RUN pip install --index-url https://pypi.org/simple --extra-index-url $pip_extra_index_url \
