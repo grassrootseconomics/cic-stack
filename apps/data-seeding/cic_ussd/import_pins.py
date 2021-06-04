@@ -39,6 +39,7 @@ elif args.vv:
 config_dir = args.c
 config = confini.Config(config_dir, os.environ.get('CONFINI_ENV_PREFIX'))
 config.process()
+logg.debug('config loaded from {}:\n{}'.format(args.c, config))
 
 celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
