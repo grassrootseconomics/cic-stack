@@ -31,9 +31,7 @@ elif args.vv:
 config_dir = args.c
 config = Config(config_dir, os.environ.get('CONFINI_ENV_PREFIX'))
 config.process()
-
-user_old_dir = os.path.join(args.user_dir, 'old')
-os.stat(user_old_dir)
+logg.debug('config loaded from {}:\n{}'.format(args.c, config))
 
 db_configs = {
     'database': config.get('DATABASE_NAME'),
@@ -45,18 +43,15 @@ db_configs = {
 celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
 if __name__ == '__main__':
-    for x in os.walk(user_old_dir):
+    for x in os.walk(args.user_dir):
         for y in x[2]:
 
-            if y[len(y) - 5:] != '.json':
-                continue
-
-            # handle ussd_data json object
-            if y[:15] == '_ussd_data.json':
+            if y[len(y) - 5:] == '.json':
                 filepath = os.path.join(x[0], y)
                 f = open(filepath, 'r')
                 try:
                     ussd_data = json.load(f)
+                    logg.debug(f'LOADING USSD DATA: {ussd_data}')
                 except json.decoder.JSONDecodeError as e:
                     f.close()
                     logg.error('load error for {}: {}'.format(y, e))
