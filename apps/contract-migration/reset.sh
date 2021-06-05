@@ -2,14 +2,26 @@
 
 set -a
 
+cat <<EOF
+external token settings:
+token_name: $TOKEN_NAME
+token_symbol: $TOKEN_SYMBOL
+token_decimals: $TOKEN_DECIMALS
+token_demurrage: $TOKEN_DEMURRAGE_LEVEL
+token_redistribution_period: $TOKEN_REDISTRIBUTION_PERIOD
+token_supply_limit: $TOKEN_SUPPLY_LIMIT
+EOF
+
 CIC_CHAIN_SPEC=${CIC_CHAIN_SPEC:-evm:bloxberg:8995}
-CIC_DEFAULT_TOKEN_SYMBOL=${CIC_DEFAULT_TOKEN_SYMBOL:-GFT}
+TOKEN_SYMBOL=${TOKEN_SYMBOL:-GFT}
 DEV_ETH_ACCOUNT_RESERVE_MINTER=${DEV_ETH_ACCOUNT_RESERVE_MINTER:-$DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER}
 DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER=${DEV_ETH_ACCOUNT_RESERVE_MINTER:-$DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER}
 DEV_RESERVE_AMOUNT=${DEV_ETH_RESERVE_AMOUNT:-""10000000000000000000000000000000000}
 DEV_FAUCET_AMOUNT=${DEV_FAUCET_AMOUNT:-0}
 DEV_ETH_KEYSTORE_FILE=${DEV_ETH_KEYSTORE_FILE:-`realpath ./keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c`}
 
+foo=${TOKEN_SUPPLY_LIMIT-foo}
+echo foo $foo
 set -e
 
 DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER=`eth-checksum $(cat $DEV_ETH_KEYSTORE_FILE | jq -r .address)`
@@ -19,8 +31,8 @@ if [ ! -z $DEV_ETH_GAS_PRICE ]; then
 	>&2 echo using static gas price $DEV_ETH_GAS_PRICE
 fi
 
-if [[ $CIC_DEFAULT_TOKEN_SYMBOL != 'GFT' && $CIC_DEFAULT_TOKEN_SYMBOL != 'SRF' ]]; then
-	>&2 echo CIC_DEFAULT_TOKEN_SYMBOL must be one of [GFT,SRF], but was $CIC_DEFAULT_TOKEN_SYMBOL
+if [[ $TOKEN_SYMBOL != 'GFT' && $TOKEN_SYMBOL != 'SRF' ]]; then
+	>&2 echo TOKEN_SYMBOL must be one of [GFT,SRF], but was $TOKEN_SYMBOL
 	exit 1
 fi
 
@@ -60,16 +72,15 @@ if [[ -n "${ETH_PROVIDER}" ]]; then
 		./wait-for-it.sh "${ETH_PROVIDER_HOST}:${ETH_PROVIDER_PORT}"
 	fi
 
-	if [ $CIC_DEFAULT_TOKEN_SYMBOL == 'GFT' ]; then
+	if [ $TOKEN_SYMBOL == 'GFT' ]; then
 		>&2 echo "deploying 'giftable token'"
-		DEV_RESERVE_ADDRESS=`giftable-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -w --name "Giftable Token" --symbol "GFT" --decimals 6 -vv`
+		DEV_RESERVE_ADDRESS=`giftable-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -ww --name "Giftable Token" --symbol "GFT" --decimals 6 -vv`
 	else
-		>&2 echo "deploying 'sarafu' token'"
-		DEV_RESERVE_ADDRESS=`sarafu-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -w --name "Sarafu" --decimals 6 -vv SRF $DEV_SARAFU_DEMURRAGE_LEVEL`
+		>&2 echo "deploying 'redistributed demurrage token'"
+		DEV_RESERVE_ADDRESS=`erc20-demurrage-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -ww`
 	fi
+	exit 0
 	giftable-token-gift $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -w -a $DEV_RESERVE_ADDRESS $DEV_RESERVE_AMOUNT
-
-	#BANCOR_REGISTRY_ADDRESS=`cic-bancor-deploy $gas_price_arg --bancor-dir /usr/local/share/cic/bancor -z $DEV_ETH_RESERVE_ADDRESS -p $ETH_PROVIDER -o $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER`
 
 	>&2 echo "deploy account index contract"
 	DEV_ACCOUNT_INDEX_ADDRESS=`eth-accounts-index-deploy $gas_price_arg -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -vv -w`

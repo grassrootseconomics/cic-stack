@@ -1,0 +1,3 @@
+erc20-demurrage-token==0.0.1b1
+
+
