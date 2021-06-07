@@ -1,30 +1,21 @@
 # standard imports
-import os
-import sys
+import argparse
 import json
 import logging
-import argparse
-import uuid
-import datetime
+import os
+import sys
 import time
 import urllib.request
+import uuid
 from urllib.parse import urlencode
-from glob import glob
 
 # external imports
-import redis
-import confini
 import celery
-from hexathon import (
-        add_0x,
-        strip_0x,
-        )
-from chainlib.eth.address import to_checksum
-from cic_types.models.person import Person
-from cic_eth.api.api_task import Api
-from chainlib.chain import ChainSpec
-from cic_types.processor import generate_metadata_pointer
+import confini
 import phonenumbers
+import redis
+from chainlib.chain import ChainSpec
+from cic_types.models.person import Person
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
