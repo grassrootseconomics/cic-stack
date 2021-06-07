@@ -63,9 +63,6 @@ def main():
     )
     s_import_pins.apply_async()
 
-    argv = ['worker', '-Q', 'cic-import-ussd', '--loglevel=DEBUG']
-    celery_app.worker_main(argv)
-
 
 if __name__ == '__main__':
     main()
