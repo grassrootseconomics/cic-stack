@@ -21,7 +21,7 @@ sw:
       CON Weka jinsia yako
       1. Mwanaume
       2. Mwanamke
-      3. Nyngine 
+      3. Nyngine
       0. Nyuma
     enter_location: |-
       CON Weka eneo lako
@@ -61,7 +61,7 @@ sw:
         Jina: %{full_name}
         Jinsia: %{gender}
         Eneo: %{location}
-        Unauza: %{user_bio}
+        Unauza: %{products}
       0. Nyuma
     select_preferred_language: |-
       CON Chagua lugha
@@ -78,6 +78,9 @@ sw:
     enter_new_pin: |-
       CON Weka nambari ya siri mpya
       0. Nyuma
+    new_pin_confirmation: |-
+      CON Weka PIN yako tena
+      0. Nyuma
     transaction_pin_authorization:
       first: |-
         CON %{recipient_information} atapokea %{transaction_amount} %{token_symbol} kutoka kwa %{sender_information}.
@@ -86,9 +89,9 @@ sw:
       retry: |-
         CON Weka nambari ya siri. Una majaribio %{remaining_attempts} yaliyobaki.
         0. Nyuma
-    standard_pin_authorization:
+    display_metadata_pin_authorization:
       first: |-
-        CON Tafadhali weka PIN yako.
+        CON Tafadhali weka PIN yako
         0. Nyuma
       retry: |-
         CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
@@ -107,12 +110,40 @@ sw:
       retry: |-
         CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
         0. Nyuma
+    name_edit_pin_authorization:
+      first: |-
+        CON Tafadhali weka PIN yako
+        0. Nyuma
+      retry: |-
+        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
+        0. Nyuma
+    gender_edit_pin_authorization:
+      first: |-
+        CON Tafadhali weka PIN yako
+        0. Nyuma
+      retry: |-
+        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
+        0. Nyuma
+    location_edit_pin_authorization:
+      first: |-
+        CON Tafadhali weka PIN yako
+        0. Nyuma
+      retry: |-
+        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
+        0. Nyuma
+    products_edit_pin_authorization:
+      first: |-
+        CON Tafadhali weka PIN yako
+        0. Nyuma
+      retry: |-
+        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
+        0. Nyuma
     account_balances: |-
       CON Salio zako ni zifuatazo:
-        salio: %{operational_balance}
-        ushuru: %{tax}
-        tuzo: %{bonus}
-      0. Back
+        salio: %{operational_balance} %{token_symbol}
+        ushuru: %{tax} %{token_symbol}
+        tuzo: %{bonus} %{token_symbol}
+      0. Nyuma
     first_transaction_set: |-
       CON %{first_transaction_set}
       1. Mbele

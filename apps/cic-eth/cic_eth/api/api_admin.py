@@ -8,6 +8,7 @@ from chainlib.eth.constant import (
         ZERO_ADDRESS,
         )
 from cic_eth_registry import CICRegistry
+from cic_eth_registry.erc20 import ERC20Token
 from cic_eth_registry.error import UnknownContractError
 from chainlib.eth.address import to_checksum_address
 from chainlib.eth.contract import code
@@ -30,13 +31,14 @@ from chainqueue.db.enum import (
         status_str,
     )
 from chainqueue.error import TxStateChangeError
+from chainqueue.sql.query import get_tx
+from eth_erc20 import ERC20
 
 # local imports
 from cic_eth.db.models.base import SessionBase
 from cic_eth.db.models.role import AccountRole
 from cic_eth.db.models.nonce import Nonce
 from cic_eth.error import InitializationError
-from cic_eth.queue.query import get_tx
 
 app = celery.current_app
 
@@ -188,6 +190,7 @@ class AdminApi:
         s_manual = celery.signature(
             'cic_eth.queue.state.set_manual',
             [
+                chain_spec.asdict(),
                 tx_hash_hex,
                 ],
             queue=self.queue,
@@ -206,8 +209,9 @@ class AdminApi:
             s.link(s_gas)
 
         return s_manual.apply_async()
-                        
-    def check_nonce(self, address):
+                    
+
+    def check_nonce(self, chain_spec, address):
         s = celery.signature(
                 'cic_eth.queue.query.get_account_tx',
                 [
@@ -228,13 +232,12 @@ class AdminApi:
             s_get_tx = celery.signature(
                     'cic_eth.queue.query.get_tx',
                     [
-                    chain_spec.asdict(),
+                        chain_spec.asdict(),
                         k,
                         ],
                     queue=self.queue,
                     )
             tx = s_get_tx.apply_async().get()
-            #tx = get_tx(k)
             logg.debug('checking nonce {} (previous {})'.format(tx['nonce'], last_nonce))
             nonce_otx = tx['nonce']
             if not is_alive(tx['status']) and tx['status'] & local_fail > 0:
@@ -242,7 +245,9 @@ class AdminApi:
                 blocking_tx = k
                 blocking_nonce = nonce_otx
             elif nonce_otx - last_nonce > 1:
-                logg.error('nonce gap; {} followed {} for account {}'.format(nonce_otx, last_nonce, tx['from']))
+                logg.debug('tx {}'.format(tx))
+                tx_obj = unpack(bytes.fromhex(strip_0x(tx['signed_tx'])), chain_spec)
+                logg.error('nonce gap; {} followed {} for account {}'.format(nonce_otx, last_nonce, tx_obj['from']))
                 blocking_tx = k
                 blocking_nonce = nonce_otx
                 break
@@ -256,12 +261,13 @@ class AdminApi:
                 'blocking': blocking_nonce,
             },
             'tx': {
-                'blocking': blocking_tx,
-                }
+                'blocking': add_0x(blocking_tx),
             }
+        }
 
 
-    def fix_nonce(self, address, nonce, chain_spec):
+    # TODO: is risky since it does not validate that there is actually a nonce problem?
+    def fix_nonce(self, chain_spec, address, nonce):
         s = celery.signature(
                 'cic_eth.queue.query.get_account_tx',
                 [
@@ -275,15 +281,17 @@ class AdminApi:
         txs = s.apply_async().get()
 
         tx_hash_hex = None
+        session = SessionBase.create_session()
         for k in txs.keys():
-            tx_dict = get_tx(k)
+            tx_dict = get_tx(chain_spec, k, session=session)
             if tx_dict['nonce'] == nonce:
                 tx_hash_hex = k
+        session.close()
 
         s_nonce = celery.signature(
                 'cic_eth.admin.nonce.shift_nonce',
                 [
-                    self.rpc.chain_spec.asdict(),
+                    chain_spec.asdict(),
                     tx_hash_hex, 
                 ],
                 queue=self.queue
@@ -388,12 +396,13 @@ class AdminApi:
     
         t = s.apply_async()
         tx = t.get()
-  
+
         source_token = None
         if tx['source_token'] != ZERO_ADDRESS:
+            source_token_declaration = None
             if registry != None:
                 try:
-                    source_token = registry.by_address(tx['source_token'])
+                    source_token_declaration = registry.by_address(tx['source_token'], sender_address=self.call_address)
                 except UnknownContractError:
                     logg.warning('unknown source token contract {} (direct)'.format(tx['source_token']))
             else:
@@ -406,16 +415,21 @@ class AdminApi:
                         queue=self.queue
                         )
                 t = s.apply_async()
-                source_token = t.get()
-                if source_token == None:
-                    logg.warning('unknown source token contract {} (task pool)'.format(tx['source_token']))
+                source_token_declaration = t.get()
+
+            if source_token_declaration != None:
+                logg.warning('found declarator record for source token {} but not checking validity'.format(tx['source_token']))
+                source_token = ERC20Token(chain_spec, self.rpc, tx['source_token'])
+                logg.debug('source token set tup {}'.format(source_token))
+
 
 
         destination_token = None
         if tx['destination_token'] != ZERO_ADDRESS:
+            destination_token_declaration = None
             if registry != None:
                 try:
-                    destination_token = registry.by_address(tx['destination_token'])
+                    destination_token_declaration = registry.by_address(tx['destination_token'], sender_address=self.call_address)
                 except UnknownContractError:
                     logg.warning('unknown destination token contract {}'.format(tx['destination_token']))
             else:
@@ -428,10 +442,10 @@ class AdminApi:
                         queue=self.queue
                         )
                 t = s.apply_async()
-                destination_token = t.get()
-                if destination_token == None:
-                    logg.warning('unknown destination token contract {} (task pool)'.format(tx['destination_token']))
-
+                destination_token_declaration = t.get()
+            if destination_token_declaration != None:
+                logg.warning('found declarator record for destination token {} but not checking validity'.format(tx['destination_token']))
+                destination_token = ERC20Token(chain_spec, self.rpc, tx['destination_token'])
 
         tx['sender_description'] = 'Custodial account'
         tx['recipient_description'] = 'Custodial account'
@@ -543,13 +557,19 @@ class AdminApi:
                 if role != None:
                     tx['recipient_description'] = role
 
+        erc20_c = ERC20(chain_spec)
         if source_token != None:
-            tx['source_token_symbol'] = source_token.symbol()
-            tx['sender_token_balance'] = source_token.function('balanceOf')(tx['sender']).call()
+            tx['source_token_symbol'] = source_token.symbol
+            o = erc20_c.balance_of(tx['source_token'], tx['sender'], sender_address=self.call_address)
+            r = self.rpc.do(o)
+            tx['sender_token_balance'] = erc20_c.parse_balance_of(r)
 
         if destination_token != None:
-            tx['destination_token_symbol'] = destination_token.symbol()
-            tx['recipient_token_balance'] = source_token.function('balanceOf')(tx['recipient']).call()
+            tx['destination_token_symbol'] = destination_token.symbol
+            o = erc20_c.balance_of(tx['destination_token'], tx['recipient'], sender_address=self.call_address)
+            r = self.rpc.do(o)
+            tx['recipient_token_balance'] = erc20_c.parse_balance_of(r)
+            #tx['recipient_token_balance'] = destination_token.function('balanceOf')(tx['recipient']).call()
 
         # TODO: this can mean either not subitted or culled, need to check other txs with same nonce to determine which
         tx['network_status'] = 'Not in node' 

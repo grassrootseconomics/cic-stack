@@ -19,7 +19,7 @@ from cic_eth_registry import CICRegistry
 from cic_eth_registry.erc20 import ERC20Token
 from chainqueue.db.models.otx import Otx
 from chainqueue.db.enum import StatusEnum
-from chainqueue.query import get_tx_cache
+from chainqueue.sql.query import get_tx_cache
 from eth_erc20 import ERC20
 
 # local imports

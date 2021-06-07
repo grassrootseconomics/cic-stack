@@ -1,7 +1,11 @@
-pytest==6.0.1
+Faker==8.1.2
+faker-e164==0.1.0
+pytest==6.2.4
 pytest-alembic==0.2.5
 pytest-celery==0.0.0a1
 pytest-cov==2.10.1
 pytest-mock==3.3.1
+pytest-ordering==0.6
 pytest-redis==2.0.0
 requests-mock==1.8.0
+tavern==1.14.2

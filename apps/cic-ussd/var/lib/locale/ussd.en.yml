@@ -6,7 +6,7 @@ en:
       2. Kiswahili
       3. Help
     initial_pin_entry: |-
-      CON Please enter a new four number PIN for your account. 
+      CON Please enter a new four number PIN for your account.
       0. Back
     initial_pin_confirmation: |-
       CON Enter your four number PIN again
@@ -76,7 +76,10 @@ en:
         CON Enter current PIN. You have %{remaining_attempts} attempts remaining.
         0. Back
     enter_new_pin: |-
-      CON Enter new PIN again
+      CON Enter your new four number PIN
+      0. Back
+    new_pin_confirmation: |-
+      CON Enter your new four number PIN again
       0. Back
     transaction_pin_authorization:
       first: |-
@@ -103,6 +106,34 @@ en:
     account_statement_pin_authorization:
       first: |-
         CON Please enter your PIN to view statement
+        0. Back
+      retry: |-
+        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
+        0. Back
+    name_edit_pin_authorization:
+      first: |-
+        CON Please enter your PIN
+        0. Back
+      retry: |-
+        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
+        0. Back
+    gender_edit_pin_authorization:
+      first: |-
+        CON Please enter your PIN
+        0. Back
+      retry: |-
+        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
+        0. Back
+    location_edit_pin_authorization:
+      first: |-
+        CON Please enter your PIN
+        0. Back
+      retry: |-
+        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
+        0. Back
+    products_edit_pin_authorization:
+      first: |-
+        CON Please enter your PIN
         0. Back
       retry: |-
         CON Please enter your PIN. You have %{remaining_attempts} attempts remaining

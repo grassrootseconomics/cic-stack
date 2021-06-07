@@ -17,13 +17,12 @@ from chainlib.eth.block import (
         )
 from chainqueue.db.models.otx import Otx
 from chainqueue.db.enum import StatusBits
-from chainqueue.tx import create as queue_create
-from chainqueue.state import (
+from chainqueue.sql.tx import create as queue_create
+from chainqueue.sql.state import (
         set_reserved,
         set_ready,
         set_sent,
         )
-
 from hexathon import strip_0x
 
 # local imports
@@ -31,7 +30,7 @@ from cic_eth.runnable.daemons.filters.tx import TxFilter
 from cic_eth.eth.gas import cache_gas_data
 
 
-def test_tx(
+def test_filter_tx(
         default_chain_spec,
         init_database,
         eth_rpc,

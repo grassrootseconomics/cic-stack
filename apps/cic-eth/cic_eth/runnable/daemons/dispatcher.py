@@ -21,7 +21,7 @@ from chainqueue.db.enum import (
     StatusBits,
     )
 from chainqueue.error import NotLocalTxError
-from chainqueue.state import set_reserved
+from chainqueue.sql.state import set_reserved
 
 # local imports
 import cic_eth

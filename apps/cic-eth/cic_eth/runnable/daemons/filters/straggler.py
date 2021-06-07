@@ -3,7 +3,7 @@ import logging
 
 # external imports
 import celery
-from chainqueue.state import obsolete_by_cache
+from chainqueue.sql.state import obsolete_by_cache
 
 logg = logging.getLogger()
 

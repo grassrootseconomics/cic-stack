@@ -5,7 +5,7 @@ import datetime
 import celery
 from chainlib.chain import ChainSpec
 from chainlib.eth.tx import unpack
-import chainqueue.query
+import chainqueue.sql.query
 from chainqueue.db.enum import (
         StatusEnum,
         is_alive,
@@ -28,7 +28,7 @@ celery_app = celery.current_app
 def get_tx_cache(chain_spec_dict, tx_hash):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
     session = SessionBase.create_session()
-    r = chainqueue.query.get_tx_cache(chain_spec, tx_hash, session=session)
+    r = chainqueue.sql.query.get_tx_cache(chain_spec, tx_hash, session=session)
     session.close()
     return r
 
@@ -37,7 +37,7 @@ def get_tx_cache(chain_spec_dict, tx_hash):
 def get_tx(chain_spec_dict, tx_hash):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
     session = SessionBase.create_session()
-    r =  chainqueue.query.get_tx(chain_spec, tx_hash)
+    r =  chainqueue.sql.query.get_tx(chain_spec, tx_hash, session=session)
     session.close()
     return r
 
@@ -46,7 +46,7 @@ def get_tx(chain_spec_dict, tx_hash):
 def get_account_tx(chain_spec_dict, address, as_sender=True, as_recipient=True, counterpart=None):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
     session = SessionBase.create_session()
-    r = chainqueue.query.get_account_tx(chain_spec, address, as_sender=True, as_recipient=True, counterpart=None, session=session)
+    r = chainqueue.sql.query.get_account_tx(chain_spec, address, as_sender=True, as_recipient=True, counterpart=None, session=session)
     session.close()
     return r
 
@@ -55,17 +55,17 @@ def get_account_tx(chain_spec_dict, address, as_sender=True, as_recipient=True, 
 def get_upcoming_tx_nolock(chain_spec_dict, status=StatusEnum.READYSEND, not_status=None, recipient=None, before=None, limit=0, session=None):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
     session = SessionBase.create_session()
-    r = chainqueue.query.get_upcoming_tx(chain_spec, status, not_status=not_status, recipient=recipient, before=before, limit=limit, session=session, decoder=unpack)
+    r = chainqueue.sql.query.get_upcoming_tx(chain_spec, status, not_status=not_status, recipient=recipient, before=before, limit=limit, session=session, decoder=unpack)
     session.close()
     return r
 
 
 def get_status_tx(chain_spec, status, not_status=None, before=None, exact=False, limit=0, session=None):
-    return chainqueue.query.get_status_tx_cache(chain_spec, status, not_status=not_status, before=before, exact=exact, limit=limit, session=session, decoder=unpack)
+    return chainqueue.sql.query.get_status_tx_cache(chain_spec, status, not_status=not_status, before=before, exact=exact, limit=limit, session=session, decoder=unpack)
 
 
 def get_paused_tx(chain_spec, status=None, sender=None, session=None, decoder=None):
-    return chainqueue.query.get_paused_tx_cache(chain_spec, status=status, sender=sender, session=session, decoder=unpack)
+    return chainqueue.sql.query.get_paused_tx_cache(chain_spec, status=status, sender=sender, session=session, decoder=unpack)
 
 
 def get_nonce_tx(chain_spec, nonce, sender):

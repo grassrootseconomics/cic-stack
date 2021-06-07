@@ -24,9 +24,7 @@ test-mr-cic-eth:
     image: $CI_REGISTRY_IMAGE/$APP_NAME-test:latest
     script:
         - cd apps/$APP_NAME/
-        - pytest tests/unit/ 
-        - pytest tests/task/
-        - pytest tests/filters/ 
+        - pytest -x --cov=cic_eth --cov-fail-under=90 --cov-report term-missing tests
     needs: ["build-mr-cic-eth"]
 
 build-push-cic-eth:

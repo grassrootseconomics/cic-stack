@@ -89,6 +89,7 @@ After this step is run, you can find top-level ethereum addresses (like the cic 
 
 
 #### Custodial provisions
+
 This step is _only_ needed if you are importing using `cic_eth` or `cic_ussd`
 
 `RUN_MASK=2 docker-compose up contract-migration`
@@ -129,7 +130,9 @@ If the contract migrations have been executed with the default "giftable" token 
 #### Alternative 1 - Sovereign wallet import - `eth` 
 
 
-First, make a note of the **block height** before running anything.
+First, make a note of the **block height** before running anything:
+
+`eth-info -p http://localhost:63545`
 
 To import, run to _completion_:
 
@@ -147,7 +150,7 @@ Then run:
 
 Run in sequence, in first terminal:
 
-`python cic_eth/import_balance.py -v -c config -p <eth_provider> -r <cic_registry_address> --token-symbol <token_symbol> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c --head out`
+`python cic_eth/import_balance.py -v -c config -p <eth_provider> -r <cic_registry_address> --token-symbol <token_symbol> -y ../contract-migration/keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c --head out`
 
 In another terminal:
 
@@ -160,7 +163,7 @@ The `redis_hostname_in_docker` value is the hostname required to reach the redis
 
 If you have previously run the `cic_ussd` import incompletely, it could be a good idea to purge the queue. If you have left docker-compose unchanged, `redis_url` should be `redis://localhost:63379`.
 
-`celery -A cic_ussd.import_task purge -Q cic-import-ussd --broker redis://localhost:63379`
+`celery -A cic_ussd.import_task purge -Q cic-import-ussd --broker <redis_url>`
 
 Then, in sequence, run in first terminal:
 
@@ -197,6 +200,7 @@ If you imported using `cic_ussd`, the phone pointer is _already added_ and this 
 
 
 ##### Importing pins and ussd data (optional)
+
 Once the user imports are complete the next step should be importing the user's pins and auxiliary ussd data. This can be done in 3 steps:
 
 In one terminal run:
@@ -254,6 +258,8 @@ Should exit with code 0 if all input data is found in the respective services.
 - Sovereign import script is very slow because it's scrypt'ing keystore files for the accounts that it creates. An improvement would be optional and/or asynchronous keyfile generation.
 
 - Running the balance script should be _optional_ in all cases, but is currently required in the case of `cic_ussd` because it is needed to generate the metadata. An improvement would be moving the task to `import_users.py`, for a different queue than the balance tx handler.
+
+- MacOS BigSur issue when installing psycopg2: ld: library not found for -lssl -> https://github.com/psycopg/psycopg2/issues/1115#issuecomment-831498953
 
 - `cic_ussd` imports is poorly implemented, and consumes a lot of resources. Therefore it takes a long time to complete. Reducing the amount of polls for the phone pointer would go a long way to improve it.
 

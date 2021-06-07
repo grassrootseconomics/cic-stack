@@ -74,134 +74,134 @@ class Api:
         return s_token.apply_async()
 
 
-    def convert_transfer(self, from_address, to_address, target_return, minimum_return, from_token_symbol, to_token_symbol):
-        """Executes a chain of celery tasks that performs conversion between two ERC20 tokens, and transfers to a specified receipient after convert has completed.
-
-        :param from_address: Ethereum address of sender
-        :type from_address: str, 0x-hex
-        :param to_address: Ethereum address of receipient
-        :type to_address: str, 0x-hex
-        :param target_return: Estimated return from conversion
-        :type  target_return: int
-        :param minimum_return: The least value of destination token return to allow
-        :type minimum_return: int
-        :param from_token_symbol: ERC20 token symbol of token being converted
-        :type from_token_symbol: str
-        :param to_token_symbol: ERC20 token symbol of token to receive
-        :type to_token_symbol: str
-        :returns: uuid of root task
-        :rtype: celery.Task
-        """
-        raise NotImplementedError('out of service until new DEX migration is done')
-        s_check = celery.signature(
-                'cic_eth.admin.ctrl.check_lock',
-                [
-                    [from_token_symbol, to_token_symbol],
-                    self.chain_spec.asdict(),
-                    LockEnum.QUEUE,
-                    from_address,
-                    ],
-                queue=self.queue,
-                )
-        s_nonce = celery.signature(
-                'cic_eth.eth.nonce.reserve_nonce',
-                [
-                    self.chain_spec.asdict(),
-                    ],
-                queue=self.queue,
-                )
-        s_tokens = celery.signature(
-                'cic_eth.eth.erc20.resolve_tokens_by_symbol',
-                [
-                    self.chain_str,
-                    ],
-                queue=self.queue,
-                )
-        s_convert = celery.signature(
-                'cic_eth.eth.bancor.convert_with_default_reserve',
-                [
-                    from_address,
-                    target_return,
-                    minimum_return,
-                    to_address,
-                    self.chain_spec.asdict(),
-                    ],
-                queue=self.queue,
-                )
-        s_nonce.link(s_tokens)
-        s_check.link(s_nonce)
-        if self.callback_param != None:
-            s_convert.link(self.callback_success)
-            s_tokens.link(s_convert).on_error(self.callback_error)
-        else:
-            s_tokens.link(s_convert)
-
-        t = s_check.apply_async(queue=self.queue)
-        return t
-
-
-    def convert(self, from_address, target_return, minimum_return, from_token_symbol, to_token_symbol):
-        """Executes a chain of celery tasks that performs conversion between two ERC20 tokens.
-
-        :param from_address: Ethereum address of sender
-        :type from_address: str, 0x-hex
-        :param target_return: Estimated return from conversion
-        :type  target_return: int
-        :param minimum_return: The least value of destination token return to allow
-        :type minimum_return: int
-        :param from_token_symbol: ERC20 token symbol of token being converted
-        :type from_token_symbol: str
-        :param to_token_symbol: ERC20 token symbol of token to receive
-        :type to_token_symbol: str
-        :returns: uuid of root task
-        :rtype: celery.Task
-        """
-        raise NotImplementedError('out of service until new DEX migration is done')
-        s_check = celery.signature(
-                'cic_eth.admin.ctrl.check_lock',
-                [
-                    [from_token_symbol, to_token_symbol],
-                    self.chain_spec.asdict(),
-                    LockEnum.QUEUE,
-                    from_address,
-                    ],
-                queue=self.queue,
-                )
-        s_nonce = celery.signature(
-                'cic_eth.eth.nonce.reserve_nonce',
-                [
-                    self.chain_spec.asdict(),
-                    ],
-                queue=self.queue,
-                )
-        s_tokens = celery.signature(
-                'cic_eth.eth.erc20.resolve_tokens_by_symbol',
-                [
-                    self.chain_spec.asdict(),
-                    ],
-                queue=self.queue,
-                )
-        s_convert = celery.signature(
-                'cic_eth.eth.bancor.convert_with_default_reserve',
-                [
-                    from_address,
-                    target_return,
-                    minimum_return,
-                    from_address,
-                    self.chain_spec.asdict(),
-                    ],
-                queue=self.queue,
-                )
-        s_nonce.link(s_tokens)
-        s_check.link(s_nonce)
-        if self.callback_param != None:
-            s_convert.link(self.callback_success)
-            s_tokens.link(s_convert).on_error(self.callback_error)
-        else:
-            s_tokens.link(s_convert)
-
-        t = s_check.apply_async(queue=self.queue)
-        return t
+#    def convert_transfer(self, from_address, to_address, target_return, minimum_return, from_token_symbol, to_token_symbol):
+#        """Executes a chain of celery tasks that performs conversion between two ERC20 tokens, and transfers to a specified receipient after convert has completed.
+#
+#        :param from_address: Ethereum address of sender
+#        :type from_address: str, 0x-hex
+#        :param to_address: Ethereum address of receipient
+#        :type to_address: str, 0x-hex
+#        :param target_return: Estimated return from conversion
+#        :type  target_return: int
+#        :param minimum_return: The least value of destination token return to allow
+#        :type minimum_return: int
+#        :param from_token_symbol: ERC20 token symbol of token being converted
+#        :type from_token_symbol: str
+#        :param to_token_symbol: ERC20 token symbol of token to receive
+#        :type to_token_symbol: str
+#        :returns: uuid of root task
+#        :rtype: celery.Task
+#        """
+#        raise NotImplementedError('out of service until new DEX migration is done')
+#        s_check = celery.signature(
+#                'cic_eth.admin.ctrl.check_lock',
+#                [
+#                    [from_token_symbol, to_token_symbol],
+#                    self.chain_spec.asdict(),
+#                    LockEnum.QUEUE,
+#                    from_address,
+#                    ],
+#                queue=self.queue,
+#                )
+#        s_nonce = celery.signature(
+#                'cic_eth.eth.nonce.reserve_nonce',
+#                [
+#                    self.chain_spec.asdict(),
+#                    ],
+#                queue=self.queue,
+#                )
+#        s_tokens = celery.signature(
+#                'cic_eth.eth.erc20.resolve_tokens_by_symbol',
+#                [
+#                    self.chain_str,
+#                    ],
+#                queue=self.queue,
+#                )
+#        s_convert = celery.signature(
+#                'cic_eth.eth.bancor.convert_with_default_reserve',
+#                [
+#                    from_address,
+#                    target_return,
+#                    minimum_return,
+#                    to_address,
+#                    self.chain_spec.asdict(),
+#                    ],
+#                queue=self.queue,
+#                )
+#        s_nonce.link(s_tokens)
+#        s_check.link(s_nonce)
+#        if self.callback_param != None:
+#            s_convert.link(self.callback_success)
+#            s_tokens.link(s_convert).on_error(self.callback_error)
+#        else:
+#            s_tokens.link(s_convert)
+#
+#        t = s_check.apply_async(queue=self.queue)
+#        return t
+#
+#
+#    def convert(self, from_address, target_return, minimum_return, from_token_symbol, to_token_symbol):
+#        """Executes a chain of celery tasks that performs conversion between two ERC20 tokens.
+#
+#        :param from_address: Ethereum address of sender
+#        :type from_address: str, 0x-hex
+#        :param target_return: Estimated return from conversion
+#        :type  target_return: int
+#        :param minimum_return: The least value of destination token return to allow
+#        :type minimum_return: int
+#        :param from_token_symbol: ERC20 token symbol of token being converted
+#        :type from_token_symbol: str
+#        :param to_token_symbol: ERC20 token symbol of token to receive
+#        :type to_token_symbol: str
+#        :returns: uuid of root task
+#        :rtype: celery.Task
+#        """
+#        raise NotImplementedError('out of service until new DEX migration is done')
+#        s_check = celery.signature(
+#                'cic_eth.admin.ctrl.check_lock',
+#                [
+#                    [from_token_symbol, to_token_symbol],
+#                    self.chain_spec.asdict(),
+#                    LockEnum.QUEUE,
+#                    from_address,
+#                    ],
+#                queue=self.queue,
+#                )
+#        s_nonce = celery.signature(
+#                'cic_eth.eth.nonce.reserve_nonce',
+#                [
+#                    self.chain_spec.asdict(),
+#                    ],
+#                queue=self.queue,
+#                )
+#        s_tokens = celery.signature(
+#                'cic_eth.eth.erc20.resolve_tokens_by_symbol',
+#                [
+#                    self.chain_spec.asdict(),
+#                    ],
+#                queue=self.queue,
+#                )
+#        s_convert = celery.signature(
+#                'cic_eth.eth.bancor.convert_with_default_reserve',
+#                [
+#                    from_address,
+#                    target_return,
+#                    minimum_return,
+#                    from_address,
+#                    self.chain_spec.asdict(),
+#                    ],
+#                queue=self.queue,
+#                )
+#        s_nonce.link(s_tokens)
+#        s_check.link(s_nonce)
+#        if self.callback_param != None:
+#            s_convert.link(self.callback_success)
+#            s_tokens.link(s_convert).on_error(self.callback_error)
+#        else:
+#            s_tokens.link(s_convert)
+#
+#        t = s_check.apply_async(queue=self.queue)
+#        return t
 
 
     def transfer(self, from_address, to_address, value, token_symbol):

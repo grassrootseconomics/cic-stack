@@ -19,6 +19,7 @@ def test_translate(
         agent_roles,
         cic_registry,
         init_celery_tasks,
+        register_lookups,
     ):
 
     nonce_oracle = RPCNonceOracle(contract_roles['CONTRACT_DEPLOYER'], eth_rpc)

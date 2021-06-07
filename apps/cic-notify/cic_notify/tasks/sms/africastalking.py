@@ -56,7 +56,7 @@ class AfricasTalkingNotifier:
             response = self.api_client.send(message=message, recipients=[recipient])
             logg.debug(f'africastalking response no-sender-id {response}')
 
-        recipients = response.get('Recipients')
+        recipients = response.get('SMSMessageData').get('Recipients')
 
         if len(recipients) != 1:
             status = response.get('SMSMessageData').get('Message')

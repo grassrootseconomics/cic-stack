@@ -8,11 +8,20 @@ import pytest
 import celery
 from cic_eth_registry.erc20 import ERC20Token
 from chainlib.chain import ChainSpec
+from eth_accounts_index import AccountsIndex
+from chainlib.eth.tx import (
+        transaction,
+        )
+from chainqueue.sql.state import (
+        set_reserved,
+        )
 
 # local imports
 from cic_eth.api import Api
+from cic_eth.queue.query import get_tx
 
-logg = logging.getLogger(__name__)
+#logg = logging.getLogger(__name__)
+logg = logging.getLogger()
 
 
 def test_account_api(
@@ -29,6 +38,47 @@ def test_account_api(
     assert t.successful()
 
 
+def test_account_api_register(
+        default_chain_spec,
+        init_database,
+        account_registry,
+        faucet,
+        custodial_roles,
+        cic_registry,
+        register_lookups,
+        eth_rpc,
+        celery_session_worker,
+        ):
+    api = Api(str(default_chain_spec), callback_param='accounts', callback_task='cic_eth.callbacks.noop.noop', queue=None)
+    t = api.create_account('')
+    register_tx_hash = t.get_leaf()
+    assert t.successful()
+
+    set_reserved(default_chain_spec, register_tx_hash, session=init_database)
+
+    tx = get_tx(default_chain_spec.asdict(), register_tx_hash)
+    s = celery.signature(
+            'cic_eth.eth.tx.send',
+            [
+                [tx['signed_tx']],
+                default_chain_spec.asdict(),
+                ],
+            queue=None
+            )
+    t = s.apply_async()
+    r = t.get_leaf()
+    assert t.successful()
+
+    o = transaction(register_tx_hash)
+    tx_src = eth_rpc.do(o)
+
+    c = AccountsIndex(default_chain_spec)
+    address = c.parse_add_request(tx_src['data'])
+    o = c.have(account_registry, address[0], sender_address=custodial_roles['CONTRACT_DEPLOYER'])
+    r = eth_rpc.do(o)
+    assert c.parse_have(r)
+
+
 def test_transfer_api(
         default_chain_spec,
         eth_rpc,
@@ -37,16 +87,15 @@ def test_transfer_api(
         custodial_roles,
         agent_roles,
         cic_registry,
-        register_tokens,
+        token_registry,
         register_lookups,
         celery_session_worker,
+        register_tokens,
+        foo_token_symbol,
         ):
 
-    #token = CICRegistry.get_address(default_chain_spec, bancor_tokens[0])
-    foo_token_cache = ERC20Token(default_chain_spec, eth_rpc, foo_token)
-
     api = Api(str(default_chain_spec), callback_param='transfer', callback_task='cic_eth.callbacks.noop.noop', queue=None)
-    t = api.transfer(custodial_roles['FOO_TOKEN_GIFTER'], agent_roles['ALICE'], 1024, foo_token_cache.symbol)
+    t = api.transfer(custodial_roles['FOO_TOKEN_GIFTER'], agent_roles['ALICE'], 1, foo_token_symbol) 
     t.get_leaf()
     assert t.successful()
 

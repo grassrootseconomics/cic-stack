@@ -78,28 +78,27 @@ class MetadataRequestsHandler(Metadata):
         :param data: The data to be stored in the metadata server.
         :type data: dict|str
         """
-        data = json.dumps(data).encode('utf-8')
+        data = json.dumps(data)
         result = make_request(method='POST', url=self.url, data=data, headers=self.headers)
         metadata_http_error_handler(result=result)
-        metadata = result.content
+        metadata = result.json()
         self.edit(data=metadata)
 
-    def edit(self, data: bytes):
+    def edit(self, data: Union[Dict, str]):
         """ This function is responsible for editing data in the metadata server corresponding to a unique pointer.
         :param data: The data to be edited in the metadata server.
-        :type data: bytes
+        :type data: dict
         """
         cic_meta_signer = Signer()
         signature = cic_meta_signer.sign_digest(data=data)
         algorithm = cic_meta_signer.get_operational_key().get('algo')
-        decoded_data = data.decode('utf-8')
         formatted_data = {
-            'm': data.decode('utf-8'),
+            'm': json.dumps(data),
             's': {
                 'engine': self.engine,
                 'algo': algorithm,
                 'data': signature,
-                'digest': json.loads(data).get('digest'),
+                'digest': data.get('digest'),
             }
         }
         formatted_data = json.dumps(formatted_data)
@@ -110,19 +109,32 @@ class MetadataRequestsHandler(Metadata):
             decoded_identifier = self.identifier.decode("utf-8")
         except UnicodeDecodeError:
             decoded_identifier = self.identifier.hex()
-        logg.info(f'identifier: {decoded_identifier}. metadata pointer: {self.metadata_pointer} set to: {decoded_data}.')
+        logg.info(f'identifier: {decoded_identifier}. metadata pointer: {self.metadata_pointer} set to: {data}.')
 
     def query(self):
-        """This function is responsible for querying the metadata server for data corresponding to a unique pointer."""
+        """
+        :return:
+        :rtype:
+        """
+        # retrieve the  metadata
         result = make_request(method='GET', url=self.url)
         metadata_http_error_handler(result=result)
-        response_data = result.json()
-        data = json.loads(response_data)
-        if not isinstance(data, dict):
-            raise ValueError(f'Invalid data object: {data}.')
+
+        # json serialize retrieved data
+        result_data = result.json()
+
+        # validate result data format
+        if not isinstance(result_data, dict):
+            raise ValueError(f'Invalid result data object: {result_data}.')
+
         if result.status_code == 200 and self.cic_type == ':cic.person':
+            # validate person metadata
             person = Person()
-            deserialized_person = person.deserialize(person_data=data)
-            data = json.dumps(deserialized_person.serialize())
-            cache_data(self.metadata_pointer, data=data)
+            person_data = person.deserialize(person_data=result_data)
+
+            # format new person data for caching
+            data = json.dumps(person_data.serialize())
+
+            # cache metadata
+            cache_data(key=self.metadata_pointer, data=data)
             logg.debug(f'caching: {data} with key: {self.metadata_pointer}')

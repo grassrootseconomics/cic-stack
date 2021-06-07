@@ -1,0 +1,466 @@
+test_name: Test the creation of accounts through the cic_user_ussd_server entrypoint.
+marks:
+  - usefixtures:
+    - gift_value
+    - server_url
+    - token_symbol
+    - generate_session_id
+    - first_account_phone_number
+    - second_account_phone_number
+    - first_account_pin_number
+    - second_account_pin_number
+    - first_account_family_name
+    - second_account_family_name
+    - first_account_given_name
+    - second_account_given_name
+    - first_account_location
+    - second_account_location
+    - first_account_product
+    - second_account_product
+    - first_metadata_entry_session_id
+    - second_metadata_entry_session_id
+  - first
+
+stages:
+  - name: Initiate account creation process [first account].
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{generate_session_id}"
+        phoneNumber: "{first_account_phone_number}"
+        text: ""
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '175'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "END Your account is being created. You will receive an SMS when your account is ready.\nAkaunti yako ya Sarafu inatayarishwa. Utapokea ujumbe wa SMS akaunti yako ikiwa tayari.\n"
+
+  - name: Initiate account creation process [second account].
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{generate_session_id}"
+        phoneNumber: "{second_account_phone_number}"
+        text: ""
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '175'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "END Your account is being created. You will receive an SMS when your account is ready.\nAkaunti yako ya Sarafu inatayarishwa. Utapokea ujumbe wa SMS akaunti yako ikiwa tayari.\n"
+    delay_after: 5
+
+  - name: Initaite account metadata entry [first account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{first_metadata_entry_session_id}"
+        phoneNumber: "{first_account_phone_number}"
+        text: ""
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '61'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Welcome to Sarafu Network\n1. English\n2. Kiswahili\n3. Help"
+
+  - name: Initaite account metadata entry [second account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{second_metadata_entry_session_id}"
+        phoneNumber: "{second_account_phone_number}"
+        text: ""
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '61'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Welcome to Sarafu Network\n1. English\n2. Kiswahili\n3. Help"
+
+  - name: Select preferred language [English]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{first_metadata_entry_session_id}"
+        phoneNumber: "{first_account_phone_number}"
+        text: "1"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '64'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Please enter a new four number PIN for your account.\n0. Back"
+
+  - name: Select preferred language [Kiswahili]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{second_metadata_entry_session_id}"
+        phoneNumber: "{second_account_phone_number}"
+        text: "2"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '71'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Tafadhali weka pin mpya yenye nambari nne kwa akaunti yako\n0. Nyuma"
+
+  - name: Enter pin number [{first_account_pin_number} - first account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{first_metadata_entry_session_id}"
+        phoneNumber: "{first_account_phone_number}"
+        text: "1*{first_account_pin_number}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '44'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Enter your four number PIN again\n0. Back"
+
+  - name: Enter pin number [second_account_pin_number - second account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{second_metadata_entry_session_id}"
+        phoneNumber: "{second_account_phone_number}"
+        text: "2*{second_account_pin_number}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '31'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Weka PIN yako tena\n0. Nyuma"
+
+  - name: Pin number confirmation [first_account_pin_number - first account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{first_metadata_entry_session_id}"
+        phoneNumber: "{first_account_phone_number}"
+        text: "1*{first_account_pin_number}*{first_account_pin_number}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '28'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Enter first name\n0. Back"
+
+  - name: Pin number confirmation [{second_account_pin_number} - second account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{second_metadata_entry_session_id}"
+        phoneNumber: "{second_account_phone_number}"
+        text: "2*{second_account_pin_number}*{second_account_pin_number}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '37'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Weka jina lako la kwanza\n0. Nyuma"
+
+  - name: Enter first name [first_account_given_name - first account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{first_metadata_entry_session_id}"
+        phoneNumber: "{first_account_phone_number}"
+        text: "1*{first_account_pin_number}*{first_account_pin_number}*{first_account_given_name}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '29'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Enter family name\n0. Back"
+
+  - name: Enter first name [second_account_given_name - second account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{second_metadata_entry_session_id}"
+        phoneNumber: "{second_account_phone_number}"
+        text: "2*{second_account_pin_number}*{second_account_pin_number}*{second_account_given_name}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '37'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Weka jina lako la mwisho\n0. Nyuma"
+
+  - name: Enter last name [first_account_family_name - first account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{first_metadata_entry_session_id}"
+        phoneNumber: "{first_account_phone_number}"
+        text: "1*{first_account_pin_number}*{first_account_pin_number}*{first_account_given_name}*{first_account_family_name}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '51'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Enter gender\n1. Male\n2. Female\n3. Other\n0. Back"
+
+  - name: Enter last name [second_account_family_name - second account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{second_metadata_entry_session_id}"
+        phoneNumber: "{second_account_phone_number}"
+        text: "2*{second_account_pin_number}*{second_account_pin_number}*{second_account_given_name}*{second_account_family_name}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '64'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Weka jinsia yako\n1. Mwanaume\n2. Mwanamke\n3. Nyngine\n0. Nyuma"
+
+  - name: Select gender [Male - first account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{first_metadata_entry_session_id}"
+        phoneNumber: "{first_account_phone_number}"
+        text: "1*{first_account_pin_number}*{first_account_pin_number}*{first_account_given_name}*{first_account_family_name}*1"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '31'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Enter your location\n0. Back"
+
+  - name: Select gender [Female - second account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{second_metadata_entry_session_id}"
+        phoneNumber: "{second_account_phone_number}"
+        text: "2*{second_account_pin_number}*{second_account_pin_number}*{second_account_given_name}*{second_account_family_name}*2"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '27'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Weka eneo lako\n0. Nyuma"
+
+  - name: Enter location [first_account_location - first account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{first_metadata_entry_session_id}"
+        phoneNumber: "{first_account_phone_number}"
+        text: "1*{first_account_pin_number}*{first_account_pin_number}*{first_account_given_name}*{first_account_family_name}*1*{first_account_location}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '55'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Please enter a product or service you offer\n0. Back"
+
+  - name: Enter location [second_account_location - second account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{second_metadata_entry_session_id}"
+        phoneNumber: "{second_account_phone_number}"
+        text: "2*{second_account_pin_number}*{second_account_pin_number}*{second_account_given_name}*{second_account_family_name}*2*{second_account_location}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '42'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Weka bidhaa ama huduma unauza\n0. Nyuma"
+
+  - name: Enter product [first_account_product - first account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{first_metadata_entry_session_id}"
+        phoneNumber: "{first_account_phone_number}"
+        text: "1*{first_account_pin_number}*{first_account_pin_number}*{first_account_given_name}*{first_account_family_name}*1*{first_account_location}*{first_account_product}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '51'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Balance {gift_value} {token_symbol}\n1. Send\n2. My Account\n3. Help"
+    delay_before: 10
+
+  - name: Enter product [second_account_product - second account]
+    request:
+      url: "{server_url}"
+      data:
+        serviceCode: "*483*46#"
+        sessionId: "{second_metadata_entry_session_id}"
+        phoneNumber: "{second_account_phone_number}"
+        text: "2*{second_account_pin_number}*{second_account_pin_number}*{second_account_given_name}*{second_account_family_name}*2*{second_account_location}*{second_account_product}"
+      headers:
+        content-type: "application/x-www-form-urlencoded"
+      method: POST
+    response:
+      status_code:
+        - 200
+      headers:
+        Content-Length: '56'
+        Content-Type: "text/plain"
+      verify_response_with:
+        function: ext.validator:validate_response
+        extra_kwargs:
+          expected_response: "CON Salio {gift_value} {token_symbol}\n1. Tuma\n2. Akaunti yangu\n3. Usaidizi"
+    delay_before: 10

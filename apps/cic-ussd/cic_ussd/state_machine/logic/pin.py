@@ -13,7 +13,7 @@ import bcrypt
 
 # local imports
 from cic_ussd.db.models.account import AccountStatus, Account
-from cic_ussd.encoder import PasswordEncoder, create_password_hash
+from cic_ussd.encoder import PasswordEncoder, create_password_hash, check_password_hash
 from cic_ussd.operations import persist_session_to_db_task, create_or_update_session
 from cic_ussd.redis import InMemoryStore
 
@@ -78,9 +78,13 @@ def save_initial_pin_to_session_data(state_machine_data: Tuple[str, dict, Accoun
 
     # set initial pin data
     initial_pin = create_password_hash(user_input)
-    session_data = {
-        'initial_pin': initial_pin
-    }
+    if ussd_session.get('session_data'):
+        session_data = ussd_session.get('session_data')
+        session_data['initial_pin'] = initial_pin
+    else:
+        session_data = {
+            'initial_pin': initial_pin
+        }
 
     # create new in memory ussd session with current ussd session data
     create_or_update_session(
@@ -103,9 +107,8 @@ def pins_match(state_machine_data: Tuple[str, dict, Account]) -> bool:
     """
     user_input, ussd_session, user = state_machine_data
     initial_pin = ussd_session.get('session_data').get('initial_pin')
-    fernet = PasswordEncoder(PasswordEncoder.key)
-    initial_pin = fernet.decrypt(initial_pin.encode())
-    return bcrypt.checkpw(user_input.encode(), initial_pin)
+    logg.debug(f'USSD SESSION:  {ussd_session}')
+    return check_password_hash(user_input, initial_pin)
 
 
 def complete_pin_change(state_machine_data: Tuple[str, dict, Account]):

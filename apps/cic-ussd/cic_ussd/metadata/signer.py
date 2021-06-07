@@ -47,14 +47,13 @@ class Signer:
         logg.debug(f'using signing key: {key_id}, algorithm: {key_algorithm}')
         return gpg_keys[0]
 
-    def sign_digest(self, data: bytes):
+    def sign_digest(self, data: dict):
         """
         :param data:
         :type data:
         :return:
         :rtype:
         """
-        data = json.loads(data)
         digest = data['digest']
         key_id = self.get_operational_key().get('keyid')
         signature = self.gpg.sign(digest, passphrase=self.gpg_passphrase, keyid=key_id)

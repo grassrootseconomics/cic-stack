@@ -6,6 +6,7 @@ from cic_types.pytest import *
 from tests.fixtures.config import *
 from tests.fixtures.db import *
 from tests.fixtures.celery import *
+from tests.fixtures.integration import *
 from tests.fixtures.user import *
 from tests.fixtures.ussd_session import *
 from tests.fixtures.redis import *

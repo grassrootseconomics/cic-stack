@@ -47,7 +47,7 @@ EOF
 
 >&2 echo "create account for gas gifter"
 old_gas_provider=$DEV_ETH_ACCOUNT_GAS_PROVIDER
-DEV_ETH_ACCOUNT_GAS_GIFTER=`cic-eth-create $debug --redis-host-callback=$REDIS_HOST --redis-port-callback=$REDIS_PORT --no-register`
+DEV_ETH_ACCOUNT_GAS_GIFTER=`cic-eth-create --timeout 120 $debug --redis-host-callback=$REDIS_HOST --redis-port-callback=$REDIS_PORT --no-register`
 echo DEV_ETH_ACCOUNT_GAS_GIFTER=$DEV_ETH_ACCOUNT_GAS_GIFTER >> $env_out_file
 cic-eth-tag -i $CIC_CHAIN_SPEC GAS_GIFTER $DEV_ETH_ACCOUNT_GAS_GIFTER
 

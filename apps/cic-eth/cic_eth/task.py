@@ -20,7 +20,8 @@ import liveness.linux
 from cic_eth.error import SeppukuError
 from cic_eth.db.models.base import SessionBase
 
-logg = logging.getLogger().getChild(__name__)
+#logg = logging.getLogger().getChild(__name__)
+logg = logging.getLogger()
 
 celery_app = celery.current_app
 
@@ -118,12 +119,13 @@ def registry():
     return CICRegistry.address
 
 
-@celery_app.task()
-def registry_address_lookup(chain_spec_dict, address, connection_tag='default'):
+@celery_app.task(bind=True, base=BaseTask)
+def registry_address_lookup(self, chain_spec_dict, address, connection_tag='default'):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
     conn = RPCConnection.connect(chain_spec, tag=connection_tag)
     registry = CICRegistry(chain_spec, conn)
-    return registry.by_address(address)
+    r = registry.by_address(address, sender_address=self.call_address)
+    return r
 
 
 @celery_app.task(throws=(UnknownContractError,))
@@ -131,7 +133,7 @@ def registry_name_lookup(chain_spec_dict, name, connection_tag='default'):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
     conn = RPCConnection.connect(chain_spec, tag=connection_tag)
     registry = CICRegistry(chain_spec, conn)
-    return registry.by_name(name)
+    return registry.by_name(name, sender_address=self.call_address)
 
 
 @celery_app.task()

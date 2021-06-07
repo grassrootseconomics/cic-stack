@@ -19,4 +19,6 @@ def translation_for(key: str, preferred_language: Optional[str] = None, **kwargs
     """
     if preferred_language:
         i18n.set('locale', preferred_language)
+    else:
+        i18n.set('locale', i18n.config.get('fallback'))
     return i18n.t(key, **kwargs)

@@ -4,12 +4,13 @@
     "source": "enter_gender",
     "dest": "enter_location",
     "after": "cic_ussd.state_machine.logic.user.save_metadata_attribute_to_session_data",
-    "conditions": "cic_ussd.state_machine.logic.validator.is_valid_gender_selection"
+    "conditions": "cic_ussd.state_machine.logic.validator.is_valid_gender_selection",
+    "unless": "cic_ussd.state_machine.logic.validator.has_cached_user_metadata"
   },
   {
     "trigger": "scan_data",
     "source": "enter_gender",
-    "dest": "standard_pin_authorization",
+    "dest": "gender_edit_pin_authorization",
     "after": "cic_ussd.state_machine.logic.user.save_metadata_attribute_to_session_data",
     "conditions": [
       "cic_ussd.state_machine.logic.validator.has_cached_user_metadata",
@@ -18,15 +19,14 @@
   },
   {
     "trigger": "scan_data",
-    "source": "standard_pin_authorization",
+    "source": "gender_edit_pin_authorization",
     "dest": "exit",
     "conditions": "cic_ussd.state_machine.logic.pin.is_authorized_pin",
-    "after": "cic_ussd.state_machine.logic.user.edit_user_metadata_attribute",
-    "unless": "cic_ussd.state_machine.logic.validator.has_cached_user_metadata"
+    "after": "cic_ussd.state_machine.logic.user.edit_user_metadata_attribute"
   },
   {
     "trigger": "scan_data",
-    "source": "standard_pin_authorization",
+    "source": "gender_edit_pin_authorization",
     "dest": "exit_pin_blocked",
     "conditions": "cic_ussd.state_machine.logic.pin.is_locked_account"
   },
