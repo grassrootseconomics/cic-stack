@@ -49,7 +49,7 @@ class BalanceProcessor:
         o = token_registry.address_of(self.token_index_address, token_symbol)
         r = self.conn.do(o)
         self.token_address = token_registry.parse_address_of(r)
-        logg.info('found SRF token address {}'.format(self.token_address))
+        logg.info('found {} token address {}'.format(token_symbol, self.token_address))
 
         tx_factory = ERC20(self.chain_spec)
         o = tx_factory.decimals(self.token_address)
