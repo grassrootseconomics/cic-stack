@@ -139,7 +139,7 @@ First, make a note of the **block height** before running anything.
 
 To import, run to _completion_:
 
-`python eth/import_users.py -v -c config -p <eth_provider> -r <cic_registry_address> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c <datadir>`
+`python eth/import_users.py -v -c config -p <eth_provider> -r <cic_registry_address> -y ../contract-migration/keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c <datadir>`
 
 After the script completes, keystore files for all generated accouts will be found in `<datadir>/keystore`, all with `foo` as password (would set it empty, but believe it or not some interfaces out there won't work unless you have one).
 
@@ -166,7 +166,7 @@ The `redis_hostname_in_docker` value is the hostname required to reach the redis
 
 If you have previously run the `cic_ussd` import incompletely, it could be a good idea to purge the queue. If you have left docker-compose unchanged, `redis_url` should be `redis://localhost:63379`.
 
-`celery -A cic_ussd.import_task purge -Q cic-import-ussd --broker <redis_url>`
+`celery -A cic_ussd.import_task purge -Q cic-import-ussd --broker redis://localhost:63379`
 
 Then, in sequence, run in first terminal:
 
@@ -262,3 +262,5 @@ Should exit with code 0 if all input data is found in the respective services.
 - Running the balance script should be _optional_ in all cases, but is currently required in the case of `cic_ussd` because it is needed to generate the metadata. An improvement would be moving the task to `import_users.py`, for a different queue than the balance tx handler.
 
 - `cic_ussd` imports is poorly implemented, and consumes a lot of resources. Therefore it takes a long time to complete. Reducing the amount of polls for the phone pointer would go a long way to improve it.
+
+- A strict constraint is maintained insistin the use of postgresql-12.
