@@ -139,6 +139,7 @@ def main():
 
     ImportTask.balances = balances
     ImportTask.count = i
+    ImportTask.import_dir = user_dir
 
     s = celery.signature(
             'import_task.send_txs',
