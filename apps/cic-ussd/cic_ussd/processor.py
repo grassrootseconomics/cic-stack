@@ -423,12 +423,6 @@ def process_request(user_input: str, user: Account, ussd_session: Optional[dict]
     :return: A ussd menu's corresponding text value.
     :rtype: Document
     """
-    # retrieve metadata before any transition
-    key = generate_metadata_pointer(
-        identifier=blockchain_address_to_metadata_pointer(blockchain_address=user.blockchain_address),
-        cic_type=':cic.person'
-    )
-    person_metadata = get_cached_data(key=key)
 
     if ussd_session:
         if user_input == "0":
@@ -452,7 +446,7 @@ def process_request(user_input: str, user: Account, ussd_session: Optional[dict]
                     'exit_pin_mismatch',
                     'exit_invalid_request',
                     'exit_successful_transaction'
-                ] and person_metadata is not None:
+                ]:
                     return UssdMenu.find_by_name(name='start')
                 else:
                     return UssdMenu.find_by_name(name=last_state)
