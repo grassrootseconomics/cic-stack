@@ -226,7 +226,7 @@ The connection parameters for the `cic-ussd-server` is currently _hardcoded_ in 
 
 ### Step 5 - Verify
 
-`python verify.py -v -c config -r <cic_registry_address> -p <eth_provider> <datadir>` 
+`python verify.py -v -c config -r <cic_registry_address> -p <eth_provider> --token-symbol <token_symbol> <datadir>` 
 
 Included checks:
 * Private key is in cic-eth keystore
