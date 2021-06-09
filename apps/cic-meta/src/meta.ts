@@ -100,13 +100,15 @@ class Meta {
             identifier = await User.toKey(name);
         } else if (type === 'phone') {
             identifier = await Phone.toKey(name);
-        } else {
+        } else if (type === 'custom') {
             identifier = await Custom.toKey(name);
+        } else {
+            identifier = await Custom.toKey(name, type);
         }
         return identifier;
     }
 
-    private wrap(syncable: Syncable): Promise<Envelope> {
+    wrap(syncable: Syncable): Promise<Envelope> {
         return new Promise<Envelope>(async (resolve, reject) => {
             syncable.setSigner(this.signer);
             syncable.onwrap = async (env) => {

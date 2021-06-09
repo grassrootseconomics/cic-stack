@@ -8,3 +8,6 @@ gmon.out
 *.egg-info
 dist/
 build/
+**/*sqlite
+**/.nyc_output
+**/coverage
