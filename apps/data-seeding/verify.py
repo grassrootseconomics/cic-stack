@@ -9,6 +9,7 @@ import sys
 import urllib
 import urllib.request
 import uuid
+import urllib.parse
 
 # external imports
 import celery
@@ -185,9 +186,9 @@ def send_ussd_request(address, data_dir):
     }
 
     req = urllib.request.Request(config.get('_USSD_PROVIDER'))
-    data_str = json.dumps(data)
-    data_bytes = data_str.encode('utf-8')
-    req.add_header('Content-Type', 'application/json')
+    urlencoded_data = urllib.parse.urlencode(data)
+    data_bytes = urlencoded_data.encode('utf-8')
+    req.add_header('Content-Type', 'application/x-www-form-urlencoded')
     req.data = data_bytes
     response = urllib.request.urlopen(req)
     return response.read().decode('utf-8')
@@ -388,9 +389,8 @@ class Verifier:
 
     def verify_ussd_pins(self, address, balance):
         response_data = send_ussd_request(address, self.data_dir)
-        if response_data[:11] != 'CON Balance':
+        if response_data[:11] != 'CON Balance' and response_data[:9] != 'CON Salio':
             raise VerifierError(response_data, 'pins')
-
 
     def verify(self, address, balance, debug_stem=None):
   
