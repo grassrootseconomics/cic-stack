@@ -3,3 +3,5 @@ dist
 dist-web
 dist-server
 scratch
+coverage
+.nyc_output

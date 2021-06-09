@@ -26,7 +26,7 @@ from cic_ussd.metadata.base import Metadata
 from cic_ussd.operations import (define_response_with_content,
                                  process_menu_interaction_requests,
                                  define_multilingual_responses)
-from cic_ussd.phone_number import process_phone_number
+from cic_ussd.phone_number import process_phone_number, Support
 from cic_ussd.processor import get_default_token_data
 from cic_ussd.redis import cache_data, create_cached_data_key, InMemoryStore
 from cic_ussd.requests import (get_request_endpoint,
@@ -125,6 +125,8 @@ else:
 
 
 valid_service_codes = config.get('APP_SERVICE_CODE').split(",")
+
+Support.phone_number = config.get('APP_SUPPORT_PHONE_NUMBER')
 
 
 def application(env, start_response):

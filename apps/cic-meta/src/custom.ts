@@ -9,7 +9,7 @@ class Custom extends Syncable implements Addressable {
         super('', v);
         Custom.toKey(name).then((cid) => {
             this.id = cid;
-            this.value = v;
+            this.name = name;
         });
     }
 

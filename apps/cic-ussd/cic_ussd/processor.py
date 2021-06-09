@@ -19,7 +19,7 @@ from cic_ussd.db.models.ussd_session import UssdSession
 from cic_ussd.error import MetadataNotFoundError, SeppukuError
 from cic_ussd.menu.ussd_menu import UssdMenu
 from cic_ussd.metadata import blockchain_address_to_metadata_pointer
-from cic_ussd.phone_number import get_user_by_phone_number
+from cic_ussd.phone_number import get_user_by_phone_number, Support
 from cic_ussd.redis import cache_data, create_cached_data_key, get_cached_data
 from cic_ussd.state_machine import UssdStateMachine
 from cic_ussd.conversions import to_wei, from_wei
@@ -270,7 +270,24 @@ def process_display_user_metadata(user: Account, display_key: str):
             products=products
         )
     else:
-        raise MetadataNotFoundError(f'Expected person metadata but found none in cache for key: {key}')
+        # TODO [Philip]: All these translations could be moved to translation files.
+        logg.warning(f'Expected person metadata but found none in cache for key: {key}')
+
+        absent = ''
+        if user.preferred_language == 'en':
+            absent = 'Not provided'
+        elif user.preferred_language == 'sw':
+            absent = 'Haijawekwa'
+
+        return translation_for(
+            key=display_key,
+            preferred_language=user.preferred_language,
+            full_name=absent,
+            gender=absent,
+            location=absent,
+            products=absent
+        )
+
 
 
 def process_account_statement(user: Account, display_key: str, ussd_session: dict):
@@ -467,6 +484,14 @@ def next_state(ussd_session: dict, user: Account, user_input: str) -> str:
     return new_state
 
 
+def process_exit_invalid_menu_option(display_key: str, preferred_language: str):
+    return translation_for(
+        key=display_key,
+        preferred_language=preferred_language,
+        support_phone=Support.phone_number
+    )
+
+
 def custom_display_text(
         display_key: str,
         menu_name: str,
@@ -503,5 +528,7 @@ def custom_display_text(
         return process_account_statement(display_key=display_key, user=user, ussd_session=ussd_session)
     elif menu_name == 'display_user_metadata':
         return process_display_user_metadata(display_key=display_key, user=user)
+    elif menu_name == 'exit_invalid_menu_option':
+        return process_exit_invalid_menu_option(display_key=display_key, preferred_language=user.preferred_language)
     else:
         return translation_for(key=display_key, preferred_language=user.preferred_language)

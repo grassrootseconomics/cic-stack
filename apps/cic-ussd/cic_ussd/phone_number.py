@@ -41,3 +41,7 @@ def get_user_by_phone_number(phone_number: str) -> Optional[Account]:
     phone_number = process_phone_number(phone_number=phone_number, region='KE')
     user = Account.session.query(Account).filter_by(phone_number=phone_number).first()
     return user
+
+
+class Support:
+    phone_number = None
