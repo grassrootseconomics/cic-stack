@@ -77,7 +77,6 @@ if [[ -n "${ETH_PROVIDER}" ]]; then
 		>&2 echo "deploying 'redistributed demurrage token'"
 		DEV_RESERVE_ADDRESS=`erc20-demurrage-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -ww`
 	fi
-	exit 0
 	giftable-token-gift $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -w -a $DEV_RESERVE_ADDRESS $DEV_RESERVE_AMOUNT
 
 	>&2 echo "deploy account index contract"
