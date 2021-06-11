@@ -170,7 +170,7 @@ stages:
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "CON {second_account_given_name} {second_account_family_name} {second_account_phone_number} will receive 17.00 {token_symbol} from {first_account_given_name} {first_account_family_name} {first_account_phone_number}.\nPlease enter your PIN to confirm.\n0. Back"
+          expected_response: "CON {second_account_phone_number} will receive 17.00 {token_symbol} from {first_account_phone_number}.\nPlease enter your PIN to confirm.\n0. Back"
 
   - name: Enter transcation amount [second account]
     request:
@@ -191,7 +191,7 @@ stages:
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "CON {first_account_given_name} {first_account_family_name} {first_account_phone_number} atapokea 25.00 {token_symbol} kutoka kwa {second_account_given_name} {second_account_family_name} {second_account_phone_number}.\nTafadhali weka nambari yako ya siri kudhibitisha.\n0. Nyuma"
+          expected_response: "CON {first_account_phone_number} atapokea 25.00 {token_symbol} kutoka kwa {second_account_phone_number}.\nTafadhali weka nambari yako ya siri kudhibitisha.\n0. Nyuma"
 
   - name: Pin to authorize transaction [first account]
     request:
@@ -212,7 +212,7 @@ stages:
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "CON Your request has been sent. {second_account_given_name} {second_account_family_name} {second_account_phone_number} will receive 17.00 {token_symbol} from {first_account_given_name} {first_account_family_name} {first_account_phone_number}.\n00. Back\n99. Exit"
+          expected_response: "CON Your request has been sent. {second_account_phone_number} will receive 17.00 {token_symbol} from {first_account_phone_number}.\n00. Back\n99. Exit"
 
   - name: Pin to authorize transaction [second account]
     request:
@@ -233,7 +233,7 @@ stages:
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "CON Ombi lako limetumwa. {first_account_given_name} {first_account_family_name} {first_account_phone_number} atapokea 25.00 {token_symbol} kutoka kwa {second_account_given_name} {second_account_family_name} {second_account_phone_number}.\n00. Nyuma\n99. Ondoka"
+          expected_response: "CON Ombi lako limetumwa. {first_account_phone_number} atapokea 25.00 {token_symbol} kutoka kwa {second_account_phone_number}.\n00. Nyuma\n99. Ondoka"
 
   - name: Verify balance changes [first account]
     delay_before: 10
