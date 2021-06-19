@@ -76,6 +76,7 @@ if [[ -n "${ETH_PROVIDER}" ]]; then
 	>&2 echo "add deployer address as account index writer"
 	eth-accounts-index-writer $gas_price_arg -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_ACCOUNT_INDEX_ADDRESS -ww -vv $debug $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER
 
+	>&2 echo "deploy contract registry contract"
 	CIC_REGISTRY_ADDRESS=`eth-contract-registry-deploy $gas_price_arg -i $CIC_CHAIN_SPEC -y $DEV_ETH_KEYSTORE_FILE --identifier BancorRegistry --identifier AccountRegistry --identifier TokenRegistry --identifier AddressDeclarator --identifier Faucet --identifier TransferAuthorization -p $ETH_PROVIDER -vv -w`
 	eth-contract-registry-set $gas_price_arg -w -y $DEV_ETH_KEYSTORE_FILE -r $CIC_REGISTRY_ADDRESS -i $CIC_CHAIN_SPEC  -p $ETH_PROVIDER -vv ContractRegistry $CIC_REGISTRY_ADDRESS
 	eth-contract-registry-set $gas_price_arg -w -y $DEV_ETH_KEYSTORE_FILE -r $CIC_REGISTRY_ADDRESS -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -vv AccountRegistry $DEV_ACCOUNT_INDEX_ADDRESS
@@ -87,7 +88,7 @@ if [[ -n "${ETH_PROVIDER}" ]]; then
 	eth-contract-registry-set $gas_price_arg -w -y $DEV_ETH_KEYSTORE_FILE -r $CIC_REGISTRY_ADDRESS -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -vv AddressDeclarator $DEV_DECLARATOR_ADDRESS
 
 	# Deploy transfer authorization contact
-	>&2 echo "deploy address declarator contract"
+	>&2 echo "deploy transfer auth contract"
 	DEV_TRANSFER_AUTHORIZATION_ADDRESS=`erc20-transfer-auth-deploy $gas_price_arg -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w -vv`
 	eth-contract-registry-set $gas_price_arg -w -y $DEV_ETH_KEYSTORE_FILE -r $CIC_REGISTRY_ADDRESS -i $CIC_CHAIN_SPEC  -p $ETH_PROVIDER -vv TransferAuthorization $DEV_TRANSFER_AUTHORIZATION_ADDRESS
 

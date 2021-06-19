@@ -194,6 +194,7 @@ def main():
     except UnknownContractError as e:
         logg.exception('Registry contract connection failed for {}: {}'.format(config.get('CIC_REGISTRY_ADDRESS'), e))
         sys.exit(1)
+    logg.info('connected contract registry {}'.format(config.get('CIC_REGISTRY_ADDRESS')))
 
     trusted_addresses_src = config.get('CIC_TRUST_ADDRESS')
     if trusted_addresses_src == None:
