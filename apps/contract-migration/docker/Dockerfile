@@ -1,7 +1,6 @@
 # syntax = docker/dockerfile:1.2
 FROM python:3.8.6-slim-buster as compile-image
 
-RUN apt-get clean
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends git gcc g++ libpq-dev gawk jq telnet wget openssl iputils-ping gnupg socat bash procps make python2 cargo
 
