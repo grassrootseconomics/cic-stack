@@ -1,19 +1,19 @@
 # syntax = docker/dockerfile:1.2
-FROM python:3.8.6-slim-buster as compile-image
+#FROM python:3.8.6-slim-buster as dev
+FROM registry.gitlab.com/grassrootseconomics/cic-base-images:python-3.8.6-dev as dev
 
 RUN apt-get update
-RUN apt-get install -y --no-install-recommends git gcc g++ libpq-dev gawk jq telnet wget openssl iputils-ping gnupg socat bash procps make python2 cargo
+RUN apt-get install -y cargo
 
 RUN touch /etc/apt/sources.list.d/ethereum.list
 RUN echo 'deb http://ppa.launchpad.net/ethereum/ethereum/ubuntu bionic main' > /etc/apt/sources.list.d/ethereum.list
 RUN echo 'deb-src http://ppa.launchpad.net/ethereum/ethereum/ubuntu bionic main' >> /etc/apt/sources.list.d/ethereum.list
 
-RUN cat etc/apt/sources.list.d/ethereum.list
+RUN cat /etc/apt/sources.list.d/ethereum.list
 RUN apt-key adv --keyserver keyserver.ubuntu.com  --recv-keys 2A518C819BE37D2C2031944D1C52189C923F6CA9
 
 RUN apt-get update
 RUN apt-get install solc
-RUN pip install --upgrade pip
 
 WORKDIR /root
 RUN mkdir -vp /usr/local/etc/cic
@@ -56,8 +56,9 @@ COPY contract-migration/requirements.txt .
 ARG pip_extra_args=""
 ARG pip_index_url=https://pypi.org/simple
 ARG pip_extra_index_url=https://pip.grassrootseconomics.net:8433
+ARG pip_gitlab_extra_index_url=https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple
 RUN pip install --index-url https://pypi.org/simple \
-    --extra-index-url $pip_extra_index_url -r requirements.txt
+    --extra-index-url $pip_extra_index_url --extra-index-url pip_gitlab_extra_index_url -r requirements.txt
 
 # -------------- begin runtime container ---------------- 
 FROM python:3.8.6-slim-buster as runtime-image
@@ -66,9 +67,9 @@ RUN apt-get update
 RUN apt-get install -y --no-install-recommends gnupg libpq-dev 
 RUN apt-get install -y jq bash iputils-ping socat
 
-COPY --from=compile-image /usr/local/bin/ /usr/local/bin/
-COPY --from=compile-image /usr/local/etc/cic/ /usr/local/etc/cic/
-COPY --from=compile-image /usr/local/lib/python3.8/site-packages/ \
+COPY --from=dev /usr/local/bin/ /usr/local/bin/
+COPY --from=dev /usr/local/etc/cic/ /usr/local/etc/cic/
+COPY --from=dev /usr/local/lib/python3.8/site-packages/ \
                           /usr/local/lib/python3.8/site-packages/
 
 ENV EXTRA_INDEX_URL https://pip.grassrootseconomics.net:8433
