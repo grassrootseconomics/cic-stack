@@ -11,3 +11,4 @@ build/
 **/*sqlite
 **/.nyc_output
 **/coverage
+.idea
