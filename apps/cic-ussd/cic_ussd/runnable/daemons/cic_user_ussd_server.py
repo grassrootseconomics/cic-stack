@@ -145,7 +145,7 @@ def application(env, start_response):
     if get_request_method(env=env) == 'POST' and get_request_endpoint(env=env) == '/':
 
         if env.get('CONTENT_TYPE') != 'application/x-www-form-urlencoded':
-            start_response('405 Play by the rules', errors_headers)
+            start_response('405 Urlencoded, please', errors_headers)
             return []
 
         post_data = env.get('wsgi.input').read()
@@ -213,6 +213,9 @@ def application(env, start_response):
         return [response_bytes]
 
     else:
+        logg.error('invalid query {}'.format(env))
+        for r in env:
+            logg.debug('{}: {}'.format(r, env))
         start_response('405 Play by the rules', errors_headers)
         return []
 

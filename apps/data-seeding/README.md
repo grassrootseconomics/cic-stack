@@ -136,7 +136,7 @@ First, make a note of the **block height** before running anything:
 
 To import, run to _completion_:
 
-`python eth/import_users.py -v -c config -p <eth_provider> -r <cic_registry_address> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c <datadir>`
+`python eth/import_users.py -v -c config -p <eth_provider> -r <cic_registry_address> -y ../contract-migration/keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c <datadir>`
 
 After the script completes, keystore files for all generated accouts will be found in `<datadir>/keystore`, all with `foo` as password (would set it empty, but believe it or not some interfaces out there won't work unless you have one).
 
@@ -150,7 +150,7 @@ Then run:
 
 Run in sequence, in first terminal:
 
-`python cic_eth/import_balance.py -v -c config -p <eth_provider> -r <cic_registry_address> --token-symbol <token_symbol> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c --head out`
+`python cic_eth/import_balance.py -v -c config -p <eth_provider> -r <cic_registry_address> --token-symbol <token_symbol> -y ../contract-migration/keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c --head out`
 
 In another terminal:
 
@@ -226,7 +226,7 @@ The connection parameters for the `cic-ussd-server` is currently _hardcoded_ in 
 
 ### Step 5 - Verify
 
-`python verify.py -v -c config -r <cic_registry_address> -p <eth_provider> <datadir>` 
+`python verify.py -v -c config -r <cic_registry_address> -p <eth_provider> --token-symbol <token_symbol> <datadir>` 
 
 Included checks:
 * Private key is in cic-eth keystore
@@ -262,3 +262,5 @@ Should exit with code 0 if all input data is found in the respective services.
 - MacOS BigSur issue when installing psycopg2: ld: library not found for -lssl -> https://github.com/psycopg/psycopg2/issues/1115#issuecomment-831498953
 
 - `cic_ussd` imports is poorly implemented, and consumes a lot of resources. Therefore it takes a long time to complete. Reducing the amount of polls for the phone pointer would go a long way to improve it.
+
+- A strict constraint is maintained insistin the use of postgresql-12.

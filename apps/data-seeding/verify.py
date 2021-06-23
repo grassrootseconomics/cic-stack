@@ -9,6 +9,7 @@ import sys
 import urllib
 import urllib.request
 import uuid
+import urllib.parse
 
 # external imports
 import celery
@@ -72,7 +73,7 @@ argparser.add_argument('--ussd-provider', type=str, dest='ussd_provider', defaul
 argparser.add_argument('--skip-custodial', dest='skip_custodial', action='store_true', help='skip all custodial verifications')
 argparser.add_argument('--exclude', action='append', type=str, default=[], help='skip specified verification')
 argparser.add_argument('--include', action='append', type=str, help='include specified verification')
-argparser.add_argument('--token-symbol', default='SRF', type=str, dest='token_symbol', help='Token symbol to use for trnsactions')
+argparser.add_argument('--token-symbol', default='GFT', type=str, dest='token_symbol', help='Token symbol to use for trnsactions')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-x', '--exit-on-error', dest='x', action='store_true', help='Halt exection on error')
@@ -185,9 +186,9 @@ def send_ussd_request(address, data_dir):
     }
 
     req = urllib.request.Request(config.get('_USSD_PROVIDER'))
-    data_str = json.dumps(data)
-    data_bytes = data_str.encode('utf-8')
-    req.add_header('Content-Type', 'application/json')
+    urlencoded_data = urllib.parse.urlencode(data)
+    data_bytes = urlencoded_data.encode('utf-8')
+    req.add_header('Content-Type', 'application/x-www-form-urlencoded')
     req.data = data_bytes
     response = urllib.request.urlopen(req)
     return response.read().decode('utf-8')
@@ -388,9 +389,8 @@ class Verifier:
 
     def verify_ussd_pins(self, address, balance):
         response_data = send_ussd_request(address, self.data_dir)
-        if response_data[:11] != 'CON Balance':
+        if response_data[:11] != 'CON Balance' and response_data[:9] != 'CON Salio':
             raise VerifierError(response_data, 'pins')
-
 
     def verify(self, address, balance, debug_stem=None):
   
