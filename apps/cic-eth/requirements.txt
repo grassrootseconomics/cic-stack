@@ -16,7 +16,7 @@ moolb~=0.1.1b2
 eth-address-index~=0.1.1a11
 chainlib~=0.0.3rc2
 hexathon~=0.0.1a7
-chainsyncer[sql]~=0.0.2a5
+chainsyncer[sql]==0.0.2a5
 chainqueue~=0.0.2b3
 sarafu-faucet~=0.0.3a3
 erc20-faucet~=0.2.1a5
