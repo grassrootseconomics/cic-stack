@@ -87,13 +87,49 @@ async function startServer() {
 	http.createServer(processRequest).listen(config.get('SERVER_PORT'));
 }
 
-const re_digest = /^\/([a-fA-F0-9]{64})\/?$/;
+const re_digest = /^([a-fA-F0-9]{64})\/?$/;
 function parseDigest(url) {
 	const digest_test = url.match(re_digest);
 	if (digest_test === null) {
 		throw 'invalid digest';	
 	}
 	return digest_test[1].toLowerCase();
+}
+
+function getIds(url: string): Array<string> {
+	const params: Array<string> = url.split('?')[1].split('&');
+	let ids: Array<string> = [];
+	for (let param of params) {
+		const splitParam: Array<string> = param.split('=');
+		if (splitParam[0] === 'id') {
+			ids.push(parseDigest(splitParam[1]));
+		}
+	}
+	return ids;
+}
+
+function generateResponseBody(digest: string, data: string) {
+	let response = {
+		id: digest,
+		status: 0,
+		headers: {},
+		body: ''
+	}
+	const responseContentLength = (new TextEncoder().encode(data)).length;
+	if (data === undefined) {
+		response.body = `Metadata for identifier ${digest} not found!`;
+		response.status = 404;
+		response.headers = {"Content-Type": "text/plain"}
+	} else {
+		response.body = data;
+		response.status = 200;
+		response.headers = {
+			"Access-Control-Allow-Origin": "*",
+			"Content-Type": 'application/json',
+			"Content-Length": responseContentLength,
+		}
+	}
+	return JSON.stringify(response);
 }
 
 async function processRequest(req, res) {
@@ -119,7 +155,11 @@ async function processRequest(req, res) {
 	}
 
 	try {
-		digest = parseDigest(req.url);
+		if (req.url.includes('id')) {
+			digest = getIds(req.url);
+		} else {
+			digest = parseDigest(req.url.substring(1));
+		}
 	} catch(e) {
 		console.error('digest error: ' + e)
 		res.writeHead(400, {"Content-Type": "text/plain"});
@@ -162,7 +202,24 @@ async function processRequest(req, res) {
 					break;
 
 				case 'get:automerge:client':
-					content = await handlers.handleClientMergeGet(db, digest, keystore);	
+					if (digest instanceof Array) {
+						let response = [];
+						for (let dg of digest) {
+							const metadata = await handlers.handleClientMergeGet(db, dg, keystore);
+							response.push(generateResponseBody(dg, metadata));
+						}
+						const responseContentLength = (new TextEncoder().encode(response.toString())).length;
+						res.writeHead(207, {
+							"Access-Control-Allow-Origin": "*",
+							"Content-Type": contentType,
+							"Content-Length": responseContentLength,
+						});
+						res.write(response.toString());
+						res.end();
+						return;
+					} else {
+						content = await handlers.handleClientMergeGet(db, digest, keystore);
+					}
 					break;
 
 				case 'post:automerge:server':
