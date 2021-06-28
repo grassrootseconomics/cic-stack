@@ -9,8 +9,8 @@ import semver
 version = (
         0,
         11,
-        0,
-        'beta.16',
+        1,
+        'alpha.1',
         )
 
 version_object = semver.VersionInfo(

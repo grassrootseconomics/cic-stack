@@ -26,10 +26,8 @@ from hexathon import (
         strip_0x,
         )
 from chainsyncer.backend.sql import SQLBackend
-from chainsyncer.driver import (
-        HeadSyncer,
-        HistorySyncer,
-        )
+from chainsyncer.driver.head import HeadSyncer
+from chainsyncer.driver.history import HistorySyncer
 from chainsyncer.db.models.base import SessionBase
 
 # local imports

@@ -30,7 +30,7 @@ from chainlib.eth.address import to_checksum_address
 from chainlib.eth.gas import OverrideGasOracle
 from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.tx import TxFactory
-from chainlib.jsonrpc import jsonrpc_template
+from chainlib.jsonrpc import JSONRPCRequest
 from chainlib.eth.error import EthException
 from chainlib.chain import ChainSpec
 from crypto_dev_signer.eth.signer import ReferenceSigner as EIP155Signer
@@ -225,11 +225,13 @@ def main():
     data = add_0x(registry_addressof_method)
     data += eth_abi.encode_single('bytes32', b'TokenRegistry').hex()
     txf.set_code(tx, data)
-    
-    o = jsonrpc_template()
+   
+    j = JSONRPCRequest()
+    o = j.template()
     o['method'] = 'eth_call'
     o['params'].append(txf.normalize(tx))
     o['params'].append('latest')
+    o = j.finalize(o)
     r = conn.do(o)
     token_index_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     logg.info('found token index address {}'.format(token_index_address))
@@ -243,10 +245,11 @@ def main():
     z = h.digest()
     data += eth_abi.encode_single('bytes32', z).hex()
     txf.set_code(tx, data)
-    o = jsonrpc_template()
+    o = j.template()
     o['method'] = 'eth_call'
     o['params'].append(txf.normalize(tx))
     o['params'].append('latest')
+    o = j.finalize(o)
     r = conn.do(o)
     try:
         sarafu_token_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
