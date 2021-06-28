@@ -108,19 +108,19 @@ function getIds(url: string): Array<string> {
 	return ids;
 }
 
-function generateResponseBody(digest: string, data: string) {
+function generateResponseBody(digest: string, data: string | boolean): string {
 	let response = {
 		id: digest,
 		status: 0,
 		headers: {},
 		body: ''
 	}
-	const responseContentLength = (new TextEncoder().encode(data)).length;
-	if (data === undefined) {
+	if (typeof data === 'boolean' || data === undefined) {
 		response.body = `Metadata for identifier ${digest} not found!`;
 		response.status = 404;
 		response.headers = {"Content-Type": "text/plain"}
 	} else {
+		const responseContentLength = (new TextEncoder().encode(data)).length;
 		response.body = data;
 		response.status = 200;
 		response.headers = {
@@ -156,6 +156,11 @@ async function processRequest(req, res) {
 
 	try {
 		if (req.url.includes('id')) {
+			if (req.method !== 'GET') {
+				res.writeHead(405, {"Content-Type": "text/plain"});
+				res.end();
+				return;
+			}
 			digest = getIds(req.url);
 		} else {
 			digest = parseDigest(req.url.substring(1));
@@ -239,13 +244,30 @@ async function processRequest(req, res) {
 				//	break;
 
 				case 'get:automerge:none':
-					r = await handlers.handleNoMergeGet(db, digest, keystore);	
-					if (r == false) {
-						res.writeHead(404, {"Content-Type": "text/plain"});
+					if (digest instanceof Array) {
+						let response = [];
+						for (let dg of digest) {
+							const metadata = await handlers.handleNoMergeGet(db, dg, keystore);
+							response.push(generateResponseBody(dg, metadata));
+						}
+						const responseContentLength = (new TextEncoder().encode(response.toString())).length;
+						res.writeHead(207, {
+							"Access-Control-Allow-Origin": "*",
+							"Content-Type": contentType,
+							"Content-Length": responseContentLength,
+						});
+						res.write(response.toString());
 						res.end();
 						return;
+					} else {
+						r = await handlers.handleNoMergeGet(db, digest, keystore);
+						if (r == false) {
+							res.writeHead(404, {"Content-Type": "text/plain"});
+							res.end();
+							return;
+						}
+						content = r;
 					}
-					content = r;
 					break;
 
 				default:
