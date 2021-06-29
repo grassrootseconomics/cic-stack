@@ -31,13 +31,16 @@ function sendit(uid, envelope) {
 	const req = http.request(url + uid, opts, (res) => {
 		res.on('data', process.stdout.write);
 		res.on('end', () => {
+        if (!res.complete) {
+            console.log('The connection was terminated while the message was being sent.')
+        }
 			console.log('result', res.statusCode, res.headers);
 		});
 	});
-	if (!req.write(d)) {
-		console.error('foo', d);
-		process.exit(1);
-	}
+  req.on('error', (err) => {
+      console.log('ERROR when talking to meta', err)
+  })
+  req.write(d)
 	req.end();
 }
 
@@ -55,6 +58,7 @@ function doOne(keystore, filePath) {
 		const s = new crdt.Syncable(uid, o);
 		s.setSigner(signer);
 		s.onwrap = (env) => {
+      console.log(`Sending uid: ${uid} and env: ${env} to meta`)
 			sendit(uid, env);
 		};
 		s.sign();
@@ -84,6 +88,7 @@ let batchCount = 0;
 
 
 function importMeta(keystore) {
+  console.log('Running importMeta....')
 	let err;
 	let files;
 
@@ -94,6 +99,11 @@ function importMeta(keystore) {
 		setTimeout(importMeta, batchDelay, keystore);
 		return;
 	}
+  console.log(`Trying to read ${files.length} files`)
+  if (files === 0) {
+    console.log(`ERROR did not find any files under ${workDir}. \nLooks like there is no work for me, bailing!`)
+    process.exit(1)
+  }
 	let limit = batchSize;
 	if (files.length < limit) {
 		limit = files.length;
@@ -108,6 +118,7 @@ function importMeta(keystore) {
 		doOne(keystore, filePath);
 		count++;
 		batchCount++;
+    //console.log('done one', count, batchCount)
 		if (batchCount == batchSize) {
 			console.debug('reached batch size, breathing');
 			batchCount=0;
