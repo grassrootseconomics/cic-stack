@@ -1,1 +1,1 @@
-from tests.fixtures_celery import *
+from cic_eth.pytest.fixtures_celery import *
