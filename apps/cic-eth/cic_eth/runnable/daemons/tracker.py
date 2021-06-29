@@ -21,7 +21,14 @@ from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.connection import RPCConnection
 from chainlib.eth.block import (
         block_latest,
+        block_by_number,
+        Block,
         )
+from chainlib.eth.tx import (
+        receipt,
+        Tx,
+        )
+from chainlib.interface import ChainInterface
 from hexathon import (
         strip_0x,
         )
@@ -78,6 +85,17 @@ chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 cic_base.rpc.setup(chain_spec, config.get('ETH_PROVIDER'))
 
 
+class EthChainInterface(ChainInterface):
+    
+    def __init__(self):
+        self._tx_receipt = receipt
+        self._block_by_number = block_by_number
+        self._block_from_src = Block.from_src
+        self._src_normalize = Tx.src_normalize
+
+chain_interface = EthChainInterface()
+
+
 def main():
     # connect to celery
     celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
@@ -119,11 +137,11 @@ def main():
 
     for syncer_backend in syncer_backends:
         try:
-            syncers.append(HistorySyncer(syncer_backend))
+            syncers.append(HistorySyncer(syncer_backend, chain_interface))
             logg.info('Initializing HISTORY syncer on backend {}'.format(syncer_backend))
         except AttributeError:
             logg.info('Initializing HEAD syncer on backend {}'.format(syncer_backend))
-            syncers.append(HeadSyncer(syncer_backend))
+            syncers.append(HeadSyncer(syncer_backend, chain_interface))
 
     connect_registry(rpc, chain_spec, config.get('CIC_REGISTRY_ADDRESS'))
 

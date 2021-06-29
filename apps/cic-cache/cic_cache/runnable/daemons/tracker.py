@@ -23,15 +23,20 @@ from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.connection import RPCConnection
 from chainlib.eth.block import (
         block_latest,
+        block_by_number,
+        Block,
         )
+from chainlib.eth.tx import (
+        receipt,
+        Tx,
+        )
+from chainlib.interface import ChainInterface
 from hexathon import (
         strip_0x,
         )
 from chainsyncer.backend.sql import SQLBackend
-from chainsyncer.driver import (
-        HeadSyncer,
-        HistorySyncer,
-        )
+from chainsyncer.driver.head import HeadSyncer
+from chainsyncer.driver.history import HistorySyncer
 from chainsyncer.db.models.base import SessionBase
 
 # local imports
@@ -83,6 +88,16 @@ def register_filter_tags(filters, session):
             session.rollback()
             logg.debug('already have tag name "{}" domain "{}"'.format(tag[0], tag[1]))
 
+class EthChainInterface(ChainInterface):
+    
+    def __init__(self):
+        self._tx_receipt = receipt
+        self._block_by_number = block_by_number
+        self._block_from_src = Block.from_src
+        self._src_normalize = Tx.src_normalize
+
+chain_interface = EthChainInterface()
+
 
 def main():
     # Connect to blockchain with chainlib
@@ -113,10 +128,10 @@ def main():
             logg.info('resuming sync session {}'.format(syncer_backend))
 
     for syncer_backend in syncer_backends:
-        syncers.append(HistorySyncer(syncer_backend))
+        syncers.append(HistorySyncer(syncer_backend, chain_interface))
 
     syncer_backend = SQLBackend.live(chain_spec, block_offset+1)
-    syncers.append(HeadSyncer(syncer_backend))
+    syncers.append(HeadSyncer(syncer_backend, chain_interface))
 
     trusted_addresses_src = config.get('CIC_TRUST_ADDRESS')
     if trusted_addresses_src == None:

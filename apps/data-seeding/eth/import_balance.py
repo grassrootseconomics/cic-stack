@@ -18,13 +18,18 @@ from hexathon import (
         add_0x,
         )
 from chainsyncer.backend.memory import MemBackend
-from chainsyncer.driver import HeadSyncer
+from chainsyncer.driver.head import HeadSyncer
 from chainlib.eth.connection import EthHTTPConnection
 from chainlib.eth.block import (
         block_latest,
         block_by_number,
         Block,
         )
+from chainlib.eth.tx import (
+        receipt,
+        Tx,
+        )
+from chainlib.interface import ChainInterface
 from chainlib.hash import keccak256_string_to_hex
 from chainlib.eth.address import to_checksum_address
 from chainlib.eth.gas import OverrideGasOracle
@@ -75,7 +80,7 @@ args_override = {
         'CIC_CHAIN_SPEC': getattr(args, 'i'),
         'ETH_PROVIDER': getattr(args, 'p'),
         'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
-        'KEYSTORE_FILE_PATH': getattr(args, 'key-file')
+        'KEYSTORE_FILE_PATH': getattr(args, 'y')
         }
 config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')
@@ -107,6 +112,16 @@ old_chain_spec = ChainSpec.from_chain_str(old_chain_spec_str)
 user_dir = args.user_dir # user_out_dir from import_users.py
 
 token_symbol = args.token_symbol
+
+class EthChainInterface(ChainInterface):
+    
+    def __init__(self):
+        self._tx_receipt = receipt
+        self._block_by_number = block_by_number
+        self._block_from_src = Block.from_src
+        self._src_normalize = Tx.src_normalize
+
+chain_interface = EthChainInterface()
 
 
 class Handler:
@@ -303,7 +318,7 @@ def main():
     f.close()
 
     syncer_backend.set(block_offset, 0)
-    syncer = HeadSyncer(syncer_backend, block_callback=progress_callback)
+    syncer = HeadSyncer(syncer_backend, chain_interface, block_callback=progress_callback)
     handler = Handler(conn, chain_spec, user_dir, balances, sarafu_token_address, signer, gas_oracle, nonce_oracle)
     syncer.add_filter(handler)
     syncer.loop(1, conn)
