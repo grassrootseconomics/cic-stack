@@ -6,11 +6,13 @@ import logging
 import celery
 import i18n
 from cic_eth.api.api_task import Api
+from sqlalchemy.orm.session import Session
 from tinydb.table import Document
 from typing import Optional
 
 # local imports
 from cic_ussd.db.models.account import Account
+from cic_ussd.db.models.base import SessionBase
 from cic_ussd.db.models.ussd_session import UssdSession
 from cic_ussd.db.models.task_tracker import TaskTracker
 from cic_ussd.menu.ussd_menu import UssdMenu
@@ -22,15 +24,18 @@ from cic_ussd.validator import check_known_user, validate_response_type
 logg = logging.getLogger()
 
 
-def add_tasks_to_tracker(task_uuid):
-    """
-    This function takes tasks spawned over api interfaces and records their creation time for tracking.
+def add_tasks_to_tracker(session, task_uuid: str):
+    """This function takes tasks spawned over api interfaces and records their creation time for tracking.
+    :param session:
+    :type session:
     :param task_uuid: The uuid for an initiated task.
     :type task_uuid: str
     """
+    session = SessionBase.bind_session(session=session)
     task_record = TaskTracker(task_uuid=task_uuid)
-    TaskTracker.session.add(task_record)
-    TaskTracker.session.commit()
+    session.add(task_record)
+    session.flush()
+    SessionBase.release_session(session=session)
 
 
 def define_response_with_content(headers: list, response: str) -> tuple:
@@ -95,6 +100,7 @@ def create_or_update_session(
         service_code: str,
         user_input: str,
         current_menu: str,
+        session,
         session_data: Optional[dict] = None) -> InMemoryUssdSession:
     """
     Handles the creation or updating of session as necessary.
@@ -108,12 +114,15 @@ def create_or_update_session(
     :type user_input: str
     :param current_menu: Menu name that is currently being displayed on the ussd session
     :type current_menu: str
+    :param session:
+    :type session:
     :param session_data: Any additional data that was persisted during the user's interaction with the system.
     :type session_data: dict.
     :return: ussd session object
     :rtype: InMemoryUssdSession
     """
-    existing_ussd_session = UssdSession.session.query(UssdSession).filter_by(
+    session = SessionBase.bind_session(session=session)
+    existing_ussd_session = session.query(UssdSession).filter_by(
         external_session_id=external_session_id).first()
 
     if existing_ussd_session:
@@ -132,20 +141,25 @@ def create_or_update_session(
             current_menu=current_menu,
             session_data=session_data
         )
+    SessionBase.release_session(session=session)
     return ussd_session
 
 
-def get_account_status(phone_number) -> str:
+def get_account_status(phone_number, session: Session) -> str:
     """Get the status of a user's account.
     :param phone_number: The phone number to be checked.
     :type phone_number: str
+    :param session:
+    :type session:
     :return: The user account status.
     :rtype: str
     """
-    user = Account.session.query(Account).filter_by(phone_number=phone_number).first()
-    status = user.get_account_status()
-    Account.session.add(user)
-    Account.session.commit()
+    session = SessionBase.bind_session(session=session)
+    account = Account.get_by_phone_number(phone_number=phone_number, session=session)
+    status = account.get_account_status()
+    session.add(account)
+    session.flush()
+    SessionBase.release_session(session=session)
 
     return status
 
@@ -165,6 +179,7 @@ def initiate_account_creation_request(chain_str: str,
                                       external_session_id: str,
                                       phone_number: str,
                                       service_code: str,
+                                      session,
                                       user_input: str) -> str:
     """This function issues a task to create a blockchain account on cic-eth. It then creates a record of the ussd
     session corresponding to the creation of the account and returns a response denoting that the user's account is
@@ -177,6 +192,8 @@ def initiate_account_creation_request(chain_str: str,
     :type phone_number: str
     :param service_code: The service code dialed.
     :type service_code: str
+    :param session:
+    :type session:
     :param user_input: The input entered by the user.
     :type user_input: str
     :return: A response denoting that the account is being created.
@@ -190,7 +207,7 @@ def initiate_account_creation_request(chain_str: str,
     creation_task_id = cic_eth_api.create_account().id
 
     # record task initiation time
-    add_tasks_to_tracker(task_uuid=creation_task_id)
+    add_tasks_to_tracker(task_uuid=creation_task_id, session=session)
 
     # cache account creation data
     cache_account_creation_task_id(phone_number=phone_number, task_id=creation_task_id)
@@ -204,6 +221,7 @@ def initiate_account_creation_request(chain_str: str,
         phone=phone_number,
         service_code=service_code,
         current_menu=current_menu.get('name'),
+        session=session,
         user_input=user_input)
 
     # define response to relay to user
@@ -268,12 +286,14 @@ def cache_account_creation_task_id(phone_number: str, task_id: str):
     redis_cache.persist(name=task_id)
 
 
-def process_current_menu(ussd_session: Optional[dict], user: Account, user_input: str) -> Document:
+def process_current_menu(account: Account, session: Session, ussd_session: Optional[dict], user_input: str) -> Document:
     """This function checks user input and returns a corresponding ussd menu
     :param ussd_session: An in db ussd session object.
     :type ussd_session: UssdSession
-    :param user: A user object.
-    :type user: Account
+    :param account: A account object.
+    :type account: Account
+    :param session:
+    :type session:
     :param user_input: The user's input.
     :type user_input: str
     :return: An in memory ussd menu object.
@@ -285,7 +305,13 @@ def process_current_menu(ussd_session: Optional[dict], user: Account, user_input
     else:
         # get current state
         latest_input = get_latest_input(user_input=user_input)
-        current_menu = process_request(ussd_session=ussd_session, user_input=latest_input, user=user)
+        session = SessionBase.bind_session(session=session)
+        current_menu = process_request(
+            account=account,
+            session=session,
+            ussd_session=ussd_session,
+            user_input=latest_input)
+        SessionBase.release_session(session=session)
     return current_menu
 
 
@@ -294,6 +320,7 @@ def process_menu_interaction_requests(chain_str: str,
                                       phone_number: str,
                                       queue: str,
                                       service_code: str,
+                                      session,
                                       user_input: str) -> str:
     """This function handles requests intended for interaction with ussd menu, it checks whether a user matching the
     provided phone number exists and in the absence of which it creates an account for the user.
@@ -308,25 +335,29 @@ def process_menu_interaction_requests(chain_str: str,
     :type queue: str
     :param service_code: The service dialed by the user making the request.
     :type service_code: str
+    :param session:
+    :type session:
     :param user_input: The inputs entered by the user.
     :type user_input: str
     :return: A response based on the request received.
     :rtype: str
     """
     # check whether the user exists
-    if not check_known_user(phone=phone_number):
+    if not check_known_user(phone_number=phone_number, session=session):
         response = initiate_account_creation_request(chain_str=chain_str,
                                                      external_session_id=external_session_id,
                                                      phone_number=phone_number,
                                                      service_code=service_code,
+                                                     session=session,
                                                      user_input=user_input)
 
     else:
-        # get user
-        user = Account.session.query(Account).filter_by(phone_number=phone_number).first()
+        # get account
+        session = SessionBase.bind_session(session=session)
+        account = Account.get_by_phone_number(phone_number=phone_number, session=session)
 
         # retrieve and cache user's metadata
-        blockchain_address = user.blockchain_address
+        blockchain_address = account.blockchain_address
         s_query_person_metadata = celery.signature(
             'cic_ussd.tasks.metadata.query_person_metadata',
             [blockchain_address]
@@ -334,24 +365,25 @@ def process_menu_interaction_requests(chain_str: str,
         s_query_person_metadata.apply_async(queue='cic-ussd')
 
         # find any existing ussd session
-        existing_ussd_session = UssdSession.session.query(UssdSession).filter_by(
-            external_session_id=external_session_id).first()
+        existing_ussd_session = session.query(UssdSession).filter_by(external_session_id=external_session_id).first()
 
         # validate user inputs
         if existing_ussd_session:
             current_menu = process_current_menu(
+                account=account,
+                session=session,
                 ussd_session=existing_ussd_session.to_json(),
-                user=user,
                 user_input=user_input
             )
         else:
             current_menu = process_current_menu(
+                account=account,
+                session=session,
                 ussd_session=None,
-                user=user,
                 user_input=user_input
             )
 
-        last_ussd_session = retrieve_most_recent_ussd_session(phone_number=user.phone_number)
+        last_ussd_session = retrieve_most_recent_ussd_session(phone_number=account.phone_number, session=session)
 
         if last_ussd_session:
             # create or update the ussd session as appropriate
@@ -361,6 +393,7 @@ def process_menu_interaction_requests(chain_str: str,
                 service_code=service_code,
                 user_input=user_input,
                 current_menu=current_menu.get('name'),
+                session=session,
                 session_data=last_ussd_session.session_data
             )
         else:
@@ -369,15 +402,17 @@ def process_menu_interaction_requests(chain_str: str,
                 phone=phone_number,
                 service_code=service_code,
                 user_input=user_input,
-                current_menu=current_menu.get('name')
+                current_menu=current_menu.get('name'),
+                session=session
             )
 
         # define appropriate response
         response = custom_display_text(
+            account=account,
             display_key=current_menu.get('display_key'),
             menu_name=current_menu.get('name'),
+            session=session,
             ussd_session=ussd_session.to_json(),
-            user=user
         )
 
     # check that the response from the processor is valid
@@ -386,21 +421,26 @@ def process_menu_interaction_requests(chain_str: str,
 
     # persist session to db
     persist_session_to_db_task(external_session_id=external_session_id, queue=queue)
+    SessionBase.release_session(session=session)
 
     return response
 
 
-def reset_pin(phone_number: str) -> str:
+def reset_pin(phone_number: str, session: Session) -> str:
     """Reset account status from Locked to Pending.
     :param phone_number: The phone number belonging to the account to be unlocked.
     :type phone_number: str
+    :param session:
+    :type session:
     :return: The status of the pin reset.
     :rtype: str
     """
-    user = Account.session.query(Account).filter_by(phone_number=phone_number).first()
-    user.reset_account_pin()
-    Account.session.add(user)
-    Account.session.commit()
+    session = SessionBase.bind_session(session=session)
+    account = Account.get_by_phone_number(phone_number=phone_number, session=session)
+    account.reset_account_pin()
+    session.add(account)
+    session.flush()
+    SessionBase.release_session(session=session)
 
     response = f'Pin reset for user {phone_number} is successful!'
     return response
@@ -438,11 +478,13 @@ def update_ussd_session(
     return session
 
 
-def save_to_in_memory_ussd_session_data(queue: str, session_data: dict, ussd_session: dict):
+def save_to_in_memory_ussd_session_data(queue: str, session: Session, session_data: dict, ussd_session: dict):
     """This function is used to save information to the session data attribute of a ussd session object in the redis
     cache.
     :param queue: The queue on which the celery task should run.
     :type queue: str
+    :param session:
+    :type session:
     :param session_data: A dictionary containing data for a specific ussd session in redis that needs to be saved
     temporarily.
     :type session_data: dict
@@ -473,7 +515,7 @@ def save_to_in_memory_ussd_session_data(queue: str, session_data: dict, ussd_ses
         service_code=in_redis_ussd_session.get('service_code'),
         user_input=in_redis_ussd_session.get('user_input'),
         current_menu=in_redis_ussd_session.get('state'),
+        session=session,
         session_data=session_data
     )
     persist_session_to_db_task(external_session_id=external_session_id, queue=queue)
-

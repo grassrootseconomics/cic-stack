@@ -9,6 +9,7 @@ from confini import Config
 
 # local imports
 from cic_ussd.db.models.account import Account
+from cic_ussd.db.models.base import SessionBase
 
 logg = logging.getLogger(__file__)
 
@@ -45,29 +46,21 @@ def check_request_content_length(config: Config, env: dict):
         config.get('APP_MAX_BODY_LENGTH'))
 
 
-def check_known_user(phone: str):
-    """
-    This method attempts to ascertain whether the user already exists and is known to the system.
+def check_known_user(phone_number: str, session):
+    """This method attempts to ascertain whether the user already exists and is known to the system.
     It sends a get request to the platform application and attempts to retrieve the user's data which it persists in
     memory.
-    :param phone: A valid phone number
-    :type phone: str
+    :param phone_number: A valid phone number
+    :type phone_number: str
+    :param session:
+    :type session:
     :return: Is known phone number
     :rtype: boolean
     """
-    user = Account.session.query(Account).filter_by(phone_number=phone).first()
-    return user is not None
-
-
-def check_phone_number(number: str):
-    """
-    Checks whether phone number is present
-    :param number: A valid phone number
-    :type number: str
-    :return: Phone number presence
-    :rtype: boolean
-    """
-    return number is not None
+    session = SessionBase.bind_session(session=session)
+    account = session.query(Account).filter_by(phone_number=phone_number).first()
+    SessionBase.release_session(session=session)
+    return account is not None
 
 
 def check_request_method(env: dict):

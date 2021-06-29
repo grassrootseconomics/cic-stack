@@ -36,11 +36,8 @@ logg.debug('config loaded from {}:\n{}'.format(args.c, config))
 # set up db
 data_source_name = dsn_from_config(config)
 SessionBase.connect(data_source_name, pool_size=int(config.get('DATABASE_POOL_SIZE')), debug=config.true('DATABASE_DEBUG'))
-# create session for the life time of http request
-SessionBase.session = SessionBase.create_session()
 
 
-# handle requests from CICADA
 def application(env, start_response):
     """Loads python code for application to be accessible over web server
     :param env: Object containing server and request information
@@ -55,19 +52,24 @@ def application(env, start_response):
     errors_headers = [('Content-Type', 'text/plain'), ('Content-Length', '0')]
     headers = [('Content-Type', 'text/plain')]
 
+    # create session for the life time of http request
+    session = SessionBase.create_session()
+
     if get_request_endpoint(env) == '/pin':
         phone_number = get_query_parameters(env=env, query_name='phoneNumber')
         phone_number = quote_plus(phone_number)
-        response, message = process_pin_reset_requests(env=env, phone_number=phone_number)
+        response, message = process_pin_reset_requests(env=env, phone_number=phone_number, session=session)
         response_bytes, headers = define_response_with_content(headers=errors_headers, response=response)
-        SessionBase.session.close()
+        session.commit()
+        session.close()
         start_response(message, headers)
         return [response_bytes]
 
     # handle requests for locked accounts
-    response, message = process_locked_accounts_requests(env=env)
+    response, message = process_locked_accounts_requests(env=env, session=session)
     response_bytes, headers = define_response_with_content(headers=headers, response=response)
     start_response(message, headers)
-    SessionBase.session.close()
+    session.commit()
+    session.close()
     return [response_bytes]
 
