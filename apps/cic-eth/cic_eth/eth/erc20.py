@@ -24,6 +24,7 @@ from cic_eth.error import (
         TokenCountError,
         PermanentTxError,
         OutOfGasError,
+        YouAreBrokeError,
         )
 from cic_eth.queue.tx import register_tx
 from cic_eth.eth.gas import (
@@ -69,6 +70,117 @@ def balance(tokens, holder_address, chain_spec_dict):
     rpc.disconnect()
 
     return tokens
+
+
+@celery_app.task(bind=True)
+def check_allowance(self, tokens, holder_address, value, chain_spec_dict, spender_address):
+    """Best-effort verification that the allowance for a transfer from spend is sufficient.
+
+    :raises YouAreBrokeError: If allowance is insufficient
+    
+    :param tokens: Token addresses 
+    :type tokens: list of str, 0x-hex
+    :param holder_address: Token holder address
+    :type holder_address: str, 0x-hex
+    :param value: Amount of token, in 'wei'
+    :type value: int
+    :param chain_str: Chain spec string representation
+    :type chain_str: str
+    :param spender_address: Address of account spending on behalf of holder
+    :type spender_address: str, 0x-hex
+    :return: Token list as passed to task
+    :rtype: dict
+    """
+    logg.debug('tokens {}'.format(tokens))
+    if len(tokens) != 1:
+        raise TokenCountError
+    t = tokens[0]
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
+
+    rpc = RPCConnection.connect(chain_spec, 'default')
+
+    caller_address = ERC20Token.caller_address 
+    c = ERC20(chain_spec)
+    o = c.allowance(t['address'], holder_address, spender_address, sender_address=caller_address)
+    r = rpc.do(o)
+    allowance = c.parse_allowance(r)
+    if allowance < value:
+        errstr = 'allowance {} insufficent to transfer {} {} by {} on behalf of {}'.format(allowance, value, t['symbol'], spender_address, holder_address)
+        logg.error(errstr)
+        raise YouAreBrokeError(errstr)
+
+    return tokens
+
+
+@celery_app.task(bind=True, base=CriticalSQLAlchemyAndSignerTask)
+def transfer_from(self, tokens, holder_address, receiver_address, value, chain_spec_dict, spender_address):
+    """Transfer ERC20 tokens between addresses
+
+    First argument is a list of tokens, to enable the task to be chained to the symbol to token address resolver function. However, it accepts only one token as argument.
+
+    :param tokens: Token addresses 
+    :type tokens: list of str, 0x-hex
+    :param holder_address: Token holder address
+    :type holder_address: str, 0x-hex
+    :param receiver_address: Token receiver address
+    :type receiver_address: str, 0x-hex
+    :param value: Amount of token, in 'wei'
+    :type value: int
+    :param chain_str: Chain spec string representation
+    :type chain_str: str
+    :param spender_address: Address of account spending on behalf of holder
+    :type spender_address: str, 0x-hex
+    :raises TokenCountError: Either none or more then one tokens have been passed as tokens argument
+    :return: Transaction hash for tranfer operation
+    :rtype: str, 0x-hex
+    """
+    # we only allow one token, one transfer
+    logg.debug('tokens {}'.format(tokens))
+    if len(tokens) != 1:
+        raise TokenCountError
+    t = tokens[0]
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
+    queue = self.request.delivery_info.get('routing_key')
+
+    rpc = RPCConnection.connect(chain_spec, 'default')
+    rpc_signer = RPCConnection.connect(chain_spec, 'signer')
+
+    session = self.create_session()
+    nonce_oracle = CustodialTaskNonceOracle(holder_address, self.request.root_id, session=session)
+    gas_oracle = self.create_gas_oracle(rpc, MaxGasOracle.gas)
+    c = ERC20(chain_spec, signer=rpc_signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle)
+    try:
+        (tx_hash_hex, tx_signed_raw_hex) = c.transfer_from(t['address'], spender_address, holder_address, receiver_address, value, tx_format=TxFormat.RLP_SIGNED)
+    except FileNotFoundError as e:
+        raise SignerError(e)
+    except ConnectionError as e:
+        raise SignerError(e)
+    
+
+    rpc_signer.disconnect()
+    rpc.disconnect()
+
+    cache_task = 'cic_eth.eth.erc20.cache_transfer_from_data'
+
+    register_tx(tx_hash_hex, tx_signed_raw_hex, chain_spec, queue, cache_task=cache_task, session=session)
+    session.commit()
+    session.close()
+    
+    gas_pair = gas_oracle.get_gas(tx_signed_raw_hex)
+    gas_budget = gas_pair[0] * gas_pair[1]
+    logg.debug('transfer tx {} {} {}'.format(tx_hash_hex, queue, gas_budget))
+
+    s = create_check_gas_task(
+             [tx_signed_raw_hex],
+             chain_spec,
+             holder_address,
+             gas_budget,
+             [tx_hash_hex],
+             queue,
+            )
+    s.apply_async()
+    return tx_hash_hex
+
 
 
 @celery_app.task(bind=True, base=CriticalSQLAlchemyAndSignerTask)
@@ -232,6 +344,7 @@ def resolve_tokens_by_symbol(self, token_symbols, chain_spec_dict):
         logg.debug('token {}'.format(token_address))
         tokens.append({
             'address': token_address,
+            'symbol': token_symbol,
             'converters': [],
             })
     rpc.disconnect()
@@ -260,6 +373,48 @@ def cache_transfer_data(
     tx_data = ERC20.parse_transfer_request(tx['data'])
     recipient_address = tx_data[0]
     token_value = tx_data[1]
+
+    session = SessionBase.create_session()
+    tx_cache = TxCache(
+        tx_hash_hex,
+        tx['from'],
+        recipient_address,
+        tx['to'],
+        tx['to'],
+        token_value,
+        token_value,
+        session=session,
+            )
+    session.add(tx_cache)
+    session.commit()
+    cache_id = tx_cache.id
+    session.close()
+    return (tx_hash_hex, cache_id)
+
+
+@celery_app.task(base=CriticalSQLAlchemyTask)
+def cache_transfer_from_data(
+    tx_hash_hex,
+    tx_signed_raw_hex,
+    chain_spec_dict,
+        ):
+    """Helper function for otx_cache_transfer_from
+
+    :param tx_hash_hex: Transaction hash
+    :type tx_hash_hex: str, 0x-hex
+    :param tx: Signed raw transaction
+    :type tx: str, 0x-hex
+    :returns: Transaction hash and id of cache element in storage backend, respectively
+    :rtype: tuple
+    """
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
+    tx_signed_raw_bytes = bytes.fromhex(strip_0x(tx_signed_raw_hex))
+    tx = unpack(tx_signed_raw_bytes, chain_spec)
+
+    tx_data = ERC20.parse_transfer_from_request(tx['data'])
+    spender_address = tx_data[0]
+    recipient_address = tx_data[1]
+    token_value = tx_data[2]
 
     session = SessionBase.create_session()
     tx_cache = TxCache(

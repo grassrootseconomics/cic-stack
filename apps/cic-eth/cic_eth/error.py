@@ -80,3 +80,8 @@ class SignerError(SeppukuError):
 class RoleAgencyError(SeppukuError):
     """Exception raise when a role cannot perform its function. This is a critical exception
     """
+
+
+class YouAreBrokeError(Exception):
+    """Exception raised when a value transfer is attempted without access to sufficient funds
+    """

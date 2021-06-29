@@ -37,7 +37,8 @@ def init_database(
         database_engine,
         ):
 
-    rootdir = os.path.dirname(os.path.dirname(__file__))
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    rootdir = os.path.dirname(os.path.dirname(script_dir))
     dbdir = os.path.join(rootdir, 'cic_eth', 'db')
     migrationsdir = os.path.join(dbdir, 'migrations', load_config.get('DATABASE_ENGINE'))
     if not os.path.isdir(migrationsdir):

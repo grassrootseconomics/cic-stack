@@ -204,6 +204,82 @@ class Api:
 #        return t
 
 
+    def transfer_from(self, from_address, to_address, value, token_symbol, spender_address):
+        """Executes a chain of celery tasks that performs a transfer of ERC20 tokens by one address on behalf of another address to a third party.
+
+        :param from_address: Ethereum address of sender
+        :type from_address: str, 0x-hex
+        :param to_address: Ethereum address of recipient
+        :type to_address: str, 0x-hex
+        :param value: Estimated return from conversion
+        :type  value: int
+        :param token_symbol: ERC20 token symbol of token to send
+        :type token_symbol: str
+        :param spender_address: Ethereum address of recipient
+        :type spender_address: str, 0x-hex
+        :returns: uuid of root task
+        :rtype: celery.Task
+        """
+        s_check = celery.signature(
+                'cic_eth.admin.ctrl.check_lock',
+                [
+                    [token_symbol],
+                    self.chain_spec.asdict(),
+                    LockEnum.QUEUE,
+                    from_address,
+                    ],
+                queue=self.queue,
+                )
+        s_nonce = celery.signature(
+                'cic_eth.eth.nonce.reserve_nonce',
+                [
+                    self.chain_spec.asdict(),
+                    from_address,
+                    ],
+                queue=self.queue,
+                )
+        s_tokens = celery.signature(
+                'cic_eth.eth.erc20.resolve_tokens_by_symbol',
+                [
+                    self.chain_spec.asdict(),
+                    ],
+                queue=self.queue,
+                )
+        s_allow = celery.signature(
+                'cic_eth.eth.erc20.check_allowance',
+                [
+                    from_address,
+                    value,
+                    self.chain_spec.asdict(),
+                    spender_address,
+                    ],
+                queue=self.queue,
+                )
+        s_transfer = celery.signature(
+                'cic_eth.eth.erc20.transfer_from',
+                [
+                    from_address,
+                    to_address,
+                    value,
+                    self.chain_spec.asdict(),
+                    spender_address,
+                    ],
+                queue=self.queue,
+                )
+        s_tokens.link(s_allow)
+        s_nonce.link(s_tokens)
+        s_check.link(s_nonce)
+        if self.callback_param != None:
+            s_transfer.link(self.callback_success)
+            s_allow.link(s_transfer).on_error(self.callback_error)
+        else:
+            s_allow.link(s_transfer)
+
+        t = s_check.apply_async(queue=self.queue)
+        return t
+
+
+
     def transfer(self, from_address, to_address, value, token_symbol):
         """Executes a chain of celery tasks that performs a transfer of ERC20 tokens from one address to another.
 
