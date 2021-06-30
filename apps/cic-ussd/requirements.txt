@@ -1,4 +1,4 @@
 cic_base[full_graph]==0.1.3a3+build.4aa03607
-cic-eth~=0.11.0b16
+cic-eth~=0.11.1a2
 cic-notify~=0.4.0a5
 cic-types~=0.1.0a11

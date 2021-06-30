@@ -9,7 +9,7 @@ fi
 t=$(mktemp)
 >&2 echo using tmp $t
 
-repos=(../../cic-cache ../../cic-eth ../../cic-ussd ../../data-seeding)
+repos=(../../cic-cache ../../cic-eth ../../cic-ussd ../../data-seeding ../../cic-notify)
 
 for r in ${repos[@]}; do
 	f="$r/requirements.txt"
