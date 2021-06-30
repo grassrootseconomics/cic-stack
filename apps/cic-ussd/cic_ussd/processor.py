@@ -294,6 +294,7 @@ def process_display_user_metadata(user: Account, display_key: str):
             preferred_language=user.preferred_language,
             full_name=absent,
             gender=absent,
+            age=absent,
             location=absent,
             products=absent
         )

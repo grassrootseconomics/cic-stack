@@ -15,7 +15,7 @@
   {
     "trigger": "scan_data",
     "source": "enter_family_name",
-    "dest": "enter_date_of_birth",
+    "dest": "enter_gender",
     "after": "cic_ussd.state_machine.logic.user.save_metadata_attribute_to_session_data",
     "unless": "cic_ussd.state_machine.logic.validator.has_cached_user_metadata"
   },
