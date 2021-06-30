@@ -31,6 +31,9 @@ argparser.add_argument('--redis-db', dest='redis_db', type=int, help='redis db t
 argparser.add_argument('--batch-size', dest='batch_size', default=100, type=int, help='burst size of sending transactions to node') # batch size should be slightly below cumulative gas limit worth, eg 80000 gas txs with 8000000 limit is a bit less than 100 batch size
 argparser.add_argument('--batch-delay', dest='batch_delay', default=3, type=int, help='seconds delay between batches')
 argparser.add_argument('--timeout', default=60.0, type=float, help='Callback timeout')
+argparser.add_argument('--ussd-host', dest='ussd_host', type=str, help="host to ussd app responsible for processing ussd requests.")
+argparser.add_argument('--ussd-port', dest='ussd_port', type=str, help="port to ussd app responsible for processing ussd requests.")
+argparser.add_argument('--ussd-no-ssl', dest='ussd_no_ssl', help='do not use ssl (careful)', action='store_true')
 argparser.add_argument('-q', type=str, default='cic-eth', help='Task queue')
 argparser.add_argument('-v', action='store_true', help='Be verbose')
 argparser.add_argument('-vv', action='store_true', help='Be more verbose')
@@ -84,13 +87,21 @@ chain_str = str(chain_spec)
 
 batch_size = args.batch_size
 batch_delay = args.batch_delay
-
+ussd_port = args.ussd_port
+ussd_host = args.ussd_host
+ussd_no_ssl = args.ussd_no_ssl
+if ussd_no_ssl is True:
+    ussd_ssl = False
+else:
+    ussd_ssl = True
 
 def build_ussd_request(phone, host, port, service_code, username, password, ssl=False):
     url = 'http'
     if ssl:
         url += 's'
-    url += '://{}:{}'.format(host, port)
+    url += '://{}'.format(host)
+    if port:
+        url += ':{}'.format(port)
     url += '/?username={}&password={}'.format(username, password)
 
     logg.info('ussd service url {}'.format(url))
@@ -119,11 +130,13 @@ def register_ussd(i, u):
     logg.debug('tel {} {}'.format(u.tel, phone))
     req = build_ussd_request(
         phone,
-        'localhost',
-        config.get('CIC_USER_USSD_SVC_SERVICE_PORT'),
+        ussd_host,
+        ussd_port,
         config.get('APP_SERVICE_CODE'),
         '',
-        '')
+        '',
+        ussd_ssl
+    )
     response = urllib.request.urlopen(req)
     response_data = response.read().decode('utf-8')
     state = response_data[:3]
