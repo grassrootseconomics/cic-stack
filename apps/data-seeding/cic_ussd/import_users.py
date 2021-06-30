@@ -1,29 +1,21 @@
 # standard imports
-import os
-import sys
+import argparse
 import json
 import logging
-import argparse
-import uuid
-import datetime
+import os
+import sys
 import time
 import urllib.request
-from glob import glob
+import uuid
+from urllib.parse import urlencode
 
-# third-party imports
-import redis
-import confini
+# external imports
 import celery
-from hexathon import (
-        add_0x,
-        strip_0x,
-        )
-from chainlib.eth.address import to_checksum
-from cic_types.models.person import Person
-from cic_eth.api.api_task import Api
-from chainlib.chain import ChainSpec
-from cic_types.processor import generate_metadata_pointer
+import confini
 import phonenumbers
+import redis
+from chainlib.chain import ChainSpec
+from cic_types.models.person import Person
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -39,6 +31,9 @@ argparser.add_argument('--redis-db', dest='redis_db', type=int, help='redis db t
 argparser.add_argument('--batch-size', dest='batch_size', default=100, type=int, help='burst size of sending transactions to node') # batch size should be slightly below cumulative gas limit worth, eg 80000 gas txs with 8000000 limit is a bit less than 100 batch size
 argparser.add_argument('--batch-delay', dest='batch_delay', default=3, type=int, help='seconds delay between batches')
 argparser.add_argument('--timeout', default=60.0, type=float, help='Callback timeout')
+argparser.add_argument('--ussd-host', dest='ussd_host', type=str, help="host to ussd app responsible for processing ussd requests.")
+argparser.add_argument('--ussd-port', dest='ussd_port', type=str, help="port to ussd app responsible for processing ussd requests.")
+argparser.add_argument('--ussd-no-ssl', dest='ussd_no_ssl', help='do not use ssl (careful)', action='store_true')
 argparser.add_argument('-q', type=str, default='cic-eth', help='Task queue')
 argparser.add_argument('-v', action='store_true', help='Be verbose')
 argparser.add_argument('-vv', action='store_true', help='Be more verbose')
@@ -72,6 +67,12 @@ ps = r.pubsub()
 user_new_dir = os.path.join(args.user_dir, 'new')
 os.makedirs(user_new_dir)
 
+ussd_data_dir = os.path.join(args.user_dir, 'ussd')
+os.makedirs(ussd_data_dir)
+
+preferences_dir = os.path.join(args.user_dir, 'preferences')
+os.makedirs(os.path.join(preferences_dir, 'meta'))
+
 meta_dir = os.path.join(args.user_dir, 'meta')
 os.makedirs(meta_dir)
 
@@ -86,22 +87,22 @@ chain_str = str(chain_spec)
 
 batch_size = args.batch_size
 batch_delay = args.batch_delay
-
-db_configs = {
-    'database': config.get('DATABASE_NAME'),
-    'host': config.get('DATABASE_HOST'),
-    'port': config.get('DATABASE_PORT'),
-    'user': config.get('DATABASE_USER'),
-    'password': config.get('DATABASE_PASSWORD')
-}
-  
+ussd_port = args.ussd_port
+ussd_host = args.ussd_host
+ussd_no_ssl = args.ussd_no_ssl
+if ussd_no_ssl is True:
+    ussd_ssl = False
+else:
+    ussd_ssl = True
 
 def build_ussd_request(phone, host, port, service_code, username, password, ssl=False):
     url = 'http'
     if ssl:
         url += 's'
-    url += '://{}:{}'.format(host, port)
-    url += '/?username={}&password={}'.format(username, password) #config.get('USSD_USER'), config.get('USSD_PASS'))
+    url += '://{}'.format(host)
+    if port:
+        url += ':{}'.format(port)
+    url += '/?username={}&password={}'.format(username, password)
 
     logg.info('ussd service url {}'.format(url))
     logg.info('ussd phone {}'.format(phone))
@@ -114,9 +115,10 @@ def build_ussd_request(phone, host, port, service_code, username, password, ssl=
             'text': service_code,
         }
     req = urllib.request.Request(url)
-    data_str = json.dumps(data)
+    req.method=('POST')
+    data_str = urlencode(data)
     data_bytes = data_str.encode('utf-8')
-    req.add_header('Content-Type', 'application/json')
+    req.add_header('Content-Type', 'application/x-www-form-urlencoded')
     req.data = data_bytes
 
     return req
@@ -126,7 +128,15 @@ def register_ussd(i, u):
     phone_object = phonenumbers.parse(u.tel)
     phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
     logg.debug('tel {} {}'.format(u.tel, phone))
-    req = build_ussd_request(phone, 'localhost', 63315, '*483*46#', '', '') 
+    req = build_ussd_request(
+        phone,
+        ussd_host,
+        ussd_port,
+        config.get('APP_SERVICE_CODE'),
+        '',
+        '',
+        ussd_ssl
+    )
     response = urllib.request.urlopen(req)
     response_data = response.read().decode('utf-8')
     state = response_data[:3]
@@ -143,59 +153,57 @@ if __name__ == '__main__':
             if y[len(y)-5:] != '.json':
                 continue
             # handle json containing person object
-            filepath = None
-            if y[:15] != '_ussd_data.json':
-                filepath = os.path.join(x[0], y)
-                f = open(filepath, 'r')
-                try:
-                    o = json.load(f)
-                except json.decoder.JSONDecodeError as e:
-                    f.close()
-                    logg.error('load error for {}: {}'.format(y, e))
-                    continue
+            filepath = os.path.join(x[0], y)
+            f = open(filepath, 'r')
+            try:
+                o = json.load(f)
+            except json.decoder.JSONDecodeError as e:
                 f.close()
-                u = Person.deserialize(o)
+                logg.error('load error for {}: {}'.format(y, e))
+                continue
+            f.close()
+            u = Person.deserialize(o)
 
-                new_address = register_ussd(i, u)
+            new_address = register_ussd(i, u)
 
-                phone_object = phonenumbers.parse(u.tel)
-                phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
+            phone_object = phonenumbers.parse(u.tel)
+            phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
 
-                s_phone = celery.signature(
-                        'import_task.resolve_phone',
-                        [
-                            phone,
-                            ],
-                        queue='cic-import-ussd',
-                        )
+            s_phone = celery.signature(
+                    'import_task.resolve_phone',
+                    [
+                        phone,
+                        ],
+                    queue='cic-import-ussd',
+                    )
 
-                s_meta = celery.signature(
-                        'import_task.generate_metadata',
-                        [
-                            phone,
-                            ],
-                        queue='cic-import-ussd',
-                        )
+            s_meta = celery.signature(
+                    'import_task.generate_metadata',
+                    [
+                        phone,
+                        ],
+                    queue='cic-import-ussd',
+                    )
 
-                s_balance = celery.signature(
-                        'import_task.opening_balance_tx',
-                        [
-                            phone,
-                            i,
-                            ],
-                        queue='cic-import-ussd',
-                        )
+            s_balance = celery.signature(
+                    'import_task.opening_balance_tx',
+                    [
+                        phone,
+                        i,
+                        ],
+                    queue='cic-import-ussd',
+                    )
 
-                s_meta.link(s_balance)
-                s_phone.link(s_meta)
-                # block time plus a bit of time for ussd processing
-                s_phone.apply_async(countdown=7)
+            s_meta.link(s_balance)
+            s_phone.link(s_meta)
+            # block time plus a bit of time for ussd processing
+            s_phone.apply_async(countdown=7)
 
-                i += 1
-                sys.stdout.write('imported {} {}'.format(i, u).ljust(200) + "\r")
+            i += 1
+            sys.stdout.write('imported {} {}'.format(i, u).ljust(200) + "\r")
 
-                j += 1
-                if j == batch_size:
-                    time.sleep(batch_delay)
-                    j = 0
+            j += 1
+            if j == batch_size:
+                time.sleep(batch_delay)
+                j = 0
 

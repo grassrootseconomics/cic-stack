@@ -26,7 +26,7 @@ from cic_ussd.metadata.base import Metadata
 from cic_ussd.operations import (define_response_with_content,
                                  process_menu_interaction_requests,
                                  define_multilingual_responses)
-from cic_ussd.phone_number import process_phone_number, Support
+from cic_ussd.phone_number import process_phone_number, Support, E164Format
 from cic_ussd.processor import get_default_token_data
 from cic_ussd.redis import cache_data, create_cached_data_key, InMemoryStore
 from cic_ussd.requests import (get_request_endpoint,
@@ -55,8 +55,6 @@ data_source_name = dsn_from_config(config)
 SessionBase.connect(data_source_name,
                     pool_size=int(config.get('DATABASE_POOL_SIZE')),
                     debug=config.true('DATABASE_DEBUG'))
-# create session for the life time of http request
-SessionBase.session = SessionBase.create_session()
 
 # set up translations
 i18n.load_path.append(config.get('APP_LOCALE_PATH'))
@@ -126,6 +124,7 @@ else:
 
 valid_service_codes = config.get('APP_SERVICE_CODE').split(",")
 
+E164Format.region = config.get('PHONE_NUMBER_REGION')
 Support.phone_number = config.get('APP_SUPPORT_PHONE_NUMBER')
 
 
@@ -142,10 +141,13 @@ def application(env, start_response):
     errors_headers = [('Content-Type', 'text/plain'), ('Content-Length', '0')]
     headers = [('Content-Type', 'text/plain')]
 
+    # create session for the life time of http request
+    session = SessionBase.create_session()
+
     if get_request_method(env=env) == 'POST' and get_request_endpoint(env=env) == '/':
 
         if env.get('CONTENT_TYPE') != 'application/x-www-form-urlencoded':
-            start_response('405 Play by the rules', errors_headers)
+            start_response('405 Urlencoded, please', errors_headers)
             return []
 
         post_data = env.get('wsgi.input').read()
@@ -168,7 +170,7 @@ def application(env, start_response):
 
         # add validation for phone number
         if phone_number:
-            phone_number = process_phone_number(phone_number=phone_number, region=config.get('PHONE_NUMBER_REGION'))
+            phone_number = process_phone_number(phone_number=phone_number, region=E164Format.region)
 
         # validate ip address
         if not check_ip(config=config, env=env):
@@ -205,14 +207,20 @@ def application(env, start_response):
                                                      phone_number=phone_number,
                                                      queue=args.q,
                                                      service_code=service_code,
+                                                     session=session,
                                                      user_input=user_input)
 
         response_bytes, headers = define_response_with_content(headers=headers, response=response)
         start_response('200 OK,', headers)
-        SessionBase.session.close()
+        session.commit()
+        session.close()
         return [response_bytes]
 
     else:
+        logg.error('invalid query {}'.format(env))
+        for r in env:
+            logg.debug('{}: {}'.format(r, env))
+        session.close()
         start_response('405 Play by the rules', errors_headers)
         return []
 

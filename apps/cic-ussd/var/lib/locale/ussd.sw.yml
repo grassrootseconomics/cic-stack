@@ -17,6 +17,9 @@ sw:
     enter_family_name: |-
       CON Weka jina lako la mwisho
       0. Nyuma
+    enter_date_of_birth: |-
+      CON Weka mwaka wa kuzaliwa
+      0. Nyuma
     enter_gender: |-
       CON Weka jinsia yako
       1. Mwanaume
@@ -52,14 +55,16 @@ sw:
       CON Wasifu wangu
       1. Weka jina
       2. Weka jinsia
-      3. Weka eneo
-      4. Weka bidhaa
-      5. Angalia wasifu wako
+      3. Weka umri
+      4. Weka eneo
+      5. Weka bidhaa
+      6. Angalia wasifu wako
       0. Nyuma
     display_user_metadata: |-
       CON Wasifu wako una maelezo yafuatayo:
         Jina: %{full_name}
         Jinsia: %{gender}
+        Umri: %{age}
         Eneo: %{location}
         Unauza: %{products}
       0. Nyuma
@@ -111,6 +116,13 @@ sw:
         CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
         0. Nyuma
     name_edit_pin_authorization:
+      first: |-
+        CON Tafadhali weka PIN yako
+        0. Nyuma
+      retry: |-
+        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
+        0. Nyuma
+    dob_edit_pin_authorization:
       first: |-
         CON Tafadhali weka PIN yako
         0. Nyuma

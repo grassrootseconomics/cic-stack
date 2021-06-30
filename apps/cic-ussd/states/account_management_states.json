@@ -7,6 +7,7 @@
   "new_pin_confirmation",
   "display_user_metadata",
   "name_edit_pin_authorization",
+  "dob_edit_pin_authorization",
   "gender_edit_pin_authorization",
   "location_edit_pin_authorization",
   "products_edit_pin_authorization",

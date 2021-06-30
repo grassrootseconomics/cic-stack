@@ -1,6 +1,7 @@
 # standard imports
 import os
 import logging
+import random
 import urllib.parse
 import urllib.error
 import urllib.request
@@ -135,6 +136,42 @@ def generate_metadata(self, address, phone):
             '{}.json'.format(new_address_clean.upper()),
             )
     os.symlink(os.path.realpath(filepath), meta_filepath)
+
+    # write ussd data
+    ussd_data = {
+        'phone': phone,
+        'is_activated': 1,
+        'preferred_language': random.sample(['en', 'sw'], 1)[0],
+        'is_disabled': False
+    }
+    ussd_data_dir = os.path.join(self.import_dir, 'ussd')
+    ussd_data_file_path = os.path.join(ussd_data_dir, f'{old_address}.json')
+    f = open(ussd_data_file_path, 'w')
+    f.write(json.dumps(ussd_data))
+    f.close()
+
+    # write preferences data
+    preferences_dir = os.path.join(self.import_dir, 'preferences')
+    preferences_data = {
+        'preferred_language': ussd_data['preferred_language']
+    }
+
+    preferences_key = generate_metadata_pointer(bytes.fromhex(new_address_clean[2:]), ':cic.preferences')
+    preferences_filepath = os.path.join(preferences_dir, 'meta', preferences_key)
+
+    filepath = os.path.join(
+        preferences_dir,
+        'new',
+        preferences_key[:2].upper(),
+        preferences_key[2:4].upper(),
+        preferences_key.upper() + '.json'
+    )
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
+    f = open(filepath, 'w')
+    f.write(json.dumps(preferences_data))
+    f.close()
+    os.symlink(os.path.realpath(filepath), preferences_filepath)
 
     logg.debug('found metadata {} for phone {}'.format(o, phone))
 

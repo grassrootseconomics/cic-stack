@@ -17,6 +17,9 @@ en:
     enter_family_name: |-
       CON Enter family name
       0. Back
+    enter_date_of_birth: |-
+      CON Enter year of birth
+      0. Back
     enter_gender: |-
       CON Enter gender
       1. Male
@@ -52,14 +55,16 @@ en:
       CON My profile
       1. Edit name
       2. Edit gender
-      3. Edit location
-      4. Edit products
-      5. View my profile
+      3. Edit age
+      4. Edit location
+      5. Edit products
+      6. View my profile
       0. Back
     display_user_metadata: |-
       CON Your details are:
         Name: %{full_name}
         Gender: %{gender}
+        Age: %{age}
         Location: %{location}
         You sell: %{products}
       0. Back
@@ -111,6 +116,13 @@ en:
         CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
         0. Back
     name_edit_pin_authorization:
+      first: |-
+        CON Please enter your PIN
+        0. Back
+      retry: |-
+        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
+        0. Back
+    dob_edit_pin_authorization:
       first: |-
         CON Please enter your PIN
         0. Back

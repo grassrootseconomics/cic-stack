@@ -275,6 +275,18 @@
             "display_key": "ussd.kenya.new_pin_confirmation",
             "name": "new_pin_confirmation",
             "parent": "metadata_management"
+        },
+        "47": {
+            "description": "Year of birth entry menu.",
+            "display_key": "ussd.kenya.enter_date_of_birth",
+            "name": "enter_date_of_birth",
+            "parent": "metadata_management"
+        },
+        "48": {
+            "description": "Pin entry menu for changing year of birth data.",
+            "display_key": "ussd.kenya.dob_edit_pin_authorization",
+            "name": "dob_edit_pin_authorization",
+            "parent": "metadata_management"
         }
 
     }

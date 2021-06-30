@@ -9,6 +9,7 @@ import sys
 import urllib
 import urllib.request
 import uuid
+import urllib.parse
 
 # external imports
 import celery
@@ -24,7 +25,7 @@ from chainlib.eth.gas import (
 )
 from chainlib.eth.tx import TxFactory
 from chainlib.hash import keccak256_string_to_hex
-from chainlib.jsonrpc import jsonrpc_template
+from chainlib.jsonrpc import JSONRPCRequest
 from cic_types.models.person import (
     Person,
     generate_metadata_pointer,
@@ -72,7 +73,7 @@ argparser.add_argument('--ussd-provider', type=str, dest='ussd_provider', defaul
 argparser.add_argument('--skip-custodial', dest='skip_custodial', action='store_true', help='skip all custodial verifications')
 argparser.add_argument('--exclude', action='append', type=str, default=[], help='skip specified verification')
 argparser.add_argument('--include', action='append', type=str, help='include specified verification')
-argparser.add_argument('--token-symbol', default='SRF', type=str, dest='token_symbol', help='Token symbol to use for trnsactions')
+argparser.add_argument('--token-symbol', default='GFT', type=str, dest='token_symbol', help='Token symbol to use for trnsactions')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-x', '--exit-on-error', dest='x', action='store_true', help='Halt exection on error')
@@ -185,9 +186,9 @@ def send_ussd_request(address, data_dir):
     }
 
     req = urllib.request.Request(config.get('_USSD_PROVIDER'))
-    data_str = json.dumps(data)
-    data_bytes = data_str.encode('utf-8')
-    req.add_header('Content-Type', 'application/json')
+    urlencoded_data = urllib.parse.urlencode(data)
+    data_bytes = urlencoded_data.encode('utf-8')
+    req.add_header('Content-Type', 'application/x-www-form-urlencoded')
     req.data = data_bytes
     response = urllib.request.urlopen(req)
     return response.read().decode('utf-8')
@@ -263,9 +264,11 @@ class Verifier:
         data += eth_abi.encode_single('address', address).hex()
         tx = self.tx_factory.set_code(tx, data)
         tx = self.tx_factory.normalize(tx)
-        o = jsonrpc_template()
+        j = JSONRPCRequest()
+        o = j.template()
         o['method'] = 'eth_call'
         o['params'].append(tx)
+        o = j.finalize(o)
         r = self.conn.do(o)
         logg.debug('index check for {}: {}'.format(address, r))
         n = eth_abi.decode_single('uint256', bytes.fromhex(strip_0x(r)))
@@ -388,9 +391,8 @@ class Verifier:
 
     def verify_ussd_pins(self, address, balance):
         response_data = send_ussd_request(address, self.data_dir)
-        if response_data[:11] != 'CON Balance':
+        if response_data[:11] != 'CON Balance' and response_data[:9] != 'CON Salio':
             raise VerifierError(response_data, 'pins')
-
 
     def verify(self, address, balance, debug_stem=None):
   
@@ -429,10 +431,12 @@ def main():
     data += eth_abi.encode_single('bytes32', b'TokenRegistry').hex()
     txf.set_code(tx, data)
     
-    o = jsonrpc_template()
+    j = JSONRPCRequest()
+    o = j.template()
     o['method'] = 'eth_call'
     o['params'].append(txf.normalize(tx))
     o['params'].append('latest')
+    o = j.finalize(o)
     r = conn.do(o)
     token_index_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     logg.info('found token index address {}'.format(token_index_address))
@@ -441,10 +445,11 @@ def main():
     data += eth_abi.encode_single('bytes32', b'AccountRegistry').hex()
     txf.set_code(tx, data)
     
-    o = jsonrpc_template()
+    o = j.template()
     o['method'] = 'eth_call'
     o['params'].append(txf.normalize(tx))
     o['params'].append('latest')
+    o = j.finalize(o)
     r = conn.do(o)
     account_index_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     logg.info('found account index address {}'.format(account_index_address))
@@ -453,10 +458,11 @@ def main():
     data += eth_abi.encode_single('bytes32', b'Faucet').hex()
     txf.set_code(tx, data)
     
-    o = jsonrpc_template()
+    o = j.template()
     o['method'] = 'eth_call'
     o['params'].append(txf.normalize(tx))
     o['params'].append('latest')
+    o = j.finalize(o)
     r = conn.do(o)
     faucet_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     logg.info('found faucet {}'.format(faucet_address))
@@ -471,10 +477,11 @@ def main():
     z = h.digest()
     data += eth_abi.encode_single('bytes32', z).hex()
     txf.set_code(tx, data)
-    o = jsonrpc_template()
+    o = j.template()
     o['method'] = 'eth_call'
     o['params'].append(txf.normalize(tx))
     o['params'].append('latest')
+    o = j.finalize(o)
     r = conn.do(o)
     sarafu_token_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     logg.info('found token address {}'.format(sarafu_token_address))

@@ -53,13 +53,25 @@ def process_account_creation_callback(self, result: str, url: str, status_code: 
             session.add(user)
             session.commit()
             session.close()
-    
+
             queue = self.request.delivery_info.get('routing_key')
-            s = celery.signature(
+
+            # add phone number metadata lookup
+            s_phone_pointer = celery.signature(
                     'cic_ussd.tasks.metadata.add_phone_pointer',
                     [result, phone_number]
                     )
-            s.apply_async(queue=queue)
+            s_phone_pointer.apply_async(queue=queue)
+
+            # add custom metadata tags
+            custom_metadata = {
+                "tags": ["ussd", "individual"]
+            }
+            s_custom_metadata = celery.signature(
+                'cic_ussd.tasks.metadata.add_custom_metadata',
+                [result, custom_metadata]
+            )
+            s_custom_metadata.apply_async(queue=queue)
 
             # expire cache
             cache.expire(task_id, timedelta(seconds=180))

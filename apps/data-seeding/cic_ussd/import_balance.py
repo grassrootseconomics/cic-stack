@@ -70,6 +70,7 @@ args_override = {
         'REDIS_DB': getattr(args, 'redis_db'),
         'META_HOST': getattr(args, 'meta_host'),
         'META_PORT': getattr(args, 'meta_port'),
+        'KEYSTORE_FILE_PATH': getattr(args, 'y')
         }
 config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')
@@ -114,7 +115,7 @@ def main():
     conn = EthHTTPConnection(config.get('ETH_PROVIDER'))
    
     ImportTask.balance_processor = BalanceProcessor(conn, chain_spec, config.get('CIC_REGISTRY_ADDRESS'), signer_address, signer)
-    ImportTask.balance_processor.init()
+    ImportTask.balance_processor.init(token_symbol)
 
     # TODO get decimals from token
     balances = {}
@@ -139,6 +140,7 @@ def main():
 
     ImportTask.balances = balances
     ImportTask.count = i
+    ImportTask.import_dir = user_dir
 
     s = celery.signature(
             'import_task.send_txs',

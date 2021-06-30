@@ -87,10 +87,18 @@ for key in config.store.keys():
         module = importlib.import_module(config.store[key])
         if key == 'TASKS_AFRICASTALKING':
             africastalking_notifier = module.AfricasTalkingNotifier
+
+            api_sender_id = config.get('AFRICASTALKING_API_SENDER_ID')
+            logg.debug(f'SENDER ID VALUE IS: {api_sender_id}')
+
+            if not api_sender_id:
+                api_sender_id = None
+                logg.debug(f'SENDER ID RESOLVED TO NONE: {api_sender_id}')
+
             africastalking_notifier.initialize(
                 config.get('AFRICASTALKING_API_USERNAME'),
                 config.get('AFRICASTALKING_API_KEY'),
-                config.get('AFRICASTALKING_API_SENDER_ID')
+                api_sender_id
             )
 
 

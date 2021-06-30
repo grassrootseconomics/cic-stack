@@ -7,8 +7,10 @@ from hexathon import strip_0x
 
 # local imports
 from cic_ussd.metadata import blockchain_address_to_metadata_pointer
+from cic_ussd.metadata.custom import CustomMetadata
 from cic_ussd.metadata.person import PersonMetadata
 from cic_ussd.metadata.phone import PhonePointerMetadata
+from cic_ussd.metadata.preferences import PreferencesMetadata
 from cic_ussd.tasks.base import CriticalMetadataTask
 
 celery_app = celery.current_app
@@ -44,7 +46,7 @@ def create_person_metadata(blockchain_address: str, data: dict):
 
 
 @celery_app.task
-def edit_person_metadata(blockchain_address: str, data: bytes):
+def edit_person_metadata(blockchain_address: str, data: dict):
     identifier = blockchain_address_to_metadata_pointer(blockchain_address=blockchain_address)
     person_metadata_client = PersonMetadata(identifier=identifier)
     person_metadata_client.edit(data=data)
@@ -56,3 +58,17 @@ def add_phone_pointer(self, blockchain_address: str, phone_number: str):
     stripped_address = strip_0x(blockchain_address)
     phone_metadata_client = PhonePointerMetadata(identifier=identifier)
     phone_metadata_client.create(data=stripped_address)
+
+
+@celery_app.task()
+def add_custom_metadata(blockchain_address: str, data: dict):
+    identifier = blockchain_address_to_metadata_pointer(blockchain_address=blockchain_address)
+    custom_metadata_client = CustomMetadata(identifier=identifier)
+    custom_metadata_client.create(data=data)
+
+
+@celery_app.task()
+def add_preferences_metadata(blockchain_address: str, data: dict):
+    identifier = blockchain_address_to_metadata_pointer(blockchain_address=blockchain_address)
+    custom_metadata_client = PreferencesMetadata(identifier=identifier)
+    custom_metadata_client.create(data=data)

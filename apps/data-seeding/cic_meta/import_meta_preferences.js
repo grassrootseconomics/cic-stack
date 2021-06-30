@@ -31,35 +31,26 @@ function sendit(uid, envelope) {
 	const req = http.request(url + uid, opts, (res) => {
 		res.on('data', process.stdout.write);
 		res.on('end', () => {
-        if (!res.complete) {
-            console.log('The connection was terminated while the message was being sent.')
-        }
 			console.log('result', res.statusCode, res.headers);
 		});
 	});
-  req.on('error', (err) => {
-      console.log('ERROR when talking to meta', err)
-  })
-  req.write(d)
+	if (!req.write(d)) {
+		console.error('foo', d);
+		process.exit(1);
+	}
 	req.end();
 }
 
-function doOne(keystore, filePath) {
+function doOne(keystore, filePath, identifier) {
 	const signer = new crdt.PGPSigner(keystore);
-	const parts = path.basename(filePath).split('.');
-	const ethereum_address = path.basename(parts[0]);
 
-	cic.User.toKey('0x' + ethereum_address).then((uid) => {
-		const d = fs.readFileSync(filePath, 'utf-8');
-		const o = JSON.parse(d);
-		//console.log(o);
-		fs.unlinkSync(filePath);
+	const o = JSON.parse(fs.readFileSync(filePath).toString());
 
+	cic.Custom.toKey(identifier).then((uid) => {
 		const s = new crdt.Syncable(uid, o);
 		s.setSigner(signer);
 		s.onwrap = (env) => {
-      console.log(`Sending uid: ${uid} and env: ${env} to meta`)
-			sendit(uid, env);
+			sendit(identifier, env);
 		};
 		s.sign();
 	});
@@ -76,19 +67,20 @@ new crdt.PGPKeyStore(
 	pubk,
 	undefined,
 	undefined,
-	importMeta,
+	importMetaCustom,
 );
 
 const batchSize = 16;
 const batchDelay = 1000;
 const total = parseInt(process.argv[3]);
-const workDir = path.join(process.argv[2], 'meta');
+const dataDir = process.argv[2];
+const workDir = path.join(dataDir, 'preferences/meta');
+const userDir = path.join(dataDir, 'preferences/new');
 let count = 0;
 let batchCount = 0;
 
 
-function importMeta(keystore) {
-  console.log('Running importMeta....')
+function importMetaCustom(keystore) {
 	let err;
 	let files;
 
@@ -96,38 +88,46 @@ function importMeta(keystore) {
 		err, files = fs.readdirSync(workDir);
 	} catch {
 		console.error('source directory not yet ready', workDir);
-		setTimeout(importMeta, batchDelay, keystore);
+		setTimeout(importMetaCustom, batchDelay, keystore);
 		return;
 	}
-  console.log(`Trying to read ${files.length} files`)
-  if (files === 0) {
-    console.log(`ERROR did not find any files under ${workDir}. \nLooks like there is no work for me, bailing!`)
-    process.exit(1)
-  }
 	let limit = batchSize;
 	if (files.length < limit) {
 		limit = files.length;
 	}
 	for (let i = 0; i < limit; i++) {
 		const file = files[i];
-		if (file.substr(-5) != '.json') {
-			console.debug('skipping file', file);	
+		if (file.length < 3) {
+			console.debug('skipping file', file);
 			continue;
 		}
+		//const identifier = file.substr(0,file.length-5);
+		const identifier = file;
 		const filePath = path.join(workDir, file);
-		doOne(keystore, filePath);
+		console.log(filePath);
+
+		//const address = fs.readFileSync(filePath).toString().substring(2).toUpperCase();
+		const custom = JSON.parse(fs.readFileSync(filePath).toString());
+		const customFilePath = path.join(
+			userDir,
+			identifier.substring(0, 2),
+			identifier.substring(2, 4),
+			identifier + '.json',
+		);
+
+		doOne(keystore, filePath, identifier);
+		fs.unlinkSync(filePath);
 		count++;
 		batchCount++;
-    //console.log('done one', count, batchCount)
 		if (batchCount == batchSize) {
 			console.debug('reached batch size, breathing');
 			batchCount=0;
-			setTimeout(importMeta, batchDelay, keystore);
+			setTimeout(importMetaCustom, batchDelay, keystore);
 			return;
 		}
 	}
 	if (count == total) {
 		return;
 	}
-	setTimeout(importMeta, 100, keystore);
+	setTimeout(importMetaCustom, 100, keystore);
 }

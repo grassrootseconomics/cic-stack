@@ -18,19 +18,17 @@ from hexathon import (
         add_0x,
         )
 from chainsyncer.backend.memory import MemBackend
-from chainsyncer.driver import HeadSyncer
+from chainsyncer.driver.head import HeadSyncer
 from chainlib.eth.connection import EthHTTPConnection
 from chainlib.eth.block import (
         block_latest,
-        block_by_number,
-        Block,
         )
 from chainlib.hash import keccak256_string_to_hex
 from chainlib.eth.address import to_checksum_address
 from chainlib.eth.gas import OverrideGasOracle
 from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.tx import TxFactory
-from chainlib.jsonrpc import jsonrpc_template
+from chainlib.jsonrpc import JSONRPCRequest
 from chainlib.eth.error import EthException
 from chainlib.chain import ChainSpec
 from chainlib.eth.constant import ZERO_ADDRESS
@@ -38,6 +36,7 @@ from crypto_dev_signer.eth.signer import ReferenceSigner as EIP155Signer
 from crypto_dev_signer.keystore.dict import DictKeystore
 from cic_types.models.person import Person
 from eth_erc20 import ERC20
+from cic_base.eth.syncer import chain_interface
 
 
 logging.basicConfig(level=logging.WARNING)
@@ -70,12 +69,14 @@ elif args.vv == True:
 config_dir = os.path.join(args.c)
 os.makedirs(config_dir, 0o777, True)
 config = confini.Config(config_dir, args.env_prefix)
-config.process()
 # override args
+config.process()
+logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
 args_override = {
         'CIC_CHAIN_SPEC': getattr(args, 'i'),
         'ETH_PROVIDER': getattr(args, 'p'),
         'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
+        'KEYSTORE_FILE_PATH': getattr(args, 'y'),
         }
 config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')
@@ -184,27 +185,6 @@ class Handler:
         #    logg.error('key record not found in imports: {}'.format(e).ljust(200))
 
 
-#class BlockGetter:
-#
-#    def __init__(self, conn, gas_oracle, nonce_oracle, chain_spec):
-#        self.conn = conn
-#        self.tx_factory = ERC20(signer=signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle, chain_id=chain_id)
-#
-#
-#    def get(self, n):
-#        o = block_by_number(n)
-#        r = self.conn.do(o)
-#        b = None
-#        try:
-#            b = Block(r)
-#        except TypeError as e:
-#            if r == None:
-#                logg.debug('block not found {}'.format(n))
-#            else:
-#                logg.error('block retrieve error {}'.format(e))
-#        return b
-
-
 def progress_callback(block_number, tx_index):
     sys.stdout.write(str(block_number).ljust(200) + "\n")
 
@@ -225,11 +205,13 @@ def main():
     data = add_0x(registry_addressof_method)
     data += eth_abi.encode_single('bytes32', b'TokenRegistry').hex()
     txf.set_code(tx, data)
-    
-    o = jsonrpc_template()
+   
+    j = JSONRPCRequest()
+    o = j.template()
     o['method'] = 'eth_call'
     o['params'].append(txf.normalize(tx))
     o['params'].append('latest')
+    o = j.finalize(o)
     r = conn.do(o)
     token_index_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
     logg.info('found token index address {}'.format(token_index_address))
@@ -243,10 +225,11 @@ def main():
     z = h.digest()
     data += eth_abi.encode_single('bytes32', z).hex()
     txf.set_code(tx, data)
-    o = jsonrpc_template()
+    o = j.template()
     o['method'] = 'eth_call'
     o['params'].append(txf.normalize(tx))
     o['params'].append('latest')
+    o = j.finalize(o)
     r = conn.do(o)
     try:
         sarafu_token_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
@@ -304,7 +287,7 @@ def main():
     f.close()
 
     syncer_backend.set(block_offset, 0)
-    syncer = HeadSyncer(syncer_backend, block_callback=progress_callback)
+    syncer = HeadSyncer(syncer_backend, chain_interface, block_callback=progress_callback)
     handler = Handler(conn, chain_spec, user_dir, balances, sarafu_token_address, signer, gas_oracle, nonce_oracle)
     syncer.add_filter(handler)
     syncer.loop(1, conn)

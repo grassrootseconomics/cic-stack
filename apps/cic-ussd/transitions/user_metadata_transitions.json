@@ -14,20 +14,26 @@
   {
     "trigger": "scan_data",
     "source": "metadata_management",
-    "dest": "enter_location",
+    "dest": "enter_date_of_birth",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_three_selected"
   },
   {
     "trigger": "scan_data",
     "source": "metadata_management",
-    "dest": "enter_products",
+    "dest": "enter_location",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_four_selected"
   },
   {
     "trigger": "scan_data",
     "source": "metadata_management",
-    "dest": "display_metadata_pin_authorization",
+    "dest": "enter_products",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_five_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "metadata_management",
+    "dest": "display_metadata_pin_authorization",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_six_selected"
   },
   {
     "trigger": "scan_data",

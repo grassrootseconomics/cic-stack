@@ -125,46 +125,6 @@ def second_profile_management_session_id() -> str:
 
 
 @pytest.fixture(scope='session')
-def first_account_change_given_name() -> str:
-    return fake.first_name()
-
-
-@pytest.fixture(scope='session')
-def second_account_change_given_name() -> str:
-    return fake.first_name()
-
-
-@pytest.fixture(scope='session')
-def first_account_change_family_name() -> str:
-    return fake.last_name()
-
-
-@pytest.fixture(scope='session')
-def second_account_change_family_name() -> str:
-    return fake.last_name()
-
-
-@pytest.fixture(scope='session')
-def first_account_change_location() -> str:
-    return fake.city()
-
-
-@pytest.fixture(scope='session')
-def second_account_change_location() -> str:
-    return fake.city()
-
-
-@pytest.fixture(scope='session')
-def first_account_change_product() -> str:
-    return fake.color_name()
-
-
-@pytest.fixture(scope='session')
-def second_account_change_product() -> str:
-    return fake.color_name()
-
-
-@pytest.fixture(scope='session')
 def first_profile_management_session_id_1() -> str:
     return session_id()
 

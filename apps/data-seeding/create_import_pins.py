@@ -3,6 +3,7 @@ import argparse
 import json
 import logging
 import os
+import uuid
 
 # third-party imports
 import bcrypt
@@ -83,7 +84,7 @@ if __name__ == '__main__':
 
                 phone_object = phonenumbers.parse(u.tel)
                 phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
-                password_hash = generate_password_hash()
+                password_hash = uuid.uuid4().hex
                 pins_file.write(f'{phone},{password_hash}\n')
                 logg.info(f'Writing phone: {phone}, password_hash: {password_hash}')
 

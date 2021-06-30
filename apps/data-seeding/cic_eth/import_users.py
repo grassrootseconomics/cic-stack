@@ -194,8 +194,7 @@ if __name__ == '__main__':
             f.write(json.dumps(o))
             f.close()
 
-            #fi.write('{},{}\n'.format(new_address, old_address))
-            meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), 'cic.person')
+            meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), ':cic.person')
             meta_filepath = os.path.join(meta_dir, '{}.json'.format(new_address_clean.upper()))
             os.symlink(os.path.realpath(filepath), meta_filepath)
 
@@ -221,7 +220,7 @@ if __name__ == '__main__':
 
 
             # custom data
-            custom_key = generate_metadata_pointer(phone.encode('utf-8'), ':cic.custom')
+            custom_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), ':cic.custom')
             custom_filepath = os.path.join(custom_dir, 'meta', custom_key)
 
             filepath = os.path.join(
