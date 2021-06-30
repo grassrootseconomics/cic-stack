@@ -14,13 +14,13 @@ repos=(../../cic-cache ../../cic-eth ../../cic-ussd ../../data-seeding ../../cic
 for r in ${repos[@]}; do
 	f="$r/requirements.txt"
 	>&2 echo updating $f
-	pyreq-update $f base_requirement.txt > $t
+	pyreq-update $f base_requirement.txt -v > $t 
 	cp $t $f
 
 	f="$r/test_requirements.txt"
 	if [ -f $f ]; then
 		>&2 echo updating $f
-		pyreq-update $f base_requirement.txt > $t
+		pyreq-update $f base_requirement.txt -v > $t
 		cp $t $f
 	fi
 done

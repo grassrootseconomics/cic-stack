@@ -254,6 +254,10 @@ class Verifier:
             if len(k) > 7 and k[:7] == 'verify_':
                 logg.debug('verifier has verify method {}'.format(k))
                 verifymethods.append(k[7:])
+        o = self.faucet_tx_factory.token_amount(self.faucet_address, sender_address=ZERO_ADDRESS)
+        r = self.conn.do(o)
+        self.faucet_amount = self.faucet_tx_factory.parse_token_amount(r)
+        logg.info('faucet amount set to {} at verify initialization time'.format(self.faucet_amount))
 
         self.state = VerifierState(verifymethods, active_tests=active_tests)
 
@@ -284,6 +288,7 @@ class Verifier:
         except ValueError:
             actual_balance = int(r)
         balance = int(balance / 1000000) * 1000000
+        balance += self.faucet_amount
         logg.debug('balance for {}: {}'.format(address, balance))
         if balance != actual_balance:
             raise VerifierError((actual_balance, balance), 'balance')

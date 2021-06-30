@@ -2,13 +2,13 @@
 import os
 import logging
 
-# third-party imports
+# external imports
 import pytest
 import confini
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
-root_dir = os.path.dirname(script_dir)
-logg = logging.getLogger(__file__)
+root_dir = os.path.dirname(os.path.dirname(script_dir))
+logg = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='session')
