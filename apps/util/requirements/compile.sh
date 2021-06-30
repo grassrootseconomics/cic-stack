@@ -13,19 +13,27 @@ out=$(mktemp)
 >&2 echo using tmp $t
 cat ../../requirements.txt > $out
 
-repos=(../../cic-cache ../../cic-eth ../../cic-ussd ../../data-seeding ../../cic-notify)
+repos=(../../cic-cache ../../cic-eth ../../cic-ussd ../../data-seeding ../../cic-notify ../../contract-migration)
 
 
 for r in ${repos[@]}; do
 	f="$r/requirements.txt"
 	>&2 echo updating $f
 	pyreq-merge $f $out -vv > $in
+	if [ $? -gt 0 ]; then
+		>&2 echo requirement prepare failed for $f
+		exit 1
+	fi
 	cp $in $out
 
 	f="$r/test_requirements.txt"
 	if [ -f $f ]; then
 		>&2 echo updating $f
 		pyreq-merge $f $out -vv > $in
+		if [ $? -gt 0 ]; then
+			>&2 echo requirement prepare failed for $f
+			exit 1
+		fi
 		cp $in $out
 	fi
 done
@@ -41,7 +49,7 @@ for r in ${repos[@]}; do
 	mkdir -vp $outd/$d
 	echo "-r $f" > $outd/$d/$b_in
 	pyreq-update -v $f compiled_requirements.txt >> $outd/$d/$b_in
-	pip-compile -v --extra-index-url $PIP_INDEX_URL $outd/$d/$b_in -o $outd/$d/$b
+	pip-compile --pre -v --extra-index-url $PIP_INDEX_URL $outd/$d/$b_in -o $outd/$d/$b
 	if [ $? -gt 0 ]; then
 		>&2 echo requirement compile failed for $f
 		exit 1
