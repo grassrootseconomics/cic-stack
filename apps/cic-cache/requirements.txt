@@ -1,12 +1,13 @@
-cic-base~=0.1.2b10
+cic-base==0.1.3a3+build.4aa03607
 alembic==1.4.2
 confini~=0.3.6rc3
 uwsgi==2.0.19.1
 moolb~=0.1.0
-cic-eth-registry~=0.5.5a4
+cic-eth-registry~=0.5.6a1
 SQLAlchemy==1.3.20
 semver==2.13.0
 psycopg2==2.8.6
 celery==4.4.7
 redis==3.5.3
-chainsyncer[sql]~=0.0.2a4
+chainsyncer[sql]~=0.0.3a3
+erc20-faucet~=0.2.2a1

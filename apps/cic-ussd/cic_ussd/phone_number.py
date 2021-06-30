@@ -33,19 +33,5 @@ def process_phone_number(phone_number: str, region: str):
 
     return parsed_phone_number
 
-
-def get_user_by_phone_number(phone_number: str) -> Optional[Account]:
-    """This function queries the database for a user based on the provided phone number.
-    :param phone_number: A valid phone number.
-    :type phone_number: str
-    :return: A user object matching a given phone number
-    :rtype: Account|None
-    """
-    # consider adding region to user's metadata
-    phone_number = process_phone_number(phone_number=phone_number, region=E164Format.region)
-    user = Account.session.query(Account).filter_by(phone_number=phone_number).first()
-    return user
-
-
 class Support:
     phone_number = None

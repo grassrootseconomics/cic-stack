@@ -15,6 +15,7 @@ import cic_base.config
 import cic_base.log
 import cic_base.argparse
 import cic_base.rpc
+from cic_base.eth.syncer import chain_interface
 from cic_eth_registry.error import UnknownContractError
 from chainlib.chain import ChainSpec
 from chainlib.eth.constant import ZERO_ADDRESS
@@ -26,10 +27,8 @@ from hexathon import (
         strip_0x,
         )
 from chainsyncer.backend.sql import SQLBackend
-from chainsyncer.driver import (
-        HeadSyncer,
-        HistorySyncer,
-        )
+from chainsyncer.driver.head import HeadSyncer
+from chainsyncer.driver.history import HistorySyncer
 from chainsyncer.db.models.base import SessionBase
 
 # local imports
@@ -80,6 +79,7 @@ chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 cic_base.rpc.setup(chain_spec, config.get('ETH_PROVIDER'))
 
 
+
 def main():
     # connect to celery
     celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
@@ -121,11 +121,11 @@ def main():
 
     for syncer_backend in syncer_backends:
         try:
-            syncers.append(HistorySyncer(syncer_backend))
+            syncers.append(HistorySyncer(syncer_backend, chain_interface))
             logg.info('Initializing HISTORY syncer on backend {}'.format(syncer_backend))
         except AttributeError:
             logg.info('Initializing HEAD syncer on backend {}'.format(syncer_backend))
-            syncers.append(HeadSyncer(syncer_backend))
+            syncers.append(HeadSyncer(syncer_backend, chain_interface))
 
     connect_registry(rpc, chain_spec, config.get('CIC_REGISTRY_ADDRESS'))
 

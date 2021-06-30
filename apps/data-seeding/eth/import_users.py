@@ -59,7 +59,7 @@ config.process()
 args_override = {
         'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
         'CIC_CHAIN_SPEC': getattr(args, 'i'),
-        'KEYSTORE_FILE_PATH': getattr(args, 'key-file')
+        'KEYSTORE_FILE_PATH': getattr(args, 'y')
         }
 config.dict_override(args_override, 'cli')
 config.add(args.user_dir, '_USERDIR', True)

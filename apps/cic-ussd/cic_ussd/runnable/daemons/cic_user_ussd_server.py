@@ -55,8 +55,6 @@ data_source_name = dsn_from_config(config)
 SessionBase.connect(data_source_name,
                     pool_size=int(config.get('DATABASE_POOL_SIZE')),
                     debug=config.true('DATABASE_DEBUG'))
-# create session for the life time of http request
-SessionBase.session = SessionBase.create_session()
 
 # set up translations
 i18n.load_path.append(config.get('APP_LOCALE_PATH'))
@@ -143,6 +141,9 @@ def application(env, start_response):
     errors_headers = [('Content-Type', 'text/plain'), ('Content-Length', '0')]
     headers = [('Content-Type', 'text/plain')]
 
+    # create session for the life time of http request
+    session = SessionBase.create_session()
+
     if get_request_method(env=env) == 'POST' and get_request_endpoint(env=env) == '/':
 
         if env.get('CONTENT_TYPE') != 'application/x-www-form-urlencoded':
@@ -206,17 +207,20 @@ def application(env, start_response):
                                                      phone_number=phone_number,
                                                      queue=args.q,
                                                      service_code=service_code,
+                                                     session=session,
                                                      user_input=user_input)
 
         response_bytes, headers = define_response_with_content(headers=headers, response=response)
         start_response('200 OK,', headers)
-        SessionBase.session.close()
+        session.commit()
+        session.close()
         return [response_bytes]
 
     else:
         logg.error('invalid query {}'.format(env))
         for r in env:
             logg.debug('{}: {}'.format(r, env))
+        session.close()
         start_response('405 Play by the rules', errors_headers)
         return []
 

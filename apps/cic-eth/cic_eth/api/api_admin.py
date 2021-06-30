@@ -562,13 +562,13 @@ class AdminApi:
             tx['source_token_symbol'] = source_token.symbol
             o = erc20_c.balance_of(tx['source_token'], tx['sender'], sender_address=self.call_address)
             r = self.rpc.do(o)
-            tx['sender_token_balance'] = erc20_c.parse_balance_of(r)
+            tx['sender_token_balance'] = erc20_c.parse_balance(r)
 
         if destination_token != None:
             tx['destination_token_symbol'] = destination_token.symbol
             o = erc20_c.balance_of(tx['destination_token'], tx['recipient'], sender_address=self.call_address)
             r = self.rpc.do(o)
-            tx['recipient_token_balance'] = erc20_c.parse_balance_of(r)
+            tx['recipient_token_balance'] = erc20_c.parse_balance(r)
             #tx['recipient_token_balance'] = destination_token.function('balanceOf')(tx['recipient']).call()
 
         # TODO: this can mean either not subitted or culled, need to check other txs with same nonce to determine which

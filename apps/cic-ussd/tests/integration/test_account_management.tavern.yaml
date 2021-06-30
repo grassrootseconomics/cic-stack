@@ -31,7 +31,6 @@ stages:
       status_code:
         - 200
       headers:
-        Content-Length: '51'
         Content-Type: "text/plain"
       verify_response_with:
         function: ext.validator:validate_response

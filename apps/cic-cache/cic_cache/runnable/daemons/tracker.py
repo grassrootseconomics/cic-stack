@@ -16,6 +16,7 @@ import cic_base.config
 import cic_base.log
 import cic_base.argparse
 import cic_base.rpc
+from cic_base.eth.syncer import chain_interface
 from cic_eth_registry import CICRegistry
 from cic_eth_registry.error import UnknownContractError
 from chainlib.chain import ChainSpec
@@ -28,10 +29,8 @@ from hexathon import (
         strip_0x,
         )
 from chainsyncer.backend.sql import SQLBackend
-from chainsyncer.driver import (
-        HeadSyncer,
-        HistorySyncer,
-        )
+from chainsyncer.driver.head import HeadSyncer
+from chainsyncer.driver.history import HistorySyncer
 from chainsyncer.db.models.base import SessionBase
 
 # local imports
@@ -113,10 +112,10 @@ def main():
             logg.info('resuming sync session {}'.format(syncer_backend))
 
     for syncer_backend in syncer_backends:
-        syncers.append(HistorySyncer(syncer_backend))
+        syncers.append(HistorySyncer(syncer_backend, chain_interface))
 
     syncer_backend = SQLBackend.live(chain_spec, block_offset+1)
-    syncers.append(HeadSyncer(syncer_backend))
+    syncers.append(HeadSyncer(syncer_backend, chain_interface))
 
     trusted_addresses_src = config.get('CIC_TRUST_ADDRESS')
     if trusted_addresses_src == None:

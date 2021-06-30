@@ -387,44 +387,6 @@ services:
     # command: "/root/start_retry.sh -q cic-eth -vv"
 
 
-#  cic-eth-server:
-#    build:
-#      context: apps/
-#      dockerfile: cic-eth/docker/Dockerfile
-#    environment:
-#      CIC_CHAIN_SPEC: $CIC_CHAIN_SPEC
-#      CELERY_BROKER_URL: $CELERY_BROKER_URL
-#      CELERY_RESULT_URL: $CELERY_RESULT_URL
-#      SERVER_PORT: 8000
-#    depends_on:
-#      - eth
-#      - postgres
-#      - redis
-#    ports:
-#      - ${HTTP_PORT_CIC_ETH:-63314}:8000
-#    deploy:
-#      restart_policy:
-#        condition: on-failure
-#    volumes:
-#        - contract-config:/tmp/cic/config/:ro
-#    command:
-#      - /bin/bash
-#      - -c
-#      - |
-#        if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-#        "/usr/local/bin/uwsgi" \
-#        --wsgi-file /usr/src/cic-eth/cic_eth/runnable/server_agent.py \
-#        --http :80 \
-#        --pyargv -vv
-##     entrypoint:
-##       - "/usr/local/bin/uwsgi"
-##       - "--wsgi-file"
-##       - "/usr/src/cic-eth/cic_eth/runnable/server_agent.py"
-##       - "--http"
-##       - ":80"
-#    # command: "--pyargv -vv"
-
-
 
   cic-notify-tasker:
     build:

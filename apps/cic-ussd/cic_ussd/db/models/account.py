@@ -1,19 +1,13 @@
 # standard imports
-from enum import IntEnum
-
-# third party imports
-from sqlalchemy import Column, Integer, String
 
 # local imports
+from cic_ussd.db.enum import AccountStatus
 from cic_ussd.db.models.base import SessionBase
 from cic_ussd.encoder import check_password_hash, create_password_hash
 
-
-class AccountStatus(IntEnum):
-    PENDING = 1
-    ACTIVE = 2
-    LOCKED = 3
-    RESET = 4
+# third party imports
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm.session import Session
 
 
 class Account(SessionBase):
@@ -29,6 +23,21 @@ class Account(SessionBase):
     failed_pin_attempts = Column(Integer)
     account_status = Column(Integer)
     preferred_language = Column(String)
+
+    @staticmethod
+    def get_by_phone_number(phone_number: str, session: Session):
+        """Retrieves an account from a phone number.
+        :param phone_number: The E164 format of a phone number.
+        :type phone_number:str
+        :param session:
+        :type session:
+        :return: An account object.
+        :rtype: Account
+        """
+        session = SessionBase.bind_session(session=session)
+        account = session.query(Account).filter_by(phone_number=phone_number).first()
+        SessionBase.release_session(session=session)
+        return account
 
     def __init__(self, blockchain_address, phone_number):
         self.blockchain_address = blockchain_address
