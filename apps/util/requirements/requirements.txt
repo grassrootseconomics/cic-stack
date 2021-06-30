@@ -1,1 +1,2 @@
 requirements-magic~=0.0.3a1
+pip-tools==6.2.0
