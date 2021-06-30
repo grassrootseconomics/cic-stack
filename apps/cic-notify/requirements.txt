@@ -1,1 +1,5 @@
-cic_base[full_graph]==0.1.3a3+build.984b5cff
+celery==4.4.7
+confini~=0.3.6rc3
+semver==2.13.0
+SQLAlchemy==1.3.20
+alembic==1.4.2
