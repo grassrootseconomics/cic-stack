@@ -16,6 +16,7 @@ import cic_base.config
 import cic_base.log
 import cic_base.argparse
 import cic_base.rpc
+from cic_base.eth.syncer import chain_interface
 from cic_eth_registry import CICRegistry
 from cic_eth_registry.error import UnknownContractError
 from chainlib.chain import ChainSpec
@@ -23,14 +24,7 @@ from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.connection import RPCConnection
 from chainlib.eth.block import (
         block_latest,
-        block_by_number,
-        Block,
         )
-from chainlib.eth.tx import (
-        receipt,
-        Tx,
-        )
-from chainlib.interface import ChainInterface
 from hexathon import (
         strip_0x,
         )
@@ -87,16 +81,6 @@ def register_filter_tags(filters, session):
         except sqlalchemy.exc.IntegrityError:
             session.rollback()
             logg.debug('already have tag name "{}" domain "{}"'.format(tag[0], tag[1]))
-
-class EthChainInterface(ChainInterface):
-    
-    def __init__(self):
-        self._tx_receipt = receipt
-        self._block_by_number = block_by_number
-        self._block_from_src = Block.from_src
-        self._src_normalize = Tx.src_normalize
-
-chain_interface = EthChainInterface()
 
 
 def main():

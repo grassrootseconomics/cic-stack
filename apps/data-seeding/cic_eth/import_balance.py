@@ -22,14 +22,7 @@ from chainsyncer.driver.head import HeadSyncer
 from chainlib.eth.connection import EthHTTPConnection
 from chainlib.eth.block import (
         block_latest,
-        block_by_number,
-        Block,
         )
-from chainlib.eth.tx import (
-        receipt,
-        Tx,
-        )
-from chainlib.interface import ChainInterface
 from chainlib.hash import keccak256_string_to_hex
 from chainlib.eth.address import to_checksum_address
 from chainlib.eth.gas import OverrideGasOracle
@@ -43,6 +36,7 @@ from crypto_dev_signer.eth.signer import ReferenceSigner as EIP155Signer
 from crypto_dev_signer.keystore.dict import DictKeystore
 from cic_types.models.person import Person
 from eth_erc20 import ERC20
+from cic_base.eth.syncer import chain_interface
 
 
 logging.basicConfig(level=logging.WARNING)
@@ -114,16 +108,6 @@ old_chain_spec = ChainSpec.from_chain_str(old_chain_spec_str)
 user_dir = args.user_dir # user_out_dir from import_users.py
 
 token_symbol = args.token_symbol
-
-class EthChainInterface(ChainInterface):
-    
-    def __init__(self):
-        self._tx_receipt = receipt
-        self._block_by_number = block_by_number
-        self._block_from_src = Block.from_src
-        self._src_normalize = Tx.src_normalize
-
-chain_interface = EthChainInterface()
 
 
 class Handler:
@@ -199,27 +183,6 @@ class Handler:
 #            logg.error('send error {}'.format(e).ljust(200))
         #except KeyError as e:
         #    logg.error('key record not found in imports: {}'.format(e).ljust(200))
-
-
-#class BlockGetter:
-#
-#    def __init__(self, conn, gas_oracle, nonce_oracle, chain_spec):
-#        self.conn = conn
-#        self.tx_factory = ERC20(signer=signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle, chain_id=chain_id)
-#
-#
-#    def get(self, n):
-#        o = block_by_number(n)
-#        r = self.conn.do(o)
-#        b = None
-#        try:
-#            b = Block(r)
-#        except TypeError as e:
-#            if r == None:
-#                logg.debug('block not found {}'.format(n))
-#            else:
-#                logg.error('block retrieve error {}'.format(e))
-#        return b
 
 
 def progress_callback(block_number, tx_index):
