@@ -1,4 +1,4 @@
-cic-base[full]==0.1.2b18
-sarafu-faucet~=0.0.3a4
-cic-eth~=0.11.0b17
-erc20-demurrage-token==0.0.1b4
+cic_base[full]==0.1.3a3+build.4aa03607
+sarafu-faucet~=0.0.4a1
+cic-eth~=0.11.1a2
+erc20-demurrage-token==0.0.2a1

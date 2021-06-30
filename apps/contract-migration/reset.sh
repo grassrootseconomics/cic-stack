@@ -1,11 +1,15 @@
 #!/bin/bash
 
 set -a
+echo fuck you $CIC_DEFAULT_TOKEN_SYMBOL
 
+CIC_DEFAULT_TOKEN_SYMBOL=${CIC_DEFAULT_TOKEN_SYMBOL:-GFT}
+echo fuck you $CIC_DEFAULT_TOKEN_SYMBOL
+TOKEN_SYMBOL=${CIC_DEFAULT_TOKEN_SYMBOL}
 cat <<EOF
 external token settings:
-token_name: $TOKEN_NAME
 token_symbol: $TOKEN_SYMBOL
+token_name: $TOKEN_NAME
 token_decimals: $TOKEN_DECIMALS
 token_demurrage: $TOKEN_DEMURRAGE_LEVEL
 token_redistribution_period: $TOKEN_REDISTRIBUTION_PERIOD
@@ -75,6 +79,9 @@ if [[ -n "${ETH_PROVIDER}" ]]; then
 		DEV_RESERVE_ADDRESS=`giftable-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -ww --name "Giftable Token" --symbol "GFT" --decimals 6 -vv`
 	else
 		>&2 echo "deploying 'redistributed demurrage token'"
+		if [ -z $TOKEN_SINK_ADDRESS && ! -z $TOKEN_REDISTRIBUTION_PERIOD ]; then
+			>&2 echo -e "\033[;93mtoken sink address not set, so redistribution will be BURNED\033[;39m"
+		fi
 		DEV_RESERVE_ADDRESS=`erc20-demurrage-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -ww`
 	fi
 	giftable-token-gift $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -w -a $DEV_RESERVE_ADDRESS $DEV_RESERVE_AMOUNT
