@@ -14,6 +14,8 @@ repos=(../../cic-cache ../../cic-eth ../../cic-ussd ../../data-seeding ../../cic
 for r in ${repos[@]}; do
 	f="$r/requirements.txt"
 	>&2 echo updating $f
-	pyreq-merge $f base_requirement.txt > $t
+	f="$r/test_requirements.txt"
+	>&2 echo updating $f
+	pyreq-update $f base_requirement.txt > $t
 	cp $t $f
 done

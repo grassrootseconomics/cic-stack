@@ -6,5 +6,5 @@ sqlparse==0.4.1
 pytest-celery==0.0.0a1
 eth_tester==0.5.0b3
 py-evm==0.3.0a20
-cic-base[full]==0.1.3a1
+cic_base[full]==0.1.3a3+build.4aa03607
 sarafu-faucet~=0.0.4a1
