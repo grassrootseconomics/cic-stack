@@ -5,12 +5,14 @@ from typing import Tuple
 
 # third-party imports
 import celery
-from cic_types.models.person import Person, generate_metadata_pointer
+from cic_types.models.person import generate_metadata_pointer
 from cic_types.models.person import generate_vcard_from_contact_data, manage_identity_data
+from sqlalchemy.orm.session import Session
 
 # local imports
 from cic_ussd.chain import Chain
 from cic_ussd.db.models.account import Account
+from cic_ussd.db.models.base import SessionBase
 from cic_ussd.error import MetadataNotFoundError
 from cic_ussd.metadata import blockchain_address_to_metadata_pointer
 from cic_ussd.operations import save_to_in_memory_ussd_session_data
@@ -19,15 +21,17 @@ from cic_ussd.redis import get_cached_data
 logg = logging.getLogger(__file__)
 
 
-def change_preferred_language_to_en(state_machine_data: Tuple[str, dict, Account]):
+def change_preferred_language_to_en(state_machine_data: Tuple[str, dict, Account, Session]):
     """This function changes the user's preferred language to english.
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
     :type state_machine_data: tuple
     """
-    user_input, ussd_session, user = state_machine_data
+    user_input, ussd_session, user, session = state_machine_data
+    session = SessionBase.bind_session(session=session)
     user.preferred_language = 'en'
-    Account.session.add(user)
-    Account.session.commit()
+    session.add(user)
+    session.flush()
+    SessionBase.release_session(session=session)
 
     preferences_data = {
         'preferred_language': 'en'
@@ -40,15 +44,17 @@ def change_preferred_language_to_en(state_machine_data: Tuple[str, dict, Account
     s.apply_async(queue='cic-ussd')
 
 
-def change_preferred_language_to_sw(state_machine_data: Tuple[str, dict, Account]):
+def change_preferred_language_to_sw(state_machine_data: Tuple[str, dict, Account, Session]):
     """This function changes the user's preferred language to swahili.
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
     :type state_machine_data: tuple
     """
-    user_input, ussd_session, user = state_machine_data
-    user.preferred_language = 'sw'
-    Account.session.add(user)
-    Account.session.commit()
+    user_input, ussd_session, account, session = state_machine_data
+    session = SessionBase.bind_session(session=session)
+    account.preferred_language = 'sw'
+    session.add(account)
+    session.flush()
+    SessionBase.release_session(session=session)
 
     preferences_data = {
         'preferred_language': 'sw'
@@ -56,20 +62,22 @@ def change_preferred_language_to_sw(state_machine_data: Tuple[str, dict, Account
 
     s = celery.signature(
         'cic_ussd.tasks.metadata.add_preferences_metadata',
-        [user.blockchain_address, preferences_data]
+        [account.blockchain_address, preferences_data]
     )
     s.apply_async(queue='cic-ussd')
 
 
-def update_account_status_to_active(state_machine_data: Tuple[str, dict, Account]):
+def update_account_status_to_active(state_machine_data: Tuple[str, dict, Account, Session]):
     """This function sets user's account to active.
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
     :type state_machine_data: tuple
     """
-    user_input, ussd_session, user = state_machine_data
-    user.activate_account()
-    Account.session.add(user)
-    Account.session.commit()
+    user_input, ussd_session, account, session = state_machine_data
+    session = SessionBase.bind_session(session=session)
+    account.activate_account()
+    session.add(account)
+    session.flush()
+    SessionBase.release_session(session=session)
 
 
 def process_gender_user_input(user: Account, user_input: str):
@@ -81,6 +89,7 @@ def process_gender_user_input(user: Account, user_input: str):
     :return:
     :rtype:
     """
+    gender = ""
     if user.preferred_language == 'en':
         if user_input == '1':
             gender = 'Male'
@@ -98,13 +107,13 @@ def process_gender_user_input(user: Account, user_input: str):
     return gender
 
 
-def save_metadata_attribute_to_session_data(state_machine_data: Tuple[str, dict, Account]):
+def save_metadata_attribute_to_session_data(state_machine_data: Tuple[str, dict, Account, Session]):
     """This function saves first name data to the ussd session in the redis cache.
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
     :type state_machine_data: tuple
     """
-    user_input, ussd_session, user = state_machine_data
-
+    user_input, ussd_session, user, session = state_machine_data
+    session = SessionBase.bind_session(session=session)
     # get current menu
     current_state = ussd_session.get('state')
 
@@ -137,7 +146,11 @@ def save_metadata_attribute_to_session_data(state_machine_data: Tuple[str, dict,
         session_data = {
             key: user_input
         }
-    save_to_in_memory_ussd_session_data(queue='cic-ussd', session_data=session_data, ussd_session=ussd_session)
+    save_to_in_memory_ussd_session_data(
+        queue='cic-ussd',
+        session=session,
+        session_data=session_data,
+        ussd_session=ussd_session)
 
 
 def format_user_metadata(metadata: dict, user: Account):
@@ -197,12 +210,12 @@ def format_user_metadata(metadata: dict, user: Account):
     }
 
 
-def save_complete_user_metadata(state_machine_data: Tuple[str, dict, Account]):
+def save_complete_user_metadata(state_machine_data: Tuple[str, dict, Account, Session]):
     """This function persists elements of the user metadata stored in session data
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
     :type state_machine_data: tuple
     """
-    user_input, ussd_session, user = state_machine_data
+    user_input, ussd_session, user, session = state_machine_data
 
     # get session data
     metadata = ussd_session.get('session_data')
@@ -218,8 +231,8 @@ def save_complete_user_metadata(state_machine_data: Tuple[str, dict, Account]):
     s_create_person_metadata.apply_async(queue='cic-ussd')
 
 
-def edit_user_metadata_attribute(state_machine_data: Tuple[str, dict, Account]):
-    user_input, ussd_session, user = state_machine_data
+def edit_user_metadata_attribute(state_machine_data: Tuple[str, dict, Account, Session]):
+    user_input, ussd_session, user, session = state_machine_data
     blockchain_address = user.blockchain_address
     key = generate_metadata_pointer(
         identifier=blockchain_address_to_metadata_pointer(blockchain_address=user.blockchain_address),
@@ -269,8 +282,8 @@ def edit_user_metadata_attribute(state_machine_data: Tuple[str, dict, Account]):
     s_edit_person_metadata.apply_async(queue='cic-ussd')
 
 
-def get_user_metadata(state_machine_data: Tuple[str, dict, Account]):
-    user_input, ussd_session, user = state_machine_data
+def get_user_metadata(state_machine_data: Tuple[str, dict, Account, Session]):
+    user_input, ussd_session, user, session = state_machine_data
     blockchain_address = user.blockchain_address
     s_get_user_metadata = celery.signature(
         'cic_ussd.tasks.metadata.query_person_metadata',

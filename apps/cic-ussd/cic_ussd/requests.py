@@ -8,9 +8,12 @@ from urllib.parse import urlparse, parse_qs
 
 # third-party imports
 from sqlalchemy import desc
+from sqlalchemy.orm.session import Session
 
 # local imports
-from cic_ussd.db.models.account import AccountStatus, Account
+from cic_ussd.db.models.account import Account
+from cic_ussd.db.models.base import SessionBase
+from cic_ussd.db.enum import AccountStatus
 from cic_ussd.operations import get_account_status, reset_pin
 from cic_ussd.validator import check_known_user
 
@@ -72,24 +75,26 @@ def get_account_creation_callback_request_data(env: dict) -> tuple:
     return status, task_id, result
 
 
-def process_pin_reset_requests(env: dict, phone_number: str):
+def process_pin_reset_requests(env: dict, phone_number: str, session: Session):
     """This function processes requests that are responsible for the pin reset functionality. It processes GET and PUT
     requests responsible for returning an account's status and
     :param env: A dictionary of values representing data sent on the api.
     :type env: dict
     :param phone_number: The phone of the user whose pin is being reset.
     :type phone_number: str
+    :param session:
+    :type session:
     :return: A response denoting the result of the request to reset the user's pin.
     :rtype: str
     """
-    if not check_known_user(phone=phone_number):
+    if not check_known_user(phone_number=phone_number, session=session):
         return f'No user matching {phone_number} was found.', '404 Not Found'
 
     if get_request_method(env) == 'PUT':
-        return reset_pin(phone_number=phone_number), '200 OK'
+        return reset_pin(phone_number=phone_number, session=session), '200 OK'
 
     if get_request_method(env) == 'GET':
-        status = get_account_status(phone_number=phone_number)
+        status = get_account_status(phone_number=phone_number, session=session)
         response = {
             'status': f'{status}'
         }
@@ -97,16 +102,18 @@ def process_pin_reset_requests(env: dict, phone_number: str):
         return response, '200 OK'
 
 
-def process_locked_accounts_requests(env: dict) -> tuple:
+def process_locked_accounts_requests(env: dict, session: Session) -> tuple:
     """This function authenticates staff requests and returns a serialized JSON formatted list of blockchain addresses
     of accounts for which the PIN has been locked due to too many failed attempts.
     :param env: A dictionary of values representing data sent on the api.
     :type env: dict
+    :param session:
+    :type session:
     :return: A tuple containing a serialized list of blockchain addresses for locked accounts and corresponding message
     for the response.
     :rtype: tuple
     """
-    logg.debug('Authentication requires integration with cic-auth')
+    session = SessionBase.bind_session(session=session)
     response = ''
 
     if get_request_method(env) == 'GET':
@@ -123,12 +130,14 @@ def process_locked_accounts_requests(env: dict) -> tuple:
             else:
                 limit = r[1]
 
-        locked_accounts = Account.session.query(Account.blockchain_address).filter(
+        locked_accounts = session.query(Account.blockchain_address).filter(
             Account.account_status == AccountStatus.LOCKED.value,
             Account.failed_pin_attempts >= 3).order_by(desc(Account.updated)).offset(offset).limit(limit).all()
 
         # convert lists to scalar blockchain addresses
         locked_accounts = [blockchain_address for (blockchain_address, ) in locked_accounts]
+
+        SessionBase.release_session(session=session)
         response = json.dumps(locked_accounts)
         return response, '200 OK'
     return response, '405 Play by the rules'

@@ -171,7 +171,11 @@ Then, in sequence, run in first terminal:
 
 In second terminal:
 
-`python cic_ussd/import_users.py -v -c config out`
+`python cic_ussd/import_users.py -v --ussd-host <user_ussd_server_host> --ussd-port <user_ussd_server_port> -c config out`
+
+In the event that you are running the command in a local environment you may want to consider passing the `--ussd-no-ssl` flag i.e:
+
+`python cic_ussd/import_users.py -v --ussd-host <user_ussd_server_host> --ussd-port <user_ussd_server_port> --ussd-no-ssl -c config out`
 
 
 
@@ -197,6 +201,13 @@ If _number of users_ is omitted the script will run until manually interrupted.
 `node cic_meta/import_meta_phone.js <datadir> <number_of_users>`
 
 If you imported using `cic_ussd`, the phone pointer is _already added_ and this script will do nothing.
+
+
+### Importing preferences metadata
+
+`node cic_meta/import_meta_preferences.js <datadir> <number_of_users>`
+
+If you used the `cic_ussd/import_user.py` script to import your users, preferences metadata is generated and will be imported.
 
 
 ##### Importing pins and ussd data (optional)
