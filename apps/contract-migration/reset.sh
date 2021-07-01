@@ -1,10 +1,8 @@
 #!/bin/bash
 
 set -a
-echo fuck you $CIC_DEFAULT_TOKEN_SYMBOL
 
 CIC_DEFAULT_TOKEN_SYMBOL=${CIC_DEFAULT_TOKEN_SYMBOL:-GFT}
-echo fuck you $CIC_DEFAULT_TOKEN_SYMBOL
 TOKEN_SYMBOL=${CIC_DEFAULT_TOKEN_SYMBOL}
 cat <<EOF
 external token settings:
