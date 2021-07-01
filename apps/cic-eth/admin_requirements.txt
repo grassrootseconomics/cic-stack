@@ -1,0 +1,5 @@
+SQLAlchemy==1.3.20
+cic-eth-registry~=0.5.6a1
+hexathon~=0.0.1a7
+chainqueue~=0.0.2b5
+eth-erc20==0.0.10a2
