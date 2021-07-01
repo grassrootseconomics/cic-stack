@@ -34,6 +34,8 @@ elif args.v:
 config = confini.Config(args.c, args.env_prefix)
 config.process()
 config.add(args.q, '_CELERY_QUEUE', True)
+config.censor('API_KEY', 'AFRICASTALKING')
+config.censor('API_USERNAME', 'AFRICASTALKING')
 config.censor('PASSWORD', 'DATABASE')
 logg.debug('config loaded from {}:\n{}'.format(args.c, config))
 
