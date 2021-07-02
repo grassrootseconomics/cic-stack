@@ -11,6 +11,19 @@ while True:
     requirements.append(l.rstrip())
 f.close()
 
+
+aux_requirements = []
+f = open('aux_requirements.txt', 'r')
+while True:
+    l = f.readline()
+    if l == '':
+        break
+    aux_requirements.append(l.rstrip())
+f.close()
+
 setup(
-    install_requires=requirements
+    install_requires=requirements,
+    extras_require={
+        'aux': aux_requirements,
+        }
         )
