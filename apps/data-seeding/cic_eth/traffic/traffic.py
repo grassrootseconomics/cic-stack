@@ -10,7 +10,7 @@ import redis
 import celery
 from cic_eth_registry.registry import CICRegistry
 from chainsyncer.backend.memory import MemBackend
-from chainsyncer.driver import HeadSyncer
+from chainsyncer.driver.head import HeadSyncer
 from chainlib.eth.connection import EthHTTPConnection
 from chainlib.chain import ChainSpec
 from chainlib.eth.gas import RPCGasOracle
