@@ -24,6 +24,7 @@ from cic_base import (
         rpc,
         signer as signer_funcs,
         )
+from cic_base.eth.syncer import chain_interface
 
 # local imports
 #import common
@@ -120,7 +121,7 @@ def main():
             'api_queue': config.get('_CELERY_QUEUE'),
             }
 
-    syncer = HeadSyncer(syncer_backend, block_callback=handler.refresh)
+    syncer = HeadSyncer(syncer_backend, chain_interface, block_callback=handler.refresh)
     syncer.add_filter(handler)
     syncer.loop(1, conn)
 
