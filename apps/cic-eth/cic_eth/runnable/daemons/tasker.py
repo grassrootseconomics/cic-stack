@@ -7,6 +7,8 @@ import tempfile
 import re
 import urllib
 import websocket
+import stat
+import importlib
 
 # external imports
 import celery
@@ -68,6 +70,8 @@ from cic_eth.task import BaseTask
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
+script_dir = os.path.dirname(os.path.realpath(__file__))
+
 config_dir = os.path.join('/usr/local/etc/cic-eth')
 
 argparser = argparse.ArgumentParser()
@@ -79,6 +83,8 @@ argparser.add_argument('--default-token-symbol', dest='default_token_symbol', ty
 argparser.add_argument('--trace-queue-status', default=None, dest='trace_queue_status', action='store_true', help='set to perist all queue entry status changes to storage')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
+argparser.add_argument('--aux-all', action='store_true', help='include tasks from all submodules from the aux module path')
+argparser.add_argument('--aux', action='append', type=str, default=[], help='add single submodule from the aux module path')
 argparser.add_argument('-v', action='store_true', help='be verbose')
 argparser.add_argument('-vv', action='store_true', help='be more verbose')
 args = argparser.parse_args()
@@ -108,6 +114,45 @@ health_modules = config.get('CIC_HEALTH_MODULES', [])
 if len(health_modules) != 0:
     health_modules = health_modules.split(',')
 logg.debug('health mods {}'.format(health_modules))
+
+
+# detect aux 
+aux_dir = os.path.join(script_dir, '..', '..', 'aux')
+aux = []
+if args.aux_all:
+    if len(args.aux) > 0:
+        logg.warning('--aux-all is set so --aux will have no effect')
+    for v in os.listdir(aux_dir):
+        if v[:1] == '.':
+            logg.debug('dotfile, skip {}'.format(v))
+            continue
+        aux_mod_path = os.path.join(aux_dir, v)
+        st = os.stat(aux_mod_path)
+        if not stat.S_ISDIR(st.st_mode):
+            logg.debug('not a dir, skip {}'.format(v))
+            continue
+        aux_mod_file = os.path.join(aux_dir, v,'__init__.py')
+        try:
+            st = os.stat(aux_mod_file)
+        except FileNotFoundError:
+            logg.debug('__init__.py not found, skip {}'.format(v))
+            continue 
+        aux.append(v)
+
+elif len(args.aux) > 0:
+    for v in args.aux:
+        aux_mod_file = os.path.join(aux_dir, v,'__init__.py')
+        try:
+            st = os.stat(aux_mod_file)
+        except FileNotFoundError:
+            logg.critical('cannot find explicity requested aux module {}'.format(v))
+            sys.exit(1)
+        logg.info('aux module {} found in path'.format(v))
+        aux.append(v)
+
+for v in aux:
+    importlib.import_module('cic_eth.aux.' + v)
+
 
 # connect to database
 dsn = dsn_from_config(config)
