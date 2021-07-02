@@ -9,5 +9,6 @@ semver==2.13.0
 psycopg2==2.8.6
 celery==4.4.7
 redis==3.5.3
+rlp==2.0.1
 chainsyncer[sql]~=0.0.3a3
 erc20-faucet~=0.2.2a1
