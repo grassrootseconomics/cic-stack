@@ -12,4 +12,6 @@ build/
 **/.nyc_output
 **/coverage
 **/.venv
+**/venv
+**/dist
 .idea
