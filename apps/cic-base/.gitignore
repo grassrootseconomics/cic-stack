@@ -1,0 +1,7 @@
+gmon.out
+__pycache__
+*.pyc
+inc.sh
+*.egg-info
+build/
+dist/
