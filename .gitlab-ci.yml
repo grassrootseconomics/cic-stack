@@ -11,4 +11,4 @@ include:
 stages:
   - build
   - test
-  - release
+  - publish

@@ -46,4 +46,16 @@ variables:
         when: always
 
 
-
+.publish_python:
+  image: registry.gitlab.com/grassrootseconomics/cic-base-images:python-3.8.6-dev
+  stage: publish 
+  variables:
+    #CI_DEBUG_TRACE: "true"
+    CIC_PACKAGE_REGISTRY_PROJECT_ID: 27624814
+  script:
+    - python -m pip wheel --extra-index-url https://pip.grassrootseconomics.net:8433 --wheel-dir=/tmp/wheelhouse -r requirements.txt
+    - python -m pip install --no-index --find-links=/tmp/wheelhouse -r requirements.txt
+    - python setup.py sdist bdist_wheel
+    - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python -m twine upload --repository-url ${CI_API_V4_URL}/projects/${CIC_PACKAGE_REGISTRY_PROJECT_ID}/packages/pypi dist/*
+    # Below are the built dependencies
+    - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python -m twine upload --repository-url ${CI_API_V4_URL}/projects/${CIC_PACKAGE_REGISTRY_PROJECT_ID}/packages/pypi /tmp/wheelhouse/*

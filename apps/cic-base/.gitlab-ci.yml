@@ -1,0 +1,26 @@
+.cic_base_variables:
+    variables:
+        APP_NAME: cic-base
+        DOCKERFILE_PATH: $APP_NAME/docker/Dockerfile
+
+.cic_base_changes_target:
+    rules:
+        - changes:
+            - $CONTEXT/$APP_NAME/*
+
+build-mr-cic-base:
+    extends:
+        - .cic_base_changes_target
+        - .py_build_merge_request
+        - .cic_base_variables
+
+build-push-cic-cache:
+    extends:
+        - .py_build_push
+        - .cic_base_variables
+        
+
+publish_python:
+  extends:
+    - .publish_python
+    - .cic_base_variables
