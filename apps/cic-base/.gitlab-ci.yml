@@ -14,12 +14,6 @@ build-mr-cic-base:
         - .py_build_merge_request
         - .cic_base_variables
 
-build-push-cic-cache:
-    extends:
-        - .py_build_push
-        - .cic_base_variables
-        
-
 publish_python:
   extends:
     - .publish_python
