@@ -14,6 +14,7 @@ DEV_DATABASE_NAME_CIC_ETH=${DEV_DATABASE_NAME_CIC_ETH:-"cic-eth"}
 CIC_DATA_DIR=${CIC_DATA_DIR:-/tmp/cic} 
 ETH_PASSPHRASE=''
 CIC_DEFAULT_TOKEN_SYMBOL=${CIC_DEFAULT_TOKEN_SYMBOL:-GFT}
+TOKEN_SYMBOL=$CIC_DEFAULT_TOKEN_SYMBOL
 if [[ $CIC_DEFAULT_TOKEN_SYMBOL != 'GFT' && $CIC_DEFAULT_TOKEN_SYMBOL != 'SRF' ]]; then
 	>&2 echo CIC_DEFAULT_TOKEN_SYMBOL must be one of [GFT,SRF], but was $CIC_DEFAULT_TOKEN_SYMBOL
 	exit 1
@@ -98,8 +99,8 @@ echo DEV_ETH_SARAFU_TOKEN_ADDRESS=$DEV_ETH_RESERVE_ADDRESS >> $env_out_file
 export DEV_ETH_SARAFU_TOKEN_ADDRESS=$DEV_ETH_RESERVE_ADDRESS
 
 # Transfer tokens to gifter address
->&2 echo "transfer sarafu tokens to token gifter address"
->&2 erc20-transfer -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER --token-address $DEV_RESERVE_ADDRESS -w $debug $DEV_ETH_ACCOUNT_SARAFU_GIFTER ${token_amount:0:-1}
+>&2 echo "transfer tokens to token gifter address"
+>&2 erc20-transfer -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER --gas-limit 100000 --token-address $DEV_RESERVE_ADDRESS -w $debug $DEV_ETH_ACCOUNT_SARAFU_GIFTER ${token_amount:0:-1}
 
 #echo -n 0 > $init_level_file
 
