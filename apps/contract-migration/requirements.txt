@@ -1,4 +1,4 @@
-	cic-base[full_graph]==0.1.2b15
-	sarafu-faucet==0.0.3a3
-	sarafu-token==0.0.1a8
-	cic-eth==0.11.0b16 
+cic-base[full]==0.1.3a1
+sarafu-faucet==0.0.4a1
+erc20-demurrage-token==0.0.2a2
+cic-eth==0.12.0a1
