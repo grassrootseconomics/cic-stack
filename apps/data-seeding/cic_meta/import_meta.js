@@ -93,9 +93,9 @@ function importMeta(keystore) {
 	let files;
 
 	try {
-		err, files = fs.readdirSync(workDir);
-	} catch {
-		console.error('source directory not yet ready', workDir);
+		files = fs.readdirSync(workDir);
+	} catch (err) {
+		console.error('source directory not yet ready', workDir, 'reason: ', err);
 		setTimeout(importMeta, batchDelay, keystore);
 		return;
 	}
