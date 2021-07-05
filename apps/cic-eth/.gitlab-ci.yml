@@ -21,7 +21,7 @@ test-mr-cic-eth:
         - .cic_eth_variables
         - .cic_eth_changes_target
     stage: test
-    image: $IMAGE_TAG
+    image: $IMAGE_TAG_BASE
     script:
         - cd apps/$APP_NAME/
         - pytest -x --cov=cic_eth --cov-fail-under=90 --cov-report term-missing tests
