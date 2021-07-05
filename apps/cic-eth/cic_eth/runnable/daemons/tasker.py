@@ -196,42 +196,61 @@ connect_token_registry(rpc, chain_spec)
 
 # detect aux 
 # TODO: move to separate file
-aux_dir = os.path.join(script_dir, '..', '..', 'aux')
+#aux_dir = os.path.join(script_dir, '..', '..', 'aux')
 aux = []
 if args.aux_all:
     if len(args.aux) > 0:
         logg.warning('--aux-all is set so --aux will have no effect')
-    for v in os.listdir(aux_dir):
-        if v[:1] == '.':
-            logg.debug('dotfile, skip {}'.format(v))
-            continue
-        aux_mod_path = os.path.join(aux_dir, v)
-        st = os.stat(aux_mod_path)
-        if not stat.S_ISDIR(st.st_mode):
-            logg.debug('not a dir, skip {}'.format(v))
-            continue
-        aux_mod_file = os.path.join(aux_dir, v,'__init__.py')
+    for p in sys.path:
+        logg.debug('checking for aux modules in {}'.format(p))
+        aux_dir = os.path.join(p, 'cic_eth_aux')
         try:
-            st = os.stat(aux_mod_file)
+            d = os.listdir(aux_dir)
         except FileNotFoundError:
-            logg.debug('__init__.py not found, skip {}'.format(v))
-            continue 
-        aux.append(v)
+            logg.debug('no aux module found in {}'.format(aux_dir))
+            continue
+        for v in d:
+            if v[:1] == '.':
+                logg.debug('dotfile, skip {}'.format(v))
+                continue
+            aux_mod_path = os.path.join(aux_dir, v)
+            st = os.stat(aux_mod_path)
+            if not stat.S_ISDIR(st.st_mode):
+                logg.debug('not a dir, skip {}'.format(v))
+                continue
+            aux_mod_file = os.path.join(aux_dir, v,'__init__.py')
+            try:
+                st = os.stat(aux_mod_file)
+            except FileNotFoundError:
+                logg.debug('__init__.py not found, skip {}'.format(v))
+                continue 
+            aux.append(v)
+            logg.debug('found module {} in {}'.format(v, aux_dir))
 
 elif len(args.aux) > 0:
-    for v in args.aux:
-        aux_mod_file = os.path.join(aux_dir, v,'__init__.py')
-        try:
-            st = os.stat(aux_mod_file)
-        except FileNotFoundError:
-            logg.critical('cannot find explicity requested aux module {}'.format(v))
+    for p in sys.path:
+        v_found = None
+        for v in args.aux:
+            aux_dir = os.path.join(p, 'cic_eth_aux')
+            aux_mod_file = os.path.join(aux_dir, v, '__init__.py')
+            try:
+                st = os.stat(aux_mod_file)
+                v_found = v
+            except FileNotFoundError:
+                logg.debug('cannot find explicity requested aux module {} in path {}'.format(v, aux_dir))
+                continue
+        if v_found == None:
+            logg.critical('excplicity requested aux module {} not found in any path'.format(v))
             sys.exit(1)
-        logg.info('aux module {} found in path'.format(v))
+
+        logg.info('aux module {} found in path {}'.format(v, aux_dir))
         aux.append(v)
 
 for v in aux:
-    mod = importlib.import_module('cic_eth.aux.' + v)
-    mod.setup(rpc, config)
+    mname = 'cic_eth_aux.' + v
+    mod = importlib.import_module(mname)
+    mod.aux_setup(rpc, config)
+    logg.info('loaded aux module {}'.format(mname))
 
 
 def main():

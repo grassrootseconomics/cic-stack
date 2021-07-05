@@ -7,7 +7,7 @@ import datetime
 import celery
 
 # cic-eth imports
-from cic_eth.aux.erc20_demurrage_token import (
+from cic_eth_aux.erc20_demurrage_token import (
         DemurrageCalculationTask,
         aux_setup,
         )
@@ -33,7 +33,7 @@ def test_demurrage_calulate_task(
 
     since = datetime.datetime.utcnow() - datetime.timedelta(minutes=1)
     s = celery.signature(
-            'cic_eth.aux.erc20_demurrage_token.get_adjusted_balance',
+            'cic_eth_aux.erc20_demurrage_token.get_adjusted_balance',
             [
                 demurrage_token_symbol,
                 1000,
