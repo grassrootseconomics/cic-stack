@@ -21,7 +21,7 @@ variables:
 .py_build_target_test:
   stage: build
   variables:
-    CI_DEBUG_TRACE: "true"
+    IMAGE_TAG_BASE: $CI_REGISTRY_IMAGE/$APP_NAME:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
   script:
     - export IMAGE_TAG="$IMAGE_TAG_BASE-$(date +%s)"
     - mkdir -p /kaniko/.docker
