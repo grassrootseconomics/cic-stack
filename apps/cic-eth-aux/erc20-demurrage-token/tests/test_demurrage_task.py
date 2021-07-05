@@ -11,6 +11,7 @@ from cic_eth_aux.erc20_demurrage_token import (
         DemurrageCalculationTask,
         aux_setup,
         )
+from cic_eth_aux.erc20_demurrage_token.api import Api as AuxApi
 
 logg = logging.getLogger()
 
@@ -19,7 +20,7 @@ def test_demurrage_calulate_task(
         default_chain_spec,
         eth_rpc,
         cic_registry,
-        celery_worker,
+        celery_session_worker,
         register_demurrage_token,
         demurrage_token_symbol,
         contract_roles,
@@ -45,3 +46,24 @@ def test_demurrage_calulate_task(
     r = t.get_leaf()
     assert t.successful()
     assert r == 980
+
+
+
+def test_demurrage_calculate_api(
+        default_chain_spec,
+        eth_rpc,
+        cic_registry,
+        celery_session_worker,
+        register_demurrage_token,
+        demurrage_token_symbol,
+        contract_roles,
+        load_config,
+        ):
+
+        api = AuxApi(str(default_chain_spec), queue=None)
+        since = datetime.datetime.utcnow() - datetime.timedelta(minutes=1)
+        t = api.get_adjusted_balance(demurrage_token_symbol, 1000, since.timestamp())
+        r = t.get_leaf()
+        assert t.successful()
+        assert r == 980
+
