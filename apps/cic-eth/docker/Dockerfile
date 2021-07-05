@@ -39,7 +39,7 @@ ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages
 
 COPY cic-eth/test_requirements.txt .
 RUN	pip install --extra-index-url $GITLAB_PYTHON_REGISTRY \
-    	--extra-index-url $EXTRA_INDEX_URL .
+    	--extra-index-url $EXTRA_INDEX_URL -r test_requirements.txt
 
 COPY cic-eth . 
 
