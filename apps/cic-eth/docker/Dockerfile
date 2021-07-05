@@ -8,12 +8,14 @@ RUN apt-get update && \
 #RUN python -m venv venv && . venv/bin/activate
 
 ARG pip_extra_index_url_flag='--index https://pypi.org/simple --extra-index-url https://pip.grassrootseconomics.net:8433'
+ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
+ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple"
 RUN /usr/local/bin/python -m pip install --upgrade pip
 RUN pip install semver
 
-# TODO use a packaging style that lets us copy requirments only ie. pip-tools 
 COPY cic-eth/ .
-RUN	pip install $pip_extra_index_url_flag .
+RUN	pip install --extra-index-url $GITLAB_PYTHON_REGISTRY \
+    	--extra-index-url $EXTRA_INDEX_URL .
 
 # --- TEST IMAGE ---
 FROM python:3.8.6-slim-buster as test 
