@@ -72,8 +72,7 @@ services:
 
   contract-migration:
     build:
-      dockerfile: contract-migration/docker/Dockerfile.dev
-        #dockerfile: contract-migration/docker/Dockerfile
+      dockerfile: contract-migration/docker/Dockerfile
       args:
         pip_index_url: ${PIP_DEFAULT_INDEX_URL:-https://pypi.org/simple}
         pip_extra_args: $PIP_EXTRA_ARGS
