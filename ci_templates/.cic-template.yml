@@ -21,7 +21,7 @@ variables:
 .py_build_target_test:
   stage: build
   variables:
-    IMAGE_TAG_BASE: $CI_REGISTRY_IMAGE/$APP_NAME:$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME-$CI_COMMIT_SHORT_SHA
+    IMAGE_TAG_BASE: $CI_REGISTRY_IMAGE/$APP_NAME:mr-unittest-$CI_COMMIT_SHORT_SHA
   script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > "/kaniko/.docker/config.json"
