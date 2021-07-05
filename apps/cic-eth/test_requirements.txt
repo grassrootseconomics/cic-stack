@@ -4,3 +4,4 @@ pytest-mock==3.3.1
 pytest-cov==2.10.1
 eth-tester==0.5.0b3
 py-evm==0.3.0a20
+eth-erc20~=0.0.10a2
