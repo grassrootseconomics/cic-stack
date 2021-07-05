@@ -21,11 +21,11 @@ variables:
 .py_build_target_test:
   stage: build
   variables:
-    IMAGE_TAG_BASE: $CI_REGISTRY_IMAGE/$APP_NAME:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
+    IMAGE_TAG_BASE: $CI_REGISTRY_IMAGE/$APP_NAME:$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME-$CI_COMMIT_SHORT_SHA
   script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > "/kaniko/.docker/config.json"
-    - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --cache-repo $CI_REGISTRY_IMAGE --target test --tarPath $APP_NAME-test-image.tar --destination $IMAGE_TAG_BASE
+    - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --cache-repo $CI_REGISTRY_IMAGE --target test --destination $IMAGE_TAG_BASE
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: always
