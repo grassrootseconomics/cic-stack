@@ -22,7 +22,7 @@ COPY contract-migration/nvm.sh .
 ENV CONFINI_DIR /usr/local/etc/cic/
 RUN mkdir -vp $CONFINI_DIR
 
-ARG cic_config_commit=35c69ba75f00c8147150acf325565d5391cf25bf
+ARG cic_config_commit=0abe0867f18077907c7023bf0ef5e466a3984dd8
 ARG cic_config_url=https://gitlab.com/grassrootseconomics/cic-config.git/
 RUN echo Install confini schema files && \
 	git clone --depth 1 $cic_config_url cic-config && \
@@ -56,7 +56,9 @@ COPY contract-migration/requirements.txt .
 ARG pip_extra_args=""
 ARG pip_index_url=https://pypi.org/simple
 ARG pip_extra_index_url=https://pip.grassrootseconomics.net:8433
-RUN pip install --index-url https://pypi.org/simple \
+ARG pip_trusted_host=pypi.org
+RUN pip install --index-url $pip_index_url \
+    --trusted-host $pip_trusted_host \
     --extra-index-url $pip_extra_index_url -r requirements.txt
 
 # -------------- begin runtime container ---------------- 
@@ -96,5 +98,14 @@ RUN chmod gu+x *.sh
 # RUN chown grassroots:grassroots -R /usr/local/lib/python3.8/site-packages/ 
 
 # USER grassroots
+
+ARG pip_index_url=https://pypi.org/simple
+ARG pip_extra_index_url=https://pip.grassrootseconomics.net:8433
+ARG pip_trusted_host=pypi.org
+COPY contract-migration/override_requirements.txt . 
+RUN pip install --index-url $pip_index_url \
+    --force-reinstall \
+    --trusted-host $pip_trusted_host \
+    --extra-index-url $pip_extra_index_url -r override_requirements.txt
 
 ENTRYPOINT [ ]
