@@ -34,7 +34,7 @@ COPY --from=compile /usr/local/lib/python3.8/site-packages/ \
 # COPY --from=compile /usr/src/cic-eth/ .
 # RUN . venv/bin/activate
 
-ARG ="https://pip.grassrootseconomics.net:8433"
+ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
 ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple"
 
 COPY cic-eth/test_requirements.txt .
