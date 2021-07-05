@@ -10,7 +10,7 @@ import redis
 import celery
 from cic_eth_registry.registry import CICRegistry
 from chainsyncer.backend.memory import MemBackend
-from chainsyncer.driver import HeadSyncer
+from chainsyncer.driver.head import HeadSyncer
 from chainlib.eth.connection import EthHTTPConnection
 from chainlib.chain import ChainSpec
 from chainlib.eth.gas import RPCGasOracle
@@ -24,6 +24,7 @@ from cic_base import (
         rpc,
         signer as signer_funcs,
         )
+from cic_base.eth.syncer import chain_interface
 
 # local imports
 #import common
@@ -120,7 +121,7 @@ def main():
             'api_queue': config.get('_CELERY_QUEUE'),
             }
 
-    syncer = HeadSyncer(syncer_backend, block_callback=handler.refresh)
+    syncer = HeadSyncer(syncer_backend, chain_interface, block_callback=handler.refresh)
     syncer.add_filter(handler)
     syncer.loop(1, conn)
 
