@@ -9,7 +9,7 @@ import celery
 import confini
 
 # local imports
-from import_task import *
+from import_util import get_celery_worker_status
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -39,9 +39,12 @@ elif args.vv:
 config_dir = args.c
 config = confini.Config(config_dir, os.environ.get('CONFINI_ENV_PREFIX'))
 config.process()
+config.censor('PASSWORD', 'DATABASE')
 logg.debug('config loaded from {}:\n{}'.format(args.c, config))
 
 celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
+status = get_celery_worker_status(celery_app=celery_app)
+
 
 db_configs = {
     'database': config.get('DATABASE_NAME'),
@@ -61,7 +64,8 @@ def main():
         (db_configs, phone_to_pins),
         queue=args.q
     )
-    s_import_pins.apply_async()
+    result = s_import_pins.apply_async()
+    logg.debug(f'TASK: {result.id}, STATUS: {result.status}')
 
 
 if __name__ == '__main__':

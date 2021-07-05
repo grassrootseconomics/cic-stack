@@ -127,6 +127,8 @@ def main():
         argv.append('--loglevel=INFO')
     argv.append('-Q')
     argv.append(args.q)
+    argv.append('-n')
+    argv.append(args.q)
 
     current_app.worker_main(argv)
 
