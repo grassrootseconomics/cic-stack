@@ -37,7 +37,7 @@ def celery_includes():
         'cic_eth.eth.account',
         'cic_eth.callbacks.noop',
         'cic_eth.callbacks.http',
-        'tests.mock.filter',
+        'cic_eth.pytest.mock.filter',
     ]
 
 

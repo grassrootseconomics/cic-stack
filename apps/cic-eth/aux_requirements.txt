@@ -1,1 +1,0 @@
-erc20-demurrage-token~=0.0.2a2

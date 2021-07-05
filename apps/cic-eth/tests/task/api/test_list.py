@@ -110,7 +110,7 @@ def test_list_tx(
     logg.debug('r {}'.format(r))
 
     # test the api
-    t = api.list(agent_roles['ALICE'], external_task='tests.mock.filter.filter')
+    t = api.list(agent_roles['ALICE'], external_task='cic_eth.pytest.mock.filter.filter')
     r = t.get_leaf()
     assert t.successful()
 
