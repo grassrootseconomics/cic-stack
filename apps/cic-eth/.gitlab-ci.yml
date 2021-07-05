@@ -25,7 +25,7 @@ test-mr-cic-eth:
     script:
         - cd apps/$APP_NAME/
         - pytest -x --cov=cic_eth --cov-fail-under=90 --cov-report term-missing tests
-    # needs: ["build-mr-cic-eth"]
+    needs: ["build-mr-cic-eth"]
 
 build-push-cic-eth:
     extends:
