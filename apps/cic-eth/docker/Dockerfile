@@ -8,7 +8,7 @@ RUN apt-get update && \
 #RUN python -m venv venv && . venv/bin/activate
 
 ARG pip_extra_index_url_flag='--index https://pypi.org/simple --extra-index-url https://pip.grassrootseconomics.net:8433'
-ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
+ARG ="https://pip.grassrootseconomics.net:8433"
 ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple"
 RUN /usr/local/bin/python -m pip install --upgrade pip
 RUN pip install semver
@@ -34,8 +34,12 @@ COPY --from=compile /usr/local/lib/python3.8/site-packages/ \
 # COPY --from=compile /usr/src/cic-eth/ .
 # RUN . venv/bin/activate
 
+ARG ="https://pip.grassrootseconomics.net:8433"
+ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple"
+
 COPY cic-eth/test_requirements.txt .
-RUN	pip install $pip_extra_index_url_flag -r test_requirements.txt 
+RUN	pip install --extra-index-url $GITLAB_PYTHON_REGISTRY \
+    	--extra-index-url $EXTRA_INDEX_URL .
 
 COPY cic-eth . 
 

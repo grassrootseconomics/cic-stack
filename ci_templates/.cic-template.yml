@@ -23,9 +23,10 @@ variables:
   variables:
     CI_DEBUG_TRACE: "true"
   script:
+    - export IMAGE_TAG="$IMAGE_TAG_BASE-$(date +%s)"
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > "/kaniko/.docker/config.json"
-    - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --cache-repo $CI_REGISTRY_IMAGE --target test --tarPath $APP_NAME-test-image.tar --destination $CI_REGISTRY_IMAGE/$APP_NAME-test:latest
+    - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --cache-repo $CI_REGISTRY_IMAGE --target test --tarPath $APP_NAME-test-image.tar --destination $IMAGE_TAG
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: always
