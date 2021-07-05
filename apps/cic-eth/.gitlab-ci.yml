@@ -3,34 +3,28 @@
         APP_NAME: cic-eth
         DOCKERFILE_PATH: $APP_NAME/docker/Dockerfile
 
-# .cic_eth_changes_target:
-#     rules:
-#     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-#       changes:
-#           - $CONTEXT/$APP_NAME/**/*
-#       when: always
+.cic_eth_mr_changes_target:
+    rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+          - $CONTEXT/$APP_NAME/**/*
+      when: always
 
 build-mr-cic-eth:
     extends:
         - .cic_eth_variables
-        # - .cic_eth_changes_target
+        - .cic_eth_mr_changes_target
         - .py_build_target_test
-    rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-          - apps/cic-eth/**/*
-      when: always
 
-    
 test-mr-cic-eth:
     extends:
         - .cic_eth_variables
+        - .cic_eth_mr_changes_target
     stage: test
     image: $IMAGE_TAG_BASE
     script:
         - cd apps/$APP_NAME/
         - pytest -x --cov=cic_eth --cov-fail-under=90 --cov-report term-missing tests
-    needs: ["build-mr-cic-eth"]
 
 build-push-cic-eth:
     extends:
