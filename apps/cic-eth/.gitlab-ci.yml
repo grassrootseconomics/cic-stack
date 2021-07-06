@@ -26,7 +26,7 @@ test-mr-cic-eth:
     script:
         - cd apps/$APP_NAME/
         - pip install -r test_requirements.txt
-        - export PYTHONPATH . && pytest -x --cov=cic_eth --cov-fail-under=90 --cov-report term-missing tests
+        - export PYTHONPATH=. && pytest -x --cov=cic_eth --cov-fail-under=90 --cov-report term-missing tests
     needs: ["build-mr-cic-eth"]
 
 build-push-cic-eth:
