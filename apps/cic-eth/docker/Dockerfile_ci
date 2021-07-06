@@ -1,0 +1,52 @@
+# syntax = docker/dockerfile:1.2
+FROM registry.gitlab.com/grassrootseconomics/cic-base-images:python-3.8.6-dev-55da5f4e as dev
+
+WORKDIR /usr/src/cic-eth
+
+# Copy just the requirements and install....this _might_ give docker a hint on caching but we 
+# do load these all into setup.py later
+# TODO can we take all the requirements out of setup.py and just do a pip install -r requirements.txt && python setup.py
+#COPY cic-eth/requirements.txt .
+
+#ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
+#ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple"
+#RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
+#    pip install --index-url https://pypi.org/simple \
+#    --force-reinstall \
+#    --trusted-host $pip_trusted_host \
+#	--extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL \
+#    -r requirements.txt 
+
+COPY cic-eth/ .
+RUN pip install --index-url https://pypi.org/simple \
+    --force-reinstall \
+    --trusted-host $pip_trusted_host \
+	--extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL .
+
+ENTRYPOINT: []
+
+# --- RUNTIME ---
+FROM python:3.8.6-slim-buster as runtime 
+
+RUN apt-get update && \
+	apt install -y gnupg libpq-dev procps
+
+WORKDIR /usr/src/cic-eth
+
+COPY --from=dev /usr/local/bin/ /usr/local/bin/
+COPY --from=dev /usr/local/lib/python3.8/site-packages/ \
+                          /usr/local/lib/python3.8/site-packages/
+
+COPY cic-eth/docker/* ./ 
+RUN chmod 755 *.sh
+
+COPY cic-eth/scripts/ scripts/
+# # ini files in config directory defines the configurable parameters for the application
+# # they can all be overridden by environment variables
+# # to generate a list of environment variables from configuration, use: confini-dump -z <dir> (executable provided by confini package)
+COPY cic-eth/config/ /usr/local/etc/cic-eth/
+COPY cic-eth/cic_eth/db/migrations/ /usr/local/share/cic-eth/alembic/
+COPY cic-eth/crypto_dev_signer_config/ /usr/local/etc/crypto-dev-signer/
+
+COPY util/liveness/health.sh /usr/local/bin/health.sh
+
