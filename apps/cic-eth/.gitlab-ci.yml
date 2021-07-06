@@ -22,6 +22,12 @@ test-mr-cic-eth:
     extends:
         - .cic_eth_variables
         - .cic_eth_changes_target
+    cache:
+        key:
+        files:
+            - test_requirements.txt
+        paths:
+        - /root/.cache/pip
     image: $MR_IMAGE_TAG
     script:
         - cd apps/$APP_NAME/
