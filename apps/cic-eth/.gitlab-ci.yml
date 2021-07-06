@@ -24,8 +24,8 @@ test-mr-cic-eth:
         - .cic_eth_changes_target
     cache:
         key:
-        files:
-            - test_requirements.txt
+            files:
+                - test_requirements.txt
         paths:
         - /root/.cache/pip
     image: $MR_IMAGE_TAG
