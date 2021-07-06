@@ -1,3 +1,4 @@
+# syntax = docker/dockerfile:1.2
 FROM registry.gitlab.com/grassrootseconomics/cic-base-images:python-3.8.6-dev-55da5f4e as dev
 
 WORKDIR /usr/src/cic-eth
