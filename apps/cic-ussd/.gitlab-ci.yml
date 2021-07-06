@@ -2,6 +2,7 @@
     variables:
         APP_NAME: cic-ussd
         DOCKERFILE_PATH: $APP_NAME/docker/Dockerfile
+        CONTEXT: apps/
 
 build-mr-cic-ussd:
     extends:

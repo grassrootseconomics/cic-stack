@@ -1,7 +1,8 @@
 .data_seeding_variables:
     variables:
         APP_NAME: data-seeding
-        DOCKERFILE_PATH: $APP_NAME/docker/Dockerfile_ci
+        DOCKERFILE_PATH: docker/Dockerfile_ci
+        CONTEXT: apps/$APP_NAME
 
 build-mr-data-seeding:
     extends:

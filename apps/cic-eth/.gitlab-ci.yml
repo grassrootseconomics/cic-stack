@@ -2,7 +2,7 @@
     variables:
         APP_NAME: cic-eth
         DOCKERFILE_PATH: docker/Dockerfile_ci
-        CONTEXT: $CI_PROJECT_DIR/apps/$APP_NAME
+        CONTEXT: apps/$APP_NAME
 
 build-mr-cic-eth:
     extends:
