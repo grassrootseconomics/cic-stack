@@ -21,6 +21,8 @@ RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
     pip install --index-url https://pypi.org/simple  \
 	  --extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL .
 
+ENV PYTHONPATH .
+
 COPY docker/entrypoints/* ./ 
 RUN chmod 755 *.sh
 
