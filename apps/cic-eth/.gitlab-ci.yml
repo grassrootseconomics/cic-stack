@@ -11,7 +11,7 @@ build-mr-cic-eth:
     rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
-          - $CONTEXT/**/*
+          - apps/cic-eth/**/*
       when: always
 
 test-mr-cic-eth:
@@ -33,7 +33,7 @@ test-mr-cic-eth:
     rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
-          - $CONTEXT/**/*
+          - apps/cic-eth/**/*
       when: always
 
 build-push-cic-eth:
@@ -43,5 +43,5 @@ build-push-cic-eth:
     rules:
     - if:  $CI_COMMIT_BRANCH == "master"
       changes:
-          - $CONTEXT/**/*
+          - apps/cic-eth/**/*
       when: always
