@@ -62,5 +62,7 @@ COPY crypto_dev_signer_config/ /usr/local/etc/crypto-dev-signer/
 # TODO this kind of code sharing across projects should be discouraged...can we make util a library?
 #COPY util/liveness/health.sh /usr/local/bin/health.sh
 
+RUN echo "TEST RULE CHANGE"
+
 ENTRYPOINT []
 
