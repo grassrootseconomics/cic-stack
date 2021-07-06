@@ -1,7 +1,8 @@
 .cic_eth_variables:
     variables:
         APP_NAME: cic-eth
-        DOCKERFILE_PATH: $APP_NAME/docker/Dockerfile_ci
+        DOCKERFILE_PATH: docker/Dockerfile_ci
+        CONTEXT: $CI_PROJECT_DIR/apps/$APP_NAME
 
 .cic_eth_changes_target:
     rules:

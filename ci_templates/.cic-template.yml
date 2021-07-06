@@ -4,13 +4,13 @@ image:
 
 variables:
   KANIKO_CACHE_ARGS: "--cache=false --cache-copy-layers=true --cache-ttl=24h"
-  CONTEXT: $CI_PROJECT_DIR/apps/
 
 .py_build_merge_request:
   stage: build
   variables:
     CI_DEBUG_TRACE: "true"
     IMAGE_TAG: $CI_REGISTRY_IMAGE/mergerequest/$APP_NAME:$CI_COMMIT_SHORT_SHA
+    CONTEXT: $CI_PROJECT_DIR/apps/
   script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > "/kaniko/.docker/config.json"

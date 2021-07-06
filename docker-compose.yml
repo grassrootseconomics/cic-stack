@@ -228,8 +228,8 @@ services:
   cic-eth-tasker:
     # image: grassrootseconomics:cic-eth-service
     build: 
-        context: apps/
-        dockerfile: cic-eth/docker/Dockerfile
+        context: apps/cic-eth
+        dockerfile: docker/Dockerfile
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
       ETH_GAS_PROVIDER_ADDRESS: $DEV_ETH_ACCOUNT_GAS_PROVIDER
@@ -277,8 +277,8 @@ services:
 
   cic-eth-tracker:
     build:
-        context: apps/
-        dockerfile: cic-eth/docker/Dockerfile
+        context: apps/cic-eth
+        dockerfile: docker/Dockerfile
     environment:
       ETH_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}
@@ -315,8 +315,8 @@ services:
 
   cic-eth-dispatcher:
     build:
-        context: apps/
-        dockerfile: cic-eth/docker/Dockerfile
+        context: apps/cic-eth
+        dockerfile: docker/Dockerfile
     environment:
       ETH_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}
@@ -355,8 +355,8 @@ services:
 
   cic-eth-retrier:
     build:
-        context: apps/
-        dockerfile: cic-eth/docker/Dockerfile
+        context: apps/cic-eth
+        dockerfile: docker/Dockerfile
     environment:
       ETH_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}
