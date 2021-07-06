@@ -6,7 +6,6 @@
 
 build-mr-cic-notify:
     extends:
-        - .cic_notify_changes_target
         - .py_build_merge_request
         - .cic_notify_variables
     rules:
