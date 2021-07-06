@@ -18,7 +18,6 @@ build-mr-cic-meta:
 test-mr-cic-meta:
     extends:
         - .cic_meta_variables
-        - .cic_meta_changes_target
     stage: test
     image: $MR_IMAGE_TAG 
     script:
