@@ -1,45 +1,29 @@
-FROM python:3.8.6-slim-buster as compile
+FROM registry.gitlab.com/grassrootseconomics/cic-base-images:python-3.8.6-dev-55da5f4e as dev
 
 WORKDIR /usr/src/cic-eth
 
-RUN apt-get update && \
-	apt install -y gcc gnupg libpq-dev wget make g++ gnupg bash procps git
+# Copy just the requirements and install....this _might_ give docker a hint on caching but we 
+# do load these all into setup.py later
+# TODO can we take all the requirements out of setup.py and just do a pip install -r requirements.txt && python setup.py
+#COPY cic-eth/requirements.txt .
 
-#RUN python -m venv venv && . venv/bin/activate
+#ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
+#ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple"
+#RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
+#    pip install --index-url https://pypi.org/simple \
+#    --force-reinstall \
+#    --trusted-host $pip_trusted_host \
+#	--extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL \
+#    -r requirements.txt 
 
-ARG pip_extra_index_url_flag='--index https://pypi.org/simple --extra-index-url https://pip.grassrootseconomics.net:8433'
-RUN /usr/local/bin/python -m pip install --upgrade pip
-RUN pip install semver
-
-# TODO use a packaging style that lets us copy requirments only ie. pip-tools 
 COPY cic-eth/ .
-RUN	pip install $pip_extra_index_url_flag .
+RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
+    pip install --index-url https://pypi.org/simple \
+    --force-reinstall \
+    --trusted-host $pip_trusted_host \
+	--extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL .
 
-# --- TEST IMAGE ---
-FROM python:3.8.6-slim-buster as test 
-
-RUN apt-get update && \
-	apt install -y gcc gnupg libpq-dev wget make g++ gnupg bash procps git
-
-WORKDIR /usr/src/cic-eth
-
-RUN /usr/local/bin/python -m pip install --upgrade pip
-
-COPY --from=compile /usr/local/bin/ /usr/local/bin/
-COPY --from=compile /usr/local/lib/python3.8/site-packages/ \
-                          /usr/local/lib/python3.8/site-packages/
-# TODO we could use venv inside container to isolate the system and app deps further
-# COPY --from=compile /usr/src/cic-eth/ .
-# RUN . venv/bin/activate
-
-COPY cic-eth/test_requirements.txt .
-RUN	pip install $pip_extra_index_url_flag -r test_requirements.txt 
-
-COPY cic-eth . 
-
-ENV PYTHONPATH .
-
-ENTRYPOINT ["pytest"]
+ENTRYPOINT: []
 
 # --- RUNTIME ---
 FROM python:3.8.6-slim-buster as runtime 
@@ -49,8 +33,8 @@ RUN apt-get update && \
 
 WORKDIR /usr/src/cic-eth
 
-COPY --from=compile /usr/local/bin/ /usr/local/bin/
-COPY --from=compile /usr/local/lib/python3.8/site-packages/ \
+COPY --from=dev /usr/local/bin/ /usr/local/bin/
+COPY --from=dev /usr/local/lib/python3.8/site-packages/ \
                           /usr/local/lib/python3.8/site-packages/
 
 COPY cic-eth/docker/* ./ 

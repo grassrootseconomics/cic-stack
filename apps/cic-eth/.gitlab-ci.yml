@@ -14,16 +14,17 @@ build-mr-cic-eth:
     extends:
         - .cic_eth_variables
         - .cic_eth_changes_target
-        - .py_build_target_test
+        - .py_build_merge_request
 
 test-mr-cic-eth:
+    stage: test
     extends:
         - .cic_eth_variables
         - .cic_eth_changes_target
-    stage: test
-    image: $CI_REGISTRY_IMAGE/$APP_NAME-test:latest
+    image: $IMAGE_TAG
     script:
         - cd apps/$APP_NAME/
+        - pip install -r test_requirements.txt
         - pytest -x --cov=cic_eth --cov-fail-under=90 --cov-report term-missing tests
     needs: ["build-mr-cic-eth"]
 
