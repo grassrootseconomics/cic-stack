@@ -230,6 +230,7 @@ services:
     build: 
         context: apps/cic-eth
         dockerfile: docker/Dockerfile
+        target: dev
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
       ETH_GAS_PROVIDER_ADDRESS: $DEV_ETH_ACCOUNT_GAS_PROVIDER
@@ -279,6 +280,7 @@ services:
     build:
         context: apps/cic-eth
         dockerfile: docker/Dockerfile
+        target: dev
     environment:
       ETH_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}
@@ -317,6 +319,7 @@ services:
     build:
         context: apps/cic-eth
         dockerfile: docker/Dockerfile
+        target: dev
     environment:
       ETH_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}
@@ -357,6 +360,7 @@ services:
     build:
         context: apps/cic-eth
         dockerfile: docker/Dockerfile
+        target: dev
     environment:
       ETH_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}

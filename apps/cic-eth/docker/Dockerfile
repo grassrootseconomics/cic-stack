@@ -7,22 +7,31 @@ WORKDIR /usr/src/cic-eth
 # TODO can we take all the requirements out of setup.py and just do a pip install -r requirements.txt && python setup.py
 #COPY cic-eth/requirements.txt .
 
-#ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
-#ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple"
+ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
+ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple"
 #RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
 #    pip install --index-url https://pypi.org/simple \
 #    --force-reinstall \
-#    --trusted-host $pip_trusted_host \
 #	--extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL \
 #    -r requirements.txt 
 
-COPY cic-eth/ .
+COPY . .
 RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
-    pip install --index-url https://pypi.org/simple \
-    --force-reinstall \
-    --trusted-host $pip_trusted_host \
-	--extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL .
+    pip install --index-url https://pypi.org/simple  \
+	  --extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL .
 
+COPY docker/entrypoints/* ./ 
+RUN chmod 755 *.sh
+
+# # ini files in config directory defines the configurable parameters for the application
+# # they can all be overridden by environment variables
+# # to generate a list of environment variables from configuration, use: confini-dump -z <dir> (executable provided by confini package)
+COPY config/ /usr/local/etc/cic-eth/
+COPY cic_eth/db/migrations/ /usr/local/share/cic-eth/alembic/
+COPY crypto_dev_signer_config/ /usr/local/etc/crypto-dev-signer/
+
+# TODO this kind of code sharing across projects should be discouraged...can we make util a library?
+#COPY util/liveness/health.sh /usr/local/bin/health.sh
 ENTRYPOINT []
 
 # --- RUNTIME ---
@@ -37,16 +46,18 @@ COPY --from=dev /usr/local/bin/ /usr/local/bin/
 COPY --from=dev /usr/local/lib/python3.8/site-packages/ \
                           /usr/local/lib/python3.8/site-packages/
 
-COPY cic-eth/docker/* ./ 
+COPY docker/entrypoints/* ./ 
 RUN chmod 755 *.sh
 
-COPY cic-eth/scripts/ scripts/
 # # ini files in config directory defines the configurable parameters for the application
 # # they can all be overridden by environment variables
 # # to generate a list of environment variables from configuration, use: confini-dump -z <dir> (executable provided by confini package)
-COPY cic-eth/config/ /usr/local/etc/cic-eth/
-COPY cic-eth/cic_eth/db/migrations/ /usr/local/share/cic-eth/alembic/
-COPY cic-eth/crypto_dev_signer_config/ /usr/local/etc/crypto-dev-signer/
+COPY config/ /usr/local/etc/cic-eth/
+COPY cic_eth/db/migrations/ /usr/local/share/cic-eth/alembic/
+COPY crypto_dev_signer_config/ /usr/local/etc/crypto-dev-signer/
 
-COPY util/liveness/health.sh /usr/local/bin/health.sh
+# TODO this kind of code sharing across projects should be discouraged...can we make util a library?
+#COPY util/liveness/health.sh /usr/local/bin/health.sh
+
+ENTRYPOINT []
 
