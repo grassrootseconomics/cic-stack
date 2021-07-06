@@ -1,6 +1,6 @@
 include:
   - local: 'ci_templates/.cic-template.yml'
-  # - local: 'apps/contract-migration/.gitlab-ci.yml'
+  - local: 'apps/contract-migration/.gitlab-ci.yml'
   - local: 'apps/cic-eth/.gitlab-ci.yml'
   # - local: 'apps/cic-ussd/.gitlab-ci.yml'
   # - local: 'apps/cic-notify/.gitlab-ci.yml'

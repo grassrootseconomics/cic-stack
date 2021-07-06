@@ -7,9 +7,10 @@
 .cic_eth_changes_target:
     rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      #changes:
-          #- $CONTEXT/$APP_NAME/**/*
+      changes:
+          - $CONTEXT/**/*
       when: always
+    - when: never
 
 build-mr-cic-eth:
     extends:

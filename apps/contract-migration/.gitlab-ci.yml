@@ -3,10 +3,18 @@
         APP_NAME: contract-migration
         DOCKERFILE_PATH: $APP_NAME/docker/Dockerfile_ci
 
+# .contract_migration_changes_target:
+#     rules:
+#         - changes:
+#             - $CONTEXT/$APP_NAME/*
+
 .contract_migration_changes_target:
     rules:
-        - changes:
-            - $CONTEXT/$APP_NAME/*
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+          - $CONTEXT/**/*
+      when: always
+    - when: never
 
 build-mr-contract-migration:
     extends:
