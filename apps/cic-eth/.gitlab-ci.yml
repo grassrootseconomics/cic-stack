@@ -14,7 +14,7 @@ build-mr-cic-eth:
     extends:
         - .cic_eth_variables
         - .cic_eth_changes_target
-        - .py_build_merge_request
+        - .py_build_target_dev
 
 test-mr-cic-eth:
     stage: test
