@@ -3,19 +3,23 @@
         APP_NAME: data-seeding
         DOCKERFILE_PATH: $APP_NAME/docker/Dockerfile_ci
 
-.data_seeding_changes_target:
-    rules:
-        - changes:
-            - $CONTEXT/$APP_NAME/*
-
 build-mr-data-seeding:
     extends:
-        - .data_seeding_changes_target
         - .py_build_merge_request
         - .data_seeding_variables
+    rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+          - apps/data-seeding/**/*
+      when: always
 
 build-push-data-seeding:
     extends:
         - .py_build_push
         - .data_seeding_variables
+    rules:
+    - if:  $CI_COMMIT_BRANCH == "master"
+      changes:
+          - apps/data-seeding/**/*
+      when: always
 
