@@ -14,7 +14,6 @@
       changes:
           - $CONTEXT/**/*
       when: always
-    - when: never
 
 build-mr-contract-migration:
     extends:
