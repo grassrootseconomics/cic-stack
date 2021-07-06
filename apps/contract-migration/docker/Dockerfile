@@ -40,5 +40,3 @@ RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
 
 COPY contract-migration/ .
 RUN chmod +x *.sh
-
-RUN echo "TEST THE RULESSSS"

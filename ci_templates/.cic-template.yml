@@ -37,9 +37,6 @@ variables:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > "/kaniko/.docker/config.json"
     # - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --destination $IMAGE_TAG
     - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --destination $IMAGE_TAG --destination $CI_REGISTRY_IMAGE/$APP_NAME:latest
-  rules:
-      - if: $CI_COMMIT_BRANCH == "master"
-        when: always
 
 
 
