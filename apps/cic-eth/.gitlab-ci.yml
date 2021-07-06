@@ -22,7 +22,7 @@ test-mr-cic-eth:
     extends:
         - .cic_eth_variables
         - .cic_eth_changes_target
-    image: $IMAGE_TAG
+    image: $MR_IMAGE_TAG
     script:
         - cd apps/$APP_NAME/
         - pip install -r test_requirements.txt
