@@ -1,0 +1,30 @@
+# syntax = docker/dockerfile:1.2
+FROM registry.gitlab.com/grassrootseconomics/cic-base-images:python-3.8.6-dev-55da5f4e as dev
+
+
+# create secrets directory
+RUN mkdir -vp pgp/keys
+
+# create application directory
+RUN mkdir -vp cic-ussd
+RUN mkdir -vp data
+
+COPY requirements.txt .
+
+RUN pip install --index-url https://pypi.org/simple  \
+	  --extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL \
+    -r requirements.txt
+
+COPY . .
+RUN python setup.py install
+
+COPY cic_ussd/db/ussd_menu.json data/
+
+COPY docker/*.sh .
+RUN chmod +x /root/*.sh
+
+# copy config and migration files to definitive file so they can be referenced in path definitions for running scripts
+COPY .config/ /usr/local/etc/cic-ussd/
+COPY cic_ussd/db/migrations/ /usr/local/share/cic-ussd/alembic
+
+ENTRYPOINT []

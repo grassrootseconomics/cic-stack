@@ -3,11 +3,13 @@
         APP_NAME: cic-eth
         DOCKERFILE_PATH: docker/Dockerfile_ci
         CONTEXT: apps/$APP_NAME
+        KANIKO_TARGET_ARGS: "--target dev"
 
 build-mr-cic-eth:
     extends:
         - .cic_eth_variables
-        - .py_build_target_dev
+          #- .py_build_target_dev
+        - .py_build_merge_request
     rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:

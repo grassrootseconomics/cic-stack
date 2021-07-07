@@ -1,7 +1,7 @@
 .cic_ussd_variables:
     variables:
         APP_NAME: cic-ussd
-        DOCKERFILE_PATH: docker/Dockerfile
+        DOCKERFILE_PATH: docker/Dockerfile_ci
         CONTEXT: apps/$APP_NAME
 
 build-mr-cic-ussd:
