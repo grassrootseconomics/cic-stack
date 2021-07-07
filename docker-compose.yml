@@ -464,8 +464,8 @@ services:
 
   cic-user-ussd-server:
     build:
-      context: apps/
-      dockerfile: cic-ussd/docker/Dockerfile
+      context: apps/cic-ussd
+      dockerfile: docker/Dockerfile
     environment:
       DATABASE_USER: grassroots
       DATABASE_HOST: postgres
@@ -493,8 +493,8 @@ services:
 
   cic-user-server:
     build:
-      context: apps
-      dockerfile: cic-ussd/docker/Dockerfile
+      context: apps/cic-ussd
+      dockerfile: docker/Dockerfile
     environment:
       DATABASE_USER: grassroots
       DATABASE_HOST: postgres
@@ -515,8 +515,8 @@ services:
 
   cic-user-tasker:
     build:
-      context: apps
-      dockerfile: cic-ussd/docker/Dockerfile
+      context: apps/cic-ussd/
+      dockerfile: docker/Dockerfile
     environment:
       DATABASE_USER: grassroots
       DATABASE_HOST: postgres

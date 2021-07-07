@@ -1,8 +1,8 @@
 .cic_ussd_variables:
     variables:
         APP_NAME: cic-ussd
-        DOCKERFILE_PATH: $APP_NAME/docker/Dockerfile
-        CONTEXT: apps/
+        DOCKERFILE_PATH: docker/Dockerfile
+        CONTEXT: apps/$APP_NAME
 
 build-mr-cic-ussd:
     extends:
@@ -12,6 +12,31 @@ build-mr-cic-ussd:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
           - apps/cic-ussd/**/*
+      when: always
+
+test-mr-cic-ussd:
+    stage: test
+    extends:
+        - .cic_ussd_variables
+    cache:
+        key:
+            files:
+                - test_requirements.txt
+        paths:
+        - /root/.cache/pip
+    image: $MR_IMAGE_TAG
+    script:
+        - cd apps/$APP_NAME/
+        - >
+          pip install --extra-index-url https://pip.grassrootseconomics.net:8433
+          --extra-index-url https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple
+          -r test_requirements.txt 
+        - export PYTHONPATH=. && pytest -x --cov=cic_eth --cov-fail-under=90 --cov-report term-missing tests
+    needs: ["build-mr-cic-ussd"]
+    rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+          - apps/cic-eth/**/*
       when: always
 
 build-push-cic-ussd:
