@@ -403,8 +403,8 @@ services:
 
   cic-notify-tasker:
     build:
-      context: apps/
-      dockerfile: cic-notify/docker/Dockerfile
+      context: apps/cic-notify
+      dockerfile: docker/Dockerfile
     environment:
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
