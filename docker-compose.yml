@@ -73,6 +73,7 @@ services:
   contract-migration:
     build:
       dockerfile: contract-migration/docker/Dockerfile
+        #      target: compile-image
       args:
         pip_index_url: ${PIP_DEFAULT_INDEX_URL:-https://pypi.org/simple}
         pip_extra_args: $PIP_EXTRA_ARGS
@@ -110,6 +111,7 @@ services:
       TOKEN_SUPPLY_LIMIT: $TOKEN_SUPPLY_LIMIT
       TOKEN_DEMURRAGE_LEVEL: ${TOKEN_DEMURRAGE_LEVEL:-196454828847045000000000000000000}
       TOKEN_SINK_ADDRESS: $TOKEN_SINK_ADDRESS
+      TOKEN_TYPE: ${TOKEN_TYPE:-default}
         #CONFINI_DIR: ${CONFINI_DIR:-/tmp/cic/config}
     command: ["./run_job.sh"]
         #command: ["./reset.sh"]
