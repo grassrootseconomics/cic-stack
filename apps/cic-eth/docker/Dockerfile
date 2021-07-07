@@ -1,6 +1,6 @@
 FROM python:3.8.6-slim-buster as compile
 
-WORKDIR /usr/src/cic-eth
+WORKDIR /usr/src
 
 RUN apt-get update && \
 	apt install -y gcc gnupg libpq-dev wget make g++ gnupg bash procps git
@@ -13,9 +13,16 @@ ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages
 RUN /usr/local/bin/python -m pip install --upgrade pip
 RUN pip install semver
 
-COPY cic-eth/ .
+COPY cic-eth-aux/  ./cic-eth-aux/
+WORKDIR /usr/src/cic-eth-aux/erc20-demurrage-token
 RUN	pip install --extra-index-url $GITLAB_PYTHON_REGISTRY \
     	--extra-index-url $EXTRA_INDEX_URL .
+
+WORKDIR /usr/src/cic-eth
+
+COPY cic-eth/ .
+RUN	pip install --extra-index-url $GITLAB_PYTHON_REGISTRY \
+    	--extra-index-url $EXTRA_INDEX_URL .[services]
 
 # --- TEST IMAGE ---
 FROM python:3.8.6-slim-buster as test 
