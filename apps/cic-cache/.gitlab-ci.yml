@@ -1,8 +1,8 @@
 .cic_cache_variables:
     variables:
         APP_NAME: cic-cache
-        DOCKERFILE_PATH: $APP_NAME/docker/Dockerfile
-        CONTEXT: apps
+        DOCKERFILE_PATH: docker/Dockerfile
+        CONTEXT: apps/$APP_NAME
 
 build-mr-cic-cache:
     extends:
