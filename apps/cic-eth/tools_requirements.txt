@@ -3,17 +3,6 @@ chainqueue~=0.0.2b5
 confini~=0.3.6rc4
 cic-eth-registry~=0.5.6a1
 redis==3.5.3
-#websockets==8.1
-#requests~=2.24.0
-#eth_accounts_index~=0.0.12a1
-#erc20-transfer-authorization~=0.3.2a1
-#websocket-client==0.57.0
-#moolb~=0.1.1b2
-#eth-address-index~=0.1.2a1
 hexathon~=0.0.1a7
-#sarafu-faucet~=0.0.4a1
-#erc20-faucet~=0.2.2a1
-#coincurve==15.0.0
-#potaahto~=0.0.1a2
 pycryptodome==3.10.1
 pyxdg==0.27
