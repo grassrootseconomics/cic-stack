@@ -8,7 +8,7 @@
 build-mr-cic-meta:
     extends:
         - .py_build_merge_request
-        - .cic_notify_variables
+        - .cic_meta_variables
     rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
