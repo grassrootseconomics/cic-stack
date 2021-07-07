@@ -2,21 +2,26 @@
     variables:
         APP_NAME: cic-cache
         DOCKERFILE_PATH: $APP_NAME/docker/Dockerfile
-
-.cic_cache_changes_target:
-    rules:
-        - changes:
-            - $CONTEXT/$APP_NAME/*
+        CONTEXT: apps
 
 build-mr-cic-cache:
     extends:
-        - .cic_cache_changes_target
         - .py_build_merge_request
         - .cic_cache_variables
+    rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+          - apps/cic-cache/**/*
+      when: always
 
 build-push-cic-cache:
     extends:
         - .py_build_push
         - .cic_cache_variables
+    rules:
+    - if:  $CI_COMMIT_BRANCH == "master"
+      changes:
+          - apps/cic-cache/**/*
+      when: always
         
 

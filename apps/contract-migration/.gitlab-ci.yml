@@ -2,19 +2,24 @@
     variables:
         APP_NAME: contract-migration
         DOCKERFILE_PATH: $APP_NAME/docker/Dockerfile_ci
-
-.contract_migration_changes_target:
-    rules:
-        - changes:
-            - $CONTEXT/$APP_NAME/*
+        CONTEXT: apps/
 
 build-mr-contract-migration:
     extends:
-        - .contract_migration_changes_target
         - .py_build_merge_request
         - .contract_migration_variables
+    rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+          - apps/contract-migration/**/*
+      when: always
 
 build-push-contract-migration:
     extends:
         - .py_build_push
         - .contract_migration_variables
+    rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+      changes:
+          - apps/contract-migration/**/*
+      when: always

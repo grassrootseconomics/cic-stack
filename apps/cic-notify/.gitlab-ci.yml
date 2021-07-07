@@ -2,21 +2,26 @@
     variables:
         APP_NAME: cic-notify
         DOCKERFILE_PATH: $APP_NAME/docker/Dockerfile
-
-.cic_notify_changes_target:
-    rules:
-        - changes:
-            - $CONTEXT/$APP_NAME/*
+        CONTEXT: apps/
 
 build-mr-cic-notify:
     extends:
-        - .cic_notify_changes_target
         - .py_build_merge_request
         - .cic_notify_variables
+    rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+          - apps/cic-notify/**/*
+      when: always
 
 build-push-cic-notify:
     extends:
         - .py_build_push
         - .cic_notify_variables
+    rules:
+    - if:  $CI_COMMIT_BRANCH == "master"
+      changes:
+          - apps/cic-notify/**/*
+      when: always
         
 

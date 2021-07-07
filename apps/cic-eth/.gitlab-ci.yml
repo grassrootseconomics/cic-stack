@@ -2,43 +2,46 @@
     variables:
         APP_NAME: cic-eth
         DOCKERFILE_PATH: docker/Dockerfile_ci
-        CONTEXT: $CI_PROJECT_DIR/apps/$APP_NAME
-
-.cic_eth_mr_changes_target:
-    rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-          - $CONTEXT/$APP_NAME/**/*
-      when: always
+        CONTEXT: apps/$APP_NAME
 
 build-mr-cic-eth:
     extends:
         - .cic_eth_variables
-<<<<<<< HEAD
-        - .cic_eth_changes_target
         - .py_build_target_dev
-=======
-        - .cic_eth_mr_changes_target
-        - .py_build_target_test
->>>>>>> master
+    rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+          - apps/cic-eth/**/*
+      when: always
 
 test-mr-cic-eth:
     stage: test
     extends:
         - .cic_eth_variables
-<<<<<<< HEAD
-        - .cic_eth_changes_target
+    cache:
+        key:
+            files:
+                - test_requirements.txt
+        paths:
+        - /root/.cache/pip
     image: $MR_IMAGE_TAG
-=======
-        - .cic_eth_mr_changes_target
-    stage: test
-    image: $IMAGE_TAG_BASE
->>>>>>> master
     script:
         - cd apps/$APP_NAME/
         - pip install -r test_requirements.txt
-        - pytest -x --cov=cic_eth --cov-fail-under=90 --cov-report term-missing tests
+        - export PYTHONPATH=. && pytest -x --cov=cic_eth --cov-fail-under=90 --cov-report term-missing tests
+    needs: ["build-mr-cic-eth"]
+    rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+          - apps/cic-eth/**/*
+      when: always
 
 build-push-cic-eth:
     extends:
         - .py_build_push
+        - .cic_eth_variables
+    rules:
+    - if:  $CI_COMMIT_BRANCH == "master"
+      changes:
+          - apps/cic-eth/**/*
+      when: always
