@@ -1,7 +1,7 @@
 .cic_cache_variables:
     variables:
         APP_NAME: cic-cache
-        DOCKERFILE_PATH: docker/Dockerfile
+        DOCKERFILE_PATH: docker/Dockerfile_ci
         CONTEXT: apps/$APP_NAME
 
 build-mr-cic-cache:
@@ -12,6 +12,31 @@ build-mr-cic-cache:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
           - apps/cic-cache/**/*
+      when: always
+
+test-mr-cic-eth:
+    stage: test
+    extends:
+        - .cic_eth_variables
+    cache:
+        key:
+            files:
+                - test_requirements.txt
+        paths:
+        - /root/.cache/pip
+    image: $MR_IMAGE_TAG
+    script:
+        - cd apps/$APP_NAME/
+        - >
+          pip install --extra-index-url https://pip.grassrootseconomics.net:8433
+          --extra-index-url https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple
+          -r test_requirements.txt 
+        - export PYTHONPATH=. && pytest -x --cov=cic_cache --cov-fail-under=90 --cov-report term-missing tests
+    needs: ["build-mr-cic-eth"]
+    rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+          - apps/cic-eth/**/*
       when: always
 
 build-push-cic-cache:
