@@ -12,10 +12,8 @@ import confini
 import celery
 
 # local imports
-from cic_eth.api import (
-        Api,
-        AdminApi,
-        )
+from cic_eth.api import Api
+from cic_eth.api.admin import AdminApi
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()

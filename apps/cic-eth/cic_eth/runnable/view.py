@@ -19,7 +19,7 @@ from chainlib.eth.connection import EthHTTPConnection
 from hexathon import add_0x
 
 # local imports
-from cic_eth.api import AdminApi
+from cic_eth.api.admin import AdminApi
 from cic_eth.db.enum import (
     StatusEnum,
     status_str,

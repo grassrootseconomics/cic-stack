@@ -1,7 +1,7 @@
 .data_seeding_variables:
     variables:
         APP_NAME: data-seeding
-        DOCKERFILE_PATH: $APP_NAME/docker/Dockerfile
+        DOCKERFILE_PATH: $APP_NAME/docker/Dockerfile_ci
 
 .data_seeding_changes_target:
     rules:

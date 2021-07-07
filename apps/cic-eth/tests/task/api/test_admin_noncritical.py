@@ -35,7 +35,7 @@ from eth_erc20 import ERC20
 from cic_eth_registry import CICRegistry
 
 # local imports
-from cic_eth.api.api_admin import AdminApi
+from cic_eth.api.admin import AdminApi
 from cic_eth.eth.gas import cache_gas_data
 from cic_eth.eth.erc20 import cache_transfer_data
 

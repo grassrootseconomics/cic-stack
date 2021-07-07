@@ -8,12 +8,11 @@ import logging
 
 # external imports 
 import celery
-from cic_eth_registry import CICRegistry
 from chainlib.chain import ChainSpec
 
 # local imports
 from cic_eth.api.base import ApiBase
-from cic_eth.db.enum import LockEnum
+from cic_eth.enum import LockEnum
 
 app = celery.current_app
 
