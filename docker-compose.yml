@@ -72,12 +72,11 @@ services:
 
   contract-migration:
     build:
-      dockerfile: contract-migration/docker/Dockerfile
-        #      target: compile-image
+      context: apps/contract-migration
+      dockerfile: docker/Dockerfile
       args:
         pip_index_url: ${PIP_DEFAULT_INDEX_URL:-https://pypi.org/simple}
         pip_extra_args: $PIP_EXTRA_ARGS
-      context: apps/
     # image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:latest
     environment:
       # ETH_PROVIDER should be broken out into host/port but cic-eth expects this
@@ -432,8 +431,8 @@ services:
   cic-meta-server:
     hostname: meta
     build:
-      context: apps/
-      dockerfile: cic-meta/docker/Dockerfile
+      context: apps/cic-meta
+      dockerfile: docker/Dockerfile
     environment:
       DATABASE_NAME: ${DATABASE_NAME:-cic_meta}
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}

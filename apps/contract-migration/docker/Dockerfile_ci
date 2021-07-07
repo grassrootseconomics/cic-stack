@@ -3,12 +3,11 @@ FROM registry.gitlab.com/grassrootseconomics/cic-base-images:python-3.8.6-dev-55
 
 WORKDIR /root
 
-# solc install which we needed for bancor. Leaving as an artfact of HOW to do it. 
-#RUN touch /etc/apt/sources.list.d/ethereum.list
-#RUN echo 'deb http://ppa.launchpad.net/ethereum/ethereum/ubuntu bionic main' > /etc/apt/sources.list.d/ethereum.list
-#RUN echo 'deb-src http://ppa.launchpad.net/ethereum/ethereum/ubuntu bionic main' >> /etc/apt/sources.list.d/ethereum.list
-#RUN cat /etc/apt/sources.list.d/ethereum.list
-#RUN apt-key adv --keyserver keyserver.ubuntu.com  --recv-keys 2A518C819BE37D2C2031944D1C52189C923F6CA9
+RUN touch /etc/apt/sources.list.d/ethereum.list
+RUN echo 'deb http://ppa.launchpad.net/ethereum/ethereum/ubuntu bionic main' > /etc/apt/sources.list.d/ethereum.list
+RUN echo 'deb-src http://ppa.launchpad.net/ethereum/ethereum/ubuntu bionic main' >> /etc/apt/sources.list.d/ethereum.list
+RUN cat /etc/apt/sources.list.d/ethereum.list
+RUN apt-key adv --keyserver keyserver.ubuntu.com  --recv-keys 2A518C819BE37D2C2031944D1C52189C923F6CA9
 
 #RUN apt-get install solc
 
@@ -26,7 +25,7 @@ RUN echo Install confini schema files && \
 	git checkout $cic_config_commit && \	
 	cp -v *.ini $CONFINI_DIR
 
-COPY contract-migration/requirements.txt . 
+COPY requirements.txt . 
 
 ARG pip_index_url=https://pypi.org/simple
 ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
@@ -38,5 +37,5 @@ RUN pip install --index-url https://pypi.org/simple \
     --extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL \
     -r requirements.txt 
 
-COPY contract-migration/ .
+COPY . .
 RUN chmod +x *.sh
