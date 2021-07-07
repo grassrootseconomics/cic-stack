@@ -15,7 +15,7 @@ from cic_eth.db.models.nonce import (
         )
 
 # test imports
-from cic_eth.pytest.filter import (
+from cic_eth.pytest.mock.filter import (
         block_filter,
         tx_filter,
         )
