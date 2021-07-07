@@ -2,6 +2,8 @@ pytest==6.0.1
 pytest-celery==0.0.0a1
 pytest-mock==3.3.1
 pytest-cov==2.10.1
+pytest-redis==2.0.0
+redis==3.5.3
 eth-tester==0.5.0b3
 py-evm==0.3.0a20
-eth-erc20==0.0.10a2
+eth-erc20~=0.0.10a2

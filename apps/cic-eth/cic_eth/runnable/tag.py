@@ -12,7 +12,7 @@ from chainlib.chain import ChainSpec
 from xdg.BaseDirectory import xdg_config_home
 
 # local imports
-from cic_eth.api import AdminApi
+from cic_eth.api.admin import AdminApi
 from cic_eth.db import dsn_from_config
 from cic_eth.db.models.base import SessionBase
 

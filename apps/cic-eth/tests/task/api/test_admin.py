@@ -40,7 +40,7 @@ from chainqueue.sql.query import (
         )
 
 # local imports
-from cic_eth.api import AdminApi
+from cic_eth.api.admin import AdminApi
 from cic_eth.db.models.role import AccountRole
 from cic_eth.db.enum import LockEnum
 from cic_eth.error import InitializationError

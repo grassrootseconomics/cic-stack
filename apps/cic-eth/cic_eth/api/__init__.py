@@ -5,4 +5,3 @@
 """
 
 from .api_task import Api
-from .api_admin import AdminApi

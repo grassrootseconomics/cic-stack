@@ -12,7 +12,7 @@ from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.eth.address import is_checksum_address
 
 # local imports
-from cic_eth.api import AdminApi
+from cic_eth.api.admin import AdminApi
 from cic_eth.db.enum import LockEnum
 
 logging.basicConfig(level=logging.WARNING)

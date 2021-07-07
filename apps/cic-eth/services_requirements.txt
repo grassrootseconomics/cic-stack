@@ -1,0 +1,7 @@
+chainsyncer[sql]~=0.0.3a3
+chainqueue~=0.0.2b5
+alembic==1.4.2
+confini~=0.3.6rc4
+redis==3.5.3
+hexathon~=0.0.1a7
+pycryptodome==3.10.1

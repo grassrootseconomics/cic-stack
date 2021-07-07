@@ -2,10 +2,18 @@
 
 set -a
 
+default_token=giftable_erc20_token
 CIC_DEFAULT_TOKEN_SYMBOL=${CIC_DEFAULT_TOKEN_SYMBOL:-GFT}
 TOKEN_SYMBOL=${CIC_DEFAULT_TOKEN_SYMBOL}
+TOKEN_NAME=${TOKEN_NAME:-$TOKEN_SYMBOL}
+TOKEN_TYPE=${TOKEN_TYPE:-$default_token}
+if [ $TOKEN_TYPE == 'default' ]; then
+	>&2 echo resolving "default" token to $default_token
+	TOKEN_TYPE=$default_token
+fi
 cat <<EOF
 external token settings:
+token_type: $TOKEN_TYPE
 token_symbol: $TOKEN_SYMBOL
 token_name: $TOKEN_NAME
 token_decimals: $TOKEN_DECIMALS
@@ -29,11 +37,6 @@ DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER=`eth-checksum $(cat $DEV_ETH_KEYSTORE_FILE | j
 if [ ! -z $DEV_ETH_GAS_PRICE ]; then
 	gas_price_arg="--gas-price $DEV_ETH_GAS_PRICE"
 	>&2 echo using static gas price $DEV_ETH_GAS_PRICE
-fi
-
-if [[ $TOKEN_SYMBOL != 'GFT' && $TOKEN_SYMBOL != 'SRF' ]]; then
-	>&2 echo TOKEN_SYMBOL must be one of [GFT,SRF], but was $TOKEN_SYMBOL
-	exit 1
 fi
 
 echo "environment:"
@@ -72,15 +75,20 @@ if [[ -n "${ETH_PROVIDER}" ]]; then
 		./wait-for-it.sh "${ETH_PROVIDER_HOST}:${ETH_PROVIDER_PORT}"
 	fi
 
-	if [ $TOKEN_SYMBOL == 'GFT' ]; then
-		>&2 echo "deploying 'giftable token'"
-		DEV_RESERVE_ADDRESS=`giftable-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -ww --name "Giftable Token" --symbol "GFT" --decimals 6 -vv`
-	else
-		>&2 echo "deploying 'redistributed demurrage token'"
-		if [ -z $TOKEN_SINK_ADDRESS && ! -z $TOKEN_REDISTRIBUTION_PERIOD ]; then
-			>&2 echo -e "\033[;93mtoken sink address not set, so redistribution will be BURNED\033[;39m"
+	if [ $TOKEN_TYPE == $default_token ]; then
+		>&2 echo deploying default token $TOKEN_TYPE
+		DEV_RESERVE_ADDRESS=`giftable-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -ww --name $TOKEN_NAME --symbol $TOKEN_SYMBOL --decimals 6 -vv`
+	elif [ $TOKEN_TYPE == 'erc20_demurrage_token' ]; then
+		>&2 echo deploying token $TOKEN_TYPE
+		if [ -z $TOKEN_SINK_ADDRESS ]; then
+			if [ ! -z $TOKEN_REDISTRIBUTION_PERIOD ]; then
+				>&2 echo -e "\033[;93mtoken sink address not set, so redistribution will be BURNED\033[;39m"
+			fi
 		fi
 		DEV_RESERVE_ADDRESS=`erc20-demurrage-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -ww`
+	else
+		>&2 echo unknown token type $TOKEN_TYPE
+		exit 1
 	fi
 	giftable-token-gift $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -w -a $DEV_RESERVE_ADDRESS $DEV_RESERVE_AMOUNT
 

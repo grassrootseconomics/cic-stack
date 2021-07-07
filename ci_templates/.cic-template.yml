@@ -23,14 +23,11 @@ variables:
 .py_build_target_dev:
   stage: build
   variables:
-    CI_DEBUG_TRACE: "true"
+    IMAGE_TAG_BASE: $CI_REGISTRY_IMAGE/$APP_NAME:mr-unittest-$CI_COMMIT_SHORT_SHA
   script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > "/kaniko/.docker/config.json"
     - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --cache-repo $CI_REGISTRY_IMAGE --target dev --tarPath $APP_NAME-test-image.tar --destination $MR_IMAGE_TAG
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: always
 
 .py_build_push:
   stage: build

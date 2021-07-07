@@ -11,7 +11,7 @@ from chainlib.chain import ChainSpec
 from chainlib.eth.connection import EthHTTPConnection
 
 # local imports
-from cic_eth.api.api_admin import AdminApi
+from cic_eth.api.admin import AdminApi
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
