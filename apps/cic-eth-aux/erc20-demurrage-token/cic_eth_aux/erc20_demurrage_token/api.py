@@ -17,7 +17,7 @@ class Api(ApiBase):
                 'cic_eth_aux.erc20_demurrage_token.get_adjusted_balance',
                 [
                     token_symbol,
-                    1000,
+                    balance,
                     timestamp,
                     ],
                 queue=None,
