@@ -1,6 +1,5 @@
 # import
 import time
-import requests
 import logging
 import uuid
 
@@ -76,7 +75,7 @@ class CriticalSQLAlchemyTask(CriticalTask):
 
 class CriticalWeb3Task(CriticalTask):
     autoretry_for = (
-        requests.exceptions.ConnectionError,
+        ConnectionError,
         )
     safe_gas_threshold_amount = 2000000000 * 60000 * 3
     safe_gas_refill_amount = safe_gas_threshold_amount * 5 
@@ -86,7 +85,7 @@ class CriticalSQLAlchemyAndWeb3Task(CriticalTask):
     autoretry_for = (
         sqlalchemy.exc.DatabaseError,
         sqlalchemy.exc.TimeoutError,
-        requests.exceptions.ConnectionError,
+        ConnectionError,
         sqlalchemy.exc.ResourceClosedError,
         )
     safe_gas_threshold_amount = 2000000000 * 60000 * 3
@@ -102,7 +101,7 @@ class CriticalSQLAlchemyAndSignerTask(CriticalTask):
 
 class CriticalWeb3AndSignerTask(CriticalTask):
     autoretry_for = (
-        requests.exceptions.ConnectionError,
+        ConnectionError,
         )
     safe_gas_threshold_amount = 2000000000 * 60000 * 3
     safe_gas_refill_amount = safe_gas_threshold_amount * 5 

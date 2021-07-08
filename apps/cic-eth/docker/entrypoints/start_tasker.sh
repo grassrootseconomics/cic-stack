@@ -8,7 +8,7 @@ set -e
 echo "!!! starting signer"
 python /usr/local/bin/crypto-dev-daemon -c /usr/local/etc/crypto-dev-signer -vv 2> /tmp/signer.log &
 
-echo "!!! starting tracker"
+echo "!!! starting taskerd"
 /usr/local/bin/cic-eth-taskerd $@
 
 # thanks! https://docs.docker.com/config/containers/multi-service_container/

@@ -15,7 +15,7 @@ from cic_eth.db.models.nonce import (
         )
 
 # test imports
-from tests.mock.filter import (
+from cic_eth.pytest.mock.filter import (
         block_filter,
         tx_filter,
         )
@@ -110,7 +110,7 @@ def test_list_tx(
     logg.debug('r {}'.format(r))
 
     # test the api
-    t = api.list(agent_roles['ALICE'], external_task='tests.mock.filter.filter')
+    t = api.list(agent_roles['ALICE'], external_task='cic_eth.pytest.mock.filter.filter')
     r = t.get_leaf()
     assert t.successful()
 

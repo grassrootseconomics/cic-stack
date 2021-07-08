@@ -5,6 +5,7 @@ import logging
 import uuid
 
 # external imports
+import pytest
 from eth_erc20 import ERC20
 import redis
 
@@ -22,6 +23,7 @@ from cic_eth.pytest.fixtures_celery import *
 from cic_eth.pytest.fixtures_database import *
 from cic_eth.pytest.fixtures_role import *
 from cic_eth.pytest.fixtures_contract import *
+from cic_eth.pytest.fixtures_token import *
 from chainlib.eth.pytest import *
 from eth_contract_registry.pytest import *
 from cic_eth_registry.pytest.fixtures_contracts import *
@@ -35,20 +37,6 @@ def api(
     ):
     chain_str = str(default_chain_spec)
     return Api(chain_str, queue=None, callback_param='foo')
-
-
-@pytest.fixture(scope='function')
-def foo_token_symbol(
-    default_chain_spec,
-    foo_token,
-    eth_rpc,
-    contract_roles,
-    ):
-    
-    c = ERC20(default_chain_spec)
-    o = c.symbol(foo_token, sender_address=contract_roles['CONTRACT_DEPLOYER'])
-    r = eth_rpc.do(o)
-    return c.parse_symbol(r)
 
 
 @pytest.fixture(scope='function')

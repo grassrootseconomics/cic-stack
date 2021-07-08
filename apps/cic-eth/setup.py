@@ -48,4 +48,4 @@ setup(
         'admin_api': admin_requirements,
         'services': services_requirements,
         }
-        )
+    )

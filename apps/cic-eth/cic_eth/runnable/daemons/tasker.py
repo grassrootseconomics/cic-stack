@@ -7,6 +7,8 @@ import tempfile
 import re
 import urllib
 import websocket
+import stat
+import importlib
 
 # external imports
 import celery
@@ -68,6 +70,8 @@ from cic_eth.task import BaseTask
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
+script_dir = os.path.dirname(os.path.realpath(__file__))
+
 config_dir = os.path.join('/usr/local/etc/cic-eth')
 
 argparser = argparse.ArgumentParser()
@@ -79,6 +83,8 @@ argparser.add_argument('--default-token-symbol', dest='default_token_symbol', ty
 argparser.add_argument('--trace-queue-status', default=None, dest='trace_queue_status', action='store_true', help='set to perist all queue entry status changes to storage')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
+argparser.add_argument('--aux-all', action='store_true', help='include tasks from all submodules from the aux module path')
+argparser.add_argument('--aux', action='append', type=str, default=[], help='add single submodule from the aux module path')
 argparser.add_argument('-v', action='store_true', help='be verbose')
 argparser.add_argument('-vv', action='store_true', help='be more verbose')
 args = argparser.parse_args()
@@ -108,6 +114,8 @@ health_modules = config.get('CIC_HEALTH_MODULES', [])
 if len(health_modules) != 0:
     health_modules = health_modules.split(',')
 logg.debug('health mods {}'.format(health_modules))
+
+
 
 # connect to database
 dsn = dsn_from_config(config)
@@ -167,6 +175,84 @@ Otx.tracing = config.true('TASKS_TRACE_QUEUE_STATUS')
 #    raise RuntimeError()
 liveness.linux.load(health_modules, rundir=config.get('CIC_RUN_DIR'), config=config, unit='cic-eth-tasker')
 
+rpc = RPCConnection.connect(chain_spec, 'default')
+try:
+    registry = connect_registry(rpc, chain_spec, config.get('CIC_REGISTRY_ADDRESS'))
+except UnknownContractError as e:
+    logg.exception('Registry contract connection failed for {}: {}'.format(config.get('CIC_REGISTRY_ADDRESS'), e))
+    sys.exit(1)
+logg.info('connected contract registry {}'.format(config.get('CIC_REGISTRY_ADDRESS')))
+
+trusted_addresses_src = config.get('CIC_TRUST_ADDRESS')
+if trusted_addresses_src == None:
+    logg.critical('At least one trusted address must be declared in CIC_TRUST_ADDRESS')
+    sys.exit(1)
+trusted_addresses = trusted_addresses_src.split(',')
+for address in trusted_addresses:
+    logg.info('using trusted address {}'.format(address))
+
+connect_declarator(rpc, chain_spec, trusted_addresses)
+connect_token_registry(rpc, chain_spec)
+
+# detect aux 
+# TODO: move to separate file
+#aux_dir = os.path.join(script_dir, '..', '..', 'aux')
+aux = []
+if args.aux_all:
+    if len(args.aux) > 0:
+        logg.warning('--aux-all is set so --aux will have no effect')
+    for p in sys.path:
+        logg.debug('checking for aux modules in {}'.format(p))
+        aux_dir = os.path.join(p, 'cic_eth_aux')
+        try:
+            d = os.listdir(aux_dir)
+        except FileNotFoundError:
+            logg.debug('no aux module found in {}'.format(aux_dir))
+            continue
+        for v in d:
+            if v[:1] == '.':
+                logg.debug('dotfile, skip {}'.format(v))
+                continue
+            aux_mod_path = os.path.join(aux_dir, v)
+            st = os.stat(aux_mod_path)
+            if not stat.S_ISDIR(st.st_mode):
+                logg.debug('not a dir, skip {}'.format(v))
+                continue
+            aux_mod_file = os.path.join(aux_dir, v,'__init__.py')
+            try:
+                st = os.stat(aux_mod_file)
+            except FileNotFoundError:
+                logg.debug('__init__.py not found, skip {}'.format(v))
+                continue 
+            aux.append(v)
+            logg.debug('found module {} in {}'.format(v, aux_dir))
+
+elif len(args.aux) > 0:
+    for p in sys.path:
+        v_found = None
+        for v in args.aux:
+            aux_dir = os.path.join(p, 'cic_eth_aux')
+            aux_mod_file = os.path.join(aux_dir, v, '__init__.py')
+            try:
+                st = os.stat(aux_mod_file)
+                v_found = v
+            except FileNotFoundError:
+                logg.debug('cannot find explicity requested aux module {} in path {}'.format(v, aux_dir))
+                continue
+        if v_found == None:
+            logg.critical('excplicity requested aux module {} not found in any path'.format(v))
+            sys.exit(1)
+
+        logg.info('aux module {} found in path {}'.format(v, aux_dir))
+        aux.append(v)
+
+for v in aux:
+    mname = 'cic_eth_aux.' + v
+    mod = importlib.import_module(mname)
+    mod.aux_setup(rpc, config)
+    logg.info('loaded aux module {}'.format(mname))
+
+
 def main():
     argv = ['worker']
     if args.vv:
@@ -188,24 +274,6 @@ def main():
 #        Callback.ssl_ca_file = config.get('SSL_CA_FILE')
 
     rpc = RPCConnection.connect(chain_spec, 'default')
-
-    try:
-        registry = connect_registry(rpc, chain_spec, config.get('CIC_REGISTRY_ADDRESS'))
-    except UnknownContractError as e:
-        logg.exception('Registry contract connection failed for {}: {}'.format(config.get('CIC_REGISTRY_ADDRESS'), e))
-        sys.exit(1)
-    logg.info('connected contract registry {}'.format(config.get('CIC_REGISTRY_ADDRESS')))
-
-    trusted_addresses_src = config.get('CIC_TRUST_ADDRESS')
-    if trusted_addresses_src == None:
-        logg.critical('At least one trusted address must be declared in CIC_TRUST_ADDRESS')
-        sys.exit(1)
-    trusted_addresses = trusted_addresses_src.split(',')
-    for address in trusted_addresses:
-        logg.info('using trusted address {}'.format(address))
-
-    connect_declarator(rpc, chain_spec, trusted_addresses)
-    connect_token_registry(rpc, chain_spec)
 
     BaseTask.default_token_symbol = config.get('CIC_DEFAULT_TOKEN_SYMBOL')
     BaseTask.default_token_address = registry.by_name(BaseTask.default_token_symbol)

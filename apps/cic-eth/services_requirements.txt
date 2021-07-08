@@ -5,3 +5,10 @@ confini~=0.3.6rc4
 redis==3.5.3
 hexathon~=0.0.1a7
 pycryptodome==3.10.1
+liveness~=0.0.1a7
+eth-address-index~=0.1.2a1
+eth-accounts-index~=0.0.12a1
+cic-eth-registry~=0.5.6a1
+erc20-faucet~=0.2.2a1
+sarafu-faucet~=0.0.4a1
+moolb~=0.1.1b2

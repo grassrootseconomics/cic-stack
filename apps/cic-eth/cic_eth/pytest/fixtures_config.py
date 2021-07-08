@@ -13,7 +13,9 @@ logg = logging.getLogger(__name__)
 
 @pytest.fixture(scope='session')
 def load_config():
-    config_dir = os.path.join(root_dir, 'config/test')
+    config_dir = os.environ.get('CONFINI_DIR')
+    if config_dir == None:
+        config_dir = os.path.join(root_dir, 'config/test')
     conf = confini.Config(config_dir, 'CICTEST')
     conf.process()
     logg.debug('config {}'.format(conf))
