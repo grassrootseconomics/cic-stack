@@ -2,4 +2,4 @@
 omit = 
 	.venv/*
 	scripts/*
-	cic_cache/db/postgres/*
+	cic_cache/db/migrations/*
