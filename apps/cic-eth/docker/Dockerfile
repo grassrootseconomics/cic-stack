@@ -1,8 +1,6 @@
 # syntax = docker/dockerfile:1.2
 FROM registry.gitlab.com/grassrootseconomics/cic-base-images:python-3.8.6-dev-55da5f4e as dev
 
-WORKDIR /usr/src
-
 # Copy just the requirements and install....this _might_ give docker a hint on caching but we 
 # do load these all into setup.py later
 # TODO can we take all the requirements out of setup.py and just do a pip install -r requirements.txt && python setup.py
@@ -10,7 +8,6 @@ WORKDIR /usr/src
 
 ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
 ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple"
-<<<<<<< HEAD
 #RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
 #    pip install --index-url https://pypi.org/simple \
 #    --force-reinstall \
@@ -21,24 +18,6 @@ COPY . .
 RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
     pip install --index-url https://pypi.org/simple  \
 	  --extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL .
-=======
-RUN /usr/local/bin/python -m pip install --upgrade pip
-RUN pip install semver
-
-COPY cic-eth-aux/  ./cic-eth-aux/
-WORKDIR /usr/src/cic-eth-aux/erc20-demurrage-token
-RUN	pip install --extra-index-url $GITLAB_PYTHON_REGISTRY \
-    	--extra-index-url $EXTRA_INDEX_URL .
-
-WORKDIR /usr/src/cic-eth
-
-COPY cic-eth/ .
-RUN	pip install --extra-index-url $GITLAB_PYTHON_REGISTRY \
-    	--extra-index-url $EXTRA_INDEX_URL .[services]
-
-# --- TEST IMAGE ---
-FROM python:3.8.6-slim-buster as test 
->>>>>>> master
 
 ENV PYTHONPATH .
 
@@ -80,8 +59,6 @@ COPY crypto_dev_signer_config/ /usr/local/etc/crypto-dev-signer/
 
 # TODO this kind of code sharing across projects should be discouraged...can we make util a library?
 #COPY util/liveness/health.sh /usr/local/bin/health.sh
-
-RUN echo "TEST RULE CHANGE"
 
 ENTRYPOINT []
 
