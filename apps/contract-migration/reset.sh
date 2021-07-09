@@ -6,10 +6,15 @@ default_token=giftable_erc20_token
 CIC_DEFAULT_TOKEN_SYMBOL=${CIC_DEFAULT_TOKEN_SYMBOL:-GFT}
 TOKEN_SYMBOL=${CIC_DEFAULT_TOKEN_SYMBOL}
 TOKEN_NAME=${TOKEN_NAME:-$TOKEN_SYMBOL}
-TOKEN_TYPE=${TOKEN_TYPE:-$default_token}
-if [ $TOKEN_TYPE == 'default' ]; then
-	>&2 echo resolving "default" token to $default_token
+#TOKEN_TYPE=${TOKEN_TYPE:-$default_token}
+if [ $TOKEN_TYPE == $default_token ]; then
+	>&2 echo using default token $default_token
 	TOKEN_TYPE=$default_token
+	TOKEN_SYMBOL=${TOKEN_SYMBOL:-GFT}
+	TOKEN_SYMBOL=${TOKEN_NAME:-"Giftable Token"}
+elif [ $TOKEN_TYPE == 'erc20_demurrage_token' ]; then
+	TOKEN_SYMBOL=${TOKEN_SYMBOL:-SARAFU}
+	TOKEN_SYMBOL=${TOKEN_NAME:-"Sarafu Token"}
 fi
 cat <<EOF
 external token settings:

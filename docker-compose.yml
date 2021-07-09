@@ -111,7 +111,7 @@ services:
       TOKEN_SUPPLY_LIMIT: $TOKEN_SUPPLY_LIMIT
       TOKEN_DEMURRAGE_LEVEL: ${TOKEN_DEMURRAGE_LEVEL:-196454828847045000000000000000000}
       TOKEN_SINK_ADDRESS: $TOKEN_SINK_ADDRESS
-      TOKEN_TYPE: ${TOKEN_TYPE:-default}
+      TOKEN_TYPE: $TOKEN_TYPE
         #CONFINI_DIR: ${CONFINI_DIR:-/tmp/cic/config}
     command: ["./run_job.sh"]
         #command: ["./reset.sh"]
