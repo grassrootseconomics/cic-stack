@@ -4,6 +4,9 @@ import json
 import re
 import base64
 
+# external imports
+from hexathon import add_0x
+
 # local imports
 from cic_cache.cache import (
         BloomCache,
@@ -27,14 +30,13 @@ def process_transactions_account_bloom(session, env):
 
     address = r[1]
     if r[2] == None:
-        address = '0x' + address
+        address = add_0x(address)
     offset = 0
-    if r.lastindex > 3:
+    if r.lastindex > 2:
         offset = r[4]
     limit = DEFAULT_LIMIT
-    if r.lastindex > 5:
+    if r.lastindex > 4:
         limit = r[6]
-    raise ValueError('>>>>>>< offset {} limit {} path {}'.format(offset, limit, env.get('PATH_INFO')))
 
     c = BloomCache(session)
     (lowest_block, highest_block, bloom_filter_block, bloom_filter_tx) = c.load_transactions_account(address, offset, limit)
