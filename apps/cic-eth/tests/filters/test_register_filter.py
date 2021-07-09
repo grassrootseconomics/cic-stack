@@ -1,3 +1,7 @@
+# standard imports
+import logging
+import os
+
 # external imports
 from eth_accounts_index.registry import AccountRegistry
 from chainlib.connection import RPCConnection
@@ -14,11 +18,16 @@ from chainlib.eth.block import (
         Block,
         )
 from erc20_faucet import Faucet
-from hexathon import strip_0x
+from hexathon import (
+        strip_0x,
+        add_0x,
+        )
 from chainqueue.sql.query import get_account_tx
 
 # local imports
 from cic_eth.runnable.daemons.filters.register import RegistrationFilter
+
+logg = logging.getLogger()
 
 
 def test_register_filter(
@@ -60,7 +69,11 @@ def test_register_filter(
     tx = Tx(tx_src, block=block, rcpt=rcpt)
     tx.apply_receipt(rcpt)
 
-    fltr = RegistrationFilter(default_chain_spec, queue=None)
+    fltr = RegistrationFilter(default_chain_spec, add_0x(os.urandom(20).hex()), queue=None)
+    t = fltr.filter(eth_rpc, block, tx, db_session=init_database)
+    assert t == None
+
+    fltr = RegistrationFilter(default_chain_spec, account_registry, queue=None)
     t = fltr.filter(eth_rpc, block, tx, db_session=init_database)
 
     t.get_leaf()
