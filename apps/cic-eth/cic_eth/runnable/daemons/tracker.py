@@ -78,6 +78,14 @@ chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 
 cic_base.rpc.setup(chain_spec, config.get('ETH_PROVIDER'))
 
+rpc = RPCConnection.connect(chain_spec, 'default')
+registry = None
+try:
+    registry = connect_registry(rpc, chain_spec, config.get('CIC_REGISTRY_ADDRESS'))
+except UnknownContractError as e:
+    logg.exception('Registry contract connection failed for {}: {}'.format(config.get('CIC_REGISTRY_ADDRESS'), e))
+    sys.exit(1)
+logg.info('connected contract registry {}'.format(config.get('CIC_REGISTRY_ADDRESS')))
 
 
 def main():
@@ -85,7 +93,6 @@ def main():
     celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
     # Connect to blockchain with chainlib
-    rpc = RPCConnection.connect(chain_spec, 'default')
 
     o = block_latest()
     r = rpc.do(o)
@@ -151,7 +158,8 @@ def main():
 
     tx_filter = TxFilter(chain_spec, config.get('_CELERY_QUEUE'))
 
-    registration_filter = RegistrationFilter(chain_spec, config.get('_CELERY_QUEUE'))
+    account_registry_address = registry.by_name('AccountRegistry')
+    registration_filter = RegistrationFilter(chain_spec, account_registry_address, queue=config.get('_CELERY_QUEUE'))
 
     gas_filter = GasFilter(chain_spec, config.get('_CELERY_QUEUE'))
 
