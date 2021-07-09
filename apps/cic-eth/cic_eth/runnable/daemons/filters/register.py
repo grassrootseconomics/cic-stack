@@ -12,8 +12,7 @@ from hexathon import (
 # local imports
 from .base import SyncFilter
 
-#logg = logging.getLogger(__name__)
-logg = logging.getLogger()
+logg = logging.getLogger(__name__)
 
 account_registry_add_log_hash = '0x9cc987676e7d63379f176ea50df0ae8d2d9d1141d1231d4ce15b5965f73c9430'
 
