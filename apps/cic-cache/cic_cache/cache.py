@@ -15,6 +15,8 @@ from cic_cache.db.list import (
 logg = logging.getLogger()
 
 
+DEFAULT_FILTER_SIZE = 8192 * 8
+
 class Cache:
 
     def __init__(self, session):
@@ -25,7 +27,7 @@ class BloomCache(Cache):
 
     @staticmethod
     def __get_filter_size(n):
-        n = 8192 * 8
+        n = DEFAULT_FILTER_SIZE
         logg.warning('filter size hardcoded to {}'.format(n))
         return n
 
