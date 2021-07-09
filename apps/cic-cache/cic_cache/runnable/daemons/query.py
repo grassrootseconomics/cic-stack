@@ -18,7 +18,7 @@ logg = logging.getLogger(__name__)
 
 re_transactions_all_bloom = r'/tx/(\d+)?/?(\d+)/?'
 re_transactions_account_bloom = r'/tx/user/((0x)?[a-fA-F0-9]+)(/(\d+)(/(\d+))?)?/?'
-re_transactions_all_data = r'/txa/(\d+)/(\d+)/?'
+re_transactions_all_data = r'/txa/(\d+)?/?(\d+)/?'
 
 DEFAULT_LIMIT = 100
 
