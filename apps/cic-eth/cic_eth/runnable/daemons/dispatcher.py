@@ -134,14 +134,18 @@ class DispatchSyncer:
             logg.info('processed {}'.format(k))
 
 
-    def loop(self, w3, interval):
+    def loop(self, interval):
         while run:
             txs = {}
             typ = StatusBits.QUEUED
             utxs = get_upcoming_tx(self.chain_spec, typ)
             for k in utxs.keys():
                 txs[k] = utxs[k]
-            self.process(w3, txs)
+            try:
+                conn = RPCConnection.connect(self.chain_spec, 'default')
+                self.process(conn, txs)
+            except ConnectionError as e:
+                logg.error('connection to node failed: {}'.format(e))
 
             if len(utxs) > 0:
                 time.sleep(self.yield_delay)
@@ -151,8 +155,7 @@ class DispatchSyncer:
 
 def main(): 
     syncer = DispatchSyncer(chain_spec)
-    conn = RPCConnection.connect(chain_spec, 'default')
-    syncer.loop(conn, float(config.get('DISPATCHER_LOOP_INTERVAL')))
+    syncer.loop(float(config.get('DISPATCHER_LOOP_INTERVAL')))
 
     sys.exit(0)
 
