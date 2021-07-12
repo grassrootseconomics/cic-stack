@@ -3,42 +3,41 @@
     variables:
         APP_NAME: cic-meta
         DOCKERFILE_PATH: $APP_NAME/docker/Dockerfile
-        IMAGE_TAG: $CI_REGISTRY_IMAGE/$APP_NAME:unittest-$CI_COMMIT_SHORT_SHA
+        CONTEXT: apps
 
-.cic_meta_changes_target:
+build-mr-cic-meta:
+    extends:
+        - .py_build_merge_request
+        - .cic_meta_variables
     rules:
-        - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-#        - changes:
-#            - $CONTEXT/$APP_NAME/*
-        - when: always
-
-cic-meta-build-mr:
-  stage: build
-  extends:
-    - .cic_meta_variables
-    - .cic_meta_changes_target
-  script:
-    - mkdir -p /kaniko/.docker
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > "/kaniko/.docker/config.json"
-    # - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --destination $IMAGE_TAG
-    - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --destination $IMAGE_TAG 
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+          - apps/cic-meta/**/*
+      when: always
 
 test-mr-cic-meta:
     extends:
         - .cic_meta_variables
-        - .cic_meta_changes_target
     stage: test
-    image: $IMAGE_TAG 
+    image: $MR_IMAGE_TAG 
     script:
         - cd /tmp/src/cic-meta
         - npm install --dev 
         - npm run test
         - npm run test:coverage
-    needs: ["cic-meta-build-mr"]
+    needs: ["build-mr-cic-meta"]
+    rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+          - apps/cic-meta/**/*
+      when: always
 
 build-push-cic-meta:
     extends:
         - .py_build_push
         - .cic_meta_variables
-        
-
+    rules:
+    - if:  $CI_COMMIT_BRANCH == "master"
+      changes:
+          - apps/cic-meta/**/*
+      when: always

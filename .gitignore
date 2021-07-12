@@ -13,3 +13,4 @@ build/
 **/coverage
 **/.venv
 .idea
+**/.vim
