@@ -2,8 +2,8 @@
 .cic_meta_variables:
     variables:
         APP_NAME: cic-meta
-        DOCKERFILE_PATH: $APP_NAME/docker/Dockerfile
-        CONTEXT: apps
+        DOCKERFILE_PATH: docker/Dockerfile_ci
+        CONTEXT: apps/$APP_NAME
 
 build-mr-cic-meta:
     extends:
@@ -21,7 +21,7 @@ test-mr-cic-meta:
     stage: test
     image: $MR_IMAGE_TAG 
     script:
-        - cd /tmp/src/cic-meta
+        - cd /root
         - npm install --dev 
         - npm run test
         - npm run test:coverage
