@@ -443,7 +443,7 @@ services:
       SERVER_HOST: localhost
       SERVER_PORT: 8000
       DATABASE_SCHEMA_SQL_PATH: ""
-      PGP_EXPORTS_DIR: /tmp/src/cic-meta/tests/
+      PGP_EXPORTS_DIR: /root/tests/
       PGP_PRIVATEKEY_FILE: privatekeys.asc
       PGP_PASSPHRASE: merman
       PGP_PUBLICKEY_TRUSTED_FILE: publickeys.asc

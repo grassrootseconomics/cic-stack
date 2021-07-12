@@ -36,7 +36,7 @@ test-mr-cic-cache:
     rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
-          - apps/cic-eth/**/*
+          - apps/$APP_NAME/**/*
       when: always
 
 build-push-cic-cache:
