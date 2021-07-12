@@ -1,6 +1,6 @@
-cic-base==0.1.3a3+build.984b5cff
+cic-base~=0.2.0a1
 alembic==1.4.2
-confini~=0.3.6rc3
+confini~=0.3.6
 uwsgi==2.0.19.1
 moolb~=0.1.0
 cic-eth-registry~=0.5.6a1
