@@ -1,6 +1,6 @@
 crypto-dev-signer~=0.4.14b6
 chainqueue~=0.0.2b5
-confini~=0.3.6rc4
+confini~=0.3.6
 cic-eth-registry~=0.5.6a1
 redis==3.5.3
 hexathon~=0.0.1a7

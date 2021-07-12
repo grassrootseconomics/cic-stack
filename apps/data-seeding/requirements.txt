@@ -1,4 +1,11 @@
-sarafu-faucet==0.0.4a1
-cic-eth[tools]==0.12.0a1
-cic-types==0.1.0a13
-crypto-dev-signer==0.4.14b6
+sarafu-faucet~=0.0.4a2
+cic-eth[tools]~=0.12.0a3
+cic-base[base]~=0.2.0a1
+cic-types~=0.1.0a13
+crypto-dev-signer~=0.4.14b6
+chainsyncer~=0.0.3a3
+chainlib-eth~=0.0.5a1
+eth-address-index~=0.1.2a1
+eth-contract-registry~=0.5.6a1
+eth-accounts-index~=0.0.12a1
+eth-erc20~=0.0.10a3
