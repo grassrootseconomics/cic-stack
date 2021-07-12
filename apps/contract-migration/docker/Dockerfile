@@ -25,7 +25,7 @@ RUN echo Install confini schema files && \
 	git checkout $cic_config_commit && \	
 	cp -v *.ini $CONFINI_DIR
 
-COPY contract-migration/requirements.txt . 
+COPY requirements.txt . 
 
 ARG pip_index_url=https://pypi.org/simple
 ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
@@ -38,5 +38,5 @@ RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
     --extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL \
     -r requirements.txt 
 
-COPY contract-migration/ .
+COPY . .
 RUN chmod +x *.sh

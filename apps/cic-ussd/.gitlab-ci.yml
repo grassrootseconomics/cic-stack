@@ -1,22 +1,52 @@
 .cic_ussd_variables:
     variables:
         APP_NAME: cic-ussd
-        DOCKERFILE_PATH: $APP_NAME/docker/Dockerfile
-
-.cic_ussd_changes_target:
-    rules:
-        - changes:
-            - $CONTEXT/$APP_NAME/*
+        DOCKERFILE_PATH: docker/Dockerfile_ci
+        CONTEXT: apps/$APP_NAME
 
 build-mr-cic-ussd:
     extends:
-        - .cic_ussd_changes_target
         - .py_build_merge_request
         - .cic_ussd_variables
+    rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+          - apps/cic-ussd/**/*
+      when: always
+
+test-mr-cic-ussd:
+    stage: test
+    extends:
+        - .cic_ussd_variables
+    cache:
+        key:
+            files:
+                - test_requirements.txt
+        paths:
+        - /root/.cache/pip
+    image: $MR_IMAGE_TAG
+    script:
+        - cd apps/$APP_NAME/
+        - >
+          pip install --extra-index-url https://pip.grassrootseconomics.net:8433
+          --extra-index-url https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple
+          -r test_requirements.txt 
+        - export PYTHONPATH=. && pytest -x --cov=cic_eth --cov-fail-under=90 --cov-report term-missing tests
+    needs: ["build-mr-cic-ussd"]
+    rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+          - apps/cic-eth/**/*
+      when: always
 
 build-push-cic-ussd:
     extends:
         - .py_build_push
         - .cic_ussd_variables
+    rules:
+    - if:  $CI_COMMIT_BRANCH == "master"
+      changes:
+          - apps/cic-ussd/**/*
+      when: always
 
 

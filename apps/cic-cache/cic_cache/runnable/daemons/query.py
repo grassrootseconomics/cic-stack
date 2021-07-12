@@ -4,6 +4,9 @@ import json
 import re
 import base64
 
+# external imports
+from hexathon import add_0x
+
 # local imports
 from cic_cache.cache import (
         BloomCache,
@@ -11,10 +14,11 @@ from cic_cache.cache import (
     )
 
 logg = logging.getLogger(__name__)
+#logg = logging.getLogger()
 
 re_transactions_all_bloom = r'/tx/(\d+)?/?(\d+)/?'
-re_transactions_account_bloom = r'/tx/user/((0x)?[a-fA-F0-9]+)/?(\d+)?/?(\d+)/?'
-re_transactions_all_data = r'/txa/(\d+)/(\d+)/?'
+re_transactions_account_bloom = r'/tx/user/((0x)?[a-fA-F0-9]+)(/(\d+)(/(\d+))?)?/?'
+re_transactions_all_data = r'/txa/(\d+)?/?(\d+)/?'
 
 DEFAULT_LIMIT = 100
 
@@ -26,13 +30,13 @@ def process_transactions_account_bloom(session, env):
 
     address = r[1]
     if r[2] == None:
-        address = '0x' + address
-    offset = DEFAULT_LIMIT
+        address = add_0x(address)
+    offset = 0
     if r.lastindex > 2:
-        offset = r[3]
-    limit = 0
-    if r.lastindex > 3:
-        limit = r[4]
+        offset = r[4]
+    limit = DEFAULT_LIMIT
+    if r.lastindex > 4:
+        limit = r[6]
 
     c = BloomCache(session)
     (lowest_block, highest_block, bloom_filter_block, bloom_filter_tx) = c.load_transactions_account(address, offset, limit)

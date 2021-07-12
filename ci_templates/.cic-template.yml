@@ -3,30 +3,29 @@ image:
   entrypoint: [""]
 
 variables:
-  KANIKO_CACHE_ARGS: "--cache=false --cache-copy-layers=true --cache-ttl=24h"
-  CONTEXT: $CI_PROJECT_DIR/apps/
+  KANIKO_CACHE_ARGS: "--cache=true --cache-copy-layers=true --cache-ttl=24h"
+  MR_IMAGE_TAG: $CI_REGISTRY_IMAGE/mergerequest/$APP_NAME:$CI_COMMIT_SHORT_SHA
 
 .py_build_merge_request:
   stage: build
-  variables:
-    CI_DEBUG_TRACE: "true"
   script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > "/kaniko/.docker/config.json"
-    - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --cache-repo $CI_REGISTRY_IMAGE --no-push
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: always
+    - > 
+      /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS
+      --cache-repo $CI_REGISTRY_IMAGE --destination $MR_IMAGE_TAG 
 
-.py_build_target_test:
+.py_build_target_dev:
   stage: build
   variables:
     IMAGE_TAG_BASE: $CI_REGISTRY_IMAGE/$APP_NAME:mr-unittest-$CI_COMMIT_SHORT_SHA
   script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > "/kaniko/.docker/config.json"
-    - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --cache-repo $CI_REGISTRY_IMAGE --target test --destination $IMAGE_TAG_BASE
-
+    - > 
+      /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS
+      --cache-repo $CI_REGISTRY_IMAGE --target dev  --skip-unused-stages 
+      --destination $MR_IMAGE_TAG
 
 .py_build_push:
   stage: build
@@ -39,9 +38,6 @@ variables:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > "/kaniko/.docker/config.json"
     # - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --destination $IMAGE_TAG
     - /kaniko/executor --context $CONTEXT --dockerfile $DOCKERFILE_PATH $KANIKO_CACHE_ARGS --destination $IMAGE_TAG --destination $CI_REGISTRY_IMAGE/$APP_NAME:latest
-  rules:
-      - if: $CI_COMMIT_BRANCH == "master"
-        when: always
 
 
 

@@ -72,12 +72,11 @@ services:
 
   contract-migration:
     build:
-      dockerfile: contract-migration/docker/Dockerfile
-        #      target: compile-image
+      context: apps/contract-migration
+      dockerfile: docker/Dockerfile
       args:
         pip_index_url: ${PIP_DEFAULT_INDEX_URL:-https://pypi.org/simple}
         pip_extra_args: $PIP_EXTRA_ARGS
-      context: apps/
     # image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:latest
     environment:
       # ETH_PROVIDER should be broken out into host/port but cic-eth expects this
@@ -125,8 +124,8 @@ services:
 
   cic-cache-tracker:
     build:
-      context: apps
-      dockerfile: cic-cache/docker/Dockerfile
+      context: apps/cic-cache
+      dockerfile: docker/Dockerfile
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS # supplied at contract-config after contract provisioning
       ETH_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
@@ -161,8 +160,8 @@ services:
 
   cic-cache-tasker:
     build:
-      context: apps
-      dockerfile: cic-cache/docker/Dockerfile
+      context: apps/cic-cache
+      dockerfile: docker/Dockerfile
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS # supplied at contract-config after contract provisioning
       ETH_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
@@ -197,9 +196,9 @@ services:
       - contract-config:/tmp/cic/config/:ro
 
   cic-cache-server:
-    build: 
-        context: apps
-        dockerfile: cic-cache/docker/Dockerfile
+    build:
+      context: apps/cic-cache
+      dockerfile: docker/Dockerfile
     environment:
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
@@ -230,8 +229,9 @@ services:
   cic-eth-tasker:
     # image: grassrootseconomics:cic-eth-service
     build: 
-        context: apps/
-        dockerfile: cic-eth/docker/Dockerfile
+        context: apps/cic-eth
+        dockerfile: docker/Dockerfile
+        target: dev
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
       ETH_GAS_PROVIDER_ADDRESS: $DEV_ETH_ACCOUNT_GAS_PROVIDER
@@ -279,8 +279,9 @@ services:
 
   cic-eth-tracker:
     build:
-        context: apps/
-        dockerfile: cic-eth/docker/Dockerfile
+        context: apps/cic-eth
+        dockerfile: docker/Dockerfile
+        target: dev
     environment:
       ETH_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}
@@ -317,8 +318,9 @@ services:
 
   cic-eth-dispatcher:
     build:
-        context: apps/
-        dockerfile: cic-eth/docker/Dockerfile
+        context: apps/cic-eth
+        dockerfile: docker/Dockerfile
+        target: dev
     environment:
       ETH_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}
@@ -357,8 +359,9 @@ services:
 
   cic-eth-retrier:
     build:
-        context: apps/
-        dockerfile: cic-eth/docker/Dockerfile
+        context: apps/cic-eth
+        dockerfile: docker/Dockerfile
+        target: dev
     environment:
       ETH_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}
@@ -399,8 +402,8 @@ services:
 
   cic-notify-tasker:
     build:
-      context: apps/
-      dockerfile: cic-notify/docker/Dockerfile
+      context: apps/cic-notify
+      dockerfile: docker/Dockerfile
     environment:
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
@@ -428,8 +431,8 @@ services:
   cic-meta-server:
     hostname: meta
     build:
-      context: apps/
-      dockerfile: cic-meta/docker/Dockerfile
+      context: apps/cic-meta
+      dockerfile: docker/Dockerfile
     environment:
       DATABASE_NAME: ${DATABASE_NAME:-cic_meta}
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
@@ -460,8 +463,8 @@ services:
 
   cic-user-ussd-server:
     build:
-      context: apps/
-      dockerfile: cic-ussd/docker/Dockerfile
+      context: apps/cic-ussd
+      dockerfile: docker/Dockerfile
     environment:
       DATABASE_USER: grassroots
       DATABASE_HOST: postgres
@@ -489,8 +492,8 @@ services:
 
   cic-user-server:
     build:
-      context: apps
-      dockerfile: cic-ussd/docker/Dockerfile
+      context: apps/cic-ussd
+      dockerfile: docker/Dockerfile
     environment:
       DATABASE_USER: grassroots
       DATABASE_HOST: postgres
@@ -511,8 +514,8 @@ services:
 
   cic-user-tasker:
     build:
-      context: apps
-      dockerfile: cic-ussd/docker/Dockerfile
+      context: apps/cic-ussd/
+      dockerfile: docker/Dockerfile
     environment:
       DATABASE_USER: grassroots
       DATABASE_HOST: postgres

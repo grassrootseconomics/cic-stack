@@ -1,0 +1,6 @@
+.git
+.cache
+.dot
+**/doc
+**/.venv
+**/venv

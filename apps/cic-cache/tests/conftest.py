@@ -5,9 +5,12 @@ import datetime
 
 # external imports
 import pytest
+import moolb
 
 # local imports
 from cic_cache import db
+from cic_cache import BloomCache
+from cic_cache.cache import DEFAULT_FILTER_SIZE
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 root_dir = os.path.dirname(script_dir)
@@ -101,3 +104,7 @@ def tag_txs(
 
     db.tag_transaction(init_database, txs[1], 'taag', domain='test')
 
+
+@pytest.fixture(scope='session')
+def zero_filter():
+    return moolb.Bloom(DEFAULT_FILTER_SIZE, 3)
