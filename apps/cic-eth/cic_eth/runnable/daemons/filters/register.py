@@ -12,20 +12,24 @@ from hexathon import (
 # local imports
 from .base import SyncFilter
 
-logg = logging.getLogger().getChild(__name__)
+logg = logging.getLogger(__name__)
 
 account_registry_add_log_hash = '0x9cc987676e7d63379f176ea50df0ae8d2d9d1141d1231d4ce15b5965f73c9430'
 
 
 class RegistrationFilter(SyncFilter):
 
-    def __init__(self, chain_spec, queue):
+    def __init__(self, chain_spec, contract_address, queue=None):
         self.chain_spec = chain_spec
         self.queue = queue
+        self.contract_address = contract_address
 
 
     def filter(self, conn, block, tx, db_session=None): 
-        registered_address = None
+        if self.contract_address != tx.inputs[0]:
+            logg.debug('not an account registry tx; {} != {}'.format(self.contract_address, tx.inputs[0]))
+            return None
+
         for l in tx.logs:
             event_topic_hex = l['topics'][0]
             if event_topic_hex == account_registry_add_log_hash:
