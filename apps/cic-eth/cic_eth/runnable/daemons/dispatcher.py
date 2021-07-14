@@ -132,6 +132,7 @@ class DispatchSyncer:
             s_check.link(s_send)
             t = s_check.apply_async()
             logg.info('processed {}'.format(k))
+        session.close()
 
 
     def loop(self, interval):
