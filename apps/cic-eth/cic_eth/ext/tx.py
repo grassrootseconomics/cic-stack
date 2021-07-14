@@ -194,6 +194,7 @@ def tx_collate(tx_batches, chain_spec_dict, offset, limit, newest_first=True, ve
                 tx = verify_and_expand(tx, chain_spec)
             except UnknownContractError:
                 logg.error('verify failed on tx {}, skipping'.format(tx['hash']))
+                continue
         txs.append(tx)
 
     return txs
