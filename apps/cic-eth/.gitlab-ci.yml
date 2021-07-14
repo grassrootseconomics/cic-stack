@@ -50,3 +50,15 @@ build-push-cic-eth:
       changes:
           - apps/cic-eth/**/*
       when: always
+
+
+build-3p-deps:
+    extends:
+        - .py_build_push
+        - .cic_eth_variables
+    rules:
+    - if:  $CI_COMMIT_BRANCH == "master"
+      changes:
+          - apps/cic-eth/*requirements.txt
+      when: always
+
