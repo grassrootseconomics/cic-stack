@@ -2,3 +2,4 @@ sarafu-faucet==0.0.4a3
 cic-eth[tools]==0.12.1a1
 cic-types==0.1.0a13
 crypto-dev-signer==0.4.14b7
+faker==4.17.1
