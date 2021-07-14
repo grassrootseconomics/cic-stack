@@ -28,10 +28,11 @@ def test_ext_tx_collate(
         custodial_roles,
         agent_roles,
         foo_token,
+        bar_token,
         register_tokens,
         cic_registry,
         register_lookups,
-        celery_worker,
+        celery_session_worker,
         ):
 
     rpc = RPCConnection.connect(default_chain_spec, 'default')
@@ -39,8 +40,9 @@ def test_ext_tx_collate(
     gas_oracle = RPCGasOracle(eth_rpc)
 
     c = ERC20(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
-    transfer_value = 1000
-    (tx_hash_hex, tx_signed_raw_hex) = c.transfer(foo_token, custodial_roles['FOO_TOKEN_GIFTER'], agent_roles['ALICE'], transfer_value, tx_format=TxFormat.RLP_SIGNED)
+    transfer_value_foo = 1000
+    transfer_value_bar = 1024
+    (tx_hash_hex, tx_signed_raw_hex) = c.transfer(foo_token, custodial_roles['FOO_TOKEN_GIFTER'], agent_roles['ALICE'], transfer_value_foo, tx_format=TxFormat.RLP_SIGNED)
     tx = unpack(bytes.fromhex(strip_0x(tx_signed_raw_hex)), default_chain_spec)
 
     otx = Otx(
@@ -56,9 +58,9 @@ def test_ext_tx_collate(
         tx['from'],
         tx['to'],
         foo_token,
-        foo_token,
-        transfer_value,
-        transfer_value,
+        bar_token,
+        transfer_value_foo,
+        transfer_value_bar,
         666,
         13,
         session=init_database,
@@ -85,5 +87,5 @@ def test_ext_tx_collate(
     tx = r[0]
     assert tx['source_token_symbol'] == 'FOO'
     assert tx['source_token_decimals'] == 6
-    assert tx['destination_token_symbol'] == 'FOO'
-    assert tx['destination_token_decimals'] == 6
+    assert tx['destination_token_symbol'] == 'BAR'
+    assert tx['destination_token_decimals'] == 9
