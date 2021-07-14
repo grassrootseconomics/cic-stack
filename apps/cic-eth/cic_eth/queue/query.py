@@ -100,6 +100,7 @@ def get_upcoming_tx(chain_spec, status=StatusEnum.READYSEND, not_status=None, re
     q_outer = q_outer.join(Lock, isouter=True)
     q_outer = q_outer.filter(or_(Lock.flags==None, Lock.flags.op('&')(LockEnum.SEND.value)==0))
 
+
     if not is_alive(status):
         SessionBase.release_session(session)
         raise ValueError('not a valid non-final tx value: {}'.format(status))

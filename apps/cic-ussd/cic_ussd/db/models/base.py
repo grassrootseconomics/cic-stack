@@ -127,3 +127,4 @@ class SessionBase(Model):
             logg.debug('commit and destroy session {}'.format(session_key))
             session.commit()
             session.close()
+            del SessionBase.localsessions[session_key]

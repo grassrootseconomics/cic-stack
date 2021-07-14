@@ -1,4 +1,5 @@
 # external imports
+import celery
 from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.tx import (
         receipt,
@@ -20,6 +21,7 @@ def test_translate(
         cic_registry,
         init_celery_tasks,
         register_lookups,
+        celery_session_worker,
     ):
 
     nonce_oracle = RPCNonceOracle(contract_roles['CONTRACT_DEPLOYER'], eth_rpc)
@@ -46,6 +48,20 @@ def test_translate(
         'recipient': agent_roles['BOB'],
         'recipient_label': None,
             }
-    tx = translate_tx_addresses(tx, [contract_roles['CONTRACT_DEPLOYER']], default_chain_spec.asdict())
-    assert tx['sender_label'] == 'alice'
-    assert tx['recipient_label'] == 'bob'
+    
+    #tx = translate_tx_addresses(tx, [contract_roles['CONTRACT_DEPLOYER']], default_chain_spec.asdict())
+    s = celery.signature(
+            'cic_eth.ext.address.translate_tx_addresses',
+            [
+                tx,
+                [contract_roles['CONTRACT_DEPLOYER']],
+                default_chain_spec.asdict(),
+                ],
+            queue=None,
+            )
+    t = s.apply_async()
+    r = t.get_leaf()
+    assert t.successful()
+
+    assert r['sender_label'] == 'alice'
+    assert r['recipient_label'] == 'bob'

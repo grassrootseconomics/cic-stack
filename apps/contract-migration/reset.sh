@@ -148,6 +148,7 @@ else
 fi
 
 mkdir -p $CIC_DATA_DIR
+>&2 echo using data dir $CIC_DATA_DIR for environment variable dump
 
 # this is consumed in downstream services to set environment variables
 cat << EOF > $CIC_DATA_DIR/.env

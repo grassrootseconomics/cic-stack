@@ -1,6 +1,7 @@
-# third-party imports
+# extended imports
 import pytest
 import uuid
+import unittest
 
 # local imports
 from cic_eth.db.models.nonce import (
@@ -55,7 +56,7 @@ def test_nonce_reserve(
     o = q.first()
     assert o.nonce == 43
 
-    nonce = NonceReservation.release(eth_empty_accounts[0], str(uu))
+    nonce = NonceReservation.release(eth_empty_accounts[0], str(uu), session=init_database)
     init_database.commit()
     assert nonce == (str(uu), 42)
 
