@@ -149,7 +149,7 @@ for t in include:
 api = None
 for t in custodial_tests:
     if t in active_tests:
-        from cic_eth.api.api_admin import AdminApi
+        from cic_eth.api.admin import AdminApi
         api = AdminApi(None)
         logg.info('activating custodial module'.format(t))
         break
