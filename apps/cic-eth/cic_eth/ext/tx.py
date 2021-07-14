@@ -14,6 +14,7 @@ from chainlib.eth.tx import (
         )
 from chainlib.eth.block import block_by_number
 from chainlib.eth.contract import abi_decode_single
+from chainlib.eth.constant import ZERO_ADDRESS
 from hexathon import strip_0x
 from cic_eth_registry import CICRegistry
 from cic_eth_registry.erc20 import ERC20Token
@@ -138,8 +139,8 @@ def list_tx_by_bloom(self, bloomspec, address, chain_spec_dict):
 # TODO: Surely it must be possible to optimize this
 # TODO: DRY this with callback filter in cic_eth/runnable/manager
 # TODO: Remove redundant fields from end representation (timestamp, tx_hash)
-@celery_app.task()
-def tx_collate(tx_batches, chain_spec_dict, offset, limit, newest_first=True, verify_contracts=True):
+@celery_app.task(bind=True, base=BaseTask)
+def tx_collate(self, tx_batches, chain_spec_dict, offset, limit, newest_first=True, verify_contracts=True):
     """Merges transaction data from multiple sources and sorts them in chronological order.
 
     :param tx_batches: Transaction data inputs
@@ -191,7 +192,7 @@ def tx_collate(tx_batches, chain_spec_dict, offset, limit, newest_first=True, ve
         tx = txs_by_block[k]
         if verify_contracts:
             try:
-                tx = verify_and_expand(tx, chain_spec)
+                tx = verify_and_expand(tx, chain_spec, sender_address=BaseTask.call_address)
             except UnknownContractError:
                 logg.error('verify failed on tx {}, skipping'.format(tx['hash']))
                 continue
@@ -200,18 +201,18 @@ def tx_collate(tx_batches, chain_spec_dict, offset, limit, newest_first=True, ve
     return txs
 
 
-def verify_and_expand(tx, chain_spec):
+def verify_and_expand(tx, chain_spec, sender_address=ZERO_ADDRESS):
     rpc = RPCConnection.connect(chain_spec, 'default')
     registry = CICRegistry(chain_spec, rpc)
 
-    if tx.get('source_token_symbol') == None:
-        registry.lookup_reverse(tx['source_token'])
+    if tx.get('source_token_symbol') == None and tx['source_token'] != ZERO_ADDRESS:
+        r = registry.by_address(tx['source_token'], sender_address=sender_address)
         token = ERC20Token(chain_spec, rpc, tx['source_token'])
         tx['source_token_symbol'] = token.symbol
         tx['source_token_decimals'] = token.decimals
 
-    if tx.get('destination_token_symbol') == None:
-        registry.lookup_reverse(tx['destination_token'])
+    if tx.get('destination_token_symbol') == None and tx['destination_token'] != ZERO_ADDRESS:
+        r = registry.by_address(tx['destination_token'], sender_address=sender_address)
         token = ERC20Token(chain_spec, rpc, tx['destination_token'])
         tx['destination_token_symbol'] = token.symbol
         tx['destination_token_decimals'] = token.decimals

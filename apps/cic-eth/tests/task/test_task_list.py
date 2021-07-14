@@ -32,6 +32,7 @@ def test_ext_tx_collate(
         register_tokens,
         cic_registry,
         register_lookups,
+        init_celery_tasks,
         celery_session_worker,
         ):
 
