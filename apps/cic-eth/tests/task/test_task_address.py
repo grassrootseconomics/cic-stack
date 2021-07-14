@@ -21,7 +21,7 @@ def test_translate(
         cic_registry,
         init_celery_tasks,
         register_lookups,
-        celery_worker,
+        celery_session_worker,
     ):
 
     nonce_oracle = RPCNonceOracle(contract_roles['CONTRACT_DEPLOYER'], eth_rpc)

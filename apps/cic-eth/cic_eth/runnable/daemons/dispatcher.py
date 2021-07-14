@@ -108,7 +108,7 @@ class DispatchSyncer:
             tx = unpack(tx_raw_bytes, self.chain_spec)
             
             try:
-                set_reserved(self.chain_spec, tx['hash'], session=session)
+                set_reserved(self.chain_spec, tx['hash'], session=self.session)
                 self.session.commit()
             except NotLocalTxError as e:
                 logg.warning('dispatcher was triggered with non-local tx {}'.format(tx['hash']))
