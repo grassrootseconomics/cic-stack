@@ -14,7 +14,6 @@ import urllib.parse
 # external imports
 import celery
 import confini
-import eth_abi
 from chainlib.chain import ChainSpec
 from chainlib.eth.address import to_checksum_address
 from chainlib.eth.connection import EthHTTPConnection
@@ -33,6 +32,9 @@ from cic_types.models.person import (
 from erc20_faucet import Faucet
 from eth_erc20 import ERC20
 from hexathon.parse import strip_0x, add_0x
+from eth_contract_registry import Registry
+from eth_accounts_index import AccountsIndex
+from eth_token_index import TokenUniqueSymbolIndex
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -43,7 +45,8 @@ custodial_tests = [
         'local_key',
         'gas',
         'faucet',
-        'ussd'
+        'ussd',
+        'ussd_pins',
         ]
 
 metadata_tests = [
@@ -71,6 +74,7 @@ argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spe
 argparser.add_argument('--meta-provider', type=str, dest='meta_provider', default='http://localhost:63380', help='cic-meta url')
 argparser.add_argument('--ussd-provider', type=str, dest='ussd_provider', default='http://localhost:63315', help='cic-ussd url')
 argparser.add_argument('--skip-custodial', dest='skip_custodial', action='store_true', help='skip all custodial verifications')
+argparser.add_argument('--skip-metadata', dest='skip_metadata', action='store_true', help='skip all metadata verifications')
 argparser.add_argument('--exclude', action='append', type=str, default=[], help='skip specified verification')
 argparser.add_argument('--include', action='append', type=str, help='include specified verification')
 argparser.add_argument('--token-symbol', default='GFT', type=str, dest='token_symbol', help='Token symbol to use for trnsactions')
@@ -130,6 +134,11 @@ if args.skip_custodial:
     for t in custodial_tests:
         if t not in exclude:
             exclude.append(t)
+if args.skip_metadata:
+    logg.info('will skip all metadata verifications ({})'.format(','.join(metadata_tests)))
+    for t in metadata_tests:
+        if t not in exclude:
+            exclude.append(t)
 for t in include:
     if t not in all_tests:
         raise ValueError('Cannot include unknown verification "{}"'.format(t))
@@ -140,7 +149,7 @@ for t in include:
 api = None
 for t in custodial_tests:
     if t in active_tests:
-        from cic_eth.api.api_admin import AdminApi
+        from cic_eth.api.admin import AdminApi
         api = AdminApi(None)
         logg.info('activating custodial module'.format(t))
         break
@@ -263,19 +272,11 @@ class Verifier:
 
 
     def verify_accounts_index(self, address, balance=None):
-        tx = self.tx_factory.template(ZERO_ADDRESS, self.index_address)
-        data = keccak256_string_to_hex('have(address)')[:8]
-        data += eth_abi.encode_single('address', address).hex()
-        tx = self.tx_factory.set_code(tx, data)
-        tx = self.tx_factory.normalize(tx)
-        j = JSONRPCRequest()
-        o = j.template()
-        o['method'] = 'eth_call'
-        o['params'].append(tx)
-        o = j.finalize(o)
+        accounts_index = AccountsIndex(self.chain_spec)
+        o = accounts_index.have(self.index_address, address)
         r = self.conn.do(o)
-        logg.debug('index check for {}: {}'.format(address, r))
-        n = eth_abi.decode_single('uint256', bytes.fromhex(strip_0x(r)))
+        n = accounts_index.parse_have(r)
+        logg.debug('index check for {}: {}'.format(address, n))
         if n != 1:
             raise VerifierError(n, 'accounts index')
 
@@ -427,70 +428,39 @@ def main():
     gas_oracle = OverrideGasOracle(conn=conn, limit=8000000)
 
     # Get Token registry address
-    txf = TxFactory(chain_spec, signer=None, gas_oracle=gas_oracle, nonce_oracle=None)
-    tx = txf.template(ZERO_ADDRESS, config.get('CIC_REGISTRY_ADDRESS'))
-
-    # TODO: replace with cic-eth-registry
-    registry_addressof_method = keccak256_string_to_hex('addressOf(bytes32)')[:8]
-    data = add_0x(registry_addressof_method)
-    data += eth_abi.encode_single('bytes32', b'TokenRegistry').hex()
-    txf.set_code(tx, data)
-    
-    j = JSONRPCRequest()
-    o = j.template()
-    o['method'] = 'eth_call'
-    o['params'].append(txf.normalize(tx))
-    o['params'].append('latest')
-    o = j.finalize(o)
+    registry = Registry(chain_spec)
+    o = registry.address_of(config.get('CIC_REGISTRY_ADDRESS'), 'TokenRegistry')
     r = conn.do(o)
-    token_index_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
+    token_index_address = registry.parse_address_of(r)
+    token_index_address = to_checksum_address(token_index_address)
     logg.info('found token index address {}'.format(token_index_address))
 
-    data = add_0x(registry_addressof_method)
-    data += eth_abi.encode_single('bytes32', b'AccountRegistry').hex()
-    txf.set_code(tx, data)
-    
-    o = j.template()
-    o['method'] = 'eth_call'
-    o['params'].append(txf.normalize(tx))
-    o['params'].append('latest')
-    o = j.finalize(o)
+    # Get Account registry address
+    o = registry.address_of(config.get('CIC_REGISTRY_ADDRESS'), 'AccountRegistry')
     r = conn.do(o)
-    account_index_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
+    account_index_address = registry.parse_address_of(r)
+    account_index_address = to_checksum_address(account_index_address)
     logg.info('found account index address {}'.format(account_index_address))
 
-    data = add_0x(registry_addressof_method)
-    data += eth_abi.encode_single('bytes32', b'Faucet').hex()
-    txf.set_code(tx, data)
-    
-    o = j.template()
-    o['method'] = 'eth_call'
-    o['params'].append(txf.normalize(tx))
-    o['params'].append('latest')
-    o = j.finalize(o)
+    # Get Faucet address
+    o = registry.address_of(config.get('CIC_REGISTRY_ADDRESS'), 'Faucet')
     r = conn.do(o)
-    faucet_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
+    faucet_address = registry.parse_address_of(r)
+    faucet_index_address = to_checksum_address(token_index_address)
     logg.info('found faucet {}'.format(faucet_address))
 
-
-
-    # Get Sarafu token address
-    tx = txf.template(ZERO_ADDRESS, token_index_address)
-    data = add_0x(registry_addressof_method)
-    h = hashlib.new('sha256')
-    h.update(token_symbol.encode('utf-8'))
-    z = h.digest()
-    data += eth_abi.encode_single('bytes32', z).hex()
-    txf.set_code(tx, data)
-    o = j.template()
-    o['method'] = 'eth_call'
-    o['params'].append(txf.normalize(tx))
-    o['params'].append('latest')
-    o = j.finalize(o)
+# Get Sarafu token address
+    token_index = TokenUniqueSymbolIndex(chain_spec)
+    o = token_index.address_of(token_index_address, token_symbol)
     r = conn.do(o)
-    sarafu_token_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
-    logg.info('found token address {}'.format(sarafu_token_address))
-
+    token_address = token_index.parse_address_of(r)
+    try:
+        token_address = to_checksum_address(token_address)
+    except ValueError as e:
+        logg.critical('lookup failed for token {}: {}'.format(token_symbol, e))
+        sys.exit(1)
+    logg.info('found token address {}'.format(token_address))
+ 
     balances = {}
     f = open('{}/balances.csv'.format(user_dir, 'r'))
     i = 0
@@ -511,7 +481,7 @@ def main():
 
     f.close()
 
-    verifier = Verifier(conn, api, gas_oracle, chain_spec, account_index_address, sarafu_token_address, faucet_address, user_dir, exit_on_error)
+    verifier = Verifier(conn, api, gas_oracle, chain_spec, account_index_address, token_address, faucet_address, user_dir, exit_on_error)
 
     user_new_dir = os.path.join(user_dir, 'new')
     i = 0

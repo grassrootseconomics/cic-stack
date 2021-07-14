@@ -11,7 +11,6 @@ import csv
 import json
 
 # external imports
-import eth_abi
 import confini
 from hexathon import (
         strip_0x,
@@ -29,13 +28,20 @@ from chainlib.eth.gas import OverrideGasOracle
 from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.tx import TxFactory
 from chainlib.jsonrpc import JSONRPCRequest
-from chainlib.eth.error import EthException
+from chainlib.eth.error import (
+        EthException,
+        RequestMismatchException,
+        )
 from chainlib.chain import ChainSpec
 from crypto_dev_signer.eth.signer import ReferenceSigner as EIP155Signer
 from crypto_dev_signer.keystore.dict import DictKeystore
 from cic_types.models.person import Person
 from eth_erc20 import ERC20
 from cic_base.eth.syncer import chain_interface
+from eth_accounts_index import AccountsIndex
+from eth_contract_registry import Registry
+from eth_token_index import TokenUniqueSymbolIndex
+from erc20_faucet import Faucet
 
 
 logging.basicConfig(level=logging.WARNING)
@@ -50,7 +56,7 @@ argparser.add_argument('-c', type=str, default=config_dir, help='config root to 
 argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:oldchain:1', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
-argparser.add_argument('--token-symbol', default='SRF', type=str, dest='token_symbol', help='Token symbol to use for trnsactions')
+argparser.add_argument('--token-symbol', default='GFT', type=str, dest='token_symbol', help='Token symbol to use for trnsactions')
 argparser.add_argument('--head', action='store_true', help='start at current block height (overrides --offset)')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
@@ -112,12 +118,16 @@ class Handler:
 
     account_index_add_signature = keccak256_string_to_hex('add(address)')[:8]
 
-    def __init__(self, conn, chain_spec, user_dir, balances, token_address, signer, gas_oracle, nonce_oracle):
+    def __init__(self, conn, chain_spec, user_dir, balances, token_address, faucet_address, signer_address, signer, gas_oracle, nonce_oracle):
         self.token_address = token_address
+        self.faucet_address = faucet_address
         self.user_dir = user_dir
         self.balances = balances
         self.chain_spec = chain_spec
-        self.tx_factory = ERC20(chain_spec, signer, gas_oracle, nonce_oracle)
+        self.nonce_oracle = nonce_oracle
+        self.gas_oracle = gas_oracle
+        self.signer_address = signer_address
+        self.signer = signer
 
 
     def name(self):
@@ -129,58 +139,59 @@ class Handler:
             logg.debug('no payload, skipping {}'.format(tx))
             return
 
-        if tx.payload[:8] == self.account_index_add_signature:
-            recipient = eth_abi.decode_single('address', bytes.fromhex(tx.payload[-64:]))
-            #original_address = to_checksum_address(self.addresses[to_checksum_address(recipient)])
-            user_file = 'new/{}/{}/{}.json'.format(
-                    recipient[2:4].upper(),
-                    recipient[4:6].upper(),
-                    recipient[2:].upper(),
-                    )
-            filepath = os.path.join(self.user_dir, user_file)
-            o = None
-            try:
-                f = open(filepath, 'r')
-                o = json.load(f)
-                f.close()
-            except FileNotFoundError:
-                logg.error('no import record of address {}'.format(recipient))
-                return
-            u = Person.deserialize(o)
-            original_address = u.identities[old_chain_spec.engine()]['{}:{}'.format(old_chain_spec.common_name(), old_chain_spec.network_id())][0]
-            try:
-                balance = self.balances[original_address]
-            except KeyError as e:
-                logg.error('balance get fail orig {} new {}'.format(original_address, recipient))
-                return
-
-            # TODO: store token object in handler ,get decimals from there
-            multiplier = 10**6
-            balance_full = balance * multiplier
-            logg.info('registered {} originally {} ({}) tx hash {} balance {}'.format(recipient, original_address, u, tx.hash, balance_full))
-
-            (tx_hash_hex, o) = self.tx_factory.transfer(self.token_address, signer_address, recipient, balance_full)
-            logg.info('submitting erc20 transfer tx {} for recipient {}'.format(tx_hash_hex, recipient))
-            r = conn.do(o)
-
-            tx_path = os.path.join(
-                    user_dir,
-                    'txs',
-                    strip_0x(tx_hash_hex),
-                    )
-            f = open(tx_path, 'w')
-            f.write(strip_0x(o['params'][0]))
+        recipient = None
+        try:
+            r = AccountsIndex.parse_add_request(tx.payload)
+        except RequestMismatchException:
+            return
+        recipient = r[0]
+        
+        user_file = 'new/{}/{}/{}.json'.format(
+                recipient[2:4].upper(),
+                recipient[4:6].upper(),
+                recipient[2:].upper(),
+                )
+        filepath = os.path.join(self.user_dir, user_file)
+        o = None
+        try:
+            f = open(filepath, 'r')
+            o = json.load(f)
             f.close()
-#        except TypeError as e:
-#            logg.warning('typerror {}'.format(e))
-#            pass
-#        except IndexError as e:
-#            logg.warning('indexerror {}'.format(e))
-#            pass
-#        except EthException as e:
-#            logg.error('send error {}'.format(e).ljust(200))
-        #except KeyError as e:
-        #    logg.error('key record not found in imports: {}'.format(e).ljust(200))
+        except FileNotFoundError:
+            logg.error('no import record of address {}'.format(recipient))
+            return
+        u = Person.deserialize(o)
+        original_address = u.identities[old_chain_spec.engine()]['{}:{}'.format(old_chain_spec.common_name(), old_chain_spec.network_id())][0]
+        try:
+            balance = self.balances[original_address]
+        except KeyError as e:
+            logg.error('balance get fail orig {} new {}'.format(original_address, recipient))
+            return
+
+        # TODO: store token object in handler ,get decimals from there
+        erc20 = ERC20(self.chain_spec, signer=self.signer, gas_oracle=self.gas_oracle, nonce_oracle=self.nonce_oracle)
+        o = erc20.decimals(self.token_address)
+        r = conn.do(o)
+        decimals = erc20.parse_decimals(r)
+        multiplier = 10 ** decimals
+        balance_full = balance * multiplier
+        logg.info('registered {} originally {} ({}) tx hash {} balance {}'.format(recipient, original_address, u, tx.hash, balance_full))
+        (tx_hash_hex, o) = erc20.transfer(self.token_address, self.signer_address, recipient, balance_full)
+        logg.info('submitting erc20 transfer tx {} for recipient {}'.format(tx_hash_hex, recipient))
+        r = conn.do(o)
+
+        tx_path = os.path.join(
+                user_dir,
+                'txs',
+                strip_0x(tx_hash_hex),
+                )
+        f = open(tx_path, 'w')
+        f.write(strip_0x(o['params'][0]))
+        f.close()
+
+        faucet = Faucet(self.chain_spec, signer=self.signer, gas_oracle=self.gas_oracle, nonce_oracle=self.nonce_oracle)
+        (tx_hash, o) = faucet.give_to(self.faucet_address, self.signer_address, recipient)
+        r = conn.do(o)
 
 
 def progress_callback(block_number, tx_index):
@@ -196,45 +207,31 @@ def main():
     nonce_oracle = RPCNonceOracle(signer_address, conn)
 
     # Get Token registry address
-    txf = TxFactory(chain_spec, signer=signer, gas_oracle=gas_oracle, nonce_oracle=None)
-    tx = txf.template(signer_address, config.get('CIC_REGISTRY_ADDRESS'))
-
-    registry_addressof_method = keccak256_string_to_hex('addressOf(bytes32)')[:8]
-    data = add_0x(registry_addressof_method)
-    data += eth_abi.encode_single('bytes32', b'TokenRegistry').hex()
-    txf.set_code(tx, data)
-   
-    j = JSONRPCRequest()
-    o = j.template()
-    o['method'] = 'eth_call'
-    o['params'].append(txf.normalize(tx))
-    o['params'].append('latest')
-    o = j.finalize(o)
+    registry = Registry(chain_spec)
+    o = registry.address_of(config.get('CIC_REGISTRY_ADDRESS'), 'TokenRegistry')
     r = conn.do(o)
-    token_index_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
+    token_index_address = registry.parse_address_of(r)
+    token_index_address = to_checksum_address(token_index_address)
     logg.info('found token index address {}'.format(token_index_address))
-
+    
+    # Get Faucet address
+    o = registry.address_of(config.get('CIC_REGISTRY_ADDRESS'), 'Faucet')
+    r = conn.do(o)
+    faucet_address = registry.parse_address_of(r)
+    faucet_address = to_checksum_address(faucet_address)
+    logg.info('found faucet {}'.format(faucet_address))
 
     # Get Sarafu token address
-    tx = txf.template(signer_address, token_index_address)
-    data = add_0x(registry_addressof_method)
-    h = hashlib.new('sha256')
-    h.update(token_symbol.encode('utf-8'))
-    z = h.digest()
-    data += eth_abi.encode_single('bytes32', z).hex()
-    txf.set_code(tx, data)
-    o = j.template()
-    o['method'] = 'eth_call'
-    o['params'].append(txf.normalize(tx))
-    o['params'].append('latest')
-    o = j.finalize(o)
+    token_index = TokenUniqueSymbolIndex(chain_spec)
+    o = token_index.address_of(token_index_address, token_symbol)
     r = conn.do(o)
+    token_address = token_index.parse_address_of(r)
     try:
-        sarafu_token_address = to_checksum_address(eth_abi.decode_single('address', bytes.fromhex(strip_0x(r))))
+        token_address = to_checksum_address(token_address)
     except ValueError as e:
         logg.critical('lookup failed for token {}: {}'.format(token_symbol, e))
         sys.exit(1)
-    logg.info('found token address {}'.format(sarafu_token_address))
+    logg.info('found token address {}'.format(token_address))
 
     syncer_backend = MemBackend(chain_str, 0)
 
@@ -242,22 +239,6 @@ def main():
         o = block_latest()
         r = conn.do(o)
         block_offset = int(strip_0x(r), 16) + 1
-#
-#    addresses = {}
-#    f = open('{}/addresses.csv'.format(user_dir, 'r'))
-#    while True:
-#        l = f.readline()
-#        if l == None:
-#            break
-#        r = l.split(',')
-#        try:
-#            k = r[0]
-#            v = r[1].rstrip()
-#            addresses[k] = v
-#            sys.stdout.write('loading address mapping {} -> {}'.format(k, v).ljust(200) + "\r")
-#        except IndexError as e:
-#            break
-#    f.close()
 
     # TODO get decimals from token
     balances = {}
@@ -282,7 +263,7 @@ def main():
 
     syncer_backend.set(block_offset, 0)
     syncer = HeadSyncer(syncer_backend, chain_interface, block_callback=progress_callback)
-    handler = Handler(conn, chain_spec, user_dir, balances, sarafu_token_address, signer, gas_oracle, nonce_oracle)
+    handler = Handler(conn, chain_spec, user_dir, balances, token_address, faucet_address, signer_address, signer, gas_oracle, nonce_oracle)
     syncer.add_filter(handler)
     syncer.loop(1, conn)
     
