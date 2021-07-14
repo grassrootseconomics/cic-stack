@@ -1,1 +1,1 @@
-cic_base[full_graph]==0.1.3a3+build.984b5cff
+cic_base[full_graph]~=0.2.0a1
