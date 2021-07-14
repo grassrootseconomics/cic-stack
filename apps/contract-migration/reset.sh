@@ -3,14 +3,9 @@
 set -a
 
 default_token=giftable_erc20_token
-CIC_DEFAULT_TOKEN_SYMBOL=${CIC_DEFAULT_TOKEN_SYMBOL:-GFT}
 TOKEN_SYMBOL=${CIC_DEFAULT_TOKEN_SYMBOL}
-TOKEN_NAME=${TOKEN_NAME:-$TOKEN_SYMBOL}
+TOKEN_NAME=${TOKEN_NAME}
 TOKEN_TYPE=${TOKEN_TYPE:-$default_token}
-if [ $TOKEN_TYPE == 'default' ]; then
-	>&2 echo resolving "default" token to $default_token
-	TOKEN_TYPE=$default_token
-fi
 cat <<EOF
 external token settings:
 token_type: $TOKEN_TYPE
@@ -23,7 +18,6 @@ token_supply_limit: $TOKEN_SUPPLY_LIMIT
 EOF
 
 CIC_CHAIN_SPEC=${CIC_CHAIN_SPEC:-evm:bloxberg:8995}
-TOKEN_SYMBOL=${TOKEN_SYMBOL:-GFT}
 DEV_ETH_ACCOUNT_RESERVE_MINTER=${DEV_ETH_ACCOUNT_RESERVE_MINTER:-$DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER}
 DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER=${DEV_ETH_ACCOUNT_RESERVE_MINTER:-$DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER}
 DEV_RESERVE_AMOUNT=${DEV_ETH_RESERVE_AMOUNT:-""10000000000000000000000000000000000}
@@ -75,17 +69,34 @@ if [[ -n "${ETH_PROVIDER}" ]]; then
 		./wait-for-it.sh "${ETH_PROVIDER_HOST}:${ETH_PROVIDER_PORT}"
 	fi
 
-	if [ $TOKEN_TYPE == $default_token ]; then
+	if [ "$TOKEN_TYPE" == "$default_token" ]; then
+		if [ -z "$TOKEN_SYMBOL" ]; then
+			>&2 echo token symbol not set, setting defaults for type $TOKEN_TYPE
+			TOKEN_SYMBOL="GFT"
+			TOKEN_NAME="Giftable Token"
+		elif [ -z "$TOKEN_NAME" ]; then
+			>&2 echo token name not set, setting same as symbol for type $TOKEN_TYPE
+			TOKEN_NAME=$TOKEN_SYMBOL
+		fi
 		>&2 echo deploying default token $TOKEN_TYPE
-		DEV_RESERVE_ADDRESS=`giftable-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -ww --name $TOKEN_NAME --symbol $TOKEN_SYMBOL --decimals 6 -vv`
-	elif [ $TOKEN_TYPE == 'erc20_demurrage_token' ]; then
+		echo giftable-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -ww --name "$TOKEN_NAME" --symbol $TOKEN_SYMBOL --decimals 6 -vv
+		DEV_RESERVE_ADDRESS=`giftable-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -ww --name "$TOKEN_NAME" --symbol $TOKEN_SYMBOL --decimals 6 -vv`
+	elif [ "$TOKEN_TYPE" == "erc20_demurrage_token" ]; then
+		if [ -z "$TOKEN_SYMBOL" ]; then
+			>&2 echo token symbol not set, setting defaults for type $TOKEN_TYPE
+			TOKEN_SYMBOL="SARAFU"
+			TOKEN_NAME="Sarafu Token"
+		elif [ -z "$TOKEN_NAME" ]; then
+			>&2 echo token name not set, setting same as symbol for type $TOKEN_TYPE
+			TOKEN_NAME=$TOKEN_SYMBOL
+		fi
 		>&2 echo deploying token $TOKEN_TYPE
 		if [ -z $TOKEN_SINK_ADDRESS ]; then
 			if [ ! -z $TOKEN_REDISTRIBUTION_PERIOD ]; then
 				>&2 echo -e "\033[;93mtoken sink address not set, so redistribution will be BURNED\033[;39m"
 			fi
 		fi
-		DEV_RESERVE_ADDRESS=`erc20-demurrage-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -ww`
+		DEV_RESERVE_ADDRESS=`erc20-demurrage-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC --name "$TOKEN_NAME" --symbol $TOKEN_SYMBOL -vv -ww`
 	else
 		>&2 echo unknown token type $TOKEN_TYPE
 		exit 1

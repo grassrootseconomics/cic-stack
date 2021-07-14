@@ -18,6 +18,7 @@ def test_filter_bogus(
         cic_registry,
         contract_roles,
         register_lookups,
+        account_registry,
         ):
 
     fltrs = [
@@ -26,7 +27,7 @@ def test_filter_bogus(
         TxFilter(default_chain_spec, None),
         CallbackFilter(default_chain_spec, None, None, caller_address=contract_roles['CONTRACT_DEPLOYER']),
         StragglerFilter(default_chain_spec, None),
-        RegistrationFilter(default_chain_spec, queue=None),
+        RegistrationFilter(default_chain_spec, account_registry, queue=None),
         ]
       
     for fltr in fltrs:
