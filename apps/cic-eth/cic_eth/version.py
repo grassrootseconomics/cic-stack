@@ -9,7 +9,7 @@ import semver
 version = (
         0,
         12,
-        0,
+        1,
         'alpha.2',
         )
 

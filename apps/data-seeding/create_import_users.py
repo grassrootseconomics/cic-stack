@@ -206,7 +206,7 @@ def gen():
         # fake.local_latitude()
         p.location['latitude'] = (random.random() * 180) - 90
         # fake.local_latitude()
-        p.location['longitude'] = (random.random() * 360) - 179
+        p.location['longitude'] = (random.random() * 360) - 180
 
     return (old_blockchain_checksum_address, phone, p)
 

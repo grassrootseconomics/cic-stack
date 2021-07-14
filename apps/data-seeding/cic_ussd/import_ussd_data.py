@@ -17,7 +17,7 @@ default_config_dir = '/usr/local/etc/cic'
 
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument('-c', type=str, default=default_config_dir, help='config file')
-arg_parser.add_argument('-q', type=str, default='cic-eth', help='Task queue')
+arg_parser.add_argument('-q', type=str, default='cic-import-ussd', help='Task queue')
 arg_parser.add_argument('-v', action='store_true', help='Be verbose')
 arg_parser.add_argument('-vv', action='store_true', help='Be more verbose')
 arg_parser.add_argument('user_dir', type=str, help='path to users export dir tree')
