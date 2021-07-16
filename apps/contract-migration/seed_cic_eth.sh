@@ -77,13 +77,13 @@ eth-accounts-index-writer -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER 
 
 # Transfer gas to custodial gas provider adddress
 >&2 echo gift gas to gas gifter
->&2 eth-gas --send -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug $DEV_ETH_ACCOUNT_GAS_GIFTER $gas_amount
+>&2 eth-gas --send -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug -a $DEV_ETH_ACCOUNT_GAS_GIFTER $gas_amount
 
 >&2 echo gift gas to sarafu token owner
->&2 eth-gas --send -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug $DEV_ETH_ACCOUNT_SARAFU_GIFTER $gas_amount
+>&2 eth-gas --send -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug -a $DEV_ETH_ACCOUNT_SARAFU_GIFTER $gas_amount
 
 >&2 echo gift gas to account index owner
->&2 eth-gas --send -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER $gas_amount
+>&2 eth-gas --send -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug -a $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER $gas_amount
 
 
 # Send token to token creator

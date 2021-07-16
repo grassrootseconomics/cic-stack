@@ -290,7 +290,7 @@ class Verifier:
             actual_balance = int(r)
         balance = int(balance / 1000000) * 1000000
         balance += self.faucet_amount
-        logg.debug('balance for {}: {}'.format(address, balance))
+        logg.info('balance for {}: {}'.format(address, balance))
         if balance != actual_balance:
             raise VerifierError((actual_balance, balance), 'balance')
 

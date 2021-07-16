@@ -11,7 +11,6 @@ const config = new crdt.Config('./config');
 config.process();
 console.log(config);
 
-
 function sendit(uid, envelope) {
 	const d = envelope.toJSON();
 

@@ -80,7 +80,12 @@ def main():
     t = api.create_account(register=register)
 
     ps.get_message()
-    o = ps.get_message(timeout=args.timeout)
+    try:
+        o = ps.get_message(timeout=args.timeout)
+    except TimeoutError as e:
+        sys.stderr.write('got no new address from cic-eth before timeout: {}\n'.format(e))
+        sys.exit(1) 
+    ps.unsubscribe()
     m = json.loads(o['data'])
     print(m['result'])
 

@@ -1,5 +1,11 @@
-cic_base[full]==0.1.3a4+build.ce68c833
-sarafu-faucet~=0.0.4a1
-cic-eth[tools]==0.12.0a2
+sarafu-faucet~=0.0.4a4
+cic-eth[tools]==0.12.1a2
 eth-erc20~=0.0.10a3
-erc20-demurrage-token==0.0.2a3
+erc20-demurrage-token==0.0.2a4
+eth-address-index~=0.1.2a2
+eth-accounts-index~=0.0.12a2
+cic-eth-registry~=0.5.6a2
+erc20-faucet~=0.2.2a2
+erc20-transfer-authorization~=0.3.2a2
+sarafu-faucet~=0.0.4a3
+chainlib-eth~=0.0.5a4

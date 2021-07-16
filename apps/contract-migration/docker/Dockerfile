@@ -14,17 +14,18 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com  --recv-keys 2A518C819BE37D2C20
 RUN mkdir -vp /usr/local/etc/cic
 
 ENV CONFINI_DIR /usr/local/etc/cic/
-RUN mkdir -vp $CONFINI_DIR
+#RUN mkdir -vp $CONFINI_DIR
 
-ARG cic_config_commit=0abe0867f18077907c7023bf0ef5e466a3984dd8
-ARG cic_config_url=https://gitlab.com/grassrootseconomics/cic-config.git/
-RUN echo Install confini schema files && \
-	git clone --depth 1 $cic_config_url cic-config && \
-	cd cic-config && \
-	git fetch --depth 1 origin $cic_config_commit && \
-	git checkout $cic_config_commit && \	
-	cp -v *.ini $CONFINI_DIR
+#ARG cic_config_commit=24287fb253196820f23ff8a7177b122f2cd99a11
+#ARG cic_config_url=https://gitlab.com/grassrootseconomics/cic-config.git/
+#RUN echo Install confini schema files && \
+#	git clone --depth 1 $cic_config_url cic-config && \
+#	cd cic-config && \
+#	git fetch --depth 1 origin $cic_config_commit && \
+#	git checkout $cic_config_commit && \	
+#	cp -v *.ini $CONFINI_DIR
 
+COPY config_template/ /usr/local/etc/cic/
 COPY requirements.txt . 
 
 ARG pip_index_url=https://pypi.org/simple
