@@ -1,4 +1,4 @@
-cic-eth[tools]==0.12.2a1
+cic-eth[tools]==0.12.2a2
 eth-erc20>=0.0.11a1,<0.1.0
 erc20-demurrage-token>=0.0.2a5,<0.1.0
 eth-address-index>=0.1.3a1,<0.1.0
