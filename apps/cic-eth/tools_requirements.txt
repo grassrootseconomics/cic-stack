@@ -1,7 +1,7 @@
 crypto-dev-signer>=0.4.14b7,<=0.4.14
 chainqueue~=0.0.2b6
 confini>=0.3.6rc4,<0.5.0
-cic-eth-registry>=0.5.7a1,<0.1.0
+cic-eth-registry>=0.5.7a1,<0.6.0
 redis==3.5.3
 hexathon~=0.0.1a7
 pycryptodome==3.10.1
