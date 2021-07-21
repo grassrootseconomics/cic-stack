@@ -72,6 +72,8 @@ cic-eth-tag -i $CIC_CHAIN_SPEC ACCOUNT_REGISTRY_WRITER $DEV_ETH_ACCOUNT_ACCOUNT_
 eth-accounts-index-writer -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_ACCOUNT_INDEX_ADDRESS -ww $debug $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER
 
 # Transfer gas to custodial gas provider adddress
+_CONFINI_DIR=$CONFINI_DIR
+unset CONFINI_DIR
 >&2 echo gift gas to gas gifter
 >&2 eth-gas --send -y $keystore_file -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w $debug -a $DEV_ETH_ACCOUNT_GAS_GIFTER $gas_amount
 
@@ -100,6 +102,7 @@ export DEV_ETH_SARAFU_TOKEN_ADDRESS=$DEV_ETH_RESERVE_ADDRESS
 
 #echo -n 0 > $init_level_file
 
+CONFINI_DIR=$_CONFINI_DIR
 # Remove the SEND (8), QUEUE (16) and INIT (2) locks (or'ed), set by default at migration
 cic-eth-ctl -i :: unlock INIT
 cic-eth-ctl -i :: unlock SEND
