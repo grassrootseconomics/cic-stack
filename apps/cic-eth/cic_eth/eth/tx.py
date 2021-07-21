@@ -18,7 +18,6 @@ from hexathon import (
         strip_0x,
         )
 from chainqueue.db.models.tx import Otx
-from chainqueue.db.models.tx import TxCache
 from chainqueue.db.enum import StatusBits
 from chainqueue.error import NotLocalTxError
 from potaahto.symbols import snake_and_camel

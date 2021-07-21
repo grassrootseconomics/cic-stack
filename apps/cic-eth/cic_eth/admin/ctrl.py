@@ -6,6 +6,11 @@ import logging
 import celery
 from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.chain import ChainSpec
+from hexathon import (
+        add_0x,
+        strip_0x,
+        uniform as hex_uniform,
+        )
 
 # local imports
 from cic_eth.db.enum import LockEnum
@@ -18,6 +23,12 @@ from cic_eth.error import LockedError
 
 celery_app = celery.current_app
 logg = logging.getLogger()
+
+
+def normalize_address(a):
+    if a == None:
+        return None
+    return add_0x(hex_uniform(strip_0x(a)))
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
 def lock(chained_input, chain_spec_dict, address=ZERO_ADDRESS, flags=LockEnum.ALL, tx_hash=None):
@@ -32,6 +43,7 @@ def lock(chained_input, chain_spec_dict, address=ZERO_ADDRESS, flags=LockEnum.AL
     :returns: New lock state for address
     :rtype: number
     """
+    address = normalize_address(address)
     chain_str = '::'
     if chain_spec_dict != None:
         chain_str = str(ChainSpec.from_dict(chain_spec_dict))
@@ -53,6 +65,7 @@ def unlock(chained_input, chain_spec_dict, address=ZERO_ADDRESS, flags=LockEnum.
     :returns: New lock state for address
     :rtype: number
     """
+    address = normalize_address(address)
     chain_str = '::'
     if chain_spec_dict != None:
         chain_str = str(ChainSpec.from_dict(chain_spec_dict))
@@ -72,6 +85,7 @@ def lock_send(chained_input, chain_spec_dict, address=ZERO_ADDRESS, tx_hash=None
     :returns: New lock state for address
     :rtype: number
     """
+    address = normalize_address(address)
     chain_str = str(ChainSpec.from_dict(chain_spec_dict))
     r = Lock.set(chain_str, LockEnum.SEND, address=address, tx_hash=tx_hash)
     logg.debug('Send locked for {}, flag now {}'.format(address, r))
@@ -89,6 +103,7 @@ def unlock_send(chained_input, chain_spec_dict, address=ZERO_ADDRESS):
     :returns: New lock state for address
     :rtype: number
     """
+    address = normalize_address(address)
     chain_str = str(ChainSpec.from_dict(chain_spec_dict))
     r = Lock.reset(chain_str, LockEnum.SEND, address=address)
     logg.debug('Send unlocked for {}, flag now {}'.format(address, r))
@@ -106,6 +121,7 @@ def lock_queue(chained_input, chain_spec_dict, address=ZERO_ADDRESS, tx_hash=Non
     :returns: New lock state for address
     :rtype: number
     """
+    address = normalize_address(address)
     chain_str = str(ChainSpec.from_dict(chain_spec_dict))
     r = Lock.set(chain_str, LockEnum.QUEUE, address=address, tx_hash=tx_hash)
     logg.debug('Queue direct locked for {}, flag now {}'.format(address, r))
@@ -123,6 +139,7 @@ def unlock_queue(chained_input, chain_spec_dict, address=ZERO_ADDRESS):
     :returns: New lock state for address
     :rtype: number
     """
+    address = normalize_address(address)
     chain_str = str(ChainSpec.from_dict(chain_spec_dict))
     r = Lock.reset(chain_str, LockEnum.QUEUE, address=address)
     logg.debug('Queue direct unlocked for {}, flag now {}'.format(address, r))
@@ -131,6 +148,7 @@ def unlock_queue(chained_input, chain_spec_dict, address=ZERO_ADDRESS):
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
 def check_lock(chained_input, chain_spec_dict, lock_flags, address=None):
+    address = normalize_address(address)
     chain_str = '::'
     if chain_spec_dict != None:
         chain_str = str(ChainSpec.from_dict(chain_spec_dict))

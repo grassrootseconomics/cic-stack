@@ -8,7 +8,8 @@ Create Date: 2021-04-02 18:36:44.459603
 from alembic import op
 import sqlalchemy as sa
 
-from chainsyncer.db.migrations.sqlalchemy import (
+#from chainsyncer.db.migrations.sqlalchemy import (
+from chainsyncer.db.migrations.default.export import (
         chainsyncer_upgrade,
         chainsyncer_downgrade,
         )

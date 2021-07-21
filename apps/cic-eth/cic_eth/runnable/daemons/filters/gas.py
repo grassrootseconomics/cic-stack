@@ -11,6 +11,7 @@ from chainqueue.db.enum import StatusBits
 from chainqueue.db.models.tx import TxCache
 from chainqueue.db.models.otx import Otx
 from chainqueue.sql.query import get_paused_tx_cache as get_paused_tx
+from chainlib.eth.address import to_checksum_address
 
 # local imports
 from cic_eth.db.models.base import SessionBase
@@ -47,12 +48,13 @@ class GasFilter(SyncFilter):
 
             SessionBase.release_session(session)
 
+            address = to_checksum_address(r[0])
             logg.info('resuming gas-in-waiting txs for {}'.format(r[0]))
             if len(txs) > 0:
                 s = create_check_gas_task(
                         list(txs.values()),
                         self.chain_spec,
-                        r[0],
+                        address,
                         0,
                         tx_hashes_hex=list(txs.keys()),
                         queue=self.queue,
