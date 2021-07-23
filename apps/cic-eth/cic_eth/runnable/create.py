@@ -7,12 +7,13 @@ import json
 import argparse
 
 # external imports
-import celery
 import confini
 import redis
 from xdg.BaseDirectory import xdg_config_home
+from chainlib.chain import ChainSpec
 
 # local imports
+import cic_eth.cli
 from cic_eth.api import Api
 
 logging.basicConfig(level=logging.WARNING)
@@ -20,41 +21,19 @@ logg = logging.getLogger('create_account_script')
 logging.getLogger('confini').setLevel(logging.WARNING)
 logging.getLogger('gnupg').setLevel(logging.WARNING)
 
-default_config_dir = os.environ.get('CONFINI_DIR', '/usr/local/etc/cic')
-
-argparser = argparse.ArgumentParser()
+arg_flags = cic_eth.cli.argflag_std_base
+local_arg_flags = cic_eth.cli.argflag_local_taskcallback
+argparser = cic_eth.cli.ArgumentParser(arg_flags)
 argparser.add_argument('--no-register', dest='no_register', action='store_true', help='Do not register new account in on-chain accounts index')
-argparser.add_argument('-c', type=str, default=default_config_dir, help='config file')
-argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
-argparser.add_argument('--redis-host', dest='redis_host', type=str, help='redis host to use for task submission')
-argparser.add_argument('--redis-port', dest='redis_port', type=int, help='redis host to use for task submission')
-argparser.add_argument('--redis-db', dest='redis_db', type=int, help='redis db to use for task submission and callback')
-argparser.add_argument('--redis-host-callback', dest='redis_host_callback', default='localhost', type=str, help='redis host to use for callback')
-argparser.add_argument('--redis-port-callback', dest='redis_port_callback', default=6379, type=int, help='redis port to use for callback')
-argparser.add_argument('--timeout', default=20.0, type=float, help='Callback timeout')
-argparser.add_argument('-q', type=str, default='cic-eth', help='Task queue')
-argparser.add_argument('-v', action='store_true', help='Be verbose')
-argparser.add_argument('-vv', action='store_true', help='Be more verbose')
+argparser.process_local_flags(local_arg_flags)
 args = argparser.parse_args()
 
-if args.vv:
-    logg.setLevel(logging.DEBUG)
-if args.v:
-    logg.setLevel(logging.INFO)
-
-config_dir = args.c
-config = confini.Config(config_dir, os.environ.get('CONFINI_ENV_PREFIX'))
-config.process()
-args_override = {
-        'CIC_CHAIN_SPEC': getattr(args, 'i'),
-        'REDIS_HOST': getattr(args, 'redis_host'),
-        'REDIS_PORT': getattr(args, 'redis_port'),
-        'REDIS_DB': getattr(args, 'redis_db'),
+extra_args = {
+    'no_register': None,
         }
-config.dict_override(args_override, 'cli')
+config = cic_eth.cli.Config.from_args(args, arg_flags, local_arg_flags, extra_args=extra_args)
 
-celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
-
+celery_app = cic_eth.cli.CeleryApp.from_config(config)
 
 def main():
     redis_host = config.get('REDIS_HOST')
@@ -68,20 +47,20 @@ def main():
     ps.get_message()
 
     api = Api(
-            config.get('CIC_CHAIN_SPEC'),
-            queue=args.q,
-            callback_param='{}:{}:{}:{}'.format(args.redis_host_callback, args.redis_port_callback, redis_db, redis_channel),
+            config.get('CHAIN_SPEC'),
+            queue=config.get('CELERY_QUEUE'),
+            callback_param='{}:{}:{}:{}'.format(config.get('_REDIS_HOST_CALLBACK'), config.get('_REDIS_PORT_CALLBACK'), config.get('REDIS_DB'), redis_channel),
             callback_task='cic_eth.callbacks.redis.redis',
-            callback_queue=args.q,
+            callback_queue=config.get('CELERY_QUEUE'),
             )
 
-    register = not args.no_register
+    register = not config.get('_NO_REGISTER')
     logg.debug('register {}'.format(register))
     t = api.create_account(register=register)
 
     ps.get_message()
     try:
-        o = ps.get_message(timeout=args.timeout)
+        o = ps.get_message(timeout=config.get('REDIS_TIMEOUT'))
     except TimeoutError as e:
         sys.stderr.write('got no new address from cic-eth before timeout: {}\n'.format(e))
         sys.exit(1) 
