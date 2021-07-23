@@ -4,3 +4,4 @@ omit =
 	scripts/*
 	cic_cache/db/migrations/*
 	cic_cache/version.py
+	cic_cache/cli
