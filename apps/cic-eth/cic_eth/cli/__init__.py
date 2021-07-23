@@ -14,6 +14,12 @@ from chainlib.eth.cli import (
         ArgumentParser as BaseArgumentParser,
         Flag,
     )
+from chainlib.connection import (
+        RPCConnection,
+        ConnType,
+        )
+from chainlib.chain import ChainSpec
+from chainlib.eth.connection import EthUnixSignerConnection
 
 logg = logging.getLogger(__name__)
 
@@ -24,14 +30,22 @@ class CICFlag(enum.IntEnum):
    
     # celery - nibble 1
     CELERY = 1
-    CELERY_QUEUE = 2
 
     # redis - nibble 2
     REDIS = 16
     REDIS_CALLBACK = 32
- 
-argflag_local_task = CICFlag.CELERY
+
+    # chain - nibble 3
+    CHAIN = 256
+
+    # sync - nibble 4
+    SYNCER = 4096
+
+
+argflag_local_task = CICFlag.CELERY 
 argflag_local_taskcallback = argflag_local_task | CICFlag.REDIS | CICFlag.REDIS_CALLBACK
+argflag_local_chain = CICFlag.CHAIN
+argflag_local_sync = CICFlag.SYNCER | CICFlag.CHAIN
    
 
 class Config(BaseConfig):
@@ -54,6 +68,10 @@ class Config(BaseConfig):
             local_args_override['REDIS_PORT'] = getattr(args, 'redis_port')
             local_args_override['REDIS_DB'] = getattr(args, 'redis_db')
             local_args_override['REDIS_TIMEOUT'] = getattr(args, 'redis_timeout')
+
+        if local_arg_flags & CICFlag.CHAIN:
+            local_args_override['CIC_REGISTRY_ADDRESS'] = getattr(args, 'registry_address')
+
         if local_arg_flags & CICFlag.CELERY:
             local_args_override['CELERY_QUEUE'] = getattr(args, 'celery_queue')
         config.dict_override(local_args_override, 'local cli args')
@@ -64,6 +82,8 @@ class Config(BaseConfig):
 
         if local_arg_flags & CICFlag.CELERY:
             config.add(config.true('CELERY_DEBUG'), 'CELERY_DEBUG', exists_ok=True)
+
+
 
         logg.debug('config loaded:\n{}'.format(config))
 
@@ -83,6 +103,11 @@ class ArgumentParser(BaseArgumentParser):
             self.add_argument('--redis-timeout', default=20.0, type=float, help='Redis callback timeout')
         if local_arg_flags & CICFlag.CELERY:
             self.add_argument('-q', '--celery-queue', dest='celery_queue', type=str, default='cic-eth', help='Task queue')
+        if local_arg_flags & CICFlag.SYNCER:
+            self.add_argument('--history-start', type=int, default=0, dest='history_start', help='Start block height for initial history sync')
+            self.add_argument('--no-history', action='store_true', dest='no_history', help='Skip initial history sync')
+        if local_arg_flags & CICFlag.CHAIN:
+            self.add_argument('-r', '--registry-address', type=str, dest='registry_address', help='CIC registry contract address')
 
 
 class CeleryApp:
@@ -100,3 +125,31 @@ class CeleryApp:
             logg.info('creating celery app without results backend on {}'.format(broker_url))
 
         return celery_app
+
+
+class RPC:
+
+    def __init__(self, chain_spec, rpc_provider, signer_provider=None):
+        self.chain_spec = chain_spec
+        self.rpc_provider = rpc_provider
+        self.signer_provider = signer_provider
+
+
+    def get_default(self):
+        return RPCConnection.connect(self.chain_spec, 'default')
+
+
+    @staticmethod
+    def from_config(config):
+        chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
+        RPCConnection.register_location(config.get('RPC_HTTP_PROVIDER'), chain_spec, 'default')
+        if config.get('SIGNER_PROVIDER'):
+            RPCConnection.register_constructor(ConnType.UNIX, EthUnixSignerConnection, tag='signer')
+            RPCConnection.register_location(config.get('SIGNER_PROVIDER'), chain_spec, 'signer')
+        rpc = RPC(chain_spec, config.get('RPC_HTTP_PROVIDER'), signer_provider=config.get('SIGNER_PROVIDER'))
+        logg.info('set up rpc: {}'.format(rpc))
+        return rpc
+
+
+    def __str__(self):
+        return 'RPC factory, chain {}, rpc {}, signer {}'.format(self.chain_spec, self.rpc_provider, self.signer_provider)

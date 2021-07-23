@@ -17,7 +17,7 @@ import cic_eth.cli
 from cic_eth.api import Api
 
 logging.basicConfig(level=logging.WARNING)
-logg = logging.getLogger('create_account_script')
+logg = logging.getLogger()
 logging.getLogger('confini').setLevel(logging.WARNING)
 logging.getLogger('gnupg').setLevel(logging.WARNING)
 
