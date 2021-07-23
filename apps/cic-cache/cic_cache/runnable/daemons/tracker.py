@@ -8,14 +8,7 @@ import sys
 import re
 
 # external imports
-import confini
-import celery
 import sqlalchemy
-import rlp
-import cic_base.config
-import cic_base.log
-import cic_base.argparse
-import cic_base.rpc
 from cic_base.eth.syncer import chain_interface
 from cic_eth_registry import CICRegistry
 from cic_eth_registry.error import UnknownContractError
