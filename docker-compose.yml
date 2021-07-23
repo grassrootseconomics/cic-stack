@@ -169,6 +169,8 @@ services:
     build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
+      args:
+        EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS # supplied at contract-config after contract provisioning
       ETH_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
@@ -208,6 +210,8 @@ services:
     build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
+      args:
+        EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
@@ -240,6 +244,8 @@ services:
         context: apps/cic-eth
         dockerfile: docker/Dockerfile
         target: dev
+        args:
+          EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
       ETH_GAS_PROVIDER_ADDRESS: $DEV_ETH_ACCOUNT_GAS_PROVIDER
@@ -290,8 +296,10 @@ services:
         context: apps/cic-eth
         dockerfile: docker/Dockerfile
         target: dev
+        args:
+          EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
-      ETH_PROVIDER: http://eth:8545
+      RPC_HTTP_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
@@ -300,7 +308,7 @@ services:
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
+      CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
         #BANCOR_DIR: $BANCOR_DIR
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
@@ -320,7 +328,8 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_tracker.sh -vv -c /usr/local/etc/cic-eth
+        #./start_tracker.sh -vv -c /usr/local/etc/cic-eth
+        ./start_tracker.sh -vv
     # command: "/root/start_manager.sh head -vv"
 
 
@@ -329,6 +338,8 @@ services:
         context: apps/cic-eth
         dockerfile: docker/Dockerfile
         target: dev
+        args:
+          EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
       ETH_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}
@@ -369,6 +380,8 @@ services:
         context: apps/cic-eth
         dockerfile: docker/Dockerfile
         target: dev
+        args:
+          EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
       ETH_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}
