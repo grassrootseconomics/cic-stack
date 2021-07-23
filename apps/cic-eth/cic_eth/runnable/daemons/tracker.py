@@ -8,7 +8,6 @@ import sys
 import re
 
 # external imports
-from cic_base.eth.syncer import chain_interface
 from cic_eth_registry.error import UnknownContractError
 from chainlib.chain import ChainSpec
 from chainlib.eth.constant import ZERO_ADDRESS
@@ -102,9 +101,9 @@ def main():
     syncer_backends = SQLBackend.resume(chain_spec, block_offset)
 
     if len(syncer_backends) == 0:
-        initial_block_start = config.get('SYNCER_HISTORY_START')
+        initial_block_start = config.get('SYNCER_OFFSET')
         initial_block_offset = block_offset
-        if config.get('_NO_HISTORY'):
+        if config.true('SYNCER_NO_HISTORY'):
             initial_block_start = block_offset
             initial_block_offset += 1
         syncer_backends.append(SQLBackend.initial(chain_spec, initial_block_offset, start_block_height=initial_block_start))
@@ -117,11 +116,11 @@ def main():
 
     for syncer_backend in syncer_backends:
         try:
-            syncers.append(HistorySyncer(syncer_backend, chain_interface))
+            syncers.append(HistorySyncer(syncer_backend, cic_eth.cli.chain_interface))
             logg.info('Initializing HISTORY syncer on backend {}'.format(syncer_backend))
         except AttributeError:
             logg.info('Initializing HEAD syncer on backend {}'.format(syncer_backend))
-            syncers.append(HeadSyncer(syncer_backend, chain_interface))
+            syncers.append(HeadSyncer(syncer_backend, cic_eth.cli.chain_interface))
 
     connect_registry(conn, chain_spec, config.get('CIC_REGISTRY_ADDRESS'))
 

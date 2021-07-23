@@ -20,6 +20,16 @@ from chainlib.connection import (
         )
 from chainlib.chain import ChainSpec
 from chainlib.eth.connection import EthUnixSignerConnection
+from chainlib.eth.block import (
+        block_by_number,
+        Block,
+        )
+from chainlib.eth.tx import (
+        receipt,
+        Tx,
+        )
+from chainlib.interface import ChainInterface
+
 
 logg = logging.getLogger(__name__)
 
@@ -74,6 +84,11 @@ class Config(BaseConfig):
 
         if local_arg_flags & CICFlag.CELERY:
             local_args_override['CELERY_QUEUE'] = getattr(args, 'celery_queue')
+
+        if local_arg_flags & CICFlag.SYNCER:
+            local_args_override['SYNCER_OFFSET'] = getattr(args, 'offset')
+            local_args_override['SYNCER_NO_HISTORY'] = getattr(args, 'no_history')
+
         config.dict_override(local_args_override, 'local cli args')
 
         if local_arg_flags & CICFlag.REDIS_CALLBACK:
@@ -104,7 +119,7 @@ class ArgumentParser(BaseArgumentParser):
         if local_arg_flags & CICFlag.CELERY:
             self.add_argument('-q', '--celery-queue', dest='celery_queue', type=str, default='cic-eth', help='Task queue')
         if local_arg_flags & CICFlag.SYNCER:
-            self.add_argument('--history-start', type=int, default=0, dest='history_start', help='Start block height for initial history sync')
+            self.add_argument('--offset', type=int, default=0, help='Start block height for initial history sync')
             self.add_argument('--no-history', action='store_true', dest='no_history', help='Skip initial history sync')
         if local_arg_flags & CICFlag.CHAIN:
             self.add_argument('-r', '--registry-address', type=str, dest='registry_address', help='CIC registry contract address')
@@ -153,3 +168,14 @@ class RPC:
 
     def __str__(self):
         return 'RPC factory, chain {}, rpc {}, signer {}'.format(self.chain_spec, self.rpc_provider, self.signer_provider)
+
+
+class EthChainInterface(ChainInterface):
+    
+    def __init__(self):
+        self._tx_receipt = receipt
+        self._block_by_number = block_by_number
+        self._block_from_src = Block.from_src
+        self._src_normalize = Tx.src_normalize
+
+chain_interface = EthChainInterface()
