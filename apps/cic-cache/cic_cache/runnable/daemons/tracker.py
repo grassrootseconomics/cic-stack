@@ -9,7 +9,6 @@ import re
 
 # external imports
 import sqlalchemy
-from cic_base.eth.syncer import chain_interface
 from cic_eth_registry import CICRegistry
 from cic_eth_registry.error import UnknownContractError
 from chainlib.chain import ChainSpec
@@ -27,6 +26,7 @@ from chainsyncer.driver.history import HistorySyncer
 from chainsyncer.db.models.base import SessionBase
 
 # local imports
+import cic_cache.cli
 from cic_cache.db import (
         dsn_from_config,
         add_tag,
@@ -36,32 +36,36 @@ from cic_cache.runnable.daemons.filters import (
         FaucetFilter,
         )
 
-script_dir = os.path.realpath(os.path.dirname(__file__))
+logging.basicConfig(level=logging.WARNING)
+logg = logging.getLogger()
 
-def add_block_args(argparser):
-    argparser.add_argument('--history-start', type=int, default=0, dest='history_start', help='Start block height for initial history sync')
-    argparser.add_argument('--no-history', action='store_true', dest='no_history', help='Skip initial history sync')
-    return argparser
+# process args
+arg_flags = cic_cache.cli.argflag_std_read
+local_arg_flags = cic_cache.cli.argflag_local_sync
+argparser = cic_cache.cli.ArgumentParser(arg_flags)
+argparser.process_local_flags(local_arg_flags)
+args = argparser.parse_args()
 
+# process config
+config = cic_cache.cli.Config.from_args(args, arg_flags, local_arg_flags)
 
-logg = cic_base.log.create()
-argparser = cic_base.argparse.create(script_dir, cic_base.argparse.full_template)
-argparser = cic_base.argparse.add(argparser, add_block_args, 'block')
-args = cic_base.argparse.parse(argparser, logg)
-config = cic_base.config.create(args.c, args, args.env_prefix)
-
-config.add(args.history_start, 'SYNCER_HISTORY_START', True)
-config.add(args.no_history, '_NO_HISTORY', True)
-
-cic_base.config.log(config)
-
+# connect to database
 dsn = dsn_from_config(config)
-
 SessionBase.connect(dsn, debug=config.true('DATABASE_DEBUG'))
 
-chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
+# set up rpc
+rpc = cic_cache.cli.RPC.from_config(config)
+conn = rpc.get_default()
 
-cic_base.rpc.setup(chain_spec, config.get('ETH_PROVIDER'))
+# set up chain provisions
+chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
+registry = None
+try:
+    registry = cic_cache.cli.connect_registry(conn, chain_spec, config.get('CIC_REGISTRY_ADDRESS'))
+except UnknownContractError as e:
+    logg.exception('Registry contract connection failed for {}: {}'.format(config.get('CIC_REGISTRY_ADDRESS'), e))
+    sys.exit(1)
+logg.info('connected contract registry {}'.format(config.get('CIC_REGISTRY_ADDRESS')))
 
 
 def register_filter_tags(filters, session):
@@ -88,14 +92,12 @@ def main():
 
     syncers = []
 
-    #if SQLBackend.first(chain_spec):
-    #    backend = SQLBackend.initial(chain_spec, block_offset)
     syncer_backends = SQLBackend.resume(chain_spec, block_offset)
 
     if len(syncer_backends) == 0:
-        initial_block_start = config.get('SYNCER_HISTORY_START')
+        initial_block_start = config.get('SYNCER_OFFSET')
         initial_block_offset = block_offset
-        if config.get('_NO_HISTORY'):
+        if config.get('SYNCER_NO_HISTORY'):
             initial_block_start = block_offset
             initial_block_offset += 1
         syncer_backends.append(SQLBackend.initial(chain_spec, initial_block_offset, start_block_height=initial_block_start))
@@ -105,10 +107,10 @@ def main():
             logg.info('resuming sync session {}'.format(syncer_backend))
 
     for syncer_backend in syncer_backends:
-        syncers.append(HistorySyncer(syncer_backend, chain_interface))
+        syncers.append(HistorySyncer(syncer_backend, cic_cache.cli.chain_interface))
 
     syncer_backend = SQLBackend.live(chain_spec, block_offset+1)
-    syncers.append(HeadSyncer(syncer_backend, chain_interface))
+    syncers.append(HeadSyncer(syncer_backend, cic_cache.cli.chain_interface))
 
     trusted_addresses_src = config.get('CIC_TRUST_ADDRESS')
     if trusted_addresses_src == None:

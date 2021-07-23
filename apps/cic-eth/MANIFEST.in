@@ -1,2 +1,2 @@
-include *requirements.txt config/test/*
+include *requirements.txt config/test/* cic_eth/data/config/*
 

@@ -131,9 +131,11 @@ services:
     build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
+      args:
+        EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS # supplied at contract-config after contract provisioning
-      ETH_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
+      RPC_HTTP_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala} # this is is set at initdb see: postgres/initdb/create_db.sql
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
@@ -142,9 +144,8 @@ services:
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       DATABASE_DEBUG: 1
-      ETH_ABI_DIR: ${ETH_ABI_DIR:-/usr/local/share/cic/solidity/abi}
       CIC_TRUST_ADDRESS: ${DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER:-0xEb3907eCad74a0013c259D5874AE7f22DcBcC95C}
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
+      CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       CELERY_BROKER_URL: redis://redis:6379
       CELERY_RESULT_URL: redis://redis:6379
     deploy: 
