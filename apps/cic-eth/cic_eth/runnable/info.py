@@ -12,48 +12,26 @@ import confini
 import celery
 
 # local imports
+import cic_eth.cli
 from cic_eth.api import Api
 from cic_eth.api.admin import AdminApi
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
+logging.getLogger('confini').setLevel(logging.WARNING)
+logging.getLogger('gnupg').setLevel(logging.WARNING)
 
-default_format = 'terminal'
-default_config_dir = os.environ.get('CONFINI_DIR', '/usr/local/etc/cic')
-
-
-argparser = argparse.ArgumentParser()
-argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
-argparser.add_argument('-c', type=str, default=default_config_dir, help='config root to use')
-argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
-argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
-argparser.add_argument('-v', action='store_true', help='Be verbose')
-argparser.add_argument('-vv', help='be more verbose', action='store_true')
+arg_flags = cic_eth.cli.argflag_std_base
+local_arg_flags = cic_eth.cli.argflag_local_taskcallback
+argparser = cic_eth.cli.ArgumentParser(arg_flags)
+argparser.process_local_flags(local_arg_flags)
 args = argparser.parse_args()
 
-if args.v == True:
-    logging.getLogger().setLevel(logging.INFO)
-elif args.vv == True:
-    logging.getLogger().setLevel(logging.DEBUG)
+config = cic_eth.cli.Config.from_args(args, arg_flags, local_arg_flags)
 
-config_dir = os.path.join(args.c)
-os.makedirs(config_dir, 0o777, True)
-config = confini.Config(config_dir, args.env_prefix)
-config.process()
-args_override = {
-        'CIC_CHAIN_SPEC': getattr(args, 'i'),
-        }
-config.dict_override(args_override, 'cli args')
-config.censor('PASSWORD', 'DATABASE')
-config.censor('PASSWORD', 'SSL')
-logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
+celery_app = cic_eth.cli.CeleryApp.from_config(config)
 
-
-celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
-
-queue = args.q
-
-api = Api(config.get('CIC_CHAIN_SPEC'), queue=queue)
+api = Api(config.get('CHAIN_SPEC'), queue=config.get('CELERY_QUEUE'))
 admin_api = AdminApi(None)
 
 def main():
