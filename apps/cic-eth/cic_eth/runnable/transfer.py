@@ -7,12 +7,12 @@ import json
 import argparse
 
 # external imports
-import cic_eth.cli
 import redis
 from xdg.BaseDirectory import xdg_config_home
 from chainlib.eth.address import to_checksum_address
 
 # local imports
+import cic_eth.cli
 from cic_eth.api import Api
 
 logging.basicConfig(level=logging.WARNING)
