@@ -348,6 +348,7 @@ services:
           EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
       ETH_PROVIDER: http://eth:8545
+      RPC_HTTP_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
@@ -356,6 +357,7 @@ services:
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
+      CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
         #BANCOR_DIR: $BANCOR_DIR
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
@@ -390,6 +392,7 @@ services:
           EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
       ETH_PROVIDER: http://eth:8545
+      RPC_HTTP_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
@@ -399,6 +402,7 @@ services:
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
       CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
+      CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
         #BANCOR_DIR: $BANCOR_DIR
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
