@@ -74,7 +74,7 @@ logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
 arg_flags = cic_eth.cli.argflag_std_read
-local_arg_flags = cic_eth.cli.argflag_local_sync
+local_arg_flags = cic_eth.cli.argflag_local_task
 argparser = cic_eth.cli.ArgumentParser(arg_flags)
 argparser.process_local_flags(local_arg_flags)
 argparser.add_argument('--default-token-symbol', dest='default_token_symbol', type=str, help='Symbol of default token to use')

@@ -26,7 +26,7 @@ logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
 arg_flags = cic_eth.cli.argflag_std_read
-local_arg_flags = cic_eth.cli.argflag_local_sync
+local_arg_flags = cic_eth.cli.argflag_local_sync | cic_eth.cli.argflag_local_task
 argparser = cic_eth.cli.ArgumentParser(arg_flags)
 argparser.add_argument('--batch-size', dest='batch_size', type=int, default=50, help='max amount of txs to resend per iteration')
 argparser.add_argument('--retry-delay', dest='retry_delay', type=int, default=20, help='seconds to wait for retrying a transaction that is marked as sent')
