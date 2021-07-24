@@ -18,8 +18,6 @@ from cic_eth.api.admin import AdminApi
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
-logging.getLogger('confini').setLevel(logging.WARNING)
-logging.getLogger('gnupg').setLevel(logging.WARNING)
 
 arg_flags = cic_eth.cli.argflag_std_base
 local_arg_flags = cic_eth.cli.argflag_local_taskcallback
@@ -33,6 +31,7 @@ celery_app = cic_eth.cli.CeleryApp.from_config(config)
 
 api = Api(config.get('CHAIN_SPEC'), queue=config.get('CELERY_QUEUE'))
 admin_api = AdminApi(None)
+
 
 def main():
     t = admin_api.registry()

@@ -7,7 +7,6 @@ import json
 import argparse
 
 # external imports
-import confini
 import redis
 from xdg.BaseDirectory import xdg_config_home
 from chainlib.chain import ChainSpec
@@ -18,8 +17,6 @@ from cic_eth.api import Api
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
-logging.getLogger('confini').setLevel(logging.WARNING)
-logging.getLogger('gnupg').setLevel(logging.WARNING)
 
 arg_flags = cic_eth.cli.argflag_std_base
 local_arg_flags = cic_eth.cli.argflag_local_taskcallback
