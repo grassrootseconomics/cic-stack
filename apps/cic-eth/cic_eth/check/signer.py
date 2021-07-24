@@ -15,7 +15,7 @@ logg = logging.getLogger().getChild(__name__)
 def health(*args, **kwargs):
     blocked = True
     max_attempts = 5
-    conn = RPCConnection.connect(kwargs['config'].get('CIC_CHAIN_SPEC'), tag='signer')
+    conn = RPCConnection.connect(kwargs['config'].get('CHAIN_SPEC'), tag='signer')
     for i in range(max_attempts):
         idx = i + 1
         logg.debug('attempt signer connection check {}/{}'.format(idx, max_attempts))

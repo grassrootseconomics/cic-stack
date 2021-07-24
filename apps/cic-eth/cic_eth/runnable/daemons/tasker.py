@@ -21,14 +21,17 @@ from chainlib.eth.connection import (
         EthUnixSignerConnection,
         EthHTTPSignerConnection,
         )
+from chainlib.eth.address import to_checksum_address
 from chainlib.chain import ChainSpec
 from chainqueue.db.models.otx import Otx
 from cic_eth_registry.error import UnknownContractError
 from cic_eth_registry.erc20 import ERC20Token
+from hexathon import add_0x
 import liveness.linux
 
 
 # local imports
+import cic_eth.cli
 from cic_eth.eth import (
         erc20,
         tx,
@@ -70,114 +73,53 @@ from cic_eth.task import BaseTask
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
-script_dir = os.path.dirname(os.path.realpath(__file__))
-
-config_dir = os.path.join('/usr/local/etc/cic-eth')
-
-argparser = argparse.ArgumentParser()
-argparser.add_argument('-p', '--provider', dest='p', type=str, help='rpc provider')
-argparser.add_argument('-c', type=str, default=config_dir, help='config file')
-argparser.add_argument('-q', type=str, default='cic-eth', help='queue name for worker tasks')
-argparser.add_argument('-r', type=str, help='CIC registry address')
+arg_flags = cic_eth.cli.argflag_std_read
+local_arg_flags = cic_eth.cli.argflag_local_sync
+argparser = cic_eth.cli.ArgumentParser(arg_flags)
+argparser.process_local_flags(local_arg_flags)
 argparser.add_argument('--default-token-symbol', dest='default_token_symbol', type=str, help='Symbol of default token to use')
 argparser.add_argument('--trace-queue-status', default=None, dest='trace_queue_status', action='store_true', help='set to perist all queue entry status changes to storage')
-argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
-argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('--aux-all', action='store_true', help='include tasks from all submodules from the aux module path')
 argparser.add_argument('--aux', action='append', type=str, default=[], help='add single submodule from the aux module path')
-argparser.add_argument('-v', action='store_true', help='be verbose')
-argparser.add_argument('-vv', action='store_true', help='be more verbose')
 args = argparser.parse_args()
 
-if args.vv:
-    logging.getLogger().setLevel(logging.DEBUG)
-elif args.v:
-    logging.getLogger().setLevel(logging.INFO)
-
-config = confini.Config(args.c, args.env_prefix)
-config.process()
-# override args
-args_override = {
-        'CIC_CHAIN_SPEC': getattr(args, 'i'),
-        'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
-        'CIC_DEFAULT_TOKEN_SYMBOL': getattr(args, 'default_token_symbol'),
-        'ETH_PROVIDER': getattr(args, 'p'),
-        'TASKS_TRACE_QUEUE_STATUS': getattr(args, 'trace_queue_status'),
+# process config
+extra_args = {
+    'default_token_symbol': 'CIC_DEFAULT_TOKEN_SYMBOL',
+    'aux_all': None,
+    'aux': None,
+    'trace_queue_status': 'TASKS_TRACE_QUEUE_STATUS',
         }
-config.add(args.q, '_CELERY_QUEUE', True)
-config.dict_override(args_override, 'cli flag')
-config.censor('PASSWORD', 'DATABASE')
-config.censor('PASSWORD', 'SSL')
-logg.debug('config loaded from {}:\n{}'.format(args.c, config))
+config = cic_eth.cli.Config.from_args(args, arg_flags, local_arg_flags)
 
-health_modules = config.get('CIC_HEALTH_MODULES', [])
-if len(health_modules) != 0:
-    health_modules = health_modules.split(',')
-logg.debug('health mods {}'.format(health_modules))
+# connect to celery
+celery_app = cic_eth.cli.CeleryApp.from_config(config)
 
+# set up rpc
+rpc = cic_eth.cli.RPC.from_config(config, use_signer=True)
+conn = rpc.get_default()
 
 
 # connect to database
 dsn = dsn_from_config(config)
 SessionBase.connect(dsn, pool_size=int(config.get('DATABASE_POOL_SIZE')), debug=config.true('DATABASE_DEBUG'))
-
-
-# set up celery
-current_app = celery.Celery(__name__)
-
-broker = config.get('CELERY_BROKER_URL')
-if broker[:4] == 'file':
-    bq = tempfile.mkdtemp()
-    bp = tempfile.mkdtemp()
-    conf_update = {
-            'broker_url': broker,
-            'broker_transport_options': {
-                'data_folder_in': bq,
-                'data_folder_out': bq,
-                'data_folder_processed': bp,
-            },
-            }
-    if config.true('CELERY_DEBUG'):
-        conf_update['result_extended'] = True
-    current_app.conf.update(conf_update)
-    logg.warning('celery broker dirs queue i/o {} processed {}, will NOT be deleted on shutdown'.format(bq, bp))
-else:
-    conf_update = {
-            'broker_url': broker,
-            }
-    if config.true('CELERY_DEBUG'):
-        conf_update['result_extended'] = True
-    current_app.conf.update(conf_update)
-
-result = config.get('CELERY_RESULT_URL')
-if result[:4] == 'file':
-    rq = tempfile.mkdtemp()
-    current_app.conf.update({
-        'result_backend': 'file://{}'.format(rq),
-        })
-    logg.warning('celery backend store dir {} created, will NOT be deleted on shutdown'.format(rq))
-else:
-    current_app.conf.update({
-        'result_backend': result,
-        })
-
-chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
-RPCConnection.register_constructor(ConnType.UNIX, EthUnixSignerConnection, 'signer')
-RPCConnection.register_constructor(ConnType.HTTP, EthHTTPSignerConnection, 'signer')
-RPCConnection.register_constructor(ConnType.HTTP_SSL, EthHTTPSignerConnection, 'signer')
-RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, 'default')
-RPCConnection.register_location(config.get('SIGNER_SOCKET_PATH'), chain_spec, 'signer')
-
 Otx.tracing = config.true('TASKS_TRACE_QUEUE_STATUS')
 
-#import cic_eth.checks.gas
-#if not cic_eth.checks.gas.health(config=config):
-#    raise RuntimeError()
+
+# execute health checks
+# TODO: health should be separate service with endpoint that can be queried
+health_modules = config.get('CIC_HEALTH_MODULES', [])
+if len(health_modules) != 0:
+    health_modules = health_modules.split(',')
+logg.debug('health mods {}'.format(health_modules))
 liveness.linux.load(health_modules, rundir=config.get('CIC_RUN_DIR'), config=config, unit='cic-eth-tasker')
 
-rpc = RPCConnection.connect(chain_spec, 'default')
+
+# set up chain provisions
+chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
+registry = None
 try:
-    registry = connect_registry(rpc, chain_spec, config.get('CIC_REGISTRY_ADDRESS'))
+    registry = connect_registry(conn, chain_spec, config.get('CIC_REGISTRY_ADDRESS'))
 except UnknownContractError as e:
     logg.exception('Registry contract connection failed for {}: {}'.format(config.get('CIC_REGISTRY_ADDRESS'), e))
     sys.exit(1)
@@ -188,15 +130,15 @@ if trusted_addresses_src == None:
     logg.critical('At least one trusted address must be declared in CIC_TRUST_ADDRESS')
     sys.exit(1)
 trusted_addresses = trusted_addresses_src.split(',')
-for address in trusted_addresses:
+for i, address in enumerate(trusted_addresses):
+    if config.get('_UNSAFE'):
+        trusted_addresses[i] = to_checksum_address(address)
     logg.info('using trusted address {}'.format(address))
+connect_declarator(conn, chain_spec, trusted_addresses)
+connect_token_registry(conn, chain_spec)
 
-connect_declarator(rpc, chain_spec, trusted_addresses)
-connect_token_registry(rpc, chain_spec)
-
-# detect aux 
+# detect auxiliary task modules (plugins)
 # TODO: move to separate file
-#aux_dir = os.path.join(script_dir, '..', '..', 'aux')
 aux = []
 if args.aux_all:
     if len(args.aux) > 0:
@@ -249,36 +191,24 @@ elif len(args.aux) > 0:
 for v in aux:
     mname = 'cic_eth_aux.' + v
     mod = importlib.import_module(mname)
-    mod.aux_setup(rpc, config)
+    mod.aux_setup(conn, config)
     logg.info('loaded aux module {}'.format(mname))
 
 
 def main():
     argv = ['worker']
-    if args.vv:
-        argv.append('--loglevel=DEBUG')
-    elif args.v:
-        argv.append('--loglevel=INFO')
+    log_level = logg.getEffectiveLevel()
+    log_level_name = logging.getLevelName(log_level)
+    argv.append('--loglevel=' + log_level_name)
     argv.append('-Q')
-    argv.append(args.q)
+    argv.append(config.get('CELERY_QUEUE'))
     argv.append('-n')
-    argv.append(args.q)
-
-#    if config.true('SSL_ENABLE_CLIENT'):
-#        Callback.ssl = True
-#        Callback.ssl_cert_file = config.get('SSL_CERT_FILE')
-#        Callback.ssl_key_file = config.get('SSL_KEY_FILE')
-#        Callback.ssl_password = config.get('SSL_PASSWORD')
-#
-#    if config.get('SSL_CA_FILE') != '':
-#        Callback.ssl_ca_file = config.get('SSL_CA_FILE')
-
-    rpc = RPCConnection.connect(chain_spec, 'default')
+    argv.append(config.get('CELERY_QUEUE'))
 
     BaseTask.default_token_symbol = config.get('CIC_DEFAULT_TOKEN_SYMBOL')
     BaseTask.default_token_address = registry.by_name(BaseTask.default_token_symbol)
-    default_token = ERC20Token(chain_spec, rpc, BaseTask.default_token_address)
-    default_token.load(rpc)
+    default_token = ERC20Token(chain_spec, conn, BaseTask.default_token_address)
+    default_token.load(conn)
     BaseTask.default_token_decimals = default_token.decimals
     BaseTask.default_token_name = default_token.name
 
@@ -286,13 +216,13 @@ def main():
     logg.info('default token set to {} {}'.format(BaseTask.default_token_symbol, BaseTask.default_token_address))
    
     liveness.linux.set(rundir=config.get('CIC_RUN_DIR'))
-    current_app.worker_main(argv)
+    celery_app.worker_main(argv)
     liveness.linux.reset(rundir=config.get('CIC_RUN_DIR'))
 
 
 @celery.signals.eventlet_pool_postshutdown.connect
 def shutdown(sender=None, headers=None, body=None, **kwargs):
-    logg.warning('in shudown event hook')
+    logg.warning('in shutdown event hook')
 
 
 if __name__ == '__main__':

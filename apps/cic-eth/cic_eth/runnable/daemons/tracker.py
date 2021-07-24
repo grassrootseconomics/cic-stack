@@ -46,8 +46,6 @@ from cic_eth.registry import (
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
-logging.getLogger('confini').setLevel(logging.WARNING)
-logging.getLogger('gnupg').setLevel(logging.WARNING)
 
 arg_flags = cic_eth.cli.argflag_std_read
 local_arg_flags = cic_eth.cli.argflag_local_sync

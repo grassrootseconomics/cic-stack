@@ -6,7 +6,10 @@ from chainlib.connection import (
         RPCConnection,
         ConnType,
         )
-from chainlib.eth.connection import EthUnixSignerConnection
+from chainlib.eth.connection import (
+        EthUnixSignerConnection,
+        EthHTTPSignerConnection,
+        )
 from chainlib.chain import ChainSpec
 
 logg = logging.getLogger(__name__)
@@ -25,11 +28,15 @@ class RPC:
 
 
     @staticmethod
-    def from_config(config):
+    def from_config(config, use_signer=False):
         chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
+
         RPCConnection.register_location(config.get('RPC_HTTP_PROVIDER'), chain_spec, 'default')
-        if config.get('SIGNER_PROVIDER'):
-            RPCConnection.register_constructor(ConnType.UNIX, EthUnixSignerConnection, tag='signer')
+        if use_signer:
+
+            RPCConnection.register_constructor(ConnType.UNIX, EthUnixSignerConnection, 'signer')
+            RPCConnection.register_constructor(ConnType.HTTP, EthHTTPSignerConnection, 'signer')
+            RPCConnection.register_constructor(ConnType.HTTP_SSL, EthHTTPSignerConnection, 'signer')
             RPCConnection.register_location(config.get('SIGNER_PROVIDER'), chain_spec, 'signer')
         rpc = RPC(chain_spec, config.get('RPC_HTTP_PROVIDER'), signer_provider=config.get('SIGNER_PROVIDER'))
         logg.info('set up rpc: {}'.format(rpc))
@@ -40,4 +47,40 @@ class RPC:
         return 'RPC factory, chain {}, rpc {}, signer {}'.format(self.chain_spec, self.rpc_provider, self.signer_provider)
 
 
-
+# TOOD: re-implement file backend option from omittec code:
+#broker = config.get('CELERY_BROKER_URL')
+#if broker[:4] == 'file':
+#    bq = tempfile.mkdtemp()
+#    bp = tempfile.mkdtemp()
+#    conf_update = {
+#            'broker_url': broker,
+#            'broker_transport_options': {
+#                'data_folder_in': bq,
+#                'data_folder_out': bq,
+#                'data_folder_processed': bp,
+#            },
+#            }
+#    if config.true('CELERY_DEBUG'):
+#        conf_update['result_extended'] = True
+#    current_app.conf.update(conf_update)
+#    logg.warning('celery broker dirs queue i/o {} processed {}, will NOT be deleted on shutdown'.format(bq, bp))
+#else:
+#    conf_update = {
+#            'broker_url': broker,
+#            }
+#    if config.true('CELERY_DEBUG'):
+#        conf_update['result_extended'] = True
+#    current_app.conf.update(conf_update)
+#
+#result = config.get('CELERY_RESULT_URL')
+#if result[:4] == 'file':
+#    rq = tempfile.mkdtemp()
+#    current_app.conf.update({
+#        'result_backend': 'file://{}'.format(rq),
+#        })
+#    logg.warning('celery backend store dir {} created, will NOT be deleted on shutdown'.format(rq))
+#else:
+#    current_app.conf.update({
+#        'result_backend': result,
+#        })
+#
