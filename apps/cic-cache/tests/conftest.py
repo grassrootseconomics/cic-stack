@@ -127,7 +127,8 @@ def more_txs(
 
     session.commit()
 
-    return txs + [tx_hash] 
+    return [tx_hash] + txs
+
 
 @pytest.fixture(scope='function')
 def tag_txs(
