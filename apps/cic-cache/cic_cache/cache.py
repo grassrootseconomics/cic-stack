@@ -113,35 +113,21 @@ class BloomCache(Cache):
 
 class DataCache(Cache):
 
-    def load_transactions_with_data_index(self, offset, limit, block_offset=None, block_limit=None, oldest=False):
-        if limit == 0:
-            limit = DEFAULT_LIMIT
-        rows = list_transactions_mined_with_data_index(self.session, offset, limit, block_offset, block_limit, oldest=oldest) 
-        return self.__load_transactions(rows)
-
-
     def load_transactions_with_data(self, offset, limit, block_offset=None, block_limit=None, oldest=False):
         if limit == 0:
             limit = DEFAULT_LIMIT
         rows = list_transactions_mined_with_data(self.session, offset, limit, block_offset, block_limit, oldest=oldest) 
-        return self.__load_transactions(rows)
+        return self.__process_rows(rows)
 
 
-    def load_transactions_account_with_data_index(self, address, offset, limit, block_offset=None, block_limit=None, oldest=False):
-        if limit == 0:
-            limit = DEFAULT_LIMIT
-        rows = list_transactions_account_mined_with_data_index(self.session, address, offset, limit, block_offset, block_limit, oldest=oldest) 
-        return self.__load_transactions(rows)
-
-    
     def load_transactions_account_with_data(self, address, offset, limit, block_offset=None, block_limit=None, oldest=False):
         if limit == 0:
             limit = DEFAULT_LIMIT
         rows = list_transactions_account_mined_with_data(self.session, address, offset, limit, block_offset, block_limit, oldest=oldest) 
-        return self.__load_transactions(rows)
+        return self.__process_rows(rows)
 
 
-    def __load_transactions(self, rows):
+    def __process_rows(self, rows):
         tx_cache = []
         highest_block = -1;
         lowest_block = -1;
