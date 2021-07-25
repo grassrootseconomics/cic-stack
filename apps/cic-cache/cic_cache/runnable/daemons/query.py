@@ -91,13 +91,14 @@ def process_transactions_all_data(session, env):
     if env.get('HTTP_X_CIC_CACHE_MODE') != 'all':
         return None
 
-    offset = r[1]
-    end = r[2]
+    logg.debug('got data request {}'.format(env))
+    block_offset = r[1]
+    block_end = r[2]
     if int(r[2]) < int(r[1]):
         raise ValueError('cart before the horse, dude')
 
     c = DataCache(session)
-    (lowest_block, highest_block, tx_cache) = c.load_transactions_with_data(offset, end)
+    (lowest_block, highest_block, tx_cache) = c.load_transactions_with_data(0, 0, block_offset, block_end)
 
     for r in tx_cache:
         r['date_block'] = r['date_block'].timestamp()

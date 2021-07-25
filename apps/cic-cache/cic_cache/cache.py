@@ -10,12 +10,16 @@ from cic_cache.db.list import (
         list_transactions_mined,
         list_transactions_account_mined,
         list_transactions_mined_with_data,
+        list_transactions_mined_with_data_index,
+        list_transactions_account_mined_with_data_index,
+        list_transactions_account_mined_with_data,
         )
 
 logg = logging.getLogger()
 
 
 DEFAULT_FILTER_SIZE = 8192 * 8
+DEFAULT_LIMIT = 100
 
 class Cache:
 
@@ -99,8 +103,35 @@ class BloomCache(Cache):
 
 class DataCache(Cache):
 
-    def load_transactions_with_data(self, offset, end):
-        rows = list_transactions_mined_with_data(self.session, offset, end) 
+    def load_transactions_with_data_index(self, offset, limit, block_offset=None, block_limit=None):
+        if limit == 0:
+            limit = DEFAULT_LIMIT
+        rows = list_transactions_mined_with_data_index(self.session, offset, limit, block_offset, block_limit) 
+        return self.__load_transactions(rows)
+
+
+    def load_transactions_with_data(self, offset, limit, block_offset=None, block_limit=None):
+        if limit == 0:
+            limit = DEFAULT_LIMIT
+        rows = list_transactions_mined_with_data(self.session, offset, limit, block_offset, block_limit) 
+        return self.__load_transactions(rows)
+
+
+    def load_transactions_account_with_data_index(self, address, offset, limit, block_offset=None, block_limit=None):
+        if limit == 0:
+            limit = DEFAULT_LIMIT
+        rows = list_transactions_account_mined_with_data_index(self.session, address, offset, limit, block_offset, block_limit) 
+        return self.__load_transactions(rows)
+
+    
+    def load_transactions_account_with_data(self, address, offset, limit, block_offset=None, block_limit=None):
+        if limit == 0:
+            limit = DEFAULT_LIMIT
+        rows = list_transactions_account_mined_with_data(self.session, address, offset, limit, block_offset, block_limit) 
+        return self.__load_transactions(rows)
+
+
+    def __load_transactions(self, rows):
         tx_cache = []
         highest_block = -1;
         lowest_block = -1;

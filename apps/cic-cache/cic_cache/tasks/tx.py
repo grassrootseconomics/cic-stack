@@ -2,7 +2,10 @@
 import celery
 
 # local imports
-from cic_cache.cache import BloomCache
+from cic_cache.cache import (
+        BloomCache,
+        DataCache,
+        )
 from cic_cache.db.models.base import SessionBase
 
 celery_app = celery.current_app
@@ -35,4 +38,23 @@ def tx_filter(self, offset, limit, address=None, encoding='hex'):
     return o
 
 
+@celery_app.task(bind=True)
+def tx_filter_content(self, offset, limit, address=None, block_offset=None, block_limit=None, encoding='hex'):
+    session = SessionBase.create_session()
 
+    c = DataCache(session)
+    b = None
+    if address == None:
+        if block_offset:
+            (lowest_block, highest_block, tx_cache) = c.load_transactions_with_data(offset, limit, block_offset=block_offset, block_limit=block_limit)
+        else:
+            (lowest_block, highest_block, tx_cache) = c.load_transactions_with_data_index(offset, limit, block_offset=block_offset, block_limit=block_limit)
+    else:
+        if block_offset:
+            (lowest_block, highest_block, tx_cache) = c.load_transactions_account_with_data(address, offset, limit, block_offset=block_offset, block_limit=block_limit)
+        else:
+            (lowest_block, highest_block, tx_cache) = c.load_transactions_account_with_data_index(address, offset, limit, block_number=block_number, block_limit=block_limit)
+
+    session.close()
+
+    return (lowest_block, highest_block, tx_cache,)

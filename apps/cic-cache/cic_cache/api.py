@@ -55,15 +55,35 @@ class Api:
                     queue=callback_queue,
                     )       
 
-    def list(self, offset, limit, address=None):
+    def list(self, offset=0, limit=100, address=None):
         s = celery.signature(
         'cic_cache.tasks.tx.tx_filter',
         [
-            0,
-            100,
+            offset,
+            limit,
             address,
             ],
-            queue=None
+            queue=self.queue,
+        )
+        if self.callback_param != None:
+            s.link(self.callback_success).on_error(self.callback_error)
+
+        t = s.apply_async()
+
+        return t
+
+
+    def list_content(self, offset=0, limit=100, address=None, block_offset=None, block_limit=None):
+        s = celery.signature(
+        'cic_cache.tasks.tx.tx_filter_content',
+        [
+            offset,
+            limit,
+            address,
+            block_offset,
+            block_limit,
+            ],
+            queue=self.queue,
         )
         if self.callback_param != None:
             s.link(self.callback_success).on_error(self.callback_error)
