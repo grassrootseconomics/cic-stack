@@ -20,7 +20,6 @@ from cic_eth.db.models.nonce import (
 logg = logging.getLogger()
 
 
-# TODO: This test fails when not run alone. Identify which fixture leaves a dirty state
 def test_filter_process(
         init_database,
         default_chain_spec,
@@ -31,7 +30,7 @@ def test_filter_process(
         init_custodial,
         cic_registry,
         foo_token,
-        celery_session_worker,
+        celery_worker,
         ):
 
     b = moolb.Bloom(1024, 3)
@@ -48,10 +47,10 @@ def test_filter_process(
     eth_rpc.do(o)
     o = receipt(tx_hash_hex)
     r = eth_rpc.do(o)
-    a = r['block_number']
-    b.add(a.to_bytes(4, 'big'))
-    a = r['block_number'] + r['transaction_index']
-    t.add(a.to_bytes(4, 'big'))
+    block_bytes = r['block_number'].to_bytes(4, 'big')
+    b.add(block_bytes)
+    tx_index_bytes = r['transaction_index'].to_bytes(4, 'big')
+    t.add(block_bytes + tx_index_bytes)
     tx_hashes.append(tx_hash_hex)
 
     # external tx
@@ -61,10 +60,10 @@ def test_filter_process(
     eth_rpc.do(o)
     o = receipt(tx_hash_hex)
     r = eth_rpc.do(o)
-    a = r['block_number']
-    b.add(a.to_bytes(4, 'big'))
-    a = r['block_number'] + r['transaction_index']
-    t.add(a.to_bytes(4, 'big'))
+    block_bytes = r['block_number'].to_bytes(4, 'big')
+    b.add(block_bytes)
+    tx_index_bytes = r['transaction_index'].to_bytes(4, 'big')
+    t.add(block_bytes + tx_index_bytes)
     tx_hashes.append(tx_hash_hex)
 
     init_eth_tester.mine_blocks(10)

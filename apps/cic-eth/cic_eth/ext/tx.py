@@ -26,6 +26,7 @@ from chainqueue.db.enum import StatusEnum
 from chainqueue.sql.query import get_tx_cache
 from eth_erc20 import ERC20
 from erc20_faucet import Faucet
+from potaahto.symbols import snake_and_camel
 
 # local imports
 from cic_eth.queue.time import tx_times
@@ -107,7 +108,6 @@ def list_tx_by_bloom(self, bloomspec, address, chain_spec_dict):
             logg.debug('filter matched block {}'.format(block_height))
             o = block_by_number(block_height)
             block = rpc.do(o)
-            logg.debug('block {}'.format(block))
 
             for tx_index in range(0, len(block['transactions'])):
                 tx_index_bytes = tx_index.to_bytes(4, 'big')
@@ -115,9 +115,8 @@ def list_tx_by_bloom(self, bloomspec, address, chain_spec_dict):
                 if tx_filter.check(composite):
                     logg.debug('filter matched block {} tx {}'.format(block_height, tx_index))
 
+                    o = transaction_by_block(block['hash'], tx_index)
                     try:
-                        #tx = c.w3.eth.getTransactionByBlock(block_height, tx_index)
-                        o = transaction_by_block(block['hash'], tx_index)
                         tx = rpc.do(o)
                     except Exception as e:
                         logg.debug('false positive on block {} tx {} ({})'.format(block_height, tx_index, e))
