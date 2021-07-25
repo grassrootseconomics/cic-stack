@@ -47,10 +47,9 @@ def test_cache_data(
     session = init_database
 
     c = DataCache(session)
-    b = c.load_transactions_with_data(410000, 420000)
+    b = c.load_transactions_with_data(0, 100, block_offset=410000, block_limit=420000, oldest=True)
 
     assert len(b[2]) == 2
     assert b[2][0]['tx_hash'] == txs[1]
     assert b[2][1]['tx_type'] == 'unknown'
     assert b[2][0]['tx_type'] == 'test.taag'
-    

@@ -30,7 +30,7 @@ def test_filter_process(
         init_custodial,
         cic_registry,
         foo_token,
-        celery_worker,
+        celery_session_worker,
         ):
 
     b = moolb.Bloom(1024, 3)
