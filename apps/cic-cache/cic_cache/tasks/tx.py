@@ -12,7 +12,7 @@ celery_app = celery.current_app
 
 
 @celery_app.task(bind=True)
-def tx_filter(self, offset, limit, address=None, encoding='hex'):
+def tx_filter(self, offset, limit, address=None, oldest=False, encoding='hex'):
     queue = self.request.delivery_info.get('routing_key')
 
     session = SessionBase.create_session()
@@ -20,9 +20,9 @@ def tx_filter(self, offset, limit, address=None, encoding='hex'):
     c = BloomCache(session)
     b = None
     if address == None:
-        (lowest_block, highest_block, bloom_filter_block, bloom_filter_tx) = c.load_transactions(offset, limit)
+        (lowest_block, highest_block, bloom_filter_block, bloom_filter_tx) = c.load_transactions(offset, limit, oldest=oldest)
     else:
-        (lowest_block, highest_block, bloom_filter_block, bloom_filter_tx) = c.load_transactions_account(address, offset, limit)
+        (lowest_block, highest_block, bloom_filter_block, bloom_filter_tx) = c.load_transactions_account(address, offset, limit, oldest=oldest)
 
     session.close()
 
@@ -39,21 +39,21 @@ def tx_filter(self, offset, limit, address=None, encoding='hex'):
 
 
 @celery_app.task(bind=True)
-def tx_filter_content(self, offset, limit, address=None, block_offset=None, block_limit=None, encoding='hex'):
+def tx_filter_content(self, offset, limit, address=None, block_offset=None, block_limit=None, oldest=False, encoding='hex'):
     session = SessionBase.create_session()
 
     c = DataCache(session)
     b = None
     if address == None:
         if block_offset:
-            (lowest_block, highest_block, tx_cache) = c.load_transactions_with_data(offset, limit, block_offset=block_offset, block_limit=block_limit)
+            (lowest_block, highest_block, tx_cache) = c.load_transactions_with_data(offset, limit, block_offset=block_offset, block_limit=block_limit, oldest=oldest)
         else:
             (lowest_block, highest_block, tx_cache) = c.load_transactions_with_data_index(offset, limit, block_offset=block_offset, block_limit=block_limit)
     else:
         if block_offset:
             (lowest_block, highest_block, tx_cache) = c.load_transactions_account_with_data(address, offset, limit, block_offset=block_offset, block_limit=block_limit)
         else:
-            (lowest_block, highest_block, tx_cache) = c.load_transactions_account_with_data_index(address, offset, limit, block_number=block_number, block_limit=block_limit)
+            (lowest_block, highest_block, tx_cache) = c.load_transactions_account_with_data_index(address, offset, limit, block_offset=block_offset, block_limit=block_limit)
 
     session.close()
 

@@ -98,7 +98,7 @@ def process_transactions_all_data(session, env):
         raise ValueError('cart before the horse, dude')
 
     c = DataCache(session)
-    (lowest_block, highest_block, tx_cache) = c.load_transactions_with_data(0, 0, block_offset, block_end)
+    (lowest_block, highest_block, tx_cache) = c.load_transactions_with_data(0, 0, block_offset, block_end, oldest=True) # oldest needs to be settable
 
     for r in tx_cache:
         r['date_block'] = r['date_block'].timestamp()

@@ -55,13 +55,14 @@ class Api:
                     queue=callback_queue,
                     )       
 
-    def list(self, offset=0, limit=100, address=None):
+    def list(self, offset=0, limit=100, address=None, oldest=False):
         s = celery.signature(
         'cic_cache.tasks.tx.tx_filter',
         [
             offset,
             limit,
             address,
+            oldest,
             ],
             queue=self.queue,
         )
@@ -73,7 +74,7 @@ class Api:
         return t
 
 
-    def list_content(self, offset=0, limit=100, address=None, block_offset=None, block_limit=None):
+    def list_content(self, offset=0, limit=100, address=None, block_offset=None, block_limit=None, oldest=False):
         s = celery.signature(
         'cic_cache.tasks.tx.tx_filter_content',
         [
@@ -82,6 +83,7 @@ class Api:
             address,
             block_offset,
             block_limit,
+            oldest,
             ],
             queue=self.queue,
         )
