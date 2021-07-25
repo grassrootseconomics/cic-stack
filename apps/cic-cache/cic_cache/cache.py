@@ -53,7 +53,7 @@ class BloomCache(Cache):
         :return: Lowest block, bloom filter for blocks, bloom filter for blocks|tx
         :rtype: tuple
         """
-        rows = list_transactions_mined(self.session, offset, limit) 
+        rows = list_transactions_mined(self.session, offset, limit, None, None) 
 
         f_block = moolb.Bloom(BloomCache.__get_filter_size(limit), 3)
         f_blocktx = moolb.Bloom(BloomCache.__get_filter_size(limit), 3)
@@ -83,7 +83,7 @@ class BloomCache(Cache):
         :return: Lowest block, bloom filter for blocks, bloom filter for blocks|tx
         :rtype: tuple
         """
-        rows = list_transactions_account_mined(self.session, address, offset, limit) 
+        rows = list_transactions_account_mined(self.session, address, offset, limit, None, None) 
 
         f_block = moolb.Bloom(BloomCache.__get_filter_size(limit), 3)
         f_blocktx = moolb.Bloom(BloomCache.__get_filter_size(limit), 3)
