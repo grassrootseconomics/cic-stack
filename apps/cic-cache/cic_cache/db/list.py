@@ -32,9 +32,9 @@ def list_transactions_mined(
 
     if block_offset:
         if block_limit:
-            s = "SELECT block_number, tx_index FROM tx ORDER BY block_number {}, tx_index {} WHERE block_number >= {} and block_number <= {} LIMIT {} OFFSET {}".format(order_by, order_by, limit, offset, block_offset, block_limit)
+            s = "SELECT block_number, tx_index FROM tx WHERE block_number >= {} and block_number <= {} ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, block_limit, order_by, order_by, limit, offset)
         else:
-            s = "SELECT block_number, tx_index FROM tx ORDER BY block_number {}, tx_index {} WHERE block_number >= {} LIMIT {} OFFSET {}".format(order_by, order_by, limit, offset, block_offset)
+            s = "SELECT block_number, tx_index FROM tx WHERE block_number >= {} ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, order_by, order_by, limit, offset)
     else:
         s = "SELECT block_number, tx_index FROM tx ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(order_by, order_by, limit, offset)
     r = session.execute(s)
