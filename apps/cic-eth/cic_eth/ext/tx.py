@@ -16,6 +16,7 @@ from chainlib.eth.error import RequestMismatchException
 from chainlib.eth.block import block_by_number
 from chainlib.eth.contract import abi_decode_single
 from chainlib.eth.constant import ZERO_ADDRESS
+from chainlib.eth.tx import Tx
 from hexathon import strip_0x
 from cic_eth_registry import CICRegistry
 from cic_eth_registry.erc20 import ERC20Token
@@ -42,7 +43,7 @@ def parse_transaction(chain_spec, rpc, tx, sender_address=None):
         transfer_data = ERC20.parse_transfer_request(tx['input'])
         tx_address = transfer_data[0]
         tx_token_value = transfer_data[1]
-        logg.debug('matched transfer transaction {} sender {} recipient {} value {}'.format(tx['hash'], tx['from'], tx_address, tx_token_value))
+        logg.debug('matched transfer transaction {} in block {} sender {} recipient {} value {}'.format(tx['hash'], tx['block_number'], tx['from'], tx_address, tx_token_value))
         return (tx_address, tx_token_value)
     except RequestMismatchException:
         pass
@@ -50,12 +51,11 @@ def parse_transaction(chain_spec, rpc, tx, sender_address=None):
     try:
         transfer_data = Faucet.parse_give_to_request(tx['input'])
         tx_address = transfer_data[0]
-        logg.warning('looking up current faucet value, historic faucet value not implemented yet. use with care!!')
         c = Faucet(chain_spec)
-        o = c.token_amount(tx['to'], sender_address=sender_address)
+        o = c.token_amount(tx['to'], sender_address=sender_address, height=tx['block_number'])
         r = rpc.do(o)
         tx_token_value = Faucet.parse_token_amount(r)
-        logg.debug('matched giveto transaction {} sender {} recipient {} value {}'.format(tx['hash'], tx['from'], tx_address, tx_token_value))
+        logg.debug('matched giveto transaction {} in block {} sender {} recipient {} value {}'.format(tx['hash'], tx['block_number'], tx['from'], tx_address, tx_token_value))
         return (tx_address, tx_token_value)
 
     except RequestMismatchException:
@@ -121,7 +121,10 @@ def list_tx_by_bloom(self, bloomspec, address, chain_spec_dict):
                         tx = rpc.do(o)
                     except Exception as e:
                         logg.debug('false positive on block {} tx {} ({})'.format(block_height, tx_index, e))
-                     
+                        continue
+
+                    tx = Tx(tx).src()
+
                     logg.debug('got tx {}'.format(tx))
                     tx_address = None
                     tx_token_value = 0
