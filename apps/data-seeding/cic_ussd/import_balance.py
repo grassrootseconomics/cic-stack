@@ -2,6 +2,7 @@
 import argparse
 import logging
 import sys
+import time
 import os
 
 # external imports
@@ -124,7 +125,16 @@ def main():
 
     # TODO get decimals from token
     balances = {}
-    f = open('{}/balances.csv'.format(user_dir, 'r'))
+    f = None
+    while f is None:
+        try:
+            f = open('{}/balances.csv'.format(user_dir, 'r'))
+        except FileNotFoundError:
+            print('{} not found...', user_dir)
+            time.sleep(30)
+
+
+
     remove_zeros = 10 ** 6
     i = 0
     while True:
