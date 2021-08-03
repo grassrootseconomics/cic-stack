@@ -133,13 +133,13 @@ if [[ -n "${ETH_PROVIDER}" ]]; then
 
 	# Sarafu faucet contract
 	>&2 echo "deploy token faucet contract"
-	DEV_FAUCET_ADDRESS=`sarafu-faucet-deploy $gas_price_arg -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w -vv --account-index-address $DEV_ACCOUNT_INDEX_ADDRESS $DEV_RESERVE_ADDRESS`
+	DEV_FAUCET_ADDRESS=`sarafu-faucet-deploy $gas_price_arg -c $CONFINI_DIR/empty -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w -vv --account-index-address $DEV_ACCOUNT_INDEX_ADDRESS $DEV_RESERVE_ADDRESS`
 	eth-contract-registry-set $gas_price_arg -w -y $DEV_ETH_KEYSTORE_FILE -r $CIC_REGISTRY_ADDRESS -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -vv Faucet $DEV_FAUCET_ADDRESS
 	>&2 echo "set faucet as token minter"
 	giftable-token-minter $gas_price_arg -w -y $DEV_ETH_KEYSTORE_FILE -a $DEV_RESERVE_ADDRESS -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -vv $DEV_FAUCET_ADDRESS
 
 	>&2 echo "set token faucet amount"
-	sarafu-faucet-set $gas_price_arg -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_FAUCET_ADDRESS -vv $DEV_FAUCET_AMOUNT
+	sarafu-faucet-set $gas_price_arg -c $CONFINI_DIR/empty -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_FAUCET_ADDRESS -vv $DEV_FAUCET_AMOUNT
 
 
 else
