@@ -18,6 +18,8 @@ stages:
   - deploy
 
 build-prod:
+  tags:
+    - integration
   stage: build
   script:
     - docker-compose build
@@ -25,6 +27,8 @@ build-prod:
     - bvander/integration-tests-on-docker
 
 deplok-prod:
+  tags:
+    - integration
   stage: deploy
   script:
     - docker stack deploy -c docker-compose.yml --with-registry-auth my-stack
