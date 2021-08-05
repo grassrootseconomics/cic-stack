@@ -26,7 +26,7 @@ build-prod:
   only:
     - bvander/integration-tests-on-docker
 
-deplok-prod:
+deploy-prod:
   tags:
     - integration
   stage: deploy
