@@ -1,14 +1,33 @@
-include:
-  - local: 'ci_templates/.cic-template.yml'
-  - local: 'apps/contract-migration/.gitlab-ci.yml'
-  - local: 'apps/cic-eth/.gitlab-ci.yml'
-  - local: 'apps/cic-ussd/.gitlab-ci.yml'
-  - local: 'apps/cic-notify/.gitlab-ci.yml'
-  - local: 'apps/cic-meta/.gitlab-ci.yml'
-  - local: 'apps/cic-cache/.gitlab-ci.yml'
-  - local: 'apps/data-seeding/.gitlab-ci.yml'
+#include:
+#  - local: 'ci_templates/.cic-template.yml'
+#  - local: 'apps/contract-migration/.gitlab-ci.yml'
+#  - local: 'apps/cic-eth/.gitlab-ci.yml'
+#  - local: 'apps/cic-ussd/.gitlab-ci.yml'
+#  - local: 'apps/cic-notify/.gitlab-ci.yml'
+#  - local: 'apps/cic-meta/.gitlab-ci.yml'
+#  - local: 'apps/cic-cache/.gitlab-ci.yml'
+#  - local: 'apps/data-seeding/.gitlab-ci.yml'
+
+image: tiangolo/docker-with-compose
+
+before_script:
+  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
 
 stages:
   - build
-  - test
-  - release
+  - deploy
+
+build-prod:
+  stage: build
+  script:
+    - docker-compose build
+  only:
+    - bvander/integration-tests-on-docker
+
+deplok-prod:
+  stage: deploy
+  script:
+    - docker stack deploy -c docker-compose.yml --with-registry-auth my-stack
+  only:
+    - bvander/integration-tests-on-docker
+
