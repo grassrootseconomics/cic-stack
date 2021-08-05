@@ -41,14 +41,27 @@ echo "purging existing ussd tasks..."
 
 celery -A cic_ussd.import_task purge -Q cic-import-ussd --broker $CELERY_BROKER_URL -f
 
-
 echo "running import_balance in the background..."
 
 python cic_ussd/import_balance.py -v -c config -p $ETH_PROVIDER \
-  -r $CIC_REGISTRY_ADDRESS --token-symbol $TOKEN_SYMBOL -y $KEYSTORE_FILE_PATH $OUT_DIR 2>&1 & 
+  -r $CIC_REGISTRY_ADDRESS --token-symbol $TOKEN_SYMBOL -y $KEYSTORE_FILE_PATH $OUT_DIR > import_task_log.log & 
 
-echo "import_balance pid: $!" 
+import_pid=$!
+echo "import_balance pid: $import_pid" 
 
 echo "importing accounts"
 
 python cic_ussd/import_users.py -vv -c config --ussd-host $USER_USSD_HOST --ussd-port $USER_USSD_PORT --ussd-no-ssl out
+
+echo "importing user meta data"
+node cic_meta/import_meta.js $OUT_DIR $NUMBER_OF_USERS 
+
+echo "import meta prefereneces"
+node cic_meta/import_meta_preferences.js $OUT_DIR $NUMBER_OF_USERS 
+
+echo "Running validation!"
+python verify.py -v -c config -r $CIC_REGISTRY_ADDRESS -p $ETH_PROVIDER \
+  --token-symbol $TOKEN_SYMBOL $OUT_DIR 
+
+kill $import_pid
+exit 0
