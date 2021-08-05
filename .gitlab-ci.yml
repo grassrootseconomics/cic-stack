@@ -17,12 +17,19 @@ stages:
   - build
   - deploy
 
+variables:
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1 
+
+services:
+  - docker:stable-dind
+
 build-prod:
   tags:
     - integration
   stage: build
   script:
-    - DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker-compose build
+    -  docker-compose build
   only:
     - bvander/integration-tests-on-docker
 
