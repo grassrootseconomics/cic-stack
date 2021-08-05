@@ -8,25 +8,10 @@ volumes:
   bloxberg-data: {}
   contract-config: {} 
 
-networks:
-  default:
-    name: cic-network
 
 services:
-  # eth:
-  #   image: trufflesuite/ganache-cli
-  #   ports:
-  #     - ${HTTP_PORT_ETH:-8545}
-  #     - ${WS_PORT_ETH:-8546}
-  #   # Note! -e switch doesnt work, whatever you  put there, it will be 100
-  #   command: "-i 8996 -e 1000 -l 90000000 \
-  #           -m '${DEV_MNEMONIC:-\"history stumble mystery avoid embark arrive mom foil pledge keep grain dice\"}' \
-  #           -v --db /tmp/cic/ganache/ganache.db \
-  #           --noVMErrorsOnRPCResponse --allowUnlimitedContractSize"
-  #   volumes:
-  #     - ganache-db:/tmp/cic/ganache
-
   eth:
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/bloxberg-node
     build:
       context: apps/bloxbergValidatorSetup
     restart: unless-stopped
@@ -71,8 +56,7 @@ services:
       - bee-data:/tmp/cic/bee
 
   contract-migration:
-    profiles:
-      - migrations 
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration
     build:
       context: apps/contract-migration
       dockerfile: docker/Dockerfile
@@ -126,8 +110,7 @@ services:
       - contract-config:/tmp/cic/config
 
   cic-cache-tracker:
-    profiles:
-      - cache 
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-cache
     build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
@@ -164,8 +147,7 @@ services:
       - contract-config:/tmp/cic/config/:ro
 
   cic-cache-tasker:
-    profiles:
-      - cache 
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-cache
     build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
@@ -203,8 +185,7 @@ services:
       - contract-config:/tmp/cic/config/:ro
 
   cic-cache-server:
-    profiles:
-      - cache 
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-cache
     build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
@@ -236,10 +217,10 @@ services:
 
 
   cic-eth-tasker:
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth
     build: 
         context: apps/cic-eth
         dockerfile: docker/Dockerfile
-        target: dev
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
       ETH_GAS_PROVIDER_ADDRESS: $DEV_ETH_ACCOUNT_GAS_PROVIDER
@@ -286,10 +267,10 @@ services:
     # command: [/bin/sh, "./start_tasker.sh", -q, cic-eth, -vv ]
 
   cic-eth-tracker:
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth
     build:
         context: apps/cic-eth
         dockerfile: docker/Dockerfile
-        target: dev
     environment:
       ETH_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}
@@ -325,10 +306,10 @@ services:
 
 
   cic-eth-dispatcher:
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth
     build:
         context: apps/cic-eth
         dockerfile: docker/Dockerfile
-        target: dev
     environment:
       ETH_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}
@@ -365,10 +346,10 @@ services:
 
 
   cic-eth-retrier:
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth
     build:
         context: apps/cic-eth
         dockerfile: docker/Dockerfile
-        target: dev
     environment:
       ETH_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}
@@ -408,6 +389,7 @@ services:
 
 
   cic-notify-tasker:
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-notify
     build:
       context: apps/cic-notify
       dockerfile: docker/Dockerfile
@@ -436,8 +418,7 @@ services:
 
 
   cic-meta-server:
-    profiles:
-      - custodial-meta
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-meta
     hostname: meta
     build:
       context: apps/cic-meta
@@ -471,8 +452,7 @@ services:
     # command: "/root/start_server.sh -vv"
 
   cic-user-ussd-server:
-    profiles:
-      - custodial-ussd
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-ussd
     build:
       context: apps/cic-ussd
       dockerfile: docker/Dockerfile
@@ -503,8 +483,7 @@ services:
     command: "/root/start_cic_user_ussd_server.sh -vv"
 
   cic-user-server:
-    profiles:
-      - custodial-ussd
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-ussd
     build:
       context: apps/cic-ussd
       dockerfile: docker/Dockerfile
@@ -528,8 +507,7 @@ services:
     command: "/root/start_cic_user_server.sh -vv"
 
   cic-user-tasker:
-    profiles:
-      - custodial-ussd
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-ussd
     build:
       context: apps/cic-ussd/
       dockerfile: docker/Dockerfile
