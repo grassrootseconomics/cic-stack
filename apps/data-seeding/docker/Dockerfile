@@ -20,5 +20,5 @@ RUN --mount=type=cache,mode=0755,target=/root/.cache/pip pip install \
     --extra-index-url $EXTRA_INDEX_URL -r requirements.txt
 
 COPY . . 
-
+RUN chmod +x scripts/*
 ENTRYPOINT [ ]
