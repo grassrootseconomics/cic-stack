@@ -57,6 +57,10 @@ def application(env, start_response):
     if get_request_endpoint(env) == '/pin':
         return handle_pin_requests(env, session, errors_headers, start_response)
 
+    if get_request_endpoint(env) == '/healthz':
+        start_response('200 OK', headers) 
+        return [b'']
+
     response, message = locked_accounts(env, session)
     response_bytes, headers = with_content_headers(headers, response)
     start_response(message, headers)
