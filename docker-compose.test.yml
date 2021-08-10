@@ -1,0 +1,120 @@
+version: "3"
+
+services:
+  contract-migration:
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration
+    build:
+      context: apps/contract-migration
+      dockerfile: docker/Dockerfile
+      args:
+        pip_index_url: ${PIP_DEFAULT_INDEX_URL:-https://pypi.org/simple}
+        pip_extra_args: $PIP_EXTRA_ARGS
+    # image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:latest
+    environment:
+      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
+      # ETH_PROVIDER should be broken out into host/port but cic-eth expects this
+      ETH_PROVIDER: http://eth:8545
+      # And these two are for wait-for-it (could parse this)
+      DEV_USE_DOCKER_WAIT_SCRIPT: 1
+      ETH_PROVIDER_HOST: eth 
+      ETH_PROVIDER_PORT: 8545
+      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
+      CIC_DATA_DIR: ${CIC_DATA_DIR:-/tmp/cic/config}
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DEV_DATABASE_NAME_CIC_ETH:-cic_eth}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgresql}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_USER: ${DATABASE_USER:-postgres}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_DB: ${REDIS_DB:-0}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379}
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis:6379}
+      RUN_MASK: ${RUN_MASK:-0} 
+      DEV_FAUCET_AMOUNT: ${DEV_FAUCET_AMOUNT:-0}
+      #DEV_SARAFU_DEMURRAGE_LEVEL: ${DEV_SARAFU_DEMURRAGE_LEVEL:-196454828847045000000000000000000}
+      DEV_ETH_GAS_PRICE: ${DEV_ETH_GAS_PRICE:-1}
+      CIC_DEFAULT_TOKEN_SYMBOL: $CIC_DEFAULT_TOKEN_SYMBOL
+      TOKEN_NAME: $TOKEN_NAME
+      TOKEN_DECIMALS: $TOKEN_DECIMALS
+      TOKEN_REDISTRIBUTION_PERIOD: $TOKEN_REDISTRIBUTION_PERIOD
+      TOKEN_SUPPLY_LIMIT: $TOKEN_SUPPLY_LIMIT
+      TOKEN_DEMURRAGE_LEVEL: ${TOKEN_DEMURRAGE_LEVEL:-196454828847045000000000000000000}
+      TOKEN_SINK_ADDRESS: $TOKEN_SINK_ADDRESS
+      TOKEN_TYPE: $TOKEN_TYPE
+        #CONFINI_DIR: ${CONFINI_DIR:-/tmp/cic/config}
+    command: ["./run_job.sh"]
+        #command: ["./reset.sh"]
+    volumes:
+      - contract-config:/tmp/cic/config
+
+
+  data-seeding-tasker:
+    build:
+      context: apps/data-seeding
+      dockerfile: docker/Dockerfile
+      args:
+        pip_index_url: ${PIP_DEFAULT_INDEX_URL:-https://pypi.org/simple}
+        pip_extra_args: $PIP_EXTRA_ARGS
+    # image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:latest
+    environment:
+      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
+      # ETH_PROVIDER should be broken out into host/port but cic-eth expects this
+      ETH_PROVIDER: http://eth:8545
+      # And these two are for wait-for-it (could parse this)
+      CIC_DATA_DIR: ${CIC_DATA_DIR:-/tmp/cic/config}
+      DEV_USE_DOCKER_WAIT_SCRIPT: 1
+      ETH_PROVIDER_HOST: eth 
+      ETH_PROVIDER_PORT: 8545
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_DB: ${REDIS_DB:-0}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379}
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis:6379}
+      RUN_MASK: ${RUN_MASK:-0} # 7
+      TOKEN_SYMBOL: ${TOKEN_SYMBOL:-GFT}
+      USER_USSD_HOST: cic-user-ussd-server
+      USER_USSD_PORT: 9000
+      KEYSTORE_FILE_PATH: "/root/keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c"
+      OUT_DIR: out
+      NUMBER_OF_USERS: 10
+      #command: "python cic_ussd/import_balance.py -v -c config -p $$ETH_PROVIDER -r $$CIC_REGISTRY_ADDRESS --token-symbol $$TOKEN_SYMBOL -y $$KEYSTORE_FILE_PATH $$OUT_DIR"
+    command: "bash scripts/run_tasker.sh"
+    volumes:
+      - contract-config:/tmp/cic/config
+
+  data-seeding:
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/data-seeding
+    build:
+      context: apps/data-seeding
+      dockerfile: docker/Dockerfile
+      args:
+        pip_index_url: ${PIP_DEFAULT_INDEX_URL:-https://pypi.org/simple}
+        pip_extra_args: $PIP_EXTRA_ARGS
+    # image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:latest
+    environment:
+      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
+      # ETH_PROVIDER should be broken out into host/port but cic-eth expects this
+      ETH_PROVIDER: http://eth:8545
+      # And these two are for wait-for-it (could parse this)
+      CIC_DATA_DIR: ${CIC_DATA_DIR:-/tmp/cic/config}
+      DEV_USE_DOCKER_WAIT_SCRIPT: 1
+      ETH_PROVIDER_HOST: eth 
+      ETH_PROVIDER_PORT: 8545
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_DB: ${REDIS_DB:-0}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379}
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis:6379}
+      RUN_MASK: ${RUN_MASK:-0} # 7
+      TOKEN_SYMBOL: ${TOKEN_SYMBOL:-GFT}
+      USER_USSD_HOST: cic-user-ussd-server
+      USER_USSD_PORT: 9000
+      KEYSTORE_FILE_PATH: "/root/keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c"
+      OUT_DIR: out
+      NUMBER_OF_USERS: 10
+    command: ["bash", "./scripts/run_job.sh"]
+    volumes:
+      - contract-config:/tmp/cic/config
+

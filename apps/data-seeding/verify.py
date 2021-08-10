@@ -154,21 +154,25 @@ for t in custodial_tests:
         logg.info('activating custodial module'.format(t))
         break
 
-cols = os.get_terminal_size().columns
+#cols = os.get_terminal_size().columns
 
-
-def to_terminalwidth(s):
-    ss = s.ljust(int(cols)-1)
-    ss += "\r"
-    return ss
-
-def default_outfunc(s):
-    ss = to_terminalwidth(s)
-    sys.stdout.write(ss)
-outfunc = default_outfunc
-if logg.isEnabledFor(logging.DEBUG):
-    outfunc = logg.debug
-
+##disabled because:
+#data-seeding_1          | Traceback (most recent call last):
+#data-seeding_1          |   File "verify.py", line 157, in <module>
+#data-seeding_1          |     cols = os.get_terminal_size().columns
+#data-seeding_1          | OSError: [Errno 25] Inappropriate ioctl for device
+#contract-migration_1    | DEBUG:create_account_script:register False
+#def to_terminalwidth(s):
+#    ss = s.ljust(int(cols)-1)
+#    ss += "\r"
+#    return ss
+#
+#def default_outfunc(s):
+#    ss = to_terminalwidth(s)
+#    sys.stdout.write(ss)
+#outfunc = default_outfunc
+#if logg.isEnabledFor(logging.DEBUG):
+outfunc = logg.debug
 
 def send_ussd_request(address, data_dir):
     upper_address = strip_0x(address).upper()

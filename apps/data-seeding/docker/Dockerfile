@@ -9,7 +9,7 @@ COPY package.json \
      package-lock.json \
      .
 
-RUN --mount=type=cache,mode=0755,target=/root/node_modules npm install
+RUN npm ci --production 
 
 COPY requirements.txt . 
 
