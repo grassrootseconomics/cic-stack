@@ -1,4 +1,4 @@
-version: "3"
+version: "3.9"
 
 volumes:
   ganache-db: {}
@@ -8,10 +8,83 @@ volumes:
   bloxberg-data: {}
   contract-config: {} 
 
+networks:
+  traefik-public:
+    # Allow setting it to false for testing
+    external: ${TRAEFIK_PUBLIC_NETWORK_IS_EXTERNAL-true}
 
 services:
+  proxy:
+    image: traefik:v2.2
+    networks:
+      - ${TRAEFIK_PUBLIC_NETWORK?Variable not set}
+      - default
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      # Enable Docker in Traefik, so that it reads labels from Docker services
+      - --providers.docker
+      # Add a constraint to only use services with the label for this stack
+      # from the env var TRAEFIK_TAG
+      - --providers.docker.constraints=Label(`traefik.constraint-label-stack`, `${TRAEFIK_TAG?Variable not set}`)
+      # Do not expose all Docker services, only the ones explicitly exposed
+      - --providers.docker.exposedbydefault=false
+      # Enable Docker Swarm mode
+      - --providers.docker.swarmmode
+      # Enable the access log, with HTTP requests
+      - --accesslog
+      # Enable the Traefik log, for configurations and errors
+      - --log
+      # Enable the Dashboard and API
+      - --api
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        # Enable Traefik for this service, to make it available in the public network
+        - traefik.enable=true
+        # Use the traefik-public network (declared below)
+        - traefik.docker.network=${TRAEFIK_PUBLIC_NETWORK?Variable not set}
+        # Use the custom label "traefik.constraint-label=traefik-public"
+        # This public Traefik will only use services with this label
+        - traefik.constraint-label=${TRAEFIK_PUBLIC_TAG?Variable not set}
+        # traefik-http set up only to use the middleware to redirect to https
+        - traefik.http.middlewares.${STACK_NAME?Variable not set}-https-redirect.redirectscheme.scheme=https
+        - traefik.http.middlewares.${STACK_NAME?Variable not set}-https-redirect.redirectscheme.permanent=true
+        # Handle host with and without "www" to redirect to only one of them
+        # Uses environment variable DOMAIN
+        # To disable www redirection remove the Host() you want to discard, here and
+        # below for HTTPS
+        - traefik.http.routers.${STACK_NAME?Variable not set}-proxy-http.rule=Host(`${DOMAIN?Variable not set}`) || Host(`www.${DOMAIN?Variable not set}`)
+        - traefik.http.routers.${STACK_NAME?Variable not set}-proxy-http.entrypoints=http
+        # traefik-https the actual router using HTTPS
+        - traefik.http.routers.${STACK_NAME?Variable not set}-proxy-https.rule=Host(`${DOMAIN?Variable not set}`) || Host(`www.${DOMAIN?Variable not set}`)
+        - traefik.http.routers.${STACK_NAME?Variable not set}-proxy-https.entrypoints=https
+        - traefik.http.routers.${STACK_NAME?Variable not set}-proxy-https.tls=true
+        # Use the "le" (Let's Encrypt) resolver created below
+        - traefik.http.routers.${STACK_NAME?Variable not set}-proxy-https.tls.certresolver=le
+        # Define the port inside of the Docker service to use
+        - traefik.http.services.${STACK_NAME?Variable not set}-proxy.loadbalancer.server.port=80
+        # Handle domain with and without "www" to redirect to only one
+        # To disable www redirection remove the next line
+        - traefik.http.middlewares.${STACK_NAME?Variable not set}-www-redirect.redirectregex.regex=^https?://(www.)?(${DOMAIN?Variable not set})/(.*)
+        # Redirect a domain with www to non-www
+        # To disable it remove the next line
+        - traefik.http.middlewares.${STACK_NAME?Variable not set}-www-redirect.redirectregex.replacement=https://${DOMAIN?Variable not set}/$${3}
+        # Redirect a domain without www to www
+        # To enable it remove the previous line and uncomment the next
+        # - traefik.http.middlewares.${STACK_NAME}-www-redirect.redirectregex.replacement=https://www.${DOMAIN}/$${3}
+        # Middleware to redirect www, to disable it remove the next line 
+        - traefik.http.routers.${STACK_NAME?Variable not set}-proxy-https.middlewares=${STACK_NAME?Variable not set}-www-redirect
+        # Middleware to redirect www, and redirect HTTP to HTTPS
+        # to disable www redirection remove the section: ${STACK_NAME?Variable not set}-www-redirect,
+        - traefik.http.routers.${STACK_NAME?Variable not set}-proxy-http.middlewares=${STACK_NAME?Variable not set}-www-redirect,${STACK_NAME?Variable not set}-https-redirect
+
   eth:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/bloxberg-node
+    env_file:
+      - .env
     build:
       context: apps/bloxbergValidatorSetup
     restart: unless-stopped
@@ -26,25 +99,77 @@ services:
   # See contents of /initdb/create_db.sql for app user, password and databases
   postgres:
     image: postgres:12.5-alpine
-    environment:
-      POSTGRES_HOST_AUTH_METHOD: trust # for postgres user access w/o password. Obvioulsy not safe but allows easy elevated debugging.  
-      # PGDATA: /tmp/cic/postgres
+    env_file: 
+      - .env
     ports:
       - ${DEV_POSTGRES_PORT:-63432}:5432
     command: [ "-c", "max_connections=200" ]
+    deploy:
+      placement:
+        constraints:
+          - node.labels.${STACK_NAME?Variable not set}.app-db-data == true
     volumes:
       - ./scripts/initdb/create_db.sql:/docker-entrypoint-initdb.d/1-create_all_db.sql 
       - postgres-db:/var/lib/postgresql/data
 
   redis:
     image: redis:6.0.9-alpine
+    env_file:
+      - .env
     ports:
       - ${DEV_REDIS_PORT:-63379}:6379
     command: "--loglevel verbose"
 
+  pgadmin:
+    image: dpage/pgadmin4
+    networks:
+      - ${TRAEFIK_PUBLIC_NETWORK?Variable not set}
+      - default
+    depends_on:
+      - postgres 
+    env_file:
+      - .env
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=${TRAEFIK_PUBLIC_NETWORK?Variable not set}
+        - traefik.constraint-label=${TRAEFIK_PUBLIC_TAG?Variable not set}
+        - traefik.http.routers.${STACK_NAME?Variable not set}-pgadmin-http.rule=Host(`pgadmin.${DOMAIN?Variable not set}`)
+        - traefik.http.routers.${STACK_NAME?Variable not set}-pgadmin-http.entrypoints=http
+        - traefik.http.routers.${STACK_NAME?Variable not set}-pgadmin-http.middlewares=${STACK_NAME?Variable not set}-https-redirect
+        - traefik.http.routers.${STACK_NAME?Variable not set}-pgadmin-https.rule=Host(`pgadmin.${DOMAIN?Variable not set}`)
+        - traefik.http.routers.${STACK_NAME?Variable not set}-pgadmin-https.entrypoints=https
+        - traefik.http.routers.${STACK_NAME?Variable not set}-pgadmin-https.tls=true
+        - traefik.http.routers.${STACK_NAME?Variable not set}-pgadmin-https.tls.certresolver=le
+        - traefik.http.services.${STACK_NAME?Variable not set}-pgadmin.loadbalancer.server.port=5050
+
+  flower:
+    image: mher/flower
+    networks:
+      - ${TRAEFIK_PUBLIC_NETWORK?Variable not set}
+      - default
+    env_file:
+      - .env
+    command: [ "celery", "--broker=redis://redis:6379", "flower" ] 
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=${TRAEFIK_PUBLIC_NETWORK?Variable not set}
+        - traefik.constraint-label=${TRAEFIK_PUBLIC_TAG?Variable not set}
+        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-http.rule=Host(`flower.${DOMAIN?Variable not set}`)
+        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-http.entrypoints=http
+        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-http.middlewares=${STACK_NAME?Variable not set}-https-redirect
+        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-https.rule=Host(`flower.${DOMAIN?Variable not set}`)
+        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-https.entrypoints=https
+        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-https.tls=true
+        - traefik.http.routers.${STACK_NAME?Variable not set}-flower-https.tls.certresolver=le
+        - traefik.http.services.${STACK_NAME?Variable not set}-flower.loadbalancer.server.port=5555
+
   bee:
     image: ethersphere/bee:0.4.1
     container_name: bee
+    env_file:
+      - .env
     environment:
       BEE_NETWORK_ID: ${BEE_NETWORK_ID:-313}
       BEE_PASSWORD: ${BEE_PASSWORD:-password}
@@ -64,27 +189,17 @@ services:
         pip_index_url: ${PIP_DEFAULT_INDEX_URL:-https://pypi.org/simple}
         pip_extra_args: $PIP_EXTRA_ARGS
     # image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:latest
+    env_file:
+      - .env
     environment:
-      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
       # ETH_PROVIDER should be broken out into host/port but cic-eth expects this
-      ETH_PROVIDER: http://eth:8545
       # And these two are for wait-for-it (could parse this)
       DEV_USE_DOCKER_WAIT_SCRIPT: 1
       ETH_PROVIDER_HOST: eth 
       ETH_PROVIDER_PORT: 8545
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_DATA_DIR: ${CIC_DATA_DIR:-/tmp/cic/config}
-      DATABASE_HOST: ${DATABASE_HOST:-postgres}
-      DATABASE_PORT: ${DATABASE_PORT:-5432}
       DATABASE_NAME: ${DEV_DATABASE_NAME_CIC_ETH:-cic_eth}
-      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgresql}
-      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       DATABASE_USER: ${DATABASE_USER:-postgres}
-      REDIS_HOST: ${REDIS_HOST:-redis}
-      REDIS_PORT: ${REDIS_PORT:-6379}
-      REDIS_DB: ${REDIS_DB:-0}
-      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379}
-      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis:6379}
       RUN_MASK: ${RUN_MASK:-0} 
       DEV_FAUCET_AMOUNT: ${DEV_FAUCET_AMOUNT:-0}
       #DEV_SARAFU_DEMURRAGE_LEVEL: ${DEV_SARAFU_DEMURRAGE_LEVEL:-196454828847045000000000000000000}
@@ -232,12 +347,9 @@ services:
         #PGPASSWORD: $DATABASE_PASSWORD
       SERVER_PORT: 8000
     ports:
-      - ${HTTP_PORT_CIC_CACHE:-63313}:8000
+      - 8000
     depends_on:
       - postgres
-    deploy:
-      restart_policy:
-        condition: on-failure
     command:
       - /bin/bash
       - -c
@@ -247,7 +359,19 @@ services:
         --wsgi-file /usr/src/cic-cache/cic_cache/runnable/daemons/server.py \
         --http :8000 \
         --pyargv "-vv"
-
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=${TRAEFIK_PUBLIC_NETWORK?Variable not set}
+        - traefik.constraint-label=${TRAEFIK_PUBLIC_TAG?Variable not set}
+        - traefik.http.routers.${STACK_NAME?Variable not set}-cache-http.rule=Host(`cache.${DOMAIN?Variable not set}`)
+        - traefik.http.routers.${STACK_NAME?Variable not set}-cache-http.entrypoints=http
+        - traefik.http.routers.${STACK_NAME?Variable not set}-cache-http.middlewares=${STACK_NAME?Variable not set}-https-redirect
+        - traefik.http.routers.${STACK_NAME?Variable not set}-cache-https.rule=Host(`cache.${DOMAIN?Variable not set}`)
+        - traefik.http.routers.${STACK_NAME?Variable not set}-cache-https.entrypoints=https
+        - traefik.http.routers.${STACK_NAME?Variable not set}-cache-https.tls=true
+        - traefik.http.routers.${STACK_NAME?Variable not set}-cache-https.tls.certresolver=le
+        - traefik.http.services.${STACK_NAME?Variable not set}-cache.loadbalancer.server.port=80
 
   cic-eth-tasker:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth
