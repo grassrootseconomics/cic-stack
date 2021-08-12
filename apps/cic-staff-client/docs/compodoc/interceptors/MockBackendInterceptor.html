@@ -1,0 +1,1316 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>CICADA</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	      <link rel="stylesheet" href="../styles/style.css">
+    </head>
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top visible-xs">
+            <a href="../" class="navbar-brand">CICADA</a>
+            <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="hidden-xs menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content interceptor">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li>Interceptors</li>
+  <li>MockBackendInterceptor</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="active">
+            <a href="#info" role="tab" id="info-tab" data-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li >
+            <a href="#source" role="tab" id="source-tab" data-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="c-info">
+        <p class="comment">
+            <h3>File</h3>
+        </p>
+        <p class="comment">
+            <code>src/app/_helpers/mock-backend.ts</code>
+        </p>
+
+            <p class="comment">
+                <h3>Description</h3>
+            </p>
+            <p class="comment">
+                <p>Intercepts HTTP requests and handles some specified requests internally.
+Provides a backend that can handle requests for certain data items.</p>
+
+            </p>
+
+
+            <section>
+    <h3 id="index">Index</h3>
+    <table class="table table-sm table-bordered index-table">
+        <tbody>
+
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                <a href="#intercept">intercept</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+
+            <section>
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="intercept"></a>
+                    <span class="name">
+                        <b>
+                            intercept
+                        </b>
+                        <a href="#intercept"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>intercept(request: HttpRequest<any>, next: <a href="https://angular.io/api/common/http/HttpHandler" target="_blank">HttpHandler</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="936"
+                            class="link-to-prism">src/app/_helpers/mock-backend.ts:936</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Intercepts HTTP requests.</p>
+</div>
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                    <td>Description</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>request</td>
+                                    <td>
+                                            <code>HttpRequest&lt;any&gt;</code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                    <td>
+                                        <ul>
+<li>An outgoing HTTP request with an optional typed body.</li>
+</ul>
+
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>next</td>
+                                    <td>
+                                                <code><a href="https://angular.io/api/common/http/HttpHandler" target="_blank" >HttpHandler</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                    <td>
+                                        <ul>
+<li>The next HTTP handler or the outgoing request dispatcher.</li>
+</ul>
+
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Observable&lt;HttpEvent&lt;any&gt;&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        <p>The response from the resolved request.</p>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="c-source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import {
+  HTTP_INTERCEPTORS,
+  HttpEvent,
+  HttpHandler,
+  HttpInterceptor,
+  HttpRequest,
+  HttpResponse,
+} from &#x27;@angular/common/http&#x27;;
+import { Injectable } from &#x27;@angular/core&#x27;;
+
+// Third party imports
+import { Observable, of, throwError } from &#x27;rxjs&#x27;;
+import { delay, dematerialize, materialize, mergeMap } from &#x27;rxjs/operators&#x27;;
+
+// Application imports
+import { Action } from &#x27;@app/_models&#x27;;
+
+/** A mock of the curated account types. */
+const accountTypes: Array&lt;string&gt; &#x3D; [&#x27;user&#x27;, &#x27;cashier&#x27;, &#x27;vendor&#x27;, &#x27;tokenagent&#x27;, &#x27;group&#x27;];
+
+/** A mock of actions made by the admin staff. */
+const actions: Array&lt;Action&gt; &#x3D; [
+  { id: 1, user: &#x27;Tom&#x27;, role: &#x27;enroller&#x27;, action: &#x27;Disburse RSV 100&#x27;, approval: false },
+  { id: 2, user: &#x27;Christine&#x27;, role: &#x27;admin&#x27;, action: &#x27;Change user phone number&#x27;, approval: true },
+  { id: 3, user: &#x27;Will&#x27;, role: &#x27;superadmin&#x27;, action: &#x27;Reclaim RSV 1000&#x27;, approval: true },
+  { id: 4, user: &#x27;Vivian&#x27;, role: &#x27;enroller&#x27;, action: &#x27;Complete user profile&#x27;, approval: true },
+  { id: 5, user: &#x27;Jack&#x27;, role: &#x27;enroller&#x27;, action: &#x27;Reclaim RSV 200&#x27;, approval: false },
+  { id: 6, user: &#x27;Patience&#x27;, role: &#x27;enroller&#x27;, action: &#x27;Change user information&#x27;, approval: false },
+];
+
+/** A mock of curated area names. */
+const areaNames: object &#x3D; {
+  &#x27;Mukuru Nairobi&#x27;: [
+    &#x27;kayaba&#x27;,
+    &#x27;kayba&#x27;,
+    &#x27;kambi&#x27;,
+    &#x27;mukuru&#x27;,
+    &#x27;masai&#x27;,
+    &#x27;hazina&#x27;,
+    &#x27;south&#x27;,
+    &#x27;tetra&#x27;,
+    &#x27;tetrapak&#x27;,
+    &#x27;ruben&#x27;,
+    &#x27;rueben&#x27;,
+    &#x27;kingston&#x27;,
+    &#x27;korokocho&#x27;,
+    &#x27;kingstone&#x27;,
+    &#x27;kamongo&#x27;,
+    &#x27;lungalunga&#x27;,
+    &#x27;sinai&#x27;,
+    &#x27;sigei&#x27;,
+    &#x27;lungu&#x27;,
+    &#x27;lunga lunga&#x27;,
+    &#x27;owino road&#x27;,
+    &#x27;seigei&#x27;,
+  ],
+  &#x27;Kinango Kwale&#x27;: [
+    &#x27;amani&#x27;,
+    &#x27;bofu&#x27;,
+    &#x27;chibuga&#x27;,
+    &#x27;chikomani&#x27;,
+    &#x27;chilongoni&#x27;,
+    &#x27;chigojoni&#x27;,
+    &#x27;chinguluni&#x27;,
+    &#x27;chigato&#x27;,
+    &#x27;chigale&#x27;,
+    &#x27;chikole&#x27;,
+    &#x27;chilongoni&#x27;,
+    &#x27;chilumani&#x27;,
+    &#x27;chigojoni&#x27;,
+    &#x27;chikomani&#x27;,
+    &#x27;chizini&#x27;,
+    &#x27;chikomeni&#x27;,
+    &#x27;chidzuvini&#x27;,
+    &#x27;chidzivuni&#x27;,
+    &#x27;chikuyu&#x27;,
+    &#x27;chizingo&#x27;,
+    &#x27;doti&#x27;,
+    &#x27;dzugwe&#x27;,
+    &#x27;dzivani&#x27;,
+    &#x27;dzovuni&#x27;,
+    &#x27;hanje&#x27;,
+    &#x27;kasemeni&#x27;,
+    &#x27;katundani&#x27;,
+    &#x27;kibandaogo&#x27;,
+    &#x27;kibandaongo&#x27;,
+    &#x27;kwale&#x27;,
+    &#x27;kinango&#x27;,
+    &#x27;kidzuvini&#x27;,
+    &#x27;kalalani&#x27;,
+    &#x27;kafuduni&#x27;,
+    &#x27;kaloleni&#x27;,
+    &#x27;kilibole&#x27;,
+    &#x27;lutsangani&#x27;,
+    &#x27;peku&#x27;,
+    &#x27;gona&#x27;,
+    &#x27;guro&#x27;,
+    &#x27;gandini&#x27;,
+    &#x27;mkanyeni&#x27;,
+    &#x27;myenzeni&#x27;,
+    &#x27;miyenzeni&#x27;,
+    &#x27;miatsiani&#x27;,
+    &#x27;mienzeni&#x27;,
+    &#x27;mnyenzeni&#x27;,
+    &#x27;minyenzeni&#x27;,
+    &#x27;miyani&#x27;,
+    &#x27;mioleni&#x27;,
+    &#x27;makuluni&#x27;,
+    &#x27;mariakani&#x27;,
+    &#x27;makobeni&#x27;,
+    &#x27;madewani&#x27;,
+    &#x27;mwangaraba&#x27;,
+    &#x27;mwashanga&#x27;,
+    &#x27;miloeni&#x27;,
+    &#x27;mabesheni&#x27;,
+    &#x27;mazeras&#x27;,
+    &#x27;mazera&#x27;,
+    &#x27;mlola&#x27;,
+    &#x27;muugano&#x27;,
+    &#x27;mulunguni&#x27;,
+    &#x27;mabesheni&#x27;,
+    &#x27;miatsani&#x27;,
+    &#x27;miatsiani&#x27;,
+    &#x27;mwache&#x27;,
+    &#x27;mwangani&#x27;,
+    &#x27;mwehavikonje&#x27;,
+    &#x27;miguneni&#x27;,
+    &#x27;nzora&#x27;,
+    &#x27;nzovuni&#x27;,
+    &#x27;vikinduni&#x27;,
+    &#x27;vikolani&#x27;,
+    &#x27;vitangani&#x27;,
+    &#x27;viogato&#x27;,
+    &#x27;vyogato&#x27;,
+    &#x27;vistangani&#x27;,
+    &#x27;yapha&#x27;,
+    &#x27;yava&#x27;,
+    &#x27;yowani&#x27;,
+    &#x27;ziwani&#x27;,
+    &#x27;majengo&#x27;,
+    &#x27;matuga&#x27;,
+    &#x27;vigungani&#x27;,
+    &#x27;vidziweni&#x27;,
+    &#x27;vinyunduni&#x27;,
+    &#x27;ukunda&#x27;,
+    &#x27;kokotoni&#x27;,
+    &#x27;mikindani&#x27;,
+  ],
+  &#x27;Misc Nairobi&#x27;: [
+    &#x27;nairobi&#x27;,
+    &#x27;west&#x27;,
+    &#x27;lindi&#x27;,
+    &#x27;kibera&#x27;,
+    &#x27;kibira&#x27;,
+    &#x27;kibra&#x27;,
+    &#x27;makina&#x27;,
+    &#x27;soweto&#x27;,
+    &#x27;olympic&#x27;,
+    &#x27;kangemi&#x27;,
+    &#x27;ruiru&#x27;,
+    &#x27;congo&#x27;,
+    &#x27;kawangware&#x27;,
+    &#x27;kwangware&#x27;,
+    &#x27;donholm&#x27;,
+    &#x27;dagoreti&#x27;,
+    &#x27;dandora&#x27;,
+    &#x27;kabete&#x27;,
+    &#x27;sinai&#x27;,
+    &#x27;donhom&#x27;,
+    &#x27;donholm&#x27;,
+    &#x27;huruma&#x27;,
+    &#x27;kitengela&#x27;,
+    &#x27;makadara&#x27;,
+    &#x27;,mlolongo&#x27;,
+    &#x27;kenyatta&#x27;,
+    &#x27;mlolongo&#x27;,
+    &#x27;tassia&#x27;,
+    &#x27;tasia&#x27;,
+    &#x27;gatina&#x27;,
+    &#x27;56&#x27;,
+    &#x27;industrial&#x27;,
+    &#x27;kariobangi&#x27;,
+    &#x27;kasarani&#x27;,
+    &#x27;kayole&#x27;,
+    &#x27;mathare&#x27;,
+    &#x27;pipe&#x27;,
+    &#x27;juja&#x27;,
+    &#x27;uchumi&#x27;,
+    &#x27;jogoo&#x27;,
+    &#x27;umoja&#x27;,
+    &#x27;thika&#x27;,
+    &#x27;kikuyu&#x27;,
+    &#x27;stadium&#x27;,
+    &#x27;buru buru&#x27;,
+    &#x27;ngong&#x27;,
+    &#x27;starehe&#x27;,
+    &#x27;mwiki&#x27;,
+    &#x27;fuata&#x27;,
+    &#x27;kware&#x27;,
+    &#x27;kabiro&#x27;,
+    &#x27;embakassi&#x27;,
+    &#x27;embakasi&#x27;,
+    &#x27;kmoja&#x27;,
+    &#x27;east&#x27;,
+    &#x27;githurai&#x27;,
+    &#x27;landi&#x27;,
+    &#x27;langata&#x27;,
+    &#x27;limuru&#x27;,
+    &#x27;mathere&#x27;,
+    &#x27;dagoretti&#x27;,
+    &#x27;kirembe&#x27;,
+    &#x27;muugano&#x27;,
+    &#x27;mwiki&#x27;,
+    &#x27;toi market&#x27;,
+  ],
+  &#x27;Kisauni Mombasa&#x27;: [
+    &#x27;bamburi&#x27;,
+    &#x27;mnyuchi&#x27;,
+    &#x27;kisauni&#x27;,
+    &#x27;kasauni&#x27;,
+    &#x27;mworoni&#x27;,
+    &#x27;nyali&#x27;,
+    &#x27;falcon&#x27;,
+    &#x27;shanzu&#x27;,
+    &#x27;bombolulu&#x27;,
+    &#x27;kandongo&#x27;,
+    &#x27;kadongo&#x27;,
+    &#x27;mshomoro&#x27;,
+    &#x27;mtopanga&#x27;,
+    &#x27;mjambere&#x27;,
+    &#x27;majaoni&#x27;,
+    &#x27;manyani&#x27;,
+    &#x27;magogoni&#x27;,
+    &#x27;magongoni&#x27;,
+    &#x27;junda&#x27;,
+    &#x27;mwakirunge&#x27;,
+    &#x27;mshomoroni&#x27;,
+    &#x27;mjinga&#x27;,
+    &#x27;mlaleo&#x27;,
+    &#x27;utange&#x27;,
+  ],
+  &#x27;Misc Mombasa&#x27;: [
+    &#x27;mombasa&#x27;,
+    &#x27;likoni&#x27;,
+    &#x27;bangla&#x27;,
+    &#x27;bangladesh&#x27;,
+    &#x27;kizingo&#x27;,
+    &#x27;old town&#x27;,
+    &#x27;makupa&#x27;,
+    &#x27;mvita&#x27;,
+    &#x27;ngombeni&#x27;,
+    &#x27;ngómbeni&#x27;,
+    &#x27;ombeni&#x27;,
+    &#x27;magongo&#x27;,
+    &#x27;miritini&#x27;,
+    &#x27;changamwe&#x27;,
+    &#x27;jomvu&#x27;,
+    &#x27;ohuru&#x27;,
+    &#x27;tudor&#x27;,
+    &#x27;diani&#x27;,
+  ],
+  Kilifi: [
+    &#x27;kilfi&#x27;,
+    &#x27;kilifi&#x27;,
+    &#x27;mtwapa&#x27;,
+    &#x27;takaungu&#x27;,
+    &#x27;makongeni&#x27;,
+    &#x27;mnarani&#x27;,
+    &#x27;mnarani&#x27;,
+    &#x27;office&#x27;,
+    &#x27;g.e&#x27;,
+    &#x27;ge&#x27;,
+    &#x27;raibai&#x27;,
+    &#x27;ribe&#x27;,
+  ],
+  Kakuma: [&#x27;kakuma&#x27;],
+  Kitui: [&#x27;kitui&#x27;, &#x27;mwingi&#x27;],
+  Nyanza: [
+    &#x27;busia&#x27;,
+    &#x27;nyalgunga&#x27;,
+    &#x27;mbita&#x27;,
+    &#x27;siaya&#x27;,
+    &#x27;kisumu&#x27;,
+    &#x27;nyalenda&#x27;,
+    &#x27;hawinga&#x27;,
+    &#x27;rangala&#x27;,
+    &#x27;uyoma&#x27;,
+    &#x27;mumias&#x27;,
+    &#x27;homabay&#x27;,
+    &#x27;homaboy&#x27;,
+    &#x27;migori&#x27;,
+    &#x27;kusumu&#x27;,
+  ],
+  &#x27;Misc Rural Counties&#x27;: [
+    &#x27;makueni&#x27;,
+    &#x27;meru&#x27;,
+    &#x27;kisii&#x27;,
+    &#x27;bomet&#x27;,
+    &#x27;machakos&#x27;,
+    &#x27;bungoma&#x27;,
+    &#x27;eldoret&#x27;,
+    &#x27;kakamega&#x27;,
+    &#x27;kericho&#x27;,
+    &#x27;kajiado&#x27;,
+    &#x27;nandi&#x27;,
+    &#x27;nyeri&#x27;,
+    &#x27;wote&#x27;,
+    &#x27;kiambu&#x27;,
+    &#x27;mwea&#x27;,
+    &#x27;nakuru&#x27;,
+    &#x27;narok&#x27;,
+  ],
+  other: [&#x27;other&#x27;, &#x27;none&#x27;, &#x27;unknown&#x27;],
+};
+
+const areaTypes: object &#x3D; {
+  urban: [&#x27;urban&#x27;, &#x27;nairobi&#x27;, &#x27;mombasa&#x27;, &#x27;kisauni&#x27;],
+  rural: [&#x27;rural&#x27;, &#x27;kakuma&#x27;, &#x27;kwale&#x27;, &#x27;kinango&#x27;, &#x27;kitui&#x27;, &#x27;nyanza&#x27;],
+  periurban: [&#x27;kilifi&#x27;, &#x27;periurban&#x27;],
+  other: [&#x27;other&#x27;],
+};
+
+/** A mock of the user&#x27;s business categories */
+const categories: object &#x3D; {
+  system: [&#x27;system&#x27;, &#x27;office main&#x27;, &#x27;office main phone&#x27;],
+  education: [
+    &#x27;book&#x27;,
+    &#x27;coach&#x27;,
+    &#x27;teacher&#x27;,
+    &#x27;sch&#x27;,
+    &#x27;school&#x27;,
+    &#x27;pry&#x27;,
+    &#x27;education&#x27;,
+    &#x27;student&#x27;,
+    &#x27;mwalimu&#x27;,
+    &#x27;maalim&#x27;,
+    &#x27;consultant&#x27;,
+    &#x27;consult&#x27;,
+    &#x27;college&#x27;,
+    &#x27;university&#x27;,
+    &#x27;lecturer&#x27;,
+    &#x27;primary&#x27;,
+    &#x27;secondary&#x27;,
+    &#x27;daycare&#x27;,
+    &#x27;babycare&#x27;,
+    &#x27;baby care&#x27;,
+    &#x27;elim&#x27;,
+    &#x27;eimu&#x27;,
+    &#x27;nursery&#x27;,
+    &#x27;red cross&#x27;,
+    &#x27;volunteer&#x27;,
+    &#x27;instructor&#x27;,
+    &#x27;journalist&#x27;,
+    &#x27;lesson&#x27;,
+    &#x27;academy&#x27;,
+    &#x27;headmistress&#x27;,
+    &#x27;headteacher&#x27;,
+    &#x27;cyber&#x27;,
+    &#x27;researcher&#x27;,
+    &#x27;professor&#x27;,
+    &#x27;demo&#x27;,
+    &#x27;expert&#x27;,
+    &#x27;tution&#x27;,
+    &#x27;children&#x27;,
+    &#x27;headmaster&#x27;,
+    &#x27;educator&#x27;,
+    &#x27;Marital counsellor&#x27;,
+    &#x27;counsellor&#x27;,
+    &#x27;trainer&#x27;,
+    &#x27;vijana&#x27;,
+    &#x27;youth&#x27;,
+    &#x27;intern&#x27;,
+    &#x27;redcross&#x27;,
+    &#x27;KRCS&#x27;,
+    &#x27;danish&#x27;,
+    &#x27;science&#x27;,
+    &#x27;data&#x27;,
+    &#x27;facilitator&#x27;,
+    &#x27;vitabu&#x27;,
+    &#x27;kitabu&#x27;,
+  ],
+  faith: [
+    &#x27;pastor&#x27;,
+    &#x27;imam&#x27;,
+    &#x27;madrasa&#x27;,
+    &#x27;religous&#x27;,
+    &#x27;religious&#x27;,
+    &#x27;ustadh&#x27;,
+    &#x27;ustadhi&#x27;,
+    &#x27;Marital counsellor&#x27;,
+    &#x27;counsellor&#x27;,
+    &#x27;church&#x27;,
+    &#x27;kanisa&#x27;,
+    &#x27;mksiti&#x27;,
+    &#x27;donor&#x27;,
+  ],
+  government: [
+    &#x27;elder&#x27;,
+    &#x27;chief&#x27;,
+    &#x27;police&#x27;,
+    &#x27;government&#x27;,
+    &#x27;country&#x27;,
+    &#x27;county&#x27;,
+    &#x27;soldier&#x27;,
+    &#x27;village admin&#x27;,
+    &#x27;ward&#x27;,
+    &#x27;leader&#x27;,
+    &#x27;kra&#x27;,
+    &#x27;mailman&#x27;,
+    &#x27;immagration&#x27;,
+  ],
+  environment: [
+    &#x27;conservation&#x27;,
+    &#x27;toilet&#x27;,
+    &#x27;choo&#x27;,
+    &#x27;garbage&#x27;,
+    &#x27;fagio&#x27;,
+    &#x27;waste&#x27;,
+    &#x27;tree&#x27;,
+    &#x27;taka&#x27;,
+    &#x27;scrap&#x27;,
+    &#x27;cleaning&#x27;,
+    &#x27;gardener&#x27;,
+    &#x27;rubbish&#x27;,
+    &#x27;usafi&#x27;,
+    &#x27;mazingira&#x27;,
+    &#x27;miti&#x27;,
+    &#x27;trash&#x27;,
+    &#x27;cleaner&#x27;,
+    &#x27;plastic&#x27;,
+    &#x27;collection&#x27;,
+    &#x27;seedling&#x27;,
+    &#x27;seedlings&#x27;,
+    &#x27;recycling&#x27;,
+  ],
+  farming: [
+    &#x27;farm&#x27;,
+    &#x27;farmer&#x27;,
+    &#x27;farming&#x27;,
+    &#x27;mkulima&#x27;,
+    &#x27;kulima&#x27;,
+    &#x27;ukulima&#x27;,
+    &#x27;wakulima&#x27;,
+    &#x27;jembe&#x27;,
+    &#x27;shamba&#x27;,
+  ],
+  labour: [
+    &#x27;artist&#x27;,
+    &#x27;agent&#x27;,
+    &#x27;guard&#x27;,
+    &#x27;askari&#x27;,
+    &#x27;accountant&#x27;,
+    &#x27;baker&#x27;,
+    &#x27;beadwork&#x27;,
+    &#x27;beauty&#x27;,
+    &#x27;business&#x27;,
+    &#x27;barber&#x27;,
+    &#x27;casual&#x27;,
+    &#x27;electrian&#x27;,
+    &#x27;caretaker&#x27;,
+    &#x27;car wash&#x27;,
+    &#x27;capenter&#x27;,
+    &#x27;construction&#x27;,
+    &#x27;chef&#x27;,
+    &#x27;catering&#x27;,
+    &#x27;cobler&#x27;,
+    &#x27;cobbler&#x27;,
+    &#x27;carwash&#x27;,
+    &#x27;dhobi&#x27;,
+    &#x27;landlord&#x27;,
+    &#x27;design&#x27;,
+    &#x27;carpenter&#x27;,
+    &#x27;fundi&#x27;,
+    &#x27;hawking&#x27;,
+    &#x27;hawker&#x27;,
+    &#x27;househelp&#x27;,
+    &#x27;hsehelp&#x27;,
+    &#x27;house help&#x27;,
+    &#x27;help&#x27;,
+    &#x27;housegirl&#x27;,
+    &#x27;kushona&#x27;,
+    &#x27;juakali&#x27;,
+    &#x27;jualikali&#x27;,
+    &#x27;juacali&#x27;,
+    &#x27;jua kali&#x27;,
+    &#x27;shepherd&#x27;,
+    &#x27;makuti&#x27;,
+    &#x27;kujenga&#x27;,
+    &#x27;kinyozi&#x27;,
+    &#x27;kazi&#x27;,
+    &#x27;knitting&#x27;,
+    &#x27;kufua&#x27;,
+    &#x27;fua&#x27;,
+    &#x27;hustler&#x27;,
+    &#x27;biashara&#x27;,
+    &#x27;labour&#x27;,
+    &#x27;labor&#x27;,
+    &#x27;laundry&#x27;,
+    &#x27;repair&#x27;,
+    &#x27;hair&#x27;,
+    &#x27;posho&#x27;,
+    &#x27;mill&#x27;,
+    &#x27;mtambo&#x27;,
+    &#x27;uvuvi&#x27;,
+    &#x27;engineer&#x27;,
+    &#x27;manager&#x27;,
+    &#x27;tailor&#x27;,
+    &#x27;nguo&#x27;,
+    &#x27;mason&#x27;,
+    &#x27;mtumba&#x27;,
+    &#x27;garage&#x27;,
+    &#x27;mechanic&#x27;,
+    &#x27;mjenzi&#x27;,
+    &#x27;mfugaji&#x27;,
+    &#x27;painter&#x27;,
+    &#x27;receptionist&#x27;,
+    &#x27;printing&#x27;,
+    &#x27;programming&#x27;,
+    &#x27;plumb&#x27;,
+    &#x27;charging&#x27;,
+    &#x27;salon&#x27;,
+    &#x27;mpishi&#x27;,
+    &#x27;msusi&#x27;,
+    &#x27;mgema&#x27;,
+    &#x27;footballer&#x27;,
+    &#x27;photocopy&#x27;,
+    &#x27;peddler&#x27;,
+    &#x27;staff&#x27;,
+    &#x27;sales&#x27;,
+    &#x27;service&#x27;,
+    &#x27;saloon&#x27;,
+    &#x27;seremala&#x27;,
+    &#x27;security&#x27;,
+    &#x27;insurance&#x27;,
+    &#x27;secretary&#x27;,
+    &#x27;shoe&#x27;,
+    &#x27;shepard&#x27;,
+    &#x27;shephard&#x27;,
+    &#x27;tout&#x27;,
+    &#x27;tv&#x27;,
+    &#x27;mvuvi&#x27;,
+    &#x27;mawe&#x27;,
+    &#x27;majani&#x27;,
+    &#x27;maembe&#x27;,
+    &#x27;freelance&#x27;,
+    &#x27;mjengo&#x27;,
+    &#x27;electronics&#x27;,
+    &#x27;photographer&#x27;,
+    &#x27;programmer&#x27;,
+    &#x27;electrician&#x27;,
+    &#x27;washing&#x27;,
+    &#x27;bricks&#x27;,
+    &#x27;welder&#x27;,
+    &#x27;welding&#x27;,
+    &#x27;working&#x27;,
+    &#x27;worker&#x27;,
+    &#x27;watchman&#x27;,
+    &#x27;waiter&#x27;,
+    &#x27;waitress&#x27;,
+    &#x27;viatu&#x27;,
+    &#x27;yoga&#x27;,
+    &#x27;guitarist&#x27;,
+    &#x27;house&#x27;,
+    &#x27;artisan&#x27;,
+    &#x27;musician&#x27;,
+    &#x27;trade&#x27;,
+    &#x27;makonge&#x27;,
+    &#x27;ujenzi&#x27;,
+    &#x27;vendor&#x27;,
+    &#x27;watchlady&#x27;,
+    &#x27;marketing&#x27;,
+    &#x27;beautician&#x27;,
+    &#x27;photo&#x27;,
+    &#x27;metal work&#x27;,
+    &#x27;supplier&#x27;,
+    &#x27;law firm&#x27;,
+    &#x27;brewer&#x27;,
+  ],
+  food: [
+    &#x27;avocado&#x27;,
+    &#x27;bhajia&#x27;,
+    &#x27;bajia&#x27;,
+    &#x27;mbonga&#x27;,
+    &#x27;bofu&#x27;,
+    &#x27;beans&#x27;,
+    &#x27;biscuits&#x27;,
+    &#x27;biringanya&#x27;,
+    &#x27;banana&#x27;,
+    &#x27;bananas&#x27;,
+    &#x27;crisps&#x27;,
+    &#x27;chakula&#x27;,
+    &#x27;coconut&#x27;,
+    &#x27;chapati&#x27;,
+    &#x27;cereal&#x27;,
+    &#x27;chipo&#x27;,
+    &#x27;chapo&#x27;,
+    &#x27;chai&#x27;,
+    &#x27;chips&#x27;,
+    &#x27;cassava&#x27;,
+    &#x27;cake&#x27;,
+    &#x27;cereals&#x27;,
+    &#x27;cook&#x27;,
+    &#x27;corn&#x27;,
+    &#x27;coffee&#x27;,
+    &#x27;chicken&#x27;,
+    &#x27;dagaa&#x27;,
+    &#x27;donut&#x27;,
+    &#x27;dough&#x27;,
+    &#x27;groundnuts&#x27;,
+    &#x27;hotel&#x27;,
+    &#x27;holel&#x27;,
+    &#x27;hoteli&#x27;,
+    &#x27;butcher&#x27;,
+    &#x27;butchery&#x27;,
+    &#x27;fruit&#x27;,
+    &#x27;food&#x27;,
+    &#x27;fruits&#x27;,
+    &#x27;fish&#x27;,
+    &#x27;githeri&#x27;,
+    &#x27;grocery&#x27;,
+    &#x27;grocer&#x27;,
+    &#x27;pojo&#x27;,
+    &#x27;papa&#x27;,
+    &#x27;goats&#x27;,
+    &#x27;mabenda&#x27;,
+    &#x27;mbenda&#x27;,
+    &#x27;poultry&#x27;,
+    &#x27;soda&#x27;,
+    &#x27;peanuts&#x27;,
+    &#x27;potatoes&#x27;,
+    &#x27;samosa&#x27;,
+    &#x27;soko&#x27;,
+    &#x27;samaki&#x27;,
+    &#x27;tomato&#x27;,
+    &#x27;tomatoes&#x27;,
+    &#x27;mchele&#x27;,
+    &#x27;matunda&#x27;,
+    &#x27;mango&#x27;,
+    &#x27;melon&#x27;,
+    &#x27;mellon&#x27;,
+    &#x27;nyanya&#x27;,
+    &#x27;nyama&#x27;,
+    &#x27;omena&#x27;,
+    &#x27;umena&#x27;,
+    &#x27;ndizi&#x27;,
+    &#x27;njugu&#x27;,
+    &#x27;kamba kamba&#x27;,
+    &#x27;khaimati&#x27;,
+    &#x27;kaimati&#x27;,
+    &#x27;kunde&#x27;,
+    &#x27;kuku&#x27;,
+    &#x27;kahawa&#x27;,
+    &#x27;keki&#x27;,
+    &#x27;muguka&#x27;,
+    &#x27;miraa&#x27;,
+    &#x27;milk&#x27;,
+    &#x27;choma&#x27;,
+    &#x27;maziwa&#x27;,
+    &#x27;mboga&#x27;,
+    &#x27;mbog&#x27;,
+    &#x27;busaa&#x27;,
+    &#x27;chumvi&#x27;,
+    &#x27;cabbages&#x27;,
+    &#x27;mabuyu&#x27;,
+    &#x27;machungwa&#x27;,
+    &#x27;mbuzi&#x27;,
+    &#x27;mnazi&#x27;,
+    &#x27;mchicha&#x27;,
+    &#x27;ngombe&#x27;,
+    &#x27;ngano&#x27;,
+    &#x27;nazi&#x27;,
+    &#x27;oranges&#x27;,
+    &#x27;peanuts&#x27;,
+    &#x27;mkate&#x27;,
+    &#x27;bread&#x27;,
+    &#x27;mikate&#x27;,
+    &#x27;vitungu&#x27;,
+    &#x27;sausages&#x27;,
+    &#x27;maize&#x27;,
+    &#x27;mbata&#x27;,
+    &#x27;mchuzi&#x27;,
+    &#x27;mchuuzi&#x27;,
+    &#x27;mandazi&#x27;,
+    &#x27;mbaazi&#x27;,
+    &#x27;mahindi&#x27;,
+    &#x27;maandazi&#x27;,
+    &#x27;mogoka&#x27;,
+    &#x27;meat&#x27;,
+    &#x27;mhogo&#x27;,
+    &#x27;mihogo&#x27;,
+    &#x27;muhogo&#x27;,
+    &#x27;maharagwe&#x27;,
+    &#x27;miwa&#x27;,
+    &#x27;mahamri&#x27;,
+    &#x27;mitumba&#x27;,
+    &#x27;simsim&#x27;,
+    &#x27;porridge&#x27;,
+    &#x27;pilau&#x27;,
+    &#x27;vegetable&#x27;,
+    &#x27;egg&#x27;,
+    &#x27;mayai&#x27;,
+    &#x27;mifugo&#x27;,
+    &#x27;unga&#x27;,
+    &#x27;good&#x27;,
+    &#x27;sima&#x27;,
+    &#x27;sweet&#x27;,
+    &#x27;sweats&#x27;,
+    &#x27;sambusa&#x27;,
+    &#x27;snacks&#x27;,
+    &#x27;sugar&#x27;,
+    &#x27;suger&#x27;,
+    &#x27;ugoro&#x27;,
+    &#x27;sukari&#x27;,
+    &#x27;soup&#x27;,
+    &#x27;spinach&#x27;,
+    &#x27;smokie&#x27;,
+    &#x27;smokies&#x27;,
+    &#x27;sukuma&#x27;,
+    &#x27;tea&#x27;,
+    &#x27;uji&#x27;,
+    &#x27;ugali&#x27;,
+    &#x27;uchuzi&#x27;,
+    &#x27;uchuuzi&#x27;,
+    &#x27;viazi&#x27;,
+    &#x27;yoghurt&#x27;,
+    &#x27;yogurt&#x27;,
+    &#x27;wine&#x27;,
+    &#x27;marondo&#x27;,
+    &#x27;maandzi&#x27;,
+    &#x27;matoke&#x27;,
+    &#x27;omeno&#x27;,
+    &#x27;onions&#x27;,
+    &#x27;nzugu&#x27;,
+    &#x27;korosho&#x27;,
+    &#x27;barafu&#x27;,
+    &#x27;juice&#x27;,
+  ],
+  water: [&#x27;maji&#x27;, &#x27;water&#x27;],
+  health: [
+    &#x27;agrovet&#x27;,
+    &#x27;dispensary&#x27;,
+    &#x27;barakoa&#x27;,
+    &#x27;chemist&#x27;,
+    &#x27;Chemicals&#x27;,
+    &#x27;chv&#x27;,
+    &#x27;doctor&#x27;,
+    &#x27;daktari&#x27;,
+    &#x27;dawa&#x27;,
+    &#x27;hospital&#x27;,
+    &#x27;herbalist&#x27;,
+    &#x27;mganga&#x27;,
+    &#x27;sabuni&#x27;,
+    &#x27;soap&#x27;,
+    &#x27;nurse&#x27;,
+    &#x27;heath&#x27;,
+    &#x27;community health worker&#x27;,
+    &#x27;clinic&#x27;,
+    &#x27;clinical&#x27;,
+    &#x27;mask&#x27;,
+    &#x27;medicine&#x27;,
+    &#x27;lab technician&#x27;,
+    &#x27;pharmacy&#x27;,
+    &#x27;cosmetics&#x27;,
+    &#x27;veterinary&#x27;,
+    &#x27;vet&#x27;,
+    &#x27;sickly&#x27;,
+    &#x27;emergency response&#x27;,
+    &#x27;emergency&#x27;,
+  ],
+  savings: [&#x27;chama&#x27;, &#x27;group&#x27;, &#x27;savings&#x27;, &#x27;loan&#x27;, &#x27;silc&#x27;, &#x27;vsla&#x27;, &#x27;credit&#x27;, &#x27;finance&#x27;],
+  shop: [
+    &#x27;bag&#x27;,
+    &#x27;bead&#x27;,
+    &#x27;belt&#x27;,
+    &#x27;bedding&#x27;,
+    &#x27;jik&#x27;,
+    &#x27;bed&#x27;,
+    &#x27;cement&#x27;,
+    &#x27;botique&#x27;,
+    &#x27;boutique&#x27;,
+    &#x27;lines&#x27;,
+    &#x27;kibanda&#x27;,
+    &#x27;kiosk&#x27;,
+    &#x27;spareparts&#x27;,
+    &#x27;candy&#x27;,
+    &#x27;cloth&#x27;,
+    &#x27;electricals&#x27;,
+    &#x27;mutumba&#x27;,
+    &#x27;cafe&#x27;,
+    &#x27;leso&#x27;,
+    &#x27;lesso&#x27;,
+    &#x27;duka&#x27;,
+    &#x27;spare parts&#x27;,
+    &#x27;socks&#x27;,
+    &#x27;malimali&#x27;,
+    &#x27;mitungi&#x27;,
+    &#x27;mali mali&#x27;,
+    &#x27;hardware&#x27;,
+    &#x27;detergent&#x27;,
+    &#x27;detergents&#x27;,
+    &#x27;dera&#x27;,
+    &#x27;retail&#x27;,
+    &#x27;kamba&#x27;,
+    &#x27;pombe&#x27;,
+    &#x27;pampers&#x27;,
+    &#x27;pool&#x27;,
+    &#x27;phone&#x27;,
+    &#x27;simu&#x27;,
+    &#x27;mangwe&#x27;,
+    &#x27;mikeka&#x27;,
+    &#x27;movie&#x27;,
+    &#x27;shop&#x27;,
+    &#x27;acces&#x27;,
+    &#x27;mchanga&#x27;,
+    &#x27;uto&#x27;,
+    &#x27;airtime&#x27;,
+    &#x27;matress&#x27;,
+    &#x27;mattress&#x27;,
+    &#x27;mattresses&#x27;,
+    &#x27;mpsea&#x27;,
+    &#x27;mpesa&#x27;,
+    &#x27;shirt&#x27;,
+    &#x27;wholesaler&#x27;,
+    &#x27;perfume&#x27;,
+    &#x27;playstation&#x27;,
+    &#x27;tissue&#x27;,
+    &#x27;vikapu&#x27;,
+    &#x27;uniform&#x27;,
+    &#x27;flowers&#x27;,
+    &#x27;vitenge&#x27;,
+    &#x27;utencils&#x27;,
+    &#x27;utensils&#x27;,
+    &#x27;station&#x27;,
+    &#x27;jewel&#x27;,
+    &#x27;pool table&#x27;,
+    &#x27;club&#x27;,
+    &#x27;pub&#x27;,
+    &#x27;bar&#x27;,
+    &#x27;furniture&#x27;,
+    &#x27;m-pesa&#x27;,
+    &#x27;vyombo&#x27;,
+  ],
+  transport: [
+    &#x27;kebeba&#x27;,
+    &#x27;beba&#x27;,
+    &#x27;bebabeba&#x27;,
+    &#x27;bike&#x27;,
+    &#x27;bicycle&#x27;,
+    &#x27;matatu&#x27;,
+    &#x27;boda&#x27;,
+    &#x27;bodaboda&#x27;,
+    &#x27;cart&#x27;,
+    &#x27;carrier&#x27;,
+    &#x27;tour&#x27;,
+    &#x27;travel&#x27;,
+    &#x27;driver&#x27;,
+    &#x27;dereva&#x27;,
+    &#x27;tout&#x27;,
+    &#x27;conductor&#x27;,
+    &#x27;kubeba&#x27;,
+    &#x27;tuktuk&#x27;,
+    &#x27;taxi&#x27;,
+    &#x27;piki&#x27;,
+    &#x27;pikipiki&#x27;,
+    &#x27;manamba&#x27;,
+    &#x27;trasportion&#x27;,
+    &#x27;mkokoteni&#x27;,
+    &#x27;mover&#x27;,
+    &#x27;motorist&#x27;,
+    &#x27;motorbike&#x27;,
+    &#x27;transport&#x27;,
+    &#x27;transpoter&#x27;,
+    &#x27;gari&#x27;,
+    &#x27;magari&#x27;,
+    &#x27;makanga&#x27;,
+    &#x27;car&#x27;,
+  ],
+  &#x27;fuel/energy&#x27;: [
+    &#x27;timber&#x27;,
+    &#x27;timberyard&#x27;,
+    &#x27;biogas&#x27;,
+    &#x27;charcol&#x27;,
+    &#x27;charcoal&#x27;,
+    &#x27;kuni&#x27;,
+    &#x27;mbao&#x27;,
+    &#x27;fuel&#x27;,
+    &#x27;makaa&#x27;,
+    &#x27;mafuta&#x27;,
+    &#x27;moto&#x27;,
+    &#x27;solar&#x27;,
+    &#x27;stima&#x27;,
+    &#x27;fire&#x27;,
+    &#x27;firewood&#x27;,
+    &#x27;wood&#x27;,
+    &#x27;oil&#x27;,
+    &#x27;taa&#x27;,
+    &#x27;gas&#x27;,
+    &#x27;paraffin&#x27;,
+    &#x27;parrafin&#x27;,
+    &#x27;parafin&#x27;,
+    &#x27;petrol&#x27;,
+    &#x27;petro&#x27;,
+    &#x27;kerosine&#x27;,
+    &#x27;kerosene&#x27;,
+    &#x27;diesel&#x27;,
+  ],
+  other: [&#x27;other&#x27;, &#x27;none&#x27;, &#x27;unknown&#x27;, &#x27;none&#x27;],
+};
+
+/** A mock of curated genders */
+const genders: Array&lt;string&gt; &#x3D; [&#x27;male&#x27;, &#x27;female&#x27;, &#x27;other&#x27;];
+
+/** A mock of curated  transaction types. */
+const transactionTypes: Array&lt;string&gt; &#x3D; [
+  &#x27;transactions&#x27;,
+  &#x27;conversions&#x27;,
+  &#x27;disbursements&#x27;,
+  &#x27;rewards&#x27;,
+  &#x27;reclamations&#x27;,
+];
+
+/**
+ * Intercepts HTTP requests and handles some specified requests internally.
+ * Provides a backend that can handle requests for certain data items.
+ */
+@Injectable()
+export class MockBackendInterceptor implements HttpInterceptor {
+  /**
+   * Intercepts HTTP requests.
+   *
+   * @param request - An outgoing HTTP request with an optional typed body.
+   * @param next - The next HTTP handler or the outgoing request dispatcher.
+   * @returns The response from the resolved request.
+   */
+  intercept(request: HttpRequest&lt;any&gt;, next: HttpHandler): Observable&lt;HttpEvent&lt;any&gt;&gt; {
+    const { url, method, headers, body } &#x3D; request;
+
+    // wrap in delayed observable to simulate server api call\
+    // call materialize and dematerialize to ensure delay even is thrown
+    return of(null)
+      .pipe(mergeMap(handleRoute))
+      .pipe(materialize())
+      .pipe(delay(500))
+      .pipe(dematerialize());
+
+    /** Forward requests from select routes to their internal handlers. */
+    function handleRoute(): Observable&lt;any&gt; {
+      switch (true) {
+        case url.endsWith(&#x27;/accounttypes&#x27;) &amp;&amp; method &#x3D;&#x3D;&#x3D; &#x27;GET&#x27;:
+          return getAccountTypes();
+        case url.endsWith(&#x27;/actions&#x27;) &amp;&amp; method &#x3D;&#x3D;&#x3D; &#x27;GET&#x27;:
+          return getActions();
+        case url.match(/\/actions\/\d+$/) &amp;&amp; method &#x3D;&#x3D;&#x3D; &#x27;GET&#x27;:
+          return getActionById();
+        case url.match(/\/actions\/\d+$/) &amp;&amp; method &#x3D;&#x3D;&#x3D; &#x27;POST&#x27;:
+          return approveAction();
+        case url.endsWith(&#x27;/areanames&#x27;) &amp;&amp; method &#x3D;&#x3D;&#x3D; &#x27;GET&#x27;:
+          return getAreaNames();
+        case url.endsWith(&#x27;/areatypes&#x27;) &amp;&amp; method &#x3D;&#x3D;&#x3D; &#x27;GET&#x27;:
+          return getAreaTypes();
+        case url.endsWith(&#x27;/categories&#x27;) &amp;&amp; method &#x3D;&#x3D;&#x3D; &#x27;GET&#x27;:
+          return getCategories();
+        case url.endsWith(&#x27;/genders&#x27;) &amp;&amp; method &#x3D;&#x3D;&#x3D; &#x27;GET&#x27;:
+          return getGenders();
+        case url.endsWith(&#x27;/transactiontypes&#x27;) &amp;&amp; method &#x3D;&#x3D;&#x3D; &#x27;GET&#x27;:
+          return getTransactionTypes();
+        default:
+          // pass through any requests not handled above
+          return next.handle(request);
+      }
+    }
+
+    // route functions
+
+    function approveAction(): Observable&lt;HttpResponse&lt;any&gt;&gt; {
+      const queriedAction: Action &#x3D; actions.find((action) &#x3D;&gt; action.id &#x3D;&#x3D;&#x3D; idFromUrl());
+      queriedAction.approval &#x3D; body.approval;
+      const message: string &#x3D; &#x60;Action approval status set to ${body.approval} successfully!&#x60;;
+      return ok(message);
+    }
+
+    function getAccountTypes(): Observable&lt;HttpResponse&lt;any&gt;&gt; {
+      return ok(accountTypes);
+    }
+
+    function getActions(): Observable&lt;HttpResponse&lt;any&gt;&gt; {
+      return ok(actions);
+    }
+
+    function getActionById(): Observable&lt;HttpResponse&lt;any&gt;&gt; {
+      const queriedAction: Action &#x3D; actions.find((action) &#x3D;&gt; action.id &#x3D;&#x3D;&#x3D; idFromUrl());
+      return ok(queriedAction);
+    }
+
+    function getAreaNames(): Observable&lt;HttpResponse&lt;any&gt;&gt; {
+      return ok(areaNames);
+    }
+
+    function getAreaTypes(): Observable&lt;HttpResponse&lt;any&gt;&gt; {
+      return ok(areaTypes);
+    }
+
+    function getCategories(): Observable&lt;HttpResponse&lt;any&gt;&gt; {
+      return ok(categories);
+    }
+
+    function getGenders(): Observable&lt;HttpResponse&lt;any&gt;&gt; {
+      return ok(genders);
+    }
+
+    function getTransactionTypes(): Observable&lt;HttpResponse&lt;any&gt;&gt; {
+      return ok(transactionTypes);
+    }
+
+    // helper functions
+
+    function error(message): Observable&lt;any&gt; {
+      return throwError({ status: 400, error: { message } });
+    }
+
+    function idFromUrl(): number {
+      const urlParts: Array&lt;string&gt; &#x3D; url.split(&#x27;/&#x27;);
+      return parseInt(urlParts[urlParts.length - 1], 10);
+    }
+
+    function ok(responseBody: any): Observable&lt;HttpResponse&lt;any&gt;&gt; {
+      return of(new HttpResponse({ status: 200, body: responseBody }));
+    }
+
+    function stringFromUrl(): string {
+      const urlParts: Array&lt;string&gt; &#x3D; url.split(&#x27;/&#x27;);
+      return urlParts[urlParts.length - 1];
+    }
+  }
+}
+
+/** Exports the MockBackendInterceptor as an Angular provider. */
+export const MockBackendProvider &#x3D; {
+  provide: HTTP_INTERCEPTORS,
+  useClass: MockBackendInterceptor,
+  multi: true,
+};
+</code></pre>
+    </div>
+</div>
+
+
+
+
+
+
+                   
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> result-matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'interceptor';
+            var COMPODOC_CURRENT_PAGE_URL = 'MockBackendInterceptor.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+       <!-- Required to polyfill modern browsers as code is ES5 for IE... -->
+       <script src="../js/libs/custom-elements-es5-adapter.js" charset="utf-8" defer></script>
+       <script src="../js/menu-wc.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+       <script src="../js/libs/zepto.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

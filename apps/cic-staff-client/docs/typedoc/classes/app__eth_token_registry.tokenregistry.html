@@ -1,0 +1,401 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>TokenRegistry | CICADA</title>
+	<meta name="description" content="Documentation for CICADA">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="../assets/css/main.css">
+	<script async src="../assets/js/search.js" id="search-script"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.json" data-base="..">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="../index.html" class="title">CICADA</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="../modules.html">CICADA</a>
+				</li>
+				<li>
+					<a href="../modules/app__eth_token_registry.html">app/_eth/token-registry</a>
+				</li>
+				<li>
+					<a href="app__eth_token_registry.tokenregistry.html">TokenRegistry</a>
+				</li>
+			</ul>
+			<h1>Class TokenRegistry</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Provides an instance of the token registry contract.
+						Allows querying of tokens that have been registered as valid tokens in the network.</p>
+					</div>
+					<dl class="tsd-comment-tags">
+						<dt>remarks</dt>
+						<dd><p>This is our interface to the token registry contract.</p>
+						</dd>
+					</dl>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">TokenRegistry</span>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel-group tsd-index-group">
+				<h2>Index</h2>
+				<section class="tsd-panel tsd-index-panel">
+					<div class="tsd-index-content">
+						<section class="tsd-index-section ">
+							<h3>Constructors</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="app__eth_token_registry.tokenregistry.html#constructor" class="tsd-kind-icon">constructor</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Properties</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="app__eth_token_registry.tokenregistry.html#contract" class="tsd-kind-icon">contract</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="app__eth_token_registry.tokenregistry.html#contractaddress" class="tsd-kind-icon">contract<wbr>Address</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="app__eth_token_registry.tokenregistry.html#signeraddress" class="tsd-kind-icon">signer<wbr>Address</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Methods</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="app__eth_token_registry.tokenregistry.html#addressof" class="tsd-kind-icon">address<wbr>Of</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="app__eth_token_registry.tokenregistry.html#entry" class="tsd-kind-icon">entry</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="app__eth_token_registry.tokenregistry.html#totaltokens" class="tsd-kind-icon">total<wbr>Tokens</a></li>
+							</ul>
+						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Constructors</h2>
+				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class">
+					<a name="constructor" class="tsd-anchor"></a>
+					<h3>constructor</h3>
+					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Token<wbr>Registry<span class="tsd-signature-symbol">(</span>contractAddress<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, signerAddress<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="app__eth_token_registry.tokenregistry.html" class="tsd-signature-type" data-tsd-kind="Class">TokenRegistry</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in src/app/_eth/token-registry.ts:26</li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Create a connection to the deployed token registry contract.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>contractAddress: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The deployed token registry contract&#39;s address.</p>
+									</div>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> signerAddress: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The account address of the account that deployed the token registry contract.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="app__eth_token_registry.tokenregistry.html" class="tsd-signature-type" data-tsd-kind="Class">TokenRegistry</a></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="contract" class="tsd-anchor"></a>
+					<h3>contract</h3>
+					<div class="tsd-signature tsd-kind-icon">contract<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in src/app/_eth/token-registry.ts:22</li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The instance of the token registry contract.</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="contractaddress" class="tsd-anchor"></a>
+					<h3>contract<wbr>Address</h3>
+					<div class="tsd-signature tsd-kind-icon">contract<wbr>Address<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in src/app/_eth/token-registry.ts:24</li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The deployed token registry contract&#39;s address.</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="signeraddress" class="tsd-anchor"></a>
+					<h3>signer<wbr>Address</h3>
+					<div class="tsd-signature tsd-kind-icon">signer<wbr>Address<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in src/app/_eth/token-registry.ts:26</li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The account address of the account that deployed the token registry contract.</p>
+						</div>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Methods</h2>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="addressof" class="tsd-anchor"></a>
+					<h3>address<wbr>Of</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">address<wbr>Of<span class="tsd-signature-symbol">(</span>identifier<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in src/app/_eth/token-registry.ts:57</li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Returns the address of the token with a given identifier.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>async</dt>
+									<dd></dd>
+									<dt>example</dt>
+									<dd><p>Prints the address of the token with the identifier &#39;sarafu&#39;:</p>
+										<pre><code class="language-typescript"><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #795E26">addressOf</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;sarafu&#039;</span><span style="color: #000000">));</span>
+</code></pre>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>identifier: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The name or identifier of the token to be fetched from the token registry.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<p>The address of the token assigned the specified identifier in the token registry.</p>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="entry" class="tsd-anchor"></a>
+					<h3>entry</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">entry<span class="tsd-signature-symbol">(</span>serial<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in src/app/_eth/token-registry.ts:75</li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Returns the address of a token with the given serial in the token registry.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>async</dt>
+									<dd></dd>
+									<dt>example</dt>
+									<dd><p>Prints the address of the token with the serial &#39;2&#39;:</p>
+										<pre><code class="language-typescript"><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #795E26">entry</span><span style="color: #000000">(</span><span style="color: #098658">2</span><span style="color: #000000">));</span>
+</code></pre>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>serial: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The serial number of the token to be fetched.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<p>The address of the token with the specified serial number.</p>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="totaltokens" class="tsd-anchor"></a>
+					<h3>total<wbr>Tokens</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">total<wbr>Tokens<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in src/app/_eth/token-registry.ts:91</li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Returns the total number of tokens that have been registered in the network.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>async</dt>
+									<dd></dd>
+									<dt>example</dt>
+									<dd><p>Prints the total number of registered tokens:</p>
+										<pre><code class="language-typescript"><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #795E26">totalTokens</span><span style="color: #000000">());</span>
+</code></pre>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<p>The total number of registered tokens.</p>
+						</li>
+					</ul>
+				</section>
+			</section>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class=" ">
+						<a href="../modules.html">Exports</a>
+					</li>
+					<li class="current tsd-kind-module">
+						<a href="../modules/app__eth_token_registry.html">app/_<wbr>eth/token-<wbr>registry</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-class tsd-parent-kind-module">
+						<a href="app__eth_token_registry.tokenregistry.html" class="tsd-kind-icon">Token<wbr>Registry</a>
+						<ul>
+							<li class=" tsd-kind-constructor tsd-parent-kind-class">
+								<a href="app__eth_token_registry.tokenregistry.html#constructor" class="tsd-kind-icon">constructor</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="app__eth_token_registry.tokenregistry.html#contract" class="tsd-kind-icon">contract</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="app__eth_token_registry.tokenregistry.html#contractaddress" class="tsd-kind-icon">contract<wbr>Address</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="app__eth_token_registry.tokenregistry.html#signeraddress" class="tsd-kind-icon">signer<wbr>Address</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="app__eth_token_registry.tokenregistry.html#addressof" class="tsd-kind-icon">address<wbr>Of</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="app__eth_token_registry.tokenregistry.html#entry" class="tsd-kind-icon">entry</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="app__eth_token_registry.tokenregistry.html#totaltokens" class="tsd-kind-icon">total<wbr>Tokens</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<ul class="after-current">
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,710 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>CICADA</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	      <link rel="stylesheet" href="../styles/style.css">
+    </head>
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top visible-xs">
+            <a href="../" class="navbar-brand">CICADA</a>
+            <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="hidden-xs menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content injectable">
+                   <div class="content-data">
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li>Injectables</li>
+  <li>GlobalErrorHandler</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="active">
+            <a href="#info" role="tab" id="info-tab" data-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li >
+            <a href="#source" role="tab" id="source-tab" data-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="c-info">
+        <p class="comment">
+            <h3>File</h3>
+        </p>
+        <p class="comment">
+            <code>src/app/_helpers/global-error-handler.ts</code>
+        </p>
+
+            <p class="comment">
+                <h3>Description</h3>
+            </p>
+            <p class="comment">
+                <p>Provides a hook for centralized exception handling.</p>
+
+            </p>
+
+            <p class="comment">
+                <h3>Extends</h3>
+            </p>
+            <p class="comment">
+                        <code><a href="https://angular.io/api/core/ErrorHandler" target="_blank" >ErrorHandler</a></code>
+            </p>
+
+            <p class="comment">
+                <h3>Example</h3>
+            </p>
+            <div class="io-description">
+            </div>
+
+            <section>
+    <h3 id="index">Index</h3>
+    <table class="table table-sm table-bordered index-table">
+        <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                    <span class="modifier">Private</span>
+                                <a href="#sentencesForWarningLogging">sentencesForWarningLogging</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                <a href="#handleError">handleError</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Private</span>
+                                <a href="#isWarning">isWarning</a>
+                            </li>
+                            <li>
+                                <a href="#logError">logError</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+            <section>
+    <h3 id="constructor">Constructor</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+<code>constructor(loggingService: <a href="../injectables/LoggingService.html">LoggingService</a>, router: <a href="https://angular.io/api/router/Router" target="_blank">Router</a>)</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="41" class="link-to-prism">src/app/_helpers/global-error-handler.ts:41</a></div>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                            <div class="io-description"><p>Initialization of the Global Error Handler.</p>
+</div>
+                            <div>
+                                    <b>Parameters :</b>
+                                    <table class="params">
+                                        <thead>
+                                            <tr>
+                                                <td>Name</td>
+                                                    <td>Type</td>
+                                                <td>Optional</td>
+                                                    <td>Description</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                                <tr>
+                                                        <td>loggingService</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="../injectables/LoggingService.html" target="_self" >LoggingService</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                        <td>
+                                                                <code><ul>
+<li>A service that provides logging capabilities.</li>
+</ul>
+</code>
+                                                        </td>
+                                                </tr>
+                                                <tr>
+                                                        <td>router</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="https://angular.io/api/router/Router" target="_blank" >Router</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                        <td>
+                                                                <code><ul>
+<li>A service that provides navigation among views and URL manipulation capabilities.</li>
+</ul>
+</code>
+                                                        </td>
+                                                </tr>
+                                        </tbody>
+                                    </table>
+                            </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</section>
+
+            <section>
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="handleError"></a>
+                    <span class="name">
+                        <b>
+                            handleError
+                        </b>
+                        <a href="#handleError"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>handleError(error: Error)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="58"
+                            class="link-to-prism">src/app/_helpers/global-error-handler.ts:58</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Handles different types of errors.</p>
+</div>
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                    <td>Description</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>error</td>
+                                    <td>
+                                            <code>Error</code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                    <td>
+                                        <ul>
+<li>An error objects thrown when a runtime errors occurs.</li>
+</ul>
+
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="isWarning"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Private</span>
+                            isWarning
+                        </b>
+                        <a href="#isWarning"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>isWarning(errorTraceString: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="84"
+                            class="link-to-prism">src/app/_helpers/global-error-handler.ts:84</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Checks if an error is of type warning.</p>
+</div>
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                    <td>Description</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>errorTraceString</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                    <td>
+                                        <ul>
+<li>A description of the error and it&#39;s stack trace.</li>
+</ul>
+
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                    </div>
+                    <div class="io-description">
+                        <p>true - If the error is of type warning.</p>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="logError"></a>
+                    <span class="name">
+                        <b>
+                            logError
+                        </b>
+                        <a href="#logError"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>logError(error: <a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank">any</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="104"
+                            class="link-to-prism">src/app/_helpers/global-error-handler.ts:104</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Write appropriate logs according to the type of error.</p>
+</div>
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                    <td>Description</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>error</td>
+                                    <td>
+                                                <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >any</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                    <td>
+                                        <ul>
+<li>An error objects thrown when a runtime errors occurs.</li>
+</ul>
+
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+            <section>
+    
+        <h3 id="inputs">
+            Properties
+        </h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="sentencesForWarningLogging"></a>
+                        <span class="name">
+                            <b>
+                                <span class="modifier">Private</span>
+                            sentencesForWarningLogging</b>
+                            <a href="#sentencesForWarningLogging"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>    <code>Array&lt;string&gt;</code>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>[]</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="41" class="link-to-prism">src/app/_helpers/global-error-handler.ts:41</a></div>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>An array of sentence sections that denote warnings.</p>
+</div>
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+</section>
+
+    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="c-source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { HttpErrorResponse } from &#x27;@angular/common/http&#x27;;
+import { ErrorHandler, Injectable } from &#x27;@angular/core&#x27;;
+import { Router } from &#x27;@angular/router&#x27;;
+
+// Application imports
+import { LoggingService } from &#x27;@app/_services/logging.service&#x27;;
+
+/**
+ * A generalized http response error.
+ *
+ * @extends Error
+ */
+export class HttpError extends Error {
+  /** The error&#x27;s status code. */
+  public status: number;
+
+  /**
+   * Initialize the HttpError class.
+   *
+   * @param message - The message given by the error.
+   * @param status - The status code given by the error.
+   */
+  constructor(message: string, status: number) {
+    super(message);
+    this.status &#x3D; status;
+    this.name &#x3D; &#x27;HttpError&#x27;;
+  }
+}
+
+/**
+ * Provides a hook for centralized exception handling.
+ *
+ * @extends ErrorHandler
+ */
+@Injectable()
+export class GlobalErrorHandler extends ErrorHandler {
+  /**
+   * An array of sentence sections that denote warnings.
+   */
+  private sentencesForWarningLogging: Array&lt;string&gt; &#x3D; [];
+
+  /**
+   * Initialization of the Global Error Handler.
+   *
+   * @param loggingService - A service that provides logging capabilities.
+   * @param router - A service that provides navigation among views and URL manipulation capabilities.
+   */
+  constructor(private loggingService: LoggingService, private router: Router) {
+    super();
+  }
+
+  /**
+   * Handles different types of errors.
+   *
+   * @param error - An error objects thrown when a runtime errors occurs.
+   */
+  handleError(error: Error): void {
+    this.logError(error);
+    const message: string &#x3D; error.message ? error.message : error.toString();
+
+    // if (error.status) {
+    //   error &#x3D; new Error(message);
+    // }
+
+    const errorTraceString: string &#x3D; &#x60;Error message:\n${message}.\nStack trace: ${error.stack}&#x60;;
+
+    const isWarning: boolean &#x3D; this.isWarning(errorTraceString);
+    if (isWarning) {
+      this.loggingService.sendWarnLevelMessage(errorTraceString, { error });
+    } else {
+      this.loggingService.sendErrorLevelMessage(errorTraceString, this, { error });
+    }
+
+    throw error;
+  }
+
+  /**
+   * Checks if an error is of type warning.
+   *
+   * @param errorTraceString - A description of the error and it&#x27;s stack trace.
+   * @returns true - If the error is of type warning.
+   */
+  private isWarning(errorTraceString: string): boolean {
+    let isWarning: boolean &#x3D; true;
+    if (errorTraceString.includes(&#x27;/src/app/&#x27;)) {
+      isWarning &#x3D; false;
+    }
+
+    this.sentencesForWarningLogging.forEach((whiteListSentence: string) &#x3D;&gt; {
+      if (errorTraceString.includes(whiteListSentence)) {
+        isWarning &#x3D; true;
+      }
+    });
+
+    return isWarning;
+  }
+
+  /**
+   * Write appropriate logs according to the type of error.
+   *
+   * @param error - An error objects thrown when a runtime errors occurs.
+   */
+  logError(error: any): void {
+    const route: string &#x3D; this.router.url;
+    if (error instanceof HttpErrorResponse) {
+      this.loggingService.sendErrorLevelMessage(
+        &#x60;There was an HTTP error on route ${route}.\n${error.message}.\nStatus code: ${
+          (error as HttpErrorResponse).status
+        }&#x60;,
+        this,
+        { error }
+      );
+    } else if (error instanceof TypeError) {
+      this.loggingService.sendErrorLevelMessage(
+        &#x60;There was a Type error on route ${route}.\n${error.message}&#x60;,
+        this,
+        { error }
+      );
+    } else if (error instanceof Error) {
+      this.loggingService.sendErrorLevelMessage(
+        &#x60;There was a general error on route ${route}.\n${error.message}&#x60;,
+        this,
+        { error }
+      );
+    } else {
+      this.loggingService.sendErrorLevelMessage(
+        &#x60;Nobody threw an error but something happened on route ${route}!&#x60;,
+        this,
+        { error }
+      );
+    }
+  }
+}
+
+export function rejectBody(error): { status: any; statusText: any } {
+  return {
+    status: error.status,
+    statusText: error.statusText,
+  };
+}
+</code></pre>
+    </div>
+
+</div>
+
+
+
+
+
+
+
+                   
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> result-matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'injectable';
+            var COMPODOC_CURRENT_PAGE_URL = 'GlobalErrorHandler.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+       <!-- Required to polyfill modern browsers as code is ES5 for IE... -->
+       <script src="../js/libs/custom-elements-es5-adapter.js" charset="utf-8" defer></script>
+       <script src="../js/menu-wc.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+       <script src="../js/libs/zepto.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

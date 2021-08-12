@@ -1,0 +1,61 @@
+<app-network-status></app-network-status>
+<div class="container">
+  <div class="row justify-content-center mt-5 mb-5">
+    <div class="col-lg-6 col-md-8 col-sm-10">
+      <div class="card">
+        <mat-card-title class="card-header pt-4 pb-4 text-center background-dark">
+          <a routerLink="/">
+            <h1 class="text-white">CICADA</h1>
+          </a>
+        </mat-card-title>
+        <div id="one" style="display: block" class="card-body p-4">
+          <div class="text-center w-75 m-auto">
+            <h4 class="text-dark-50 text-center font-weight-bold">Add Private Key</h4>
+          </div>
+
+          <form [formGroup]="keyForm" (ngSubmit)="onSubmit()">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Private Key</mat-label>
+              <textarea
+                matInput
+                style="height: 30rem"
+                formControlName="key"
+                placeholder="Enter your private key..."
+                [errorStateMatcher]="matcher"
+              ></textarea>
+              <div *ngIf="submitted && keyFormStub.key.errors" class="invalid-feedback">
+                <mat-error *ngIf="keyFormStub.key.errors.required"
+                  >Private Key is required.</mat-error
+                >
+              </div>
+            </mat-form-field>
+
+            <button mat-raised-button matRipple color="primary" type="submit" [disabled]="loading">
+              <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
+              Add Key
+            </button>
+          </form>
+        </div>
+        <div id="two" style="display: none" class="card-body p-4 align-items-center">
+          <div class="text-center w-75 m-auto">
+            <h4 id="state" class="text-dark-50 text-center font-weight-bold"></h4>
+            <button mat-raised-button matRipple color="primary" type="submit" (click)="login()">
+              Login
+            </button>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-12 text-center">
+              <p class="text-muted">
+                Change private key?
+                <a (click)="switchWindows()" class="text-muted ml-1"><b>Enter private key</b></a>
+              </p>
+            </div>
+            <!-- end col-->
+          </div>
+          <!-- end row -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

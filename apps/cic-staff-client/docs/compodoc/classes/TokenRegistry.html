@@ -1,0 +1,736 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>CICADA</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	      <link rel="stylesheet" href="../styles/style.css">
+    </head>
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top visible-xs">
+            <a href="../" class="navbar-brand">CICADA</a>
+            <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="hidden-xs menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content class">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li>Classes</li>
+  <li>TokenRegistry</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="active">
+            <a href="#info" role="tab" id="info-tab" data-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li >
+            <a href="#source" role="tab" id="source-tab" data-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="c-info">
+        <p class="comment">
+            <h3>File</h3>
+        </p>
+        <p class="comment">
+            <code>src/app/_eth/token-registry.ts</code>
+        </p>
+
+            <p class="comment">
+                <h3>Description</h3>
+            </p>
+            <p class="comment">
+                <p>Provides an instance of the token registry contract.
+Allows querying of tokens that have been registered as valid tokens in the network.</p>
+
+            </p>
+
+
+
+            <p class="comment">
+                <h3>Example</h3>
+            </p>
+            <div class="io-description">
+            </div>
+
+            <section>
+    <h3 id="index">Index</h3>
+    <table class="table table-sm table-bordered index-table">
+        <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                <a href="#contract">contract</a>
+                            </li>
+                            <li>
+                                <a href="#contractAddress">contractAddress</a>
+                            </li>
+                            <li>
+                                <a href="#signerAddress">signerAddress</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                    <span class="modifier">Public</span>
+                                    <span class="modifier">Async</span>
+                                <a href="#addressOf">addressOf</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Public</span>
+                                    <span class="modifier">Async</span>
+                                <a href="#entry">entry</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Public</span>
+                                    <span class="modifier">Async</span>
+                                <a href="#totalTokens">totalTokens</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+            <section>
+    <h3 id="constructor">Constructor</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+<code>constructor(contractAddress: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, signerAddress?: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="26" class="link-to-prism">src/app/_eth/token-registry.ts:26</a></div>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                            <div class="io-description"><p>Create a connection to the deployed token registry contract.</p>
+</div>
+                            <div>
+                                    <b>Parameters :</b>
+                                    <table class="params">
+                                        <thead>
+                                            <tr>
+                                                <td>Name</td>
+                                                    <td>Type</td>
+                                                <td>Optional</td>
+                                                    <td>Description</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                                <tr>
+                                                        <td>contractAddress</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                        <td>
+                                                                <code><ul>
+<li>The deployed token registry contract&#39;s address.</li>
+</ul>
+</code>
+                                                        </td>
+                                                </tr>
+                                                <tr>
+                                                        <td>signerAddress</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            Yes
+                                                    </td>
+                                                    
+                                                        <td>
+                                                                <code><ul>
+<li>The account address of the account that deployed the token registry contract.</li>
+</ul>
+</code>
+                                                        </td>
+                                                </tr>
+                                        </tbody>
+                                    </table>
+                            </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</section>
+
+            <section>
+    
+        <h3 id="inputs">
+            Properties
+        </h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="contract"></a>
+                        <span class="name">
+                            <b>
+                            contract</b>
+                            <a href="#contract"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >any</a></code>
+
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="22" class="link-to-prism">src/app/_eth/token-registry.ts:22</a></div>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>The instance of the token registry contract. </p>
+</div>
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="contractAddress"></a>
+                        <span class="name">
+                            <b>
+                            contractAddress</b>
+                            <a href="#contractAddress"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="24" class="link-to-prism">src/app/_eth/token-registry.ts:24</a></div>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>The deployed token registry contract&#39;s address. </p>
+</div>
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="signerAddress"></a>
+                        <span class="name">
+                            <b>
+                            signerAddress</b>
+                            <a href="#signerAddress"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="26" class="link-to-prism">src/app/_eth/token-registry.ts:26</a></div>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>The account address of the account that deployed the token registry contract. </p>
+</div>
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+</section>
+
+            <section>
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="addressOf"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Public</span>
+                            <span class="modifier">Async</span>
+                            addressOf
+                        </b>
+                        <a href="#addressOf"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>addressOf(identifier: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="57"
+                            class="link-to-prism">src/app/_eth/token-registry.ts:57</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Returns the address of the token with a given identifier.</p>
+</div>
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                    <td>Description</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>identifier</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                    <td>
+                                        <ul>
+<li>The name or identifier of the token to be fetched from the token registry.</li>
+</ul>
+
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <b>Example :</b>
+                        <div>
+                            <pre class="line-numbers"><code class="language-html">Prints the address of the token with the identifier &amp;#39;sarafu&amp;#39;:&lt;/p&gt;
+&lt;p&gt;```typescript&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;console.log(await addressOf(&amp;#39;sarafu&amp;#39;));&lt;/li&gt;
+&lt;li&gt;```&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+                        </div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;string&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        <p>The address of the token assigned the specified identifier in the token registry.</p>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="entry"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Public</span>
+                            <span class="modifier">Async</span>
+                            entry
+                        </b>
+                        <a href="#entry"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>entry(serial: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="75"
+                            class="link-to-prism">src/app/_eth/token-registry.ts:75</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Returns the address of a token with the given serial in the token registry.</p>
+</div>
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                    <td>Description</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>serial</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                    <td>
+                                        <ul>
+<li>The serial number of the token to be fetched.</li>
+</ul>
+
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <b>Example :</b>
+                        <div>
+                            <pre class="line-numbers"><code class="language-html">Prints the address of the token with the serial &amp;#39;2&amp;#39;:&lt;/p&gt;
+&lt;p&gt;```typescript&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;console.log(await entry(2));&lt;/li&gt;
+&lt;li&gt;```&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+                        </div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;string&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        <p>The address of the token with the specified serial number.</p>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="totalTokens"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Public</span>
+                            <span class="modifier">Async</span>
+                            totalTokens
+                        </b>
+                        <a href="#totalTokens"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>totalTokens()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="91"
+                            class="link-to-prism">src/app/_eth/token-registry.ts:91</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Returns the total number of tokens that have been registered in the network.</p>
+</div>
+
+                    <div>
+                        <b>Example :</b>
+                        <div>
+                            <pre class="line-numbers"><code class="language-html">Prints the total number of registered tokens:&lt;/p&gt;
+&lt;p&gt;```typescript&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;console.log(await totalTokens());&lt;/li&gt;
+&lt;li&gt;```&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+                        </div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;number&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        <p>The total number of registered tokens.</p>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+
+
+
+
+    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="c-source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import Web3 from &#x27;web3&#x27;;
+
+// Application imports
+import { environment } from &#x27;@src/environments/environment&#x27;;
+import { Web3Service } from &#x27;@app/_services/web3.service&#x27;;
+
+/** Fetch the token registry contract&#x27;s ABI. */
+const abi: Array&lt;any&gt; &#x3D; require(&#x27;@src/assets/js/block-sync/data/TokenUniqueSymbolIndex.json&#x27;);
+/** Establish a connection to the blockchain network. */
+const web3: Web3 &#x3D; Web3Service.getInstance();
+
+/**
+ * Provides an instance of the token registry contract.
+ * Allows querying of tokens that have been registered as valid tokens in the network.
+ *
+ * @remarks
+ * This is our interface to the token registry contract.
+ */
+export class TokenRegistry {
+  /** The instance of the token registry contract. */
+  contract: any;
+  /** The deployed token registry contract&#x27;s address. */
+  contractAddress: string;
+  /** The account address of the account that deployed the token registry contract. */
+  signerAddress: string;
+
+  /**
+   * Create a connection to the deployed token registry contract.
+   *
+   * @param contractAddress - The deployed token registry contract&#x27;s address.
+   * @param signerAddress - The account address of the account that deployed the token registry contract.
+   */
+  constructor(contractAddress: string, signerAddress?: string) {
+    this.contractAddress &#x3D; contractAddress;
+    this.contract &#x3D; new web3.eth.Contract(abi, this.contractAddress);
+    if (signerAddress) {
+      this.signerAddress &#x3D; signerAddress;
+    } else {
+      this.signerAddress &#x3D; web3.eth.accounts[0];
+    }
+  }
+
+  /**
+   * Returns the address of the token with a given identifier.
+   *
+   * @async
+   * @example
+   * Prints the address of the token with the identifier &#x27;sarafu&#x27;:
+   * &#x60;&#x60;&#x60;typescript
+   * console.log(await addressOf(&#x27;sarafu&#x27;));
+   * &#x60;&#x60;&#x60;
+   *
+   * @param identifier - The name or identifier of the token to be fetched from the token registry.
+   * @returns The address of the token assigned the specified identifier in the token registry.
+   */
+  public async addressOf(identifier: string): Promise&lt;string&gt; {
+    const id: string &#x3D; web3.eth.abi.encodeParameter(&#x27;bytes32&#x27;, web3.utils.toHex(identifier));
+    return await this.contract.methods.addressOf(id).call();
+  }
+
+  /**
+   * Returns the address of a token with the given serial in the token registry.
+   *
+   * @async
+   * @example
+   * Prints the address of the token with the serial &#x27;2&#x27;:
+   * &#x60;&#x60;&#x60;typescript
+   * console.log(await entry(2));
+   * &#x60;&#x60;&#x60;
+   *
+   * @param serial - The serial number of the token to be fetched.
+   * @return The address of the token with the specified serial number.
+   */
+  public async entry(serial: number): Promise&lt;string&gt; {
+    return await this.contract.methods.entry(serial).call();
+  }
+
+  /**
+   * Returns the total number of tokens that have been registered in the network.
+   *
+   * @async
+   * @example
+   * Prints the total number of registered tokens:
+   * &#x60;&#x60;&#x60;typescript
+   * console.log(await totalTokens());
+   * &#x60;&#x60;&#x60;
+   *
+   * @returns The total number of registered tokens.
+   */
+  public async totalTokens(): Promise&lt;number&gt; {
+    return await this.contract.methods.entryCount().call();
+  }
+}
+</code></pre>
+    </div>
+</div>
+
+
+
+                   
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> result-matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'class';
+            var COMPODOC_CURRENT_PAGE_URL = 'TokenRegistry.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+       <!-- Required to polyfill modern browsers as code is ES5 for IE... -->
+       <script src="../js/libs/custom-elements-es5-adapter.js" charset="utf-8" defer></script>
+       <script src="../js/menu-wc.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+       <script src="../js/libs/zepto.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

@@ -1,0 +1,866 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>CICADA</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	      <link rel="stylesheet" href="../styles/style.css">
+    </head>
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top visible-xs">
+            <a href="../" class="navbar-brand">CICADA</a>
+            <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="hidden-xs menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content class">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li>Classes</li>
+  <li>AccountIndex</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="active">
+            <a href="#info" role="tab" id="info-tab" data-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li >
+            <a href="#source" role="tab" id="source-tab" data-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="c-info">
+        <p class="comment">
+            <h3>File</h3>
+        </p>
+        <p class="comment">
+            <code>src/app/_eth/accountIndex.ts</code>
+        </p>
+
+            <p class="comment">
+                <h3>Description</h3>
+            </p>
+            <p class="comment">
+                <p>Provides an instance of the accounts registry contract.
+Allows querying of accounts that have been registered as valid accounts in the network.</p>
+
+            </p>
+
+
+
+            <p class="comment">
+                <h3>Example</h3>
+            </p>
+            <div class="io-description">
+            </div>
+
+            <section>
+    <h3 id="index">Index</h3>
+    <table class="table table-sm table-bordered index-table">
+        <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                <a href="#contract">contract</a>
+                            </li>
+                            <li>
+                                <a href="#contractAddress">contractAddress</a>
+                            </li>
+                            <li>
+                                <a href="#signerAddress">signerAddress</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                    <span class="modifier">Public</span>
+                                    <span class="modifier">Async</span>
+                                <a href="#addToAccountRegistry">addToAccountRegistry</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Public</span>
+                                    <span class="modifier">Async</span>
+                                <a href="#haveAccount">haveAccount</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Public</span>
+                                    <span class="modifier">Async</span>
+                                <a href="#last">last</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Public</span>
+                                    <span class="modifier">Async</span>
+                                <a href="#totalAccounts">totalAccounts</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+            <section>
+    <h3 id="constructor">Constructor</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+<code>constructor(contractAddress: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, signerAddress?: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="26" class="link-to-prism">src/app/_eth/accountIndex.ts:26</a></div>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                            <div class="io-description"><p>Create a connection to the deployed account registry contract.</p>
+</div>
+                            <div>
+                                    <b>Parameters :</b>
+                                    <table class="params">
+                                        <thead>
+                                            <tr>
+                                                <td>Name</td>
+                                                    <td>Type</td>
+                                                <td>Optional</td>
+                                                    <td>Description</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                                <tr>
+                                                        <td>contractAddress</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                        <td>
+                                                                <code><ul>
+<li>The deployed account registry contract&#39;s address.</li>
+</ul>
+</code>
+                                                        </td>
+                                                </tr>
+                                                <tr>
+                                                        <td>signerAddress</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            Yes
+                                                    </td>
+                                                    
+                                                        <td>
+                                                                <code><ul>
+<li>The account address of the account that deployed the account registry contract.</li>
+</ul>
+</code>
+                                                        </td>
+                                                </tr>
+                                        </tbody>
+                                    </table>
+                            </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</section>
+
+            <section>
+    
+        <h3 id="inputs">
+            Properties
+        </h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="contract"></a>
+                        <span class="name">
+                            <b>
+                            contract</b>
+                            <a href="#contract"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >any</a></code>
+
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="22" class="link-to-prism">src/app/_eth/accountIndex.ts:22</a></div>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>The instance of the account registry contract. </p>
+</div>
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="contractAddress"></a>
+                        <span class="name">
+                            <b>
+                            contractAddress</b>
+                            <a href="#contractAddress"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="24" class="link-to-prism">src/app/_eth/accountIndex.ts:24</a></div>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>The deployed account registry contract&#39;s address. </p>
+</div>
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="signerAddress"></a>
+                        <span class="name">
+                            <b>
+                            signerAddress</b>
+                            <a href="#signerAddress"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="26" class="link-to-prism">src/app/_eth/accountIndex.ts:26</a></div>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <div class="io-description"><p>The account address of the account that deployed the account registry contract. </p>
+</div>
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+</section>
+
+            <section>
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="addToAccountRegistry"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Public</span>
+                            <span class="modifier">Async</span>
+                            addToAccountRegistry
+                        </b>
+                        <a href="#addToAccountRegistry"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>addToAccountRegistry(address: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="58"
+                            class="link-to-prism">src/app/_eth/accountIndex.ts:58</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Registers an account to the accounts registry.
+Requires availability of the signer address.</p>
+</div>
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                    <td>Description</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>address</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                    <td>
+                                        <ul>
+<li>The account address to be registered to the accounts registry contract.</li>
+</ul>
+
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <b>Example :</b>
+                        <div>
+                            <pre class="line-numbers"><code class="language-html">Prints &amp;quot;true&amp;quot; for registration of &amp;#39;0xc0ffee254729296a45a3885639AC7E10F9d54979&amp;#39;:&lt;/p&gt;
+&lt;p&gt;```typescript&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;console.log(await addToAccountRegistry(&amp;#39;0xc0ffee254729296a45a3885639AC7E10F9d54979&amp;#39;));&lt;/li&gt;
+&lt;li&gt;```&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+                        </div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;boolean&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        <p>true - If registration is successful or account had already been registered.</p>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="haveAccount"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Public</span>
+                            <span class="modifier">Async</span>
+                            haveAccount
+                        </b>
+                        <a href="#haveAccount"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>haveAccount(address: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="79"
+                            class="link-to-prism">src/app/_eth/accountIndex.ts:79</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Checks whether a specific account address has been registered in the accounts registry.
+Returns &quot;true&quot; for available and &quot;false&quot; otherwise.</p>
+</div>
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                    <td>Description</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>address</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                    <td>
+                                        <ul>
+<li>The account address to be validated.</li>
+</ul>
+
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <b>Example :</b>
+                        <div>
+                            <pre class="line-numbers"><code class="language-html">Prints &amp;quot;true&amp;quot; or &amp;quot;false&amp;quot; depending on whether &amp;#39;0xc0ffee254729296a45a3885639AC7E10F9d54979&amp;#39; has been registered:&lt;/p&gt;
+&lt;p&gt;```typescript&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;console.log(await haveAccount(&amp;#39;0xc0ffee254729296a45a3885639AC7E10F9d54979&amp;#39;));&lt;/li&gt;
+&lt;li&gt;```&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+                        </div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;boolean&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        <p>true - If the address has been registered in the accounts registry.</p>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="last"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Public</span>
+                            <span class="modifier">Async</span>
+                            last
+                        </b>
+                        <a href="#last"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>last(numberOfAccounts: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="96"
+                            class="link-to-prism">src/app/_eth/accountIndex.ts:96</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Returns a specified number of the most recently registered accounts.</p>
+</div>
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                    <td>Description</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>numberOfAccounts</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                    <td>
+                                        <ul>
+<li>The number of accounts to return from the accounts registry.</li>
+</ul>
+
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <b>Example :</b>
+                        <div>
+                            <pre class="line-numbers"><code class="language-html">Prints an array of accounts:&lt;/p&gt;
+&lt;p&gt;```typescript&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;console.log(await last(5));&lt;/li&gt;
+&lt;li&gt;```&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+                        </div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;Array&lt;string&gt;&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        <p>An array of registered account addresses.</p>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="totalAccounts"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Public</span>
+                            <span class="modifier">Async</span>
+                            totalAccounts
+                        </b>
+                        <a href="#totalAccounts"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>totalAccounts()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="122"
+                            class="link-to-prism">src/app/_eth/accountIndex.ts:122</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Returns the total number of accounts that have been registered in the network.</p>
+</div>
+
+                    <div>
+                        <b>Example :</b>
+                        <div>
+                            <pre class="line-numbers"><code class="language-html">Prints the total number of registered accounts:&lt;/p&gt;
+&lt;p&gt;```typescript&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;console.log(await totalAccounts());&lt;/li&gt;
+&lt;li&gt;```&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+                        </div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;number&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        <p>The total number of registered accounts.</p>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+
+
+
+
+    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="c-source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import Web3 from &#x27;web3&#x27;;
+
+// Application imports
+import { Web3Service } from &#x27;@app/_services/web3.service&#x27;;
+import { environment } from &#x27;@src/environments/environment&#x27;;
+
+/** Fetch the account registry contract&#x27;s ABI. */
+const abi: Array&lt;any&gt; &#x3D; require(&#x27;@src/assets/js/block-sync/data/AccountsIndex.json&#x27;);
+/** Establish a connection to the blockchain network. */
+const web3: Web3 &#x3D; Web3Service.getInstance();
+
+/**
+ * Provides an instance of the accounts registry contract.
+ * Allows querying of accounts that have been registered as valid accounts in the network.
+ *
+ * @remarks
+ * This is our interface to the accounts registry contract.
+ */
+export class AccountIndex {
+  /** The instance of the account registry contract. */
+  contract: any;
+  /** The deployed account registry contract&#x27;s address. */
+  contractAddress: string;
+  /** The account address of the account that deployed the account registry contract. */
+  signerAddress: string;
+
+  /**
+   * Create a connection to the deployed account registry contract.
+   *
+   * @param contractAddress - The deployed account registry contract&#x27;s address.
+   * @param signerAddress - The account address of the account that deployed the account registry contract.
+   */
+  constructor(contractAddress: string, signerAddress?: string) {
+    this.contractAddress &#x3D; contractAddress;
+    this.contract &#x3D; new web3.eth.Contract(abi, this.contractAddress);
+    if (signerAddress) {
+      this.signerAddress &#x3D; signerAddress;
+    } else {
+      this.signerAddress &#x3D; web3.eth.accounts[0];
+    }
+  }
+
+  /**
+   * Registers an account to the accounts registry.
+   * Requires availability of the signer address.
+   *
+   * @async
+   * @example
+   * Prints &quot;true&quot; for registration of &#x27;0xc0ffee254729296a45a3885639AC7E10F9d54979&#x27;:
+   * &#x60;&#x60;&#x60;typescript
+   * console.log(await addToAccountRegistry(&#x27;0xc0ffee254729296a45a3885639AC7E10F9d54979&#x27;));
+   * &#x60;&#x60;&#x60;
+   *
+   * @param address - The account address to be registered to the accounts registry contract.
+   * @returns true - If registration is successful or account had already been registered.
+   */
+  public async addToAccountRegistry(address: string): Promise&lt;boolean&gt; {
+    if (!(await this.haveAccount(address))) {
+      return await this.contract.methods.add(address).send({ from: this.signerAddress });
+    }
+    return true;
+  }
+
+  /**
+   * Checks whether a specific account address has been registered in the accounts registry.
+   * Returns &quot;true&quot; for available and &quot;false&quot; otherwise.
+   *
+   * @async
+   * @example
+   * Prints &quot;true&quot; or &quot;false&quot; depending on whether &#x27;0xc0ffee254729296a45a3885639AC7E10F9d54979&#x27; has been registered:
+   * &#x60;&#x60;&#x60;typescript
+   * console.log(await haveAccount(&#x27;0xc0ffee254729296a45a3885639AC7E10F9d54979&#x27;));
+   * &#x60;&#x60;&#x60;
+   *
+   * @param address - The account address to be validated.
+   * @returns true - If the address has been registered in the accounts registry.
+   */
+  public async haveAccount(address: string): Promise&lt;boolean&gt; {
+    return (await this.contract.methods.have(address).call()) !&#x3D;&#x3D; 0;
+  }
+
+  /**
+   * Returns a specified number of the most recently registered accounts.
+   *
+   * @async
+   * @example
+   * Prints an array of accounts:
+   * &#x60;&#x60;&#x60;typescript
+   * console.log(await last(5));
+   * &#x60;&#x60;&#x60;
+   *
+   * @param numberOfAccounts - The number of accounts to return from the accounts registry.
+   * @returns An array of registered account addresses.
+   */
+  public async last(numberOfAccounts: number): Promise&lt;Array&lt;string&gt;&gt; {
+    const count: number &#x3D; await this.totalAccounts();
+    let lowest: number &#x3D; count - numberOfAccounts;
+    if (lowest &lt; 0) {
+      lowest &#x3D; 0;
+    }
+    const accounts: Array&lt;string&gt; &#x3D; [];
+    for (let i &#x3D; count - 1; i &gt;&#x3D; lowest; i--) {
+      const account: string &#x3D; await this.contract.methods.entry(i).call();
+      accounts.push(account);
+    }
+    return accounts;
+  }
+
+  /**
+   * Returns the total number of accounts that have been registered in the network.
+   *
+   * @async
+   * @example
+   * Prints the total number of registered accounts:
+   * &#x60;&#x60;&#x60;typescript
+   * console.log(await totalAccounts());
+   * &#x60;&#x60;&#x60;
+   *
+   * @returns The total number of registered accounts.
+   */
+  public async totalAccounts(): Promise&lt;number&gt; {
+    return await this.contract.methods.entryCount().call();
+  }
+}
+</code></pre>
+    </div>
+</div>
+
+
+
+                   
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> result-matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'class';
+            var COMPODOC_CURRENT_PAGE_URL = 'AccountIndex.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+       <!-- Required to polyfill modern browsers as code is ES5 for IE... -->
+       <script src="../js/libs/custom-elements-es5-adapter.js" charset="utf-8" defer></script>
+       <script src="../js/menu-wc.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+       <script src="../js/libs/zepto.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

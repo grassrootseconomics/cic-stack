@@ -1,0 +1,101 @@
+<!-- Begin page -->
+<div class="wrapper">
+  <app-sidebar></app-sidebar>
+
+  <!-- ============================================================== -->
+  <!-- Start Page Content here -->
+  <!-- ============================================================== -->
+
+  <div id="content">
+    <app-topbar></app-topbar>
+    <!-- Start Content-->
+    <div class="container-fluid" appMenuSelection>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a routerLink="/home">Home</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Tokens</li>
+        </ol>
+      </nav>
+      <div class="card">
+        <mat-card-title class="card-header">
+          <div class="row">
+            Tokens
+            <button
+              mat-raised-button
+              color="primary"
+              type="button"
+              class="btn btn-outline-primary ml-auto mr-2"
+              (click)="downloadCsv()"
+            >
+              EXPORT
+            </button>
+          </div>
+        </mat-card-title>
+        <div class="card-body">
+          <app-token-details [token]="token" (closeWindow)="token = $event"></app-token-details>
+
+          <mat-form-field appearance="outline">
+            <mat-label> Filter </mat-label>
+            <input
+              matInput
+              type="text"
+              (keyup)="doFilter($event.target.value)"
+              placeholder="Filter"
+            />
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <div *ngIf="loading">
+            <h2 class="text-center"><strong>Loading Tokens!</strong></h2>
+            <mat-progress-bar [mode]="'query'"></mat-progress-bar>
+          </div>
+
+          <mat-table
+            class="mat-elevation-z10 table-responsive"
+            [dataSource]="dataSource"
+            matSort
+            matSortDirection="asc"
+            matSortDisableClear
+          >
+            <ng-container matColumnDef="name">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Name </mat-header-cell>
+              <mat-cell *matCellDef="let token"> {{ token.name }} </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="symbol">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Symbol </mat-header-cell>
+              <mat-cell *matCellDef="let token"> {{ token.symbol }} </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="address">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Address </mat-header-cell>
+              <mat-cell *matCellDef="let token"> {{ token.address }} </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="supply">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> Supply </mat-header-cell>
+              <mat-cell *matCellDef="let token"> {{ token.supply | tokenRatio }} </mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="columnsToDisplay"></mat-header-row>
+            <mat-row
+              *matRowDef="let token; columns: columnsToDisplay"
+              (click)="viewToken(token)"
+              matRipple
+            ></mat-row>
+          </mat-table>
+
+          <mat-paginator
+            [pageSize]="5"
+            [pageSizeOptions]="[5, 10, 25, 100]"
+            showFirstLastButtons
+          ></mat-paginator>
+        </div>
+      </div>
+    </div>
+    <app-footer appMenuSelection></app-footer>
+  </div>
+  <!-- ============================================================== -->
+  <!-- End Page content -->
+  <!-- ============================================================== -->
+</div>

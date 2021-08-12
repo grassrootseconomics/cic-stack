@@ -1,0 +1,38 @@
+<!-- Begin page -->
+<div class="wrapper">
+  <app-sidebar></app-sidebar>
+
+  <!-- ============================================================== -->
+  <!-- Start Page Content here -->
+  <!-- ============================================================== -->
+
+  <div id="content">
+    <app-topbar></app-topbar>
+    <!-- Start Content-->
+    <div class="container-fluid" appMenuSelection>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item active" aria-current="page">Home</li>
+        </ol>
+      </nav>
+      <div class="embed-responsive embed-responsive-16by9">
+        <iframe
+          class="embed-responsive-item"
+          [src]="url | safe"
+          allow="fullscreen"
+          loading="lazy"
+          title="Community inclusion currencies dashboard"
+          referrerpolicy="no-referrer"
+        >
+          <p>
+            <a href="{{ url }}"> Your browser does not support iframes. </a>
+          </p>
+        </iframe>
+      </div>
+    </div>
+    <app-footer appMenuSelection></app-footer>
+  </div>
+  <!-- ============================================================== -->
+  <!-- End Page content -->
+  <!-- ============================================================== -->
+</div>

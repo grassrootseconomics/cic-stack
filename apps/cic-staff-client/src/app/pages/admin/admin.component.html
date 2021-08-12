@@ -1,0 +1,155 @@
+<!-- Begin page -->
+<div class="wrapper">
+  <app-sidebar></app-sidebar>
+
+  <!-- ============================================================== -->
+  <!-- Start Page Content here -->
+  <!-- ============================================================== -->
+
+  <div id="content">
+    <app-topbar></app-topbar>
+    <!-- Start Content-->
+    <div class="container-fluid" appMenuSelection>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a routerLink="/home">Home</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Admin</li>
+        </ol>
+      </nav>
+      <div class="card">
+        <mat-card-title class="card-header">
+          <div class="row">
+            Actions
+            <button
+              mat-raised-button
+              color="primary"
+              type="button"
+              class="btn btn-outline-primary ml-auto mr-2"
+              (click)="downloadCsv()"
+            >
+              EXPORT
+            </button>
+          </div>
+        </mat-card-title>
+        <div class="card-body">
+          <mat-form-field appearance="outline">
+            <mat-label> Filter </mat-label>
+            <input
+              matInput
+              type="text"
+              (keyup)="doFilter($event.target.value)"
+              placeholder="Filter"
+            />
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <div *ngIf="loading">
+            <h2 class="text-center"><strong>Loading Actions!</strong></h2>
+            <mat-progress-bar [mode]="'query'"></mat-progress-bar>
+          </div>
+
+          <mat-table class="mat-elevation-z10" [dataSource]="dataSource" multiTemplateDataRows>
+            <!-- Expand Column -->
+            <ng-container matColumnDef="expand">
+              <mat-header-cell *matHeaderCellDef> Expand </mat-header-cell>
+              <mat-cell *matCellDef="let element" (click)="expandCollapse(element)">
+                <span *ngIf="!element.isExpanded" class="signs"> + </span>
+                <span *ngIf="element.isExpanded" class="signs"> - </span>
+              </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="user">
+              <mat-header-cell *matHeaderCellDef> NAME </mat-header-cell>
+              <mat-cell *matCellDef="let action"> {{ action.user }} </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="role">
+              <mat-header-cell *matHeaderCellDef> ROLE </mat-header-cell>
+              <mat-cell *matCellDef="let action"> {{ action.role }} </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="action">
+              <mat-header-cell *matHeaderCellDef> ACTION </mat-header-cell>
+              <mat-cell *matCellDef="let action"> {{ action.action }} </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <mat-header-cell *matHeaderCellDef> STATUS </mat-header-cell>
+              <mat-cell *matCellDef="let action">
+                <span *ngIf="action.approval == true" class="badge badge-success badge-pill">
+                  {{ approvalStatus(action.approval) }}
+                </span>
+                <span *ngIf="action.approval == false" class="badge badge-danger badge-pill">
+                  {{ approvalStatus(action.approval) }}
+                </span>
+              </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="approve">
+              <mat-header-cell *matHeaderCellDef> APPROVE </mat-header-cell>
+              <mat-cell *matCellDef="let action">
+                <button
+                  mat-raised-button
+                  color="primary"
+                  *ngIf="!action.approval"
+                  class="btn btn-outline-success"
+                  (click)="approveAction(action)"
+                >
+                  Approve
+                </button>
+                <button
+                  mat-raised-button
+                  color="warn"
+                  *ngIf="action.approval"
+                  class="btn btn-outline-danger"
+                  (click)="disapproveAction(action)"
+                >
+                  Disapprove
+                </button>
+              </mat-cell>
+            </ng-container>
+
+            <!-- Expanded Content Column - The detail row is made up of this one column -->
+            <ng-container matColumnDef="expandedDetail">
+              <mat-cell *matCellDef="let action">
+                <div>
+                  <span><strong>Staff Name:</strong> {{ action.user }}</span
+                  ><br />
+                  <span><strong>Role:</strong> {{ action.role }}</span
+                  ><br />
+                  <span><strong>Action Details:</strong> {{ action.action }}</span
+                  ><br />
+                  <span><strong>Approval Status:</strong> {{ action.approval }}</span
+                  ><br />
+                </div>
+              </mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+            <mat-row
+              *matRowDef="let row; columns: displayedColumns"
+              matRipple
+              class="element-row"
+              [class.expanded]="row.isExpanded"
+            ></mat-row>
+            <mat-row
+              *matRowDef="let row; columns: ['expandedDetail']"
+              [@detailExpand]="row.isExpanded == true ? 'expanded' : 'collapsed'"
+              style="overflow: hidden"
+            ></mat-row>
+          </mat-table>
+
+          <mat-paginator
+            [pageSize]="10"
+            [pageSizeOptions]="[10, 20, 50, 100]"
+            showFirstLastButtons
+          ></mat-paginator>
+        </div>
+      </div>
+    </div>
+    <app-footer appMenuSelection></app-footer>
+  </div>
+  <!-- ============================================================== -->
+  <!-- End Page content -->
+  <!-- ============================================================== -->
+</div>

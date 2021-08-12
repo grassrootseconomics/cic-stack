@@ -1,0 +1,1391 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>CICADA</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	      <link rel="stylesheet" href="../styles/style.css">
+    </head>
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top visible-xs">
+            <a href="../" class="navbar-brand">CICADA</a>
+            <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="hidden-xs menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content injectable">
+                   <div class="content-data">
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li>Injectables</li>
+  <li>TransactionService</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="active">
+            <a href="#info" role="tab" id="info-tab" data-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li >
+            <a href="#source" role="tab" id="source-tab" data-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="c-info">
+        <p class="comment">
+            <h3>File</h3>
+        </p>
+        <p class="comment">
+            <code>src/app/_services/transaction.service.ts</code>
+        </p>
+
+
+
+
+            <section>
+    <h3 id="index">Index</h3>
+    <table class="table table-sm table-bordered index-table">
+        <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                <a href="#registry">registry</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Private</span>
+                                <a href="#transactionList">transactionList</a>
+                            </li>
+                            <li>
+                                <a href="#transactions">transactions</a>
+                            </li>
+                            <li>
+                                <a href="#transactionsSubject">transactionsSubject</a>
+                            </li>
+                            <li>
+                                <a href="#userInfo">userInfo</a>
+                            </li>
+                            <li>
+                                <a href="#web3">web3</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                <a href="#addTransaction">addTransaction</a>
+                            </li>
+                            <li>
+                                <a href="#getAccountInfo">getAccountInfo</a>
+                            </li>
+                            <li>
+                                <a href="#getAddressTransactions">getAddressTransactions</a>
+                            </li>
+                            <li>
+                                <a href="#getAllTransactions">getAllTransactions</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#init">init</a>
+                            </li>
+                            <li>
+                                <a href="#resetTransactionsList">resetTransactionsList</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#setConversion">setConversion</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#setTransaction">setTransaction</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#transferRequest">transferRequest</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+            <section>
+    <h3 id="constructor">Constructor</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+<code>constructor(httpClient: <a href="https://angular.io/api/common/http/HttpClient" target="_blank">HttpClient</a>, authService: <a href="../injectables/AuthService.html">AuthService</a>, userService: <a href="../injectables/UserService.html">UserService</a>, loggingService: <a href="../injectables/LoggingService.html">LoggingService</a>)</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="33" class="link-to-prism">src/app/_services/transaction.service.ts:33</a></div>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                            <div>
+                                    <b>Parameters :</b>
+                                    <table class="params">
+                                        <thead>
+                                            <tr>
+                                                <td>Name</td>
+                                                    <td>Type</td>
+                                                <td>Optional</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                                <tr>
+                                                        <td>httpClient</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="https://angular.io/api/common/http/HttpClient" target="_blank" >HttpClient</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                </tr>
+                                                <tr>
+                                                        <td>authService</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="../injectables/AuthService.html" target="_self" >AuthService</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                </tr>
+                                                <tr>
+                                                        <td>userService</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="../injectables/UserService.html" target="_self" >UserService</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                </tr>
+                                                <tr>
+                                                        <td>loggingService</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="../injectables/LoggingService.html" target="_self" >LoggingService</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                </tr>
+                                        </tbody>
+                                    </table>
+                            </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</section>
+
+            <section>
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="addTransaction"></a>
+                    <span class="name">
+                        <b>
+                            addTransaction
+                        </b>
+                        <a href="#addTransaction"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>addTransaction(transaction, cacheSize: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="143"
+                            class="link-to-prism">src/app/_services/transaction.service.ts:143</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>transaction</td>
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>cacheSize</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getAccountInfo"></a>
+                    <span class="name">
+                        <b>
+                            getAccountInfo
+                        </b>
+                        <a href="#getAccountInfo"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getAccountInfo(account: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, cacheSize: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="163"
+                            class="link-to-prism">src/app/_services/transaction.service.ts:163</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                    <td>Default value</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>account</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                </tr>
+                                <tr>
+                                    <td>cacheSize</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+                                    <td>
+                                        <code>100</code>
+                                    </td>
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >any</a></code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getAddressTransactions"></a>
+                    <span class="name">
+                        <b>
+                            getAddressTransactions
+                        </b>
+                        <a href="#getAddressTransactions"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getAddressTransactions(address: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, offset: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>, limit: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="54"
+                            class="link-to-prism">src/app/_services/transaction.service.ts:54</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>address</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>offset</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>limit</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Observable&lt;any&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getAllTransactions"></a>
+                    <span class="name">
+                        <b>
+                            getAllTransactions
+                        </b>
+                        <a href="#getAllTransactions"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getAllTransactions(offset: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>, limit: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="50"
+                            class="link-to-prism">src/app/_services/transaction.service.ts:50</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>offset</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>limit</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Observable&lt;any&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="init"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Async</span>
+                            init
+                        </b>
+                        <a href="#init"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>init()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="44"
+                            class="link-to-prism">src/app/_services/transaction.service.ts:44</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;void&gt;</code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="resetTransactionsList"></a>
+                    <span class="name">
+                        <b>
+                            resetTransactionsList
+                        </b>
+                        <a href="#resetTransactionsList"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>resetTransactionsList()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="158"
+                            class="link-to-prism">src/app/_services/transaction.service.ts:158</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="setConversion"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Async</span>
+                            setConversion
+                        </b>
+                        <a href="#setConversion"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>setConversion(conversion, cacheSize)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="110"
+                            class="link-to-prism">src/app/_services/transaction.service.ts:110</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>conversion</td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>cacheSize</td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;void&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="setTransaction"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Async</span>
+                            setTransaction
+                        </b>
+                        <a href="#setTransaction"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>setTransaction(transaction, cacheSize: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="58"
+                            class="link-to-prism">src/app/_services/transaction.service.ts:58</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>transaction</td>
+                                    <td>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>cacheSize</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;void&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="transferRequest"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Async</span>
+                            transferRequest
+                        </b>
+                        <a href="#transferRequest"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>transferRequest(tokenAddress: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, senderAddress: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, recipientAddress: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, value: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="170"
+                            class="link-to-prism">src/app/_services/transaction.service.ts:170</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>tokenAddress</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>senderAddress</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>recipientAddress</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>value</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;any&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+            <section>
+    
+        <h3 id="inputs">
+            Properties
+        </h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="registry"></a>
+                        <span class="name">
+                            <b>
+                            registry</b>
+                            <a href="#registry"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>    <code>CICRegistry</code>
+
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="33" class="link-to-prism">src/app/_services/transaction.service.ts:33</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="transactionList"></a>
+                        <span class="name">
+                            <b>
+                                <span class="modifier">Private</span>
+                            transactionList</b>
+                            <a href="#transactionList"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>new BehaviorSubject&lt;any[]&gt;(this.transactions)</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="29" class="link-to-prism">src/app/_services/transaction.service.ts:29</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="transactions"></a>
+                        <span class="name">
+                            <b>
+                            transactions</b>
+                            <a href="#transactions"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>    <code>any[]</code>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>[]</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="28" class="link-to-prism">src/app/_services/transaction.service.ts:28</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="transactionsSubject"></a>
+                        <span class="name">
+                            <b>
+                            transactionsSubject</b>
+                            <a href="#transactionsSubject"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>this.transactionList.asObservable()</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="30" class="link-to-prism">src/app/_services/transaction.service.ts:30</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="userInfo"></a>
+                        <span class="name">
+                            <b>
+                            userInfo</b>
+                            <a href="#userInfo"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >any</a></code>
+
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="31" class="link-to-prism">src/app/_services/transaction.service.ts:31</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="web3"></a>
+                        <span class="name">
+                            <b>
+                            web3</b>
+                            <a href="#web3"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>    <code>Web3</code>
+
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="32" class="link-to-prism">src/app/_services/transaction.service.ts:32</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+</section>
+
+    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="c-source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Injectable } from &#x27;@angular/core&#x27;;
+import { first } from &#x27;rxjs/operators&#x27;;
+import { BehaviorSubject, Observable } from &#x27;rxjs&#x27;;
+import { environment } from &#x27;@src/environments/environment&#x27;;
+import { Envelope, User } from &#x27;cic-client-meta&#x27;;
+import { UserService } from &#x27;@app/_services/user.service&#x27;;
+import { Keccak } from &#x27;sha3&#x27;;
+import { utils } from &#x27;ethers&#x27;;
+import { add0x, fromHex, strip0x, toHex } from &#x27;@src/assets/js/ethtx/dist/hex&#x27;;
+import { Tx } from &#x27;@src/assets/js/ethtx/dist&#x27;;
+import { toValue } from &#x27;@src/assets/js/ethtx/dist/tx&#x27;;
+import * as secp256k1 from &#x27;secp256k1&#x27;;
+import { AuthService } from &#x27;@app/_services/auth.service&#x27;;
+import { defaultAccount } from &#x27;@app/_models&#x27;;
+import { LoggingService } from &#x27;@app/_services/logging.service&#x27;;
+import { HttpClient } from &#x27;@angular/common/http&#x27;;
+import { CICRegistry } from &#x27;@cicnet/cic-client&#x27;;
+import { RegistryService } from &#x27;@app/_services/registry.service&#x27;;
+import Web3 from &#x27;web3&#x27;;
+import { Web3Service } from &#x27;@app/_services/web3.service&#x27;;
+import { KeystoreService } from &#x27;@app/_services/keystore.service&#x27;;
+const vCard &#x3D; require(&#x27;vcard-parser&#x27;);
+
+@Injectable({
+  providedIn: &#x27;root&#x27;,
+})
+export class TransactionService {
+  transactions: any[] &#x3D; [];
+  private transactionList &#x3D; new BehaviorSubject&lt;any[]&gt;(this.transactions);
+  transactionsSubject &#x3D; this.transactionList.asObservable();
+  userInfo: any;
+  web3: Web3;
+  registry: CICRegistry;
+
+  constructor(
+    private httpClient: HttpClient,
+    private authService: AuthService,
+    private userService: UserService,
+    private loggingService: LoggingService
+  ) {
+    this.web3 &#x3D; Web3Service.getInstance();
+  }
+
+  async init(): Promise&lt;void&gt; {
+    await this.authService.init();
+    await this.userService.init();
+    this.registry &#x3D; await RegistryService.getRegistry();
+  }
+
+  getAllTransactions(offset: number, limit: number): Observable&lt;any&gt; {
+    return this.httpClient.get(&#x60;${environment.cicCacheUrl}/tx/${offset}/${limit}&#x60;);
+  }
+
+  getAddressTransactions(address: string, offset: number, limit: number): Observable&lt;any&gt; {
+    return this.httpClient.get(&#x60;${environment.cicCacheUrl}/tx/user/${address}/${offset}/${limit}&#x60;);
+  }
+
+  async setTransaction(transaction, cacheSize: number): Promise&lt;void&gt; {
+    if (this.transactions.find((cachedTx) &#x3D;&gt; cachedTx.tx.txHash &#x3D;&#x3D;&#x3D; transaction.tx.txHash)) {
+      return;
+    }
+    transaction.value &#x3D; Number(transaction.value);
+    transaction.type &#x3D; &#x27;transaction&#x27;;
+    try {
+      if (transaction.from &#x3D;&#x3D;&#x3D; environment.trustedDeclaratorAddress) {
+        transaction.sender &#x3D; defaultAccount;
+        this.userService.addAccount(defaultAccount, cacheSize);
+      } else {
+        this.userService
+          .getAccountDetailsFromMeta(await User.toKey(transaction.from))
+          .pipe(first())
+          .subscribe(
+            (res) &#x3D;&gt; {
+              transaction.sender &#x3D; this.getAccountInfo(res, cacheSize);
+            },
+            (error) &#x3D;&gt; {
+              this.loggingService.sendErrorLevelMessage(
+                &#x60;Account with address ${transaction.from} not found&#x60;,
+                this,
+                { error }
+              );
+            }
+          );
+      }
+      if (transaction.to &#x3D;&#x3D;&#x3D; environment.trustedDeclaratorAddress) {
+        transaction.recipient &#x3D; defaultAccount;
+        this.userService.addAccount(defaultAccount, cacheSize);
+      } else {
+        this.userService
+          .getAccountDetailsFromMeta(await User.toKey(transaction.to))
+          .pipe(first())
+          .subscribe(
+            (res) &#x3D;&gt; {
+              transaction.recipient &#x3D; this.getAccountInfo(res, cacheSize);
+            },
+            (error) &#x3D;&gt; {
+              this.loggingService.sendErrorLevelMessage(
+                &#x60;Account with address ${transaction.to} not found&#x60;,
+                this,
+                { error }
+              );
+            }
+          );
+      }
+    } finally {
+      this.addTransaction(transaction, cacheSize);
+    }
+  }
+
+  async setConversion(conversion, cacheSize): Promise&lt;void&gt; {
+    if (this.transactions.find((cachedTx) &#x3D;&gt; cachedTx.tx.txHash &#x3D;&#x3D;&#x3D; conversion.tx.txHash)) {
+      return;
+    }
+    conversion.type &#x3D; &#x27;conversion&#x27;;
+    conversion.fromValue &#x3D; Number(conversion.fromValue);
+    conversion.toValue &#x3D; Number(conversion.toValue);
+    try {
+      if (conversion.trader &#x3D;&#x3D;&#x3D; environment.trustedDeclaratorAddress) {
+        conversion.sender &#x3D; conversion.recipient &#x3D; defaultAccount;
+        this.userService.addAccount(defaultAccount, cacheSize);
+      } else {
+        this.userService
+          .getAccountDetailsFromMeta(await User.toKey(conversion.trader))
+          .pipe(first())
+          .subscribe(
+            (res) &#x3D;&gt; {
+              conversion.sender &#x3D; conversion.recipient &#x3D; this.getAccountInfo(res);
+            },
+            (error) &#x3D;&gt; {
+              this.loggingService.sendErrorLevelMessage(
+                &#x60;Account with address ${conversion.trader} not found&#x60;,
+                this,
+                { error }
+              );
+            }
+          );
+      }
+    } finally {
+      this.addTransaction(conversion, cacheSize);
+    }
+  }
+
+  addTransaction(transaction, cacheSize: number): void {
+    const savedIndex &#x3D; this.transactions.findIndex((tx) &#x3D;&gt; tx.tx.txHash &#x3D;&#x3D;&#x3D; transaction.tx.txHash);
+    if (savedIndex &#x3D;&#x3D;&#x3D; 0) {
+      return;
+    }
+    if (savedIndex &gt; 0) {
+      this.transactions.splice(savedIndex, 1);
+    }
+    this.transactions.unshift(transaction);
+    if (this.transactions.length &gt; cacheSize) {
+      this.transactions.length &#x3D; Math.min(this.transactions.length, cacheSize);
+    }
+    this.transactionList.next(this.transactions);
+  }
+
+  resetTransactionsList(): void {
+    this.transactions &#x3D; [];
+    this.transactionList.next(this.transactions);
+  }
+
+  getAccountInfo(account: string, cacheSize: number &#x3D; 100): any {
+    const accountInfo &#x3D; Envelope.fromJSON(JSON.stringify(account)).unwrap().m.data;
+    accountInfo.vcard &#x3D; vCard.parse(atob(accountInfo.vcard));
+    this.userService.addAccount(accountInfo, cacheSize);
+    return accountInfo;
+  }
+
+  async transferRequest(
+    tokenAddress: string,
+    senderAddress: string,
+    recipientAddress: string,
+    value: number
+  ): Promise&lt;any&gt; {
+    const transferAuthAddress &#x3D; await this.registry.getContractAddressByName(
+      &#x27;TransferAuthorization&#x27;
+    );
+    const hashFunction &#x3D; new Keccak(256);
+    hashFunction.update(&#x27;createRequest(address,address,address,uint256)&#x27;);
+    const hash &#x3D; hashFunction.digest();
+    const methodSignature &#x3D; hash.toString(&#x27;hex&#x27;).substring(0, 8);
+    const abiCoder &#x3D; new utils.AbiCoder();
+    const abi &#x3D; await abiCoder.encode(
+      [&#x27;address&#x27;, &#x27;address&#x27;, &#x27;address&#x27;, &#x27;uint256&#x27;],
+      [senderAddress, recipientAddress, tokenAddress, value]
+    );
+    const data &#x3D; fromHex(methodSignature + strip0x(abi));
+    const tx &#x3D; new Tx(environment.bloxbergChainId);
+    tx.nonce &#x3D; await this.web3.eth.getTransactionCount(senderAddress);
+    tx.gasPrice &#x3D; Number(await this.web3.eth.getGasPrice());
+    tx.gasLimit &#x3D; 8000000;
+    tx.to &#x3D; fromHex(strip0x(transferAuthAddress));
+    tx.value &#x3D; toValue(value);
+    tx.data &#x3D; data;
+    const txMsg &#x3D; tx.message();
+    const keystore &#x3D; await KeystoreService.getKeystore();
+    const privateKey &#x3D; keystore.getPrivateKey();
+    if (!privateKey.isDecrypted()) {
+      const password &#x3D; window.prompt(&#x27;password&#x27;);
+      await privateKey.decrypt(password);
+    }
+    const signatureObject &#x3D; secp256k1.ecdsaSign(txMsg, privateKey.keyPacket.privateParams.d);
+    const r &#x3D; signatureObject.signature.slice(0, 32);
+    const s &#x3D; signatureObject.signature.slice(32);
+    const v &#x3D; signatureObject.recid;
+    tx.setSignature(r, s, v);
+    const txWire &#x3D; add0x(toHex(tx.serializeRLP()));
+    const result &#x3D; await this.web3.eth.sendSignedTransaction(txWire);
+    this.loggingService.sendInfoLevelMessage(&#x60;Result: ${result}&#x60;);
+    const transaction &#x3D; await this.web3.eth.getTransaction(result.transactionHash);
+    this.loggingService.sendInfoLevelMessage(&#x60;Transaction: ${transaction}&#x60;);
+  }
+}
+</code></pre>
+    </div>
+
+</div>
+
+
+
+
+
+
+
+                   
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> result-matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'injectable';
+            var COMPODOC_CURRENT_PAGE_URL = 'TransactionService.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+       <!-- Required to polyfill modern browsers as code is ES5 for IE... -->
+       <script src="../js/libs/custom-elements-es5-adapter.js" charset="utf-8" defer></script>
+       <script src="../js/menu-wc.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+       <script src="../js/libs/zepto.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

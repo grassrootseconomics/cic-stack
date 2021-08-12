@@ -1,0 +1,208 @@
+<!-- Begin page -->
+<div class="wrapper">
+  <app-sidebar></app-sidebar>
+
+  <!-- ============================================================== -->
+  <!-- Start Page Content here -->
+  <!-- ============================================================== -->
+
+  <div id="content">
+    <app-topbar></app-topbar>
+    <!-- Start Content-->
+    <div class="container-fluid" appMenuSelection>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a routerLink="/home">Home</a></li>
+          <li class="breadcrumb-item"><a routerLink="/accounts">Accounts</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Create Account</li>
+        </ol>
+      </nav>
+      <div class="card">
+        <mat-card-title class="card-header text-center"> CREATE A USER ACCOUNT </mat-card-title>
+        <div class="card-body">
+          <form class="row form-inline" [formGroup]="createForm" (ngSubmit)="onSubmit()">
+            <div class="col-md-6 col-lg-4">
+              <mat-form-field appearance="outline">
+                <mat-label>Account Type: </mat-label>
+                <mat-select
+                  id="accountType"
+                  formControlName="accountType"
+                  [errorStateMatcher]="matcher"
+                >
+                  <mat-option *ngFor="let accountType of accountTypes" [value]="accountType">
+                    {{ accountType | uppercase }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="submitted && createFormStub.accountType.errors"
+                  >Account type is required.</mat-error
+                > </mat-form-field
+              ><br />
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+              <mat-form-field appearance="outline">
+                <mat-label>ID Number: </mat-label>
+                <input
+                  matInput
+                  type="text"
+                  id="idNumber"
+                  placeholder="ID Number"
+                  formControlName="idNumber"
+                  [errorStateMatcher]="matcher"
+                />
+                <mat-error *ngIf="submitted && createFormStub.idNumber.errors"
+                  >ID Number is required.</mat-error
+                >
+              </mat-form-field>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+              <mat-form-field appearance="outline">
+                <mat-label>Phone Number: </mat-label>
+                <input
+                  matInput
+                  type="text"
+                  id="phoneNumber"
+                  placeholder="Phone Number"
+                  formControlName="phoneNumber"
+                  [errorStateMatcher]="matcher"
+                />
+                <mat-error *ngIf="submitted && createFormStub.phoneNumber.errors"
+                  >Phone Number is required.</mat-error
+                > </mat-form-field
+              ><br />
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+              <mat-form-field appearance="outline">
+                <mat-label>Given Name(s):* </mat-label>
+                <input
+                  matInput
+                  type="text"
+                  id="givenNames"
+                  placeholder="Given Names"
+                  formControlName="givenName"
+                  [errorStateMatcher]="matcher"
+                />
+                <mat-error *ngIf="submitted && createFormStub.givenName.errors"
+                  >Given Names are required.</mat-error
+                > </mat-form-field
+              ><br />
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+              <mat-form-field appearance="outline">
+                <mat-label>Family/Surname: </mat-label>
+                <input
+                  matInput
+                  type="text"
+                  id="surname"
+                  placeholder="Surname"
+                  formControlName="surname"
+                  [errorStateMatcher]="matcher"
+                />
+                <mat-error *ngIf="submitted && createFormStub.surname.errors"
+                  >Surname is required.</mat-error
+                > </mat-form-field
+              ><br />
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+              <mat-form-field appearance="outline">
+                <mat-label>Directory Entry: </mat-label>
+                <input
+                  matInput
+                  type="text"
+                  id="directoryEntry"
+                  placeholder="Directory Entry"
+                  formControlName="directoryEntry"
+                  [errorStateMatcher]="matcher"
+                />
+                <mat-error *ngIf="submitted && createFormStub.directoryEntry.errors"
+                  >Directory Entry is required.</mat-error
+                > </mat-form-field
+              ><br />
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+              <mat-form-field appearance="outline">
+                <mat-label>Location: </mat-label>
+                <mat-select id="location" formControlName="location" [errorStateMatcher]="matcher">
+                  <mat-option *ngFor="let area of areaNames" [value]="area">
+                    {{ area | uppercase }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="submitted && createFormStub.location.errors"
+                  >Location is required.</mat-error
+                > </mat-form-field
+              ><br />
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+              <mat-form-field appearance="outline">
+                <mat-label>Gender: </mat-label>
+                <mat-select id="gender" formControlName="gender" [errorStateMatcher]="matcher">
+                  <mat-option *ngFor="let gender of genders" [value]="gender">
+                    {{ gender | uppercase }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="submitted && createFormStub.gender.errors"
+                  >Gender is required.</mat-error
+                > </mat-form-field
+              ><br />
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+              <mat-form-field appearance="outline">
+                <mat-label>Referrer Phone Number: </mat-label>
+                <input
+                  matInput
+                  type="text"
+                  id="referredBy"
+                  placeholder="Reffered By"
+                  formControlName="referrer"
+                  [errorStateMatcher]="matcher"
+                />
+                <mat-error *ngIf="submitted && createFormStub.referrer.errors"
+                  >Referrer is required.</mat-error
+                > </mat-form-field
+              ><br />
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+              <mat-form-field appearance="outline">
+                <mat-label>Business Category: </mat-label>
+                <mat-select
+                  id="businessCategory"
+                  formControlName="businessCategory"
+                  [errorStateMatcher]="matcher"
+                >
+                  <mat-option *ngFor="let category of categories" [value]="category">
+                    {{ category | titlecase }}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="submitted && createFormStub.businessCategory.errors"
+                  >Business Category is required.</mat-error
+                >
+              </mat-form-field>
+            </div>
+
+            <button
+              mat-raised-button
+              color="primary"
+              type="submit"
+              class="btn btn-outline-primary ml-3"
+              (click)="onSubmit()"
+            >
+              Submit
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <app-footer appMenuSelection></app-footer>
+  </div>
+  <!-- ============================================================== -->
+  <!-- End Page content -->
+  <!-- ============================================================== -->
+</div>

@@ -1,0 +1,52 @@
+<!-- ========== Left Sidebar Start ========== -->
+<div id="sidebar">
+  <app-network-status></app-network-status>
+  <nav>
+    <div class="sidebar-header">
+      <h3>
+        <img class="full-width" src="assets/images/CIC-Logo-white.png" alt="CIC Admin Dashboard" />
+      </h3>
+      <strong>CICADA</strong>
+    </div>
+
+    <ul class="list-unstyled components">
+      <li>
+        <a routerLink="/home" routerLinkActive="active" appMenuSelection>
+          <i class="fa fa-home"></i>
+          <span> Dashboard </span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/accounts" routerLinkActive="active" appMenuSelection>
+          <i class="fa fa-users"></i>
+          <span> Accounts </span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/tx" routerLinkActive="active" appMenuSelection>
+          <i class="fa fa-exchange"></i>
+          <span> Transactions </span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/tokens" routerLinkActive="active" appMenuSelection>
+          <i class="fa fa-money"></i>
+          <span> Tokens </span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/settings" routerLinkActive="active" appMenuSelection>
+          <i class="fa fa-cog"></i>
+          <span> Settings </span>
+        </a>
+      </li>
+      <!--      <li>-->
+      <!--        <a routerLink="/admin" routerLinkActive="active" appMenuSelection>-->
+      <!--          <i class="fa fa-user-secret"></i>-->
+      <!--          <span> Admin </span>-->
+      <!--        </a>-->
+      <!--      </li>-->
+    </ul>
+  </nav>
+</div>
+<!-- Left Sidebar End -->

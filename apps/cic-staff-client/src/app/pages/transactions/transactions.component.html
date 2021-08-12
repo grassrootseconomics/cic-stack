@@ -1,0 +1,141 @@
+<!-- Begin page -->
+<div class="wrapper">
+  <app-sidebar></app-sidebar>
+
+  <!-- ============================================================== -->
+  <!-- Start Page Content here -->
+  <!-- ============================================================== -->
+
+  <div id="content">
+    <app-topbar></app-topbar>
+    <!-- Start Content-->
+    <div class="container-fluid" appMenuSelection>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a routerLink="/home">Home</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Transactions</li>
+        </ol>
+      </nav>
+      <div class="card">
+        <mat-card-title class="card-header"> Transfers </mat-card-title>
+        <div class="card-body">
+          <app-transaction-details
+            [transaction]="transaction"
+            (closeWindow)="transaction = $event"
+          ></app-transaction-details>
+
+          <div class="row card-header">
+            <mat-form-field appearance="outline">
+              <mat-label> TRANSFER TYPE </mat-label>
+              <mat-select
+                id="typeSelect"
+                [(value)]="transactionsType"
+                (selectionChange)="filterTransactions()"
+              >
+                <mat-option value="all">ALL TRANSFERS</mat-option>
+                <mat-option
+                  *ngFor="let transactionType of transactionsTypes"
+                  [value]="transactionType"
+                >
+                  {{ transactionType | uppercase }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            <button
+              mat-raised-button
+              color="primary"
+              type="button"
+              class="btn btn-outline-primary ml-auto mr-2"
+              (click)="downloadCsv()"
+            >
+              EXPORT
+            </button>
+          </div>
+
+          <mat-form-field appearance="outline">
+            <mat-label> Filter </mat-label>
+            <input
+              matInput
+              type="text"
+              (keyup)="doFilter($event.target.value, transactionDataSource)"
+              placeholder="Filter"
+            />
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <div *ngIf="loading">
+            <h2 class="text-center"><strong>Loading Transactions!</strong></h2>
+            <mat-progress-bar [mode]="'query'"></mat-progress-bar>
+          </div>
+
+          <table
+            mat-table
+            class="mat-elevation-z10"
+            [dataSource]="transactionDataSource"
+            matSort
+            matSortActive="created"
+            matSortDirection="desc"
+            matSortDisableClear
+          >
+            <ng-container matColumnDef="sender">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Sender</th>
+              <td mat-cell *matCellDef="let transaction">
+                {{ transaction?.sender?.vcard.fn[0].value || transaction.from }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="recipient">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Recipient</th>
+              <td mat-cell *matCellDef="let transaction">
+                {{ transaction?.recipient?.vcard.fn[0].value || transaction.to }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="value">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Value</th>
+              <td mat-cell *matCellDef="let transaction">
+                <span *ngIf="transaction.type == 'transaction'"
+                  >{{ transaction?.value | tokenRatio }} {{ tokenSymbol | uppercase }}</span
+                >
+                <span *ngIf="transaction.type == 'conversion'"
+                  >{{ transaction?.toValue | tokenRatio }} {{ tokenSymbol | uppercase }}</span
+                >
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="created">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Created</th>
+              <td mat-cell *matCellDef="let transaction">
+                {{ transaction?.tx.timestamp | unixDate }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="type">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>TYPE</th>
+              <td mat-cell *matCellDef="let transaction">
+                <span class="badge badge-success badge-pill"> {{ transaction?.type }} </span>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="transactionDisplayedColumns"></tr>
+            <tr
+              mat-row
+              *matRowDef="let transaction; columns: transactionDisplayedColumns"
+              (click)="viewTransaction(transaction)"
+            ></tr>
+          </table>
+
+          <mat-paginator
+            [pageSize]="defaultPageSize"
+            [pageSizeOptions]="pageSizeOptions"
+            showFirstLastButtons
+          ></mat-paginator>
+        </div>
+      </div>
+    </div>
+    <app-footer appMenuSelection></app-footer>
+  </div>
+  <!-- ============================================================== -->
+  <!-- End Page content -->
+  <!-- ============================================================== -->
+</div>

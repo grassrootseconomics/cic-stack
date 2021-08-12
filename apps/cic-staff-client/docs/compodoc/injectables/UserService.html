@@ -1,0 +1,2763 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>CICADA</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	      <link rel="stylesheet" href="../styles/style.css">
+    </head>
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top visible-xs">
+            <a href="../" class="navbar-brand">CICADA</a>
+            <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="hidden-xs menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content injectable">
+                   <div class="content-data">
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li>Injectables</li>
+  <li>UserService</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="active">
+            <a href="#info" role="tab" id="info-tab" data-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li >
+            <a href="#source" role="tab" id="source-tab" data-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="c-info">
+        <p class="comment">
+            <h3>File</h3>
+        </p>
+        <p class="comment">
+            <code>src/app/_services/user.service.ts</code>
+        </p>
+
+
+
+
+            <section>
+    <h3 id="index">Index</h3>
+    <table class="table table-sm table-bordered index-table">
+        <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                <a href="#accounts">accounts</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Private</span>
+                                <a href="#accountsList">accountsList</a>
+                            </li>
+                            <li>
+                                <a href="#accountsSubject">accountsSubject</a>
+                            </li>
+                            <li>
+                                <a href="#actions">actions</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Private</span>
+                                <a href="#actionsList">actionsList</a>
+                            </li>
+                            <li>
+                                <a href="#actionsSubject">actionsSubject</a>
+                            </li>
+                            <li>
+                                <a href="#categories">categories</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Private</span>
+                                <a href="#categoriesList">categoriesList</a>
+                            </li>
+                            <li>
+                                <a href="#categoriesSubject">categoriesSubject</a>
+                            </li>
+                            <li>
+                                <a href="#headers">headers</a>
+                            </li>
+                            <li>
+                                <a href="#keystore">keystore</a>
+                            </li>
+                            <li>
+                                <a href="#registry">registry</a>
+                            </li>
+                            <li>
+                                <a href="#signer">signer</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                <a href="#addAccount">addAccount</a>
+                            </li>
+                            <li>
+                                <a href="#approveAction">approveAction</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#changeAccountInfo">changeAccountInfo</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#getAccountByAddress">getAccountByAddress</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#getAccountByPhone">getAccountByPhone</a>
+                            </li>
+                            <li>
+                                <a href="#getAccountDetailsFromMeta">getAccountDetailsFromMeta</a>
+                            </li>
+                            <li>
+                                <a href="#getAccountStatus">getAccountStatus</a>
+                            </li>
+                            <li>
+                                <a href="#getAccountTypes">getAccountTypes</a>
+                            </li>
+                            <li>
+                                <a href="#getActionById">getActionById</a>
+                            </li>
+                            <li>
+                                <a href="#getActions">getActions</a>
+                            </li>
+                            <li>
+                                <a href="#getCategories">getCategories</a>
+                            </li>
+                            <li>
+                                <a href="#getCategoryByProduct">getCategoryByProduct</a>
+                            </li>
+                            <li>
+                                <a href="#getGenders">getGenders</a>
+                            </li>
+                            <li>
+                                <a href="#getLockedAccounts">getLockedAccounts</a>
+                            </li>
+                            <li>
+                                <a href="#getTransactionTypes">getTransactionTypes</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#init">init</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#loadAccounts">loadAccounts</a>
+                            </li>
+                            <li>
+                                <a href="#resetAccountsList">resetAccountsList</a>
+                            </li>
+                            <li>
+                                <a href="#resetPin">resetPin</a>
+                            </li>
+                            <li>
+                                <a href="#revokeAction">revokeAction</a>
+                            </li>
+                            <li>
+                                <a href="#searchAccountByName">searchAccountByName</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#updateMeta">updateMeta</a>
+                            </li>
+                            <li>
+                                <a href="#wrap">wrap</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+            <section>
+    <h3 id="constructor">Constructor</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+<code>constructor(httpClient: <a href="https://angular.io/api/common/http/HttpClient" target="_blank">HttpClient</a>, loggingService: <a href="../injectables/LoggingService.html">LoggingService</a>, tokenService: <a href="../injectables/TokenService.html">TokenService</a>, authService: <a href="../injectables/AuthService.html">AuthService</a>)</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="41" class="link-to-prism">src/app/_services/user.service.ts:41</a></div>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                            <div>
+                                    <b>Parameters :</b>
+                                    <table class="params">
+                                        <thead>
+                                            <tr>
+                                                <td>Name</td>
+                                                    <td>Type</td>
+                                                <td>Optional</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                                <tr>
+                                                        <td>httpClient</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="https://angular.io/api/common/http/HttpClient" target="_blank" >HttpClient</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                </tr>
+                                                <tr>
+                                                        <td>loggingService</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="../injectables/LoggingService.html" target="_self" >LoggingService</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                </tr>
+                                                <tr>
+                                                        <td>tokenService</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="../injectables/TokenService.html" target="_self" >TokenService</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                </tr>
+                                                <tr>
+                                                        <td>authService</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="../injectables/AuthService.html" target="_self" >AuthService</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                </tr>
+                                        </tbody>
+                                    </table>
+                            </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</section>
+
+            <section>
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="addAccount"></a>
+                    <span class="name">
+                        <b>
+                            addAccount
+                        </b>
+                        <a href="#addAccount"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>addAccount(account: <a href="../interfaces/AccountDetails.html">AccountDetails</a>, cacheSize: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="302"
+                            class="link-to-prism">src/app/_services/user.service.ts:302</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>account</td>
+                                    <td>
+                                                <code><a href="../interfaces/AccountDetails.html" target="_self" >AccountDetails</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>cacheSize</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="approveAction"></a>
+                    <span class="name">
+                        <b>
+                            approveAction
+                        </b>
+                        <a href="#approveAction"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>approveAction(id: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="179"
+                            class="link-to-prism">src/app/_services/user.service.ts:179</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>id</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Observable&lt;any&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="changeAccountInfo"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Async</span>
+                            changeAccountInfo
+                        </b>
+                        <a href="#changeAccountInfo"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>changeAccountInfo(address: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, name: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, phoneNumber: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, age: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, type: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, bio: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, gender: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, businessCategory: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, userLocation: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, location: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, locationType: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="72"
+                            class="link-to-prism">src/app/_services/user.service.ts:72</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>address</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>name</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>phoneNumber</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>age</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>type</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>bio</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>gender</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>businessCategory</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>userLocation</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>location</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>locationType</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;any&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getAccountByAddress"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Async</span>
+                            getAccountByAddress
+                        </b>
+                        <a href="#getAccountByAddress"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>getAccountByAddress(accountAddress: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, limit: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="218"
+                            class="link-to-prism">src/app/_services/user.service.ts:218</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                    <td>Default value</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>accountAddress</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                </tr>
+                                <tr>
+                                    <td>limit</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+                                    <td>
+                                        <code>100</code>
+                                    </td>
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="../interfaces/AccountDetails.html" target="_self" >Promise&lt;Observable&lt;AccountDetails&gt;&gt;</a></code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getAccountByPhone"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Async</span>
+                            getAccountByPhone
+                        </b>
+                        <a href="#getAccountByPhone"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>getAccountByPhone(phoneNumber: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, limit: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="244"
+                            class="link-to-prism">src/app/_services/user.service.ts:244</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                    <td>Default value</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>phoneNumber</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+                                    <td>
+                                    </td>
+
+                                </tr>
+                                <tr>
+                                    <td>limit</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+                                    <td>
+                                        <code>100</code>
+                                    </td>
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="../interfaces/AccountDetails.html" target="_self" >Promise&lt;Observable&lt;AccountDetails&gt;&gt;</a></code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getAccountDetailsFromMeta"></a>
+                    <span class="name">
+                        <b>
+                            getAccountDetailsFromMeta
+                        </b>
+                        <a href="#getAccountDetailsFromMeta"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getAccountDetailsFromMeta(userKey: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="187"
+                            class="link-to-prism">src/app/_services/user.service.ts:187</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>userKey</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Observable&lt;any&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getAccountStatus"></a>
+                    <span class="name">
+                        <b>
+                            getAccountStatus
+                        </b>
+                        <a href="#getAccountStatus"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getAccountStatus(phone: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="63"
+                            class="link-to-prism">src/app/_services/user.service.ts:63</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>phone</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Observable&lt;any&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getAccountTypes"></a>
+                    <span class="name">
+                        <b>
+                            getAccountTypes
+                        </b>
+                        <a href="#getAccountTypes"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getAccountTypes()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="290"
+                            class="link-to-prism">src/app/_services/user.service.ts:290</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Observable&lt;any&gt;</code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getActionById"></a>
+                    <span class="name">
+                        <b>
+                            getActionById
+                        </b>
+                        <a href="#getActionById"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getActionById(id: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="175"
+                            class="link-to-prism">src/app/_services/user.service.ts:175</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>id</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Observable&lt;any&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getActions"></a>
+                    <span class="name">
+                        <b>
+                            getActions
+                        </b>
+                        <a href="#getActions"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getActions()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="168"
+                            class="link-to-prism">src/app/_services/user.service.ts:168</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getCategories"></a>
+                    <span class="name">
+                        <b>
+                            getCategories
+                        </b>
+                        <a href="#getCategories"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getCategories()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="271"
+                            class="link-to-prism">src/app/_services/user.service.ts:271</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getCategoryByProduct"></a>
+                    <span class="name">
+                        <b>
+                            getCategoryByProduct
+                        </b>
+                        <a href="#getCategoryByProduct"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getCategoryByProduct(product: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, categories: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/object" target="_blank">object</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="278"
+                            class="link-to-prism">src/app/_services/user.service.ts:278</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>product</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>categories</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/object" target="_blank" >object</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getGenders"></a>
+                    <span class="name">
+                        <b>
+                            getGenders
+                        </b>
+                        <a href="#getGenders"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getGenders()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="298"
+                            class="link-to-prism">src/app/_services/user.service.ts:298</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Observable&lt;any&gt;</code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getLockedAccounts"></a>
+                    <span class="name">
+                        <b>
+                            getLockedAccounts
+                        </b>
+                        <a href="#getLockedAccounts"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getLockedAccounts(offset: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>, limit: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="68"
+                            class="link-to-prism">src/app/_services/user.service.ts:68</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>offset</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>limit</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Observable&lt;any&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getTransactionTypes"></a>
+                    <span class="name">
+                        <b>
+                            getTransactionTypes
+                        </b>
+                        <a href="#getTransactionTypes"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getTransactionTypes()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="294"
+                            class="link-to-prism">src/app/_services/user.service.ts:294</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Observable&lt;any&gt;</code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="init"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Async</span>
+                            init
+                        </b>
+                        <a href="#init"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>init()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="50"
+                            class="link-to-prism">src/app/_services/user.service.ts:50</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;void&gt;</code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="loadAccounts"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Async</span>
+                            loadAccounts
+                        </b>
+                        <a href="#loadAccounts"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>loadAccounts(limit: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>, offset: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="205"
+                            class="link-to-prism">src/app/_services/user.service.ts:205</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                    <td>Default value</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>limit</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+                                    <td>
+                                        <code>100</code>
+                                    </td>
+
+                                </tr>
+                                <tr>
+                                    <td>offset</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+                                    <td>
+                                        <code>0</code>
+                                    </td>
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;void&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="resetAccountsList"></a>
+                    <span class="name">
+                        <b>
+                            resetAccountsList
+                        </b>
+                        <a href="#resetAccountsList"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>resetAccountsList()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="262"
+                            class="link-to-prism">src/app/_services/user.service.ts:262</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="resetPin"></a>
+                    <span class="name">
+                        <b>
+                            resetPin
+                        </b>
+                        <a href="#resetPin"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>resetPin(phone: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="58"
+                            class="link-to-prism">src/app/_services/user.service.ts:58</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>phone</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Observable&lt;any&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="revokeAction"></a>
+                    <span class="name">
+                        <b>
+                            revokeAction
+                        </b>
+                        <a href="#revokeAction"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>revokeAction(id: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="183"
+                            class="link-to-prism">src/app/_services/user.service.ts:183</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>id</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Observable&lt;any&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="searchAccountByName"></a>
+                    <span class="name">
+                        <b>
+                            searchAccountByName
+                        </b>
+                        <a href="#searchAccountByName"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>searchAccountByName(name: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="267"
+                            class="link-to-prism">src/app/_services/user.service.ts:267</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>name</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >any</a></code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="updateMeta"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Async</span>
+                            updateMeta
+                        </b>
+                        <a href="#updateMeta"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>updateMeta(syncableAccount: Syncable, accountKey: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, headers: <a href="https://angular.io/api/common/http/HttpHeaders" target="_blank">HttpHeaders</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="153"
+                            class="link-to-prism">src/app/_services/user.service.ts:153</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>syncableAccount</td>
+                                    <td>
+                                            <code>Syncable</code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>accountKey</td>
+                                    <td>
+                                                <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>headers</td>
+                                    <td>
+                                                <code><a href="https://angular.io/api/common/http/HttpHeaders" target="_blank" >HttpHeaders</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;any&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="wrap"></a>
+                    <span class="name">
+                        <b>
+                            wrap
+                        </b>
+                        <a href="#wrap"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>wrap(syncable: Syncable, signer: <a href="../interfaces/Signer.html">Signer</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="191"
+                            class="link-to-prism">src/app/_services/user.service.ts:191</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>syncable</td>
+                                    <td>
+                                            <code>Syncable</code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                                <tr>
+                                    <td>signer</td>
+                                    <td>
+                                                <code><a href="../interfaces/Signer.html" target="_self" >Signer</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;Envelope&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+            <section>
+    
+        <h3 id="inputs">
+            Properties
+        </h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="accounts"></a>
+                        <span class="name">
+                            <b>
+                            accounts</b>
+                            <a href="#accounts"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="../interfaces/AccountDetails.html" target="_self" >Array&lt;AccountDetails&gt;</a></code>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>[]</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="29" class="link-to-prism">src/app/_services/user.service.ts:29</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="accountsList"></a>
+                        <span class="name">
+                            <b>
+                                <span class="modifier">Private</span>
+                            accountsList</b>
+                            <a href="#accountsList"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="../interfaces/AccountDetails.html" target="_self" >BehaviorSubject&lt;Array&lt;AccountDetails&gt;&gt;</a></code>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>new BehaviorSubject&lt;
+    Array&lt;AccountDetails&gt;
+  &gt;(this.accounts)</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="30" class="link-to-prism">src/app/_services/user.service.ts:30</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="accountsSubject"></a>
+                        <span class="name">
+                            <b>
+                            accountsSubject</b>
+                            <a href="#accountsSubject"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="../interfaces/AccountDetails.html" target="_self" >Observable&lt;Array&lt;AccountDetails&gt;&gt;</a></code>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>this.accountsList.asObservable()</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="33" class="link-to-prism">src/app/_services/user.service.ts:33</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="actions"></a>
+                        <span class="name">
+                            <b>
+                            actions</b>
+                            <a href="#actions"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>    <code>Array&lt;any&gt;</code>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>[]</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="35" class="link-to-prism">src/app/_services/user.service.ts:35</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="actionsList"></a>
+                        <span class="name">
+                            <b>
+                                <span class="modifier">Private</span>
+                            actionsList</b>
+                            <a href="#actionsList"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>    <code>BehaviorSubject&lt;any&gt;</code>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>new BehaviorSubject&lt;any&gt;(this.actions)</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="36" class="link-to-prism">src/app/_services/user.service.ts:36</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="actionsSubject"></a>
+                        <span class="name">
+                            <b>
+                            actionsSubject</b>
+                            <a href="#actionsSubject"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>    <code>Observable&lt;Array&lt;any&gt;&gt;</code>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>this.actionsList.asObservable()</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="37" class="link-to-prism">src/app/_services/user.service.ts:37</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="categories"></a>
+                        <span class="name">
+                            <b>
+                            categories</b>
+                            <a href="#categories"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/object" target="_blank" >object</a></code>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>{}</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="39" class="link-to-prism">src/app/_services/user.service.ts:39</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="categoriesList"></a>
+                        <span class="name">
+                            <b>
+                                <span class="modifier">Private</span>
+                            categoriesList</b>
+                            <a href="#categoriesList"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>    <code>BehaviorSubject&lt;object&gt;</code>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>new BehaviorSubject&lt;object&gt;(this.categories)</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="40" class="link-to-prism">src/app/_services/user.service.ts:40</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="categoriesSubject"></a>
+                        <span class="name">
+                            <b>
+                            categoriesSubject</b>
+                            <a href="#categoriesSubject"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>    <code>Observable&lt;object&gt;</code>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>this.categoriesList.asObservable()</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="41" class="link-to-prism">src/app/_services/user.service.ts:41</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="headers"></a>
+                        <span class="name">
+                            <b>
+                            headers</b>
+                            <a href="#headers"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="https://angular.io/api/common/http/HttpHeaders" target="_blank" >HttpHeaders</a></code>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>new HttpHeaders({ &#x27;x-cic-automerge&#x27;: &#x27;client&#x27; })</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="24" class="link-to-prism">src/app/_services/user.service.ts:24</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="keystore"></a>
+                        <span class="name">
+                            <b>
+                            keystore</b>
+                            <a href="#keystore"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="../interfaces/MutableKeyStore.html" target="_self" >MutableKeyStore</a></code>
+
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="25" class="link-to-prism">src/app/_services/user.service.ts:25</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="registry"></a>
+                        <span class="name">
+                            <b>
+                            registry</b>
+                            <a href="#registry"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>    <code>CICRegistry</code>
+
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="27" class="link-to-prism">src/app/_services/user.service.ts:27</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="signer"></a>
+                        <span class="name">
+                            <b>
+                            signer</b>
+                            <a href="#signer"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="../interfaces/Signer.html" target="_self" >Signer</a></code>
+
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="26" class="link-to-prism">src/app/_services/user.service.ts:26</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+</section>
+
+    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="c-source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Injectable } from &#x27;@angular/core&#x27;;
+import { BehaviorSubject, Observable, Subject } from &#x27;rxjs&#x27;;
+import { HttpClient, HttpHeaders, HttpParams } from &#x27;@angular/common/http&#x27;;
+import { environment } from &#x27;@src/environments/environment&#x27;;
+import { first } from &#x27;rxjs/operators&#x27;;
+import { ArgPair, Envelope, Phone, Syncable, User } from &#x27;cic-client-meta&#x27;;
+import { AccountDetails } from &#x27;@app/_models&#x27;;
+import { LoggingService } from &#x27;@app/_services/logging.service&#x27;;
+import { TokenService } from &#x27;@app/_services/token.service&#x27;;
+import { AccountIndex } from &#x27;@app/_eth&#x27;;
+import { MutableKeyStore, PGPSigner, Signer } from &#x27;@app/_pgp&#x27;;
+import { RegistryService } from &#x27;@app/_services/registry.service&#x27;;
+import { CICRegistry } from &#x27;@cicnet/cic-client&#x27;;
+import { AuthService } from &#x27;@app/_services/auth.service&#x27;;
+import { personValidation, updateSyncable, vcardValidation } from &#x27;@app/_helpers&#x27;;
+import { add0x } from &#x27;@src/assets/js/ethtx/dist/hex&#x27;;
+import { KeystoreService } from &#x27;@app/_services/keystore.service&#x27;;
+const vCard &#x3D; require(&#x27;vcard-parser&#x27;);
+
+@Injectable({
+  providedIn: &#x27;root&#x27;,
+})
+export class UserService {
+  headers: HttpHeaders &#x3D; new HttpHeaders({ &#x27;x-cic-automerge&#x27;: &#x27;client&#x27; });
+  keystore: MutableKeyStore;
+  signer: Signer;
+  registry: CICRegistry;
+
+  accounts: Array&lt;AccountDetails&gt; &#x3D; [];
+  private accountsList: BehaviorSubject&lt;Array&lt;AccountDetails&gt;&gt; &#x3D; new BehaviorSubject&lt;
+    Array&lt;AccountDetails&gt;
+  &gt;(this.accounts);
+  accountsSubject: Observable&lt;Array&lt;AccountDetails&gt;&gt; &#x3D; this.accountsList.asObservable();
+
+  actions: Array&lt;any&gt; &#x3D; [];
+  private actionsList: BehaviorSubject&lt;any&gt; &#x3D; new BehaviorSubject&lt;any&gt;(this.actions);
+  actionsSubject: Observable&lt;Array&lt;any&gt;&gt; &#x3D; this.actionsList.asObservable();
+
+  categories: object &#x3D; {};
+  private categoriesList: BehaviorSubject&lt;object&gt; &#x3D; new BehaviorSubject&lt;object&gt;(this.categories);
+  categoriesSubject: Observable&lt;object&gt; &#x3D; this.categoriesList.asObservable();
+
+  constructor(
+    private httpClient: HttpClient,
+    private loggingService: LoggingService,
+    private tokenService: TokenService,
+    private authService: AuthService
+  ) {}
+
+  async init(): Promise&lt;void&gt; {
+    await this.authService.init();
+    await this.tokenService.init();
+    this.keystore &#x3D; await KeystoreService.getKeystore();
+    this.signer &#x3D; new PGPSigner(this.keystore);
+    this.registry &#x3D; await RegistryService.getRegistry();
+  }
+
+  resetPin(phone: string): Observable&lt;any&gt; {
+    const params: HttpParams &#x3D; new HttpParams().set(&#x27;phoneNumber&#x27;, phone);
+    return this.httpClient.put(&#x60;${environment.cicUssdUrl}/pin&#x60;, { params });
+  }
+
+  getAccountStatus(phone: string): Observable&lt;any&gt; {
+    const params: HttpParams &#x3D; new HttpParams().set(&#x27;phoneNumber&#x27;, phone);
+    return this.httpClient.get(&#x60;${environment.cicUssdUrl}/pin&#x60;, { params });
+  }
+
+  getLockedAccounts(offset: number, limit: number): Observable&lt;any&gt; {
+    return this.httpClient.get(&#x60;${environment.cicUssdUrl}/accounts/locked/${offset}/${limit}&#x60;);
+  }
+
+  async changeAccountInfo(
+    address: string,
+    name: string,
+    phoneNumber: string,
+    age: string,
+    type: string,
+    bio: string,
+    gender: string,
+    businessCategory: string,
+    userLocation: string,
+    location: string,
+    locationType: string
+  ): Promise&lt;any&gt; {
+    const accountInfo: any &#x3D; {
+      vcard: {
+        fn: [{}],
+        n: [{}],
+        tel: [{}],
+      },
+      location: {},
+    };
+    if (name) {
+      accountInfo.vcard.fn[0].value &#x3D; name;
+      accountInfo.vcard.n[0].value &#x3D; name.split(&#x27; &#x27;);
+    }
+    if (phoneNumber) {
+      accountInfo.vcard.tel[0].value &#x3D; phoneNumber;
+    }
+    if (bio) {
+      accountInfo.products &#x3D; [bio];
+    }
+    if (gender) {
+      accountInfo.gender &#x3D; gender;
+    }
+    if (age) {
+      accountInfo.age &#x3D; age;
+    }
+    if (type) {
+      accountInfo.type &#x3D; type;
+    }
+    if (businessCategory) {
+      accountInfo.category &#x3D; businessCategory;
+    }
+    if (location) {
+      accountInfo.location.area &#x3D; location;
+    }
+    if (userLocation) {
+      accountInfo.location.area_name &#x3D; userLocation;
+    }
+    if (locationType) {
+      accountInfo.location.area_type &#x3D; locationType;
+    }
+    await vcardValidation(accountInfo.vcard);
+    accountInfo.vcard &#x3D; btoa(vCard.generate(accountInfo.vcard));
+    const accountKey: string &#x3D; await User.toKey(address);
+    this.getAccountDetailsFromMeta(accountKey)
+      .pipe(first())
+      .subscribe(
+        async (res) &#x3D;&gt; {
+          const syncableAccount: Syncable &#x3D; Envelope.fromJSON(JSON.stringify(res)).unwrap();
+          const update: Array&lt;ArgPair&gt; &#x3D; [];
+          for (const prop of Object.keys(accountInfo)) {
+            update.push(new ArgPair(prop, accountInfo[prop]));
+          }
+          updateSyncable(update, &#x27;client-branch&#x27;, syncableAccount);
+          await personValidation(syncableAccount.m.data);
+          await this.updateMeta(syncableAccount, accountKey, this.headers);
+        },
+        async (error) &#x3D;&gt; {
+          this.loggingService.sendErrorLevelMessage(
+            &#x27;Cannot find account info in meta service&#x27;,
+            this,
+            { error }
+          );
+          const syncableAccount: Syncable &#x3D; new Syncable(accountKey, accountInfo);
+          await this.updateMeta(syncableAccount, accountKey, this.headers);
+        }
+      );
+    return accountKey;
+  }
+
+  async updateMeta(
+    syncableAccount: Syncable,
+    accountKey: string,
+    headers: HttpHeaders
+  ): Promise&lt;any&gt; {
+    const envelope: Envelope &#x3D; await this.wrap(syncableAccount, this.signer);
+    const reqBody: string &#x3D; envelope.toJSON();
+    this.httpClient
+      .put(&#x60;${environment.cicMetaUrl}/${accountKey}&#x60;, reqBody, { headers })
+      .pipe(first())
+      .subscribe((res) &#x3D;&gt; {
+        this.loggingService.sendInfoLevelMessage(&#x60;Response: ${res}&#x60;);
+      });
+  }
+
+  getActions(): void {
+    this.httpClient
+      .get(&#x60;${environment.cicCacheUrl}/actions&#x60;)
+      .pipe(first())
+      .subscribe((res) &#x3D;&gt; this.actionsList.next(res));
+  }
+
+  getActionById(id: string): Observable&lt;any&gt; {
+    return this.httpClient.get(&#x60;${environment.cicCacheUrl}/actions/${id}&#x60;);
+  }
+
+  approveAction(id: string): Observable&lt;any&gt; {
+    return this.httpClient.post(&#x60;${environment.cicCacheUrl}/actions/${id}&#x60;, { approval: true });
+  }
+
+  revokeAction(id: string): Observable&lt;any&gt; {
+    return this.httpClient.post(&#x60;${environment.cicCacheUrl}/actions/${id}&#x60;, { approval: false });
+  }
+
+  getAccountDetailsFromMeta(userKey: string): Observable&lt;any&gt; {
+    return this.httpClient.get(&#x60;${environment.cicMetaUrl}/${userKey}&#x60;, { headers: this.headers });
+  }
+
+  wrap(syncable: Syncable, signer: Signer): Promise&lt;Envelope&gt; {
+    return new Promise&lt;Envelope&gt;(async (resolve, reject) &#x3D;&gt; {
+      syncable.setSigner(signer);
+      syncable.onwrap &#x3D; async (env) &#x3D;&gt; {
+        if (env &#x3D;&#x3D;&#x3D; undefined) {
+          reject();
+          return;
+        }
+        resolve(env);
+      };
+      await syncable.sign();
+    });
+  }
+
+  async loadAccounts(limit: number &#x3D; 100, offset: number &#x3D; 0): Promise&lt;void&gt; {
+    this.resetAccountsList();
+    const accountIndexAddress: string &#x3D; await this.registry.getContractAddressByName(
+      &#x27;AccountRegistry&#x27;
+    );
+    const accountIndexQuery &#x3D; new AccountIndex(accountIndexAddress);
+    const accountAddresses: Array&lt;string&gt; &#x3D; await accountIndexQuery.last(limit);
+    this.loggingService.sendInfoLevelMessage(accountAddresses);
+    for (const accountAddress of accountAddresses.slice(offset, offset + limit)) {
+      await this.getAccountByAddress(accountAddress, limit);
+    }
+  }
+
+  async getAccountByAddress(
+    accountAddress: string,
+    limit: number &#x3D; 100
+  ): Promise&lt;Observable&lt;AccountDetails&gt;&gt; {
+    const accountSubject: Subject&lt;any&gt; &#x3D; new Subject&lt;any&gt;();
+    this.getAccountDetailsFromMeta(await User.toKey(add0x(accountAddress)))
+      .pipe(first())
+      .subscribe(async (res) &#x3D;&gt; {
+        const account: Syncable &#x3D; Envelope.fromJSON(JSON.stringify(res)).unwrap();
+        const accountInfo &#x3D; account.m.data;
+        await personValidation(accountInfo);
+        this.tokenService.load.subscribe(async (status: boolean) &#x3D;&gt; {
+          if (status) {
+            accountInfo.balance &#x3D; await this.tokenService.getTokenBalance(
+              accountInfo.identities.evm[&#x60;bloxberg:${environment.bloxbergChainId}&#x60;][0]
+            );
+          }
+        });
+        accountInfo.vcard &#x3D; vCard.parse(atob(accountInfo.vcard));
+        await vcardValidation(accountInfo.vcard);
+        this.addAccount(accountInfo, limit);
+        accountSubject.next(accountInfo);
+      });
+    return accountSubject.asObservable();
+  }
+
+  async getAccountByPhone(
+    phoneNumber: string,
+    limit: number &#x3D; 100
+  ): Promise&lt;Observable&lt;AccountDetails&gt;&gt; {
+    const accountSubject: Subject&lt;any&gt; &#x3D; new Subject&lt;any&gt;();
+    this.getAccountDetailsFromMeta(await Phone.toKey(phoneNumber))
+      .pipe(first())
+      .subscribe(async (res) &#x3D;&gt; {
+        const response: Syncable &#x3D; Envelope.fromJSON(JSON.stringify(res)).unwrap();
+        const address: string &#x3D; response.m.data;
+        const account: Observable&lt;AccountDetails&gt; &#x3D; await this.getAccountByAddress(address, limit);
+        account.subscribe((result) &#x3D;&gt; {
+          accountSubject.next(result);
+        });
+      });
+    return accountSubject.asObservable();
+  }
+
+  resetAccountsList(): void {
+    this.accounts &#x3D; [];
+    this.accountsList.next(this.accounts);
+  }
+
+  searchAccountByName(name: string): any {
+    return;
+  }
+
+  getCategories(): void {
+    this.httpClient
+      .get(&#x60;${environment.cicMetaUrl}/categories&#x60;)
+      .pipe(first())
+      .subscribe((res: object) &#x3D;&gt; this.categoriesList.next(res));
+  }
+
+  getCategoryByProduct(product: string, categories: object): string {
+    const keywords &#x3D; product.toLowerCase().split(&#x27; &#x27;);
+    for (const keyword of keywords) {
+      const queriedCategory: string &#x3D; Object.keys(categories).find((key) &#x3D;&gt;
+        categories[key].includes(keyword)
+      );
+      if (queriedCategory) {
+        return queriedCategory;
+      }
+    }
+  }
+
+  getAccountTypes(): Observable&lt;any&gt; {
+    return this.httpClient.get(&#x60;${environment.cicMetaUrl}/accounttypes&#x60;);
+  }
+
+  getTransactionTypes(): Observable&lt;any&gt; {
+    return this.httpClient.get(&#x60;${environment.cicMetaUrl}/transactiontypes&#x60;);
+  }
+
+  getGenders(): Observable&lt;any&gt; {
+    return this.httpClient.get(&#x60;${environment.cicMetaUrl}/genders&#x60;);
+  }
+
+  addAccount(account: AccountDetails, cacheSize: number): void {
+    const savedIndex &#x3D; this.accounts.findIndex(
+      (acc) &#x3D;&gt;
+        acc.identities.evm[&#x60;bloxberg:${environment.bloxbergChainId}&#x60;][0] &#x3D;&#x3D;&#x3D;
+        account.identities.evm[&#x60;bloxberg:${environment.bloxbergChainId}&#x60;][0]
+    );
+    if (savedIndex &#x3D;&#x3D;&#x3D; 0) {
+      return;
+    }
+    if (savedIndex &gt; 0) {
+      this.accounts.splice(savedIndex, 1);
+    }
+    this.accounts.unshift(account);
+    if (this.accounts.length &gt; cacheSize) {
+      this.accounts.length &#x3D; Math.min(this.accounts.length, cacheSize);
+    }
+    this.accountsList.next(this.accounts);
+  }
+}
+</code></pre>
+    </div>
+
+</div>
+
+
+
+
+
+
+
+                   
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> result-matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'injectable';
+            var COMPODOC_CURRENT_PAGE_URL = 'UserService.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+       <!-- Required to polyfill modern browsers as code is ES5 for IE... -->
+       <script src="../js/libs/custom-elements-es5-adapter.js" charset="utf-8" defer></script>
+       <script src="../js/menu-wc.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+       <script src="../js/libs/zepto.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

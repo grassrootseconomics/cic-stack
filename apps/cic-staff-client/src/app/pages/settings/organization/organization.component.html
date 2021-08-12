@@ -1,0 +1,77 @@
+<!-- Begin page -->
+<div class="wrapper">
+  <app-sidebar></app-sidebar>
+
+  <!-- ============================================================== -->
+  <!-- Start Page Content here -->
+  <!-- ============================================================== -->
+
+  <div id="content">
+    <app-topbar></app-topbar>
+    <!-- Start Content-->
+    <div class="container-fluid" appMenuSelection>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a routerLink="/home">Home</a></li>
+          <li class="breadcrumb-item"><a routerLink="/settings">Settings</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Organization Settings</li>
+        </ol>
+      </nav>
+      <div class="col-md-6 center-body">
+        <div class="card">
+          <mat-card-title class="card-header text-center">
+            DEFAULT ORGANISATION SETTINGS
+          </mat-card-title>
+          <div class="card-body">
+            <form [formGroup]="organizationForm" (ngSubmit)="onSubmit()">
+              <mat-form-field appearance="outline">
+                <mat-label>Default Disbursement *</mat-label>
+                <input
+                  matInput
+                  type="text"
+                  id="amount"
+                  placeholder="Amount"
+                  formControlName="disbursement"
+                  [errorStateMatcher]="matcher"
+                />
+                <span matSuffix>RCU</span>
+                <mat-error *ngIf="submitted && organizationFormStub.disbursement.errors">
+                  Default Disbursement is required.
+                </mat-error>
+              </mat-form-field>
+              <div class="form-group form-check">
+                <mat-checkbox id="transferCard" formControlName="transfer"
+                  >Require Transfer Card *</mat-checkbox
+                >
+              </div>
+              <mat-form-field appearance="outline">
+                <mat-label>Default Country Code *</mat-label>
+                <mat-select
+                  id="countryCode"
+                  formControlName="countryCode"
+                  [errorStateMatcher]="matcher"
+                >
+                  <mat-option value="KE">KE Kenya</mat-option>
+                  <mat-option value="US">US United States</mat-option>
+                  <mat-option value="ETH">ETH Ethiopia</mat-option>
+                  <mat-option value="GER">GER Germany</mat-option>
+                  <mat-option value="UG">UG Uganda</mat-option>
+                </mat-select>
+                <mat-error *ngIf="submitted && organizationFormStub.countryCode.errors">
+                  Country Code is required.
+                </mat-error> </mat-form-field
+              ><br />
+              <button mat-raised-button color="primary" type="submit" class="btn btn-primary">
+                Submit
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <app-footer appMenuSelection></app-footer>
+  </div>
+  <!-- ============================================================== -->
+  <!-- End Page content -->
+  <!-- ============================================================== -->
+</div>

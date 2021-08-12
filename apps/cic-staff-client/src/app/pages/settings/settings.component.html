@@ -1,0 +1,119 @@
+<!-- Begin page -->
+<div class="wrapper">
+  <app-sidebar></app-sidebar>
+
+  <!-- ============================================================== -->
+  <!-- Start Page Content here -->
+  <!-- ============================================================== -->
+
+  <div id="content">
+    <app-topbar></app-topbar>
+    <!-- Start Content-->
+    <div class="container-fluid" appMenuSelection>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a routerLink="/home">Home</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Settings</li>
+        </ol>
+      </nav>
+      <div class="row">
+        <div class="col-12 mb-2">
+          <div class="card">
+            <mat-card-title class="card-header text-center"> ACCOUNT MANAGEMENT </mat-card-title>
+            <div class="card-body">
+              <h4>CICADA Admin Credentials</h4>
+              <span><strong>UserId: </strong> {{ userInfo?.userid }} </span><br />
+              <span><strong>Username: </strong> {{ userInfo?.name }} </span><br />
+              <span><strong>Email: </strong> {{ userInfo?.email }} </span>
+            </div>
+            <hr />
+            <div class="card-body">
+              <button
+                mat-raised-button
+                color="primary"
+                type="button"
+                class="btn btn-outline-primary"
+                (click)="logout()"
+              >
+                LOGOUT ADMIN
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 mb-2">
+          <div class="card">
+            <mat-card-title class="card-header">
+              <div class="row">
+                TRUSTED USERS
+                <button
+                  mat-raised-button
+                  color="primary"
+                  type="button"
+                  class="btn btn-outline-primary ml-auto mr-2"
+                  (click)="downloadCsv()"
+                >
+                  EXPORT
+                </button>
+              </div>
+            </mat-card-title>
+            <div class="card-body">
+              <mat-form-field appearance="outline">
+                <mat-label> Filter </mat-label>
+                <input
+                  matInput
+                  type="text"
+                  (keyup)="doFilter($event.target.value)"
+                  placeholder="Filter"
+                />
+                <mat-icon matSuffix>search</mat-icon>
+              </mat-form-field>
+
+              <div *ngIf="loading">
+                <h2 class="text-center"><strong>Loading Trusted Users!</strong></h2>
+                <mat-progress-bar [mode]="'query'"></mat-progress-bar>
+              </div>
+
+              <mat-table
+                class="mat-elevation-z10"
+                [dataSource]="dataSource"
+                matSort
+                matSortActive="name"
+                matSortDirection="asc"
+                matSortDisableClear
+              >
+                <ng-container matColumnDef="name">
+                  <mat-header-cell *matHeaderCellDef mat-sort-header> NAME </mat-header-cell>
+                  <mat-cell *matCellDef="let user"> {{ user.name }} </mat-cell>
+                </ng-container>
+
+                <ng-container matColumnDef="email">
+                  <mat-header-cell *matHeaderCellDef mat-sort-header> EMAIL </mat-header-cell>
+                  <mat-cell *matCellDef="let user"> {{ user.email }} </mat-cell>
+                </ng-container>
+
+                <ng-container matColumnDef="userId">
+                  <mat-header-cell *matHeaderCellDef mat-sort-header> USER ID </mat-header-cell>
+                  <mat-cell *matCellDef="let user"> {{ user.userid }} </mat-cell>
+                </ng-container>
+
+                <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+                <mat-row *matRowDef="let user; columns: displayedColumns"></mat-row>
+              </mat-table>
+
+              <mat-paginator
+                [pageSize]="5"
+                [pageSizeOptions]="[5, 10, 20, 50, 100]"
+                showFirstLastButtons
+              ></mat-paginator>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <app-footer appMenuSelection></app-footer>
+  </div>
+  <!-- ============================================================== -->
+  <!-- End Page content -->
+  <!-- ============================================================== -->
+</div>

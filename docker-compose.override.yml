@@ -43,6 +43,21 @@ services:
   cic-cache-server:
     ports:
       - "63313:8000"
+    labels:
+      - traefik.enable=true
+      - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
+      - traefik.http.routers.${STACK_NAME?Variable not set}-cache-http.rule=PathPrefix(`/cache`)
+      - traefik.http.services.${STACK_NAME?Variable not set}-cache.loadbalancer.server.port=80
+
+  cicada:
+    build:
+      args:
+        BUILD_ENV: dev
+    labels:
+      - traefik.enable=true
+      - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-http.rule=PathPrefix(`/`)
+      - traefik.http.services.${STACK_NAME?Variable not set}-frontend.loadbalancer.server.port=80
 
 networks:
   traefik-public:

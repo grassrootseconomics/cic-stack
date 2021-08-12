@@ -1,0 +1,13 @@
+<nav class="navbar navbar-dark background-dark">
+  <h1 class="navbar-brand">
+    <div *ngIf="online; then onlineBlock; else offlineBlock"></div>
+    <ng-template #offlineBlock>
+      <strong style="color: red">OFFLINE </strong>
+      <img width="20rem" src="assets/images/no-wifi.svg" alt="Internet Disconnected" />
+    </ng-template>
+    <ng-template #onlineBlock>
+      <strong style="color: lawngreen">ONLINE </strong>
+      <img width="20rem" src="assets/images/wifi.svg" alt="Internet Connected" />
+    </ng-template>
+  </h1>
+</nav>

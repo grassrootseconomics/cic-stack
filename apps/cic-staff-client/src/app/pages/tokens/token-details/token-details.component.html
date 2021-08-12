@@ -1,0 +1,47 @@
+<div *ngIf="token" class="mb-3 mt-1">
+  <div class="card text-center">
+    <mat-card-title class="card-header">
+      <div class="row">
+        TOKEN DETAILS
+        <button
+          mat-raised-button
+          type="button"
+          class="btn btn-outline-secondary ml-auto mr-2"
+          (click)="close()"
+        >
+          CLOSE
+        </button>
+      </div>
+    </mat-card-title>
+    <div class="card-body">
+      <div>
+        <span><strong>Name:</strong> {{ token?.name }}</span>
+      </div>
+      <div>
+        <span><strong>Symbol:</strong> {{ token?.symbol }}</span>
+      </div>
+      <div>
+        <span><strong>Address:</strong> {{ token?.address }}</span>
+      </div>
+      <div>
+        <span
+          ><strong>Details:</strong> A community inclusive currency for trading among lower to
+          middle income societies.</span
+        >
+      </div>
+      <div>
+        <span><strong>Supply:</strong> {{ token?.supply | tokenRatio }}</span>
+      </div>
+      <br />
+      <div>
+        <h2>Reserve</h2>
+        <div>
+          <span><strong>Weight:</strong> {{ token?.reserveRatio }}</span>
+        </div>
+        <div>
+          <span><strong>Owner:</strong> {{ token?.owner }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,128 @@
+<!-- Begin page -->
+<div class="wrapper">
+  <app-sidebar></app-sidebar>
+
+  <!-- ============================================================== -->
+  <!-- Start Page Content here -->
+  <!-- ============================================================== -->
+
+  <div id="content">
+    <app-topbar></app-topbar>
+    <!-- Start Content-->
+    <div class="container-fluid" appMenuSelection>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a routerLink="/home">Home</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Accounts</li>
+        </ol>
+      </nav>
+      <div class="card">
+        <mat-card-title class="card-header"> Accounts </mat-card-title>
+        <div class="card-body">
+          <div class="row card-header">
+            <mat-form-field appearance="outline">
+              <mat-label> ACCOUNT TYPE </mat-label>
+              <mat-select
+                id="typeSelect"
+                [(value)]="accountsType"
+                (selectionChange)="filterAccounts()"
+              >
+                <mat-option value="all">ALL</mat-option>
+                <mat-option *ngFor="let accountType of accountTypes" [value]="accountType">
+                  {{ accountType | uppercase }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            <button
+              mat-raised-button
+              color="primary"
+              type="button"
+              class="btn btn-outline-primary ml-auto mr-2"
+              routerLink="/accounts/search"
+            >
+              SEARCH
+            </button>
+            <button
+              mat-raised-button
+              color="primary"
+              type="button"
+              class="btn btn-outline-primary mr-2"
+              (click)="downloadCsv()"
+            >
+              EXPORT
+            </button>
+          </div>
+
+          <mat-form-field appearance="outline">
+            <mat-label> Filter </mat-label>
+            <input
+              matInput
+              type="text"
+              (keyup)="doFilter($event.target.value)"
+              placeholder="Filter"
+            />
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <div *ngIf="loading">
+            <h2 class="text-center"><strong>Loading Accounts!</strong></h2>
+            <mat-progress-bar [mode]="'query'"></mat-progress-bar>
+          </div>
+
+          <mat-table
+            class="mat-elevation-z10"
+            [dataSource]="dataSource"
+            matSort
+            matSortActive="created"
+            matSortDirection="desc"
+            matSortDisableClear
+          >
+            <ng-container matColumnDef="name">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> NAME </mat-header-cell>
+              <mat-cell *matCellDef="let user"> {{ user?.vcard.fn[0].value }} </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="phone">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> PHONE NUMBER </mat-header-cell>
+              <mat-cell *matCellDef="let user"> {{ user?.vcard.tel[0].value }} </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="created">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> CREATED </mat-header-cell>
+              <mat-cell *matCellDef="let user"> {{ user?.date_registered | unixDate }} </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="balance">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> BALANCE </mat-header-cell>
+              <mat-cell *matCellDef="let user">
+                {{ user?.balance | tokenRatio }} {{ tokenSymbol | uppercase }}
+              </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="location">
+              <mat-header-cell *matHeaderCellDef mat-sort-header> LOCATION </mat-header-cell>
+              <mat-cell *matCellDef="let user"> {{ user?.location.area_name }} </mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+            <mat-row
+              *matRowDef="let account; columns: displayedColumns"
+              (click)="viewAccount(account)"
+              matRipple
+            ></mat-row>
+          </mat-table>
+
+          <mat-paginator
+            [pageSize]="defaultPageSize"
+            [pageSizeOptions]="pageSizeOptions"
+            showFirstLastButtons
+          ></mat-paginator>
+        </div>
+      </div>
+    </div>
+    <app-footer appMenuSelection></app-footer>
+  </div>
+  <!-- ============================================================== -->
+  <!-- End Page content -->
+  <!-- ============================================================== -->
+</div>

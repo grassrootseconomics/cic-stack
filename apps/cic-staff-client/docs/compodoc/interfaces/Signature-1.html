@@ -1,0 +1,492 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>CICADA</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	      <link rel="stylesheet" href="../styles/style.css">
+    </head>
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top visible-xs">
+            <a href="../" class="navbar-brand">CICADA</a>
+            <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="hidden-xs menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content interface">
+                   <div class="content-data">
+
+
+
+
+
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li>Interfaces</li>
+  <li>Signature</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="active">
+            <a href="#info" role="tab" id="info-tab" data-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li >
+            <a href="#source" role="tab" id="source-tab" data-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="c-info">
+        <p class="comment">
+            <h3>File</h3>
+        </p>
+        <p class="comment">
+            <code>src/app/_pgp/pgp-signer.ts</code>
+        </p>
+
+            <p class="comment">
+                <h3>Description</h3>
+            </p>
+            <p class="comment">
+                <p>Signature object interface </p>
+
+            </p>
+
+
+        <section>
+            <h3 id="index">Index</h3>
+            <table class="table table-sm table-bordered index-table">
+                <tbody>
+                    <tr>
+                        <td class="col-md-4">
+                            <h6><b>Properties</b></h6>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <ul class="index-list">
+                                <li>
+                                        <a href="#algo">algo</a>
+                                </li>
+                                <li>
+                                        <a href="#data">data</a>
+                                </li>
+                                <li>
+                                        <a href="#digest">digest</a>
+                                </li>
+                                <li>
+                                        <a href="#engine">engine</a>
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+
+
+            <section>
+                <h3 id="inputs">Properties</h3>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="algo"></a>
+                                        <span class="name"><b>algo</b><a href="#algo"><span class="icon ion-ios-link"></span></a></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>algo:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                                        </td>
+                                    </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Encryption algorithm used </p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="data"></a>
+                                        <span class="name"><b>data</b><a href="#data"><span class="icon ion-ios-link"></span></a></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>data:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                                        </td>
+                                    </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Data to be signed. </p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="digest"></a>
+                                        <span class="name"><b>digest</b><a href="#digest"><span class="icon ion-ios-link"></span></a></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>digest:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                                        </td>
+                                    </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Message digest </p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <a name="engine"></a>
+                                        <span class="name"><b>engine</b><a href="#engine"><span class="icon ion-ios-link"></span></a></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="col-md-4">
+                                        <code>engine:         <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+</code>
+                                    </td>
+                                </tr>
+
+
+                                    <tr>
+                                        <td class="col-md-4">
+                                            <i>Type : </i>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                                        </td>
+                                    </tr>
+
+
+
+
+
+                            <tr>
+                                <td class="col-md-4">
+                                    <div class="io-description"><p>Encryption engine used. </p>
+</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+            </section>
+    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="c-source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import * as openpgp from &#x27;openpgp&#x27;;
+
+// Application imports
+import { MutableKeyStore } from &#x27;@app/_pgp/pgp-key-store&#x27;;
+import { LoggingService } from &#x27;@app/_services/logging.service&#x27;;
+
+/** Signable object interface */
+interface Signable {
+  /** The message to be signed. */
+  digest(): string;
+}
+
+/** Signature object interface */
+interface Signature {
+  /** Encryption algorithm used */
+  algo: string;
+  /** Data to be signed. */
+  data: string;
+  /** Message digest */
+  digest: string;
+  /** Encryption engine used. */
+  engine: string;
+}
+
+/** Signer interface */
+interface Signer {
+  /**
+   * Get the private key fingerprint.
+   * @returns A private key fingerprint.
+   */
+  fingerprint(): string;
+  /** Event triggered on successful signing of message. */
+  onsign(signature: Signature): void;
+  /** Event triggered on successful verification of a signature. */
+  onverify(flag: boolean): void;
+  /**
+   * Load the message digest.
+   * @param material - A signable object.
+   * @returns true - If digest has been loaded successfully.
+   */
+  prepare(material: Signable): boolean;
+  /**
+   * Signs a message using a private key.
+   * @async
+   * @param digest - The message to be signed.
+   */
+  sign(digest: string): Promise&lt;void&gt;;
+  /**
+   * Verify that signature is valid.
+   * @param digest - The message that was signed.
+   * @param signature - The generated signature.
+   */
+  verify(digest: string, signature: Signature): void;
+}
+
+/** Provides functionality for signing and verifying signed messages. */
+class PGPSigner implements Signer {
+  /** Encryption algorithm used */
+  algo &#x3D; &#x27;sha256&#x27;;
+  /** Message digest */
+  dgst: string;
+  /** Encryption engine used. */
+  engine &#x3D; &#x27;pgp&#x27;;
+  /** A keystore holding pgp keys. */
+  keyStore: MutableKeyStore;
+  /** A service that provides logging capabilities. */
+  loggingService: LoggingService;
+  /** Event triggered on successful signing of message. */
+  onsign: (signature: Signature) &#x3D;&gt; void;
+  /** Event triggered on successful verification of a signature. */
+  onverify: (flag: boolean) &#x3D;&gt; void;
+  /** Generated signature */
+  signature: Signature;
+
+  /**
+   * Initializing the Signer.
+   * @param keyStore - A keystore holding pgp keys.
+   */
+  constructor(keyStore: MutableKeyStore) {
+    this.keyStore &#x3D; keyStore;
+    this.onsign &#x3D; (signature: Signature) &#x3D;&gt; {};
+    this.onverify &#x3D; (flag: boolean) &#x3D;&gt; {};
+  }
+
+  /**
+   * Get the private key fingerprint.
+   * @returns A private key fingerprint.
+   */
+  public fingerprint(): string {
+    return this.keyStore.getFingerprint();
+  }
+
+  /**
+   * Load the message digest.
+   * @param material - A signable object.
+   * @returns true - If digest has been loaded successfully.
+   */
+  public prepare(material: Signable): boolean {
+    this.dgst &#x3D; material.digest();
+    return true;
+  }
+
+  /**
+   * Signs a message using a private key.
+   * @async
+   * @param digest - The message to be signed.
+   */
+  public async sign(digest: string): Promise&lt;void&gt; {
+    const m &#x3D; openpgp.cleartext.fromText(digest);
+    const pk &#x3D; this.keyStore.getPrivateKey();
+    if (!pk.isDecrypted()) {
+      const password &#x3D; window.prompt(&#x27;password&#x27;);
+      await pk.decrypt(password);
+    }
+    const opts &#x3D; {
+      message: m,
+      privateKeys: [pk],
+      detached: true,
+    };
+    openpgp
+      .sign(opts)
+      .then((s) &#x3D;&gt; {
+        this.signature &#x3D; {
+          engine: this.engine,
+          algo: this.algo,
+          data: s.signature,
+          // TODO: fix for browser later
+          digest,
+        };
+        this.onsign(this.signature);
+      })
+      .catch((e) &#x3D;&gt; {
+        this.loggingService.sendErrorLevelMessage(e.message, this, { error: e });
+        this.onsign(undefined);
+      });
+  }
+
+  /**
+   * Verify that signature is valid.
+   * @param digest - The message that was signed.
+   * @param signature - The generated signature.
+   */
+  public verify(digest: string, signature: Signature): void {
+    openpgp.signature
+      .readArmored(signature.data)
+      .then((sig) &#x3D;&gt; {
+        const opts &#x3D; {
+          message: openpgp.cleartext.fromText(digest),
+          publicKeys: this.keyStore.getTrustedKeys(),
+          signature: sig,
+        };
+        openpgp.verify(opts).then((v) &#x3D;&gt; {
+          let i &#x3D; 0;
+          for (i &#x3D; 0; i &lt; v.signatures.length; i++) {
+            const s &#x3D; v.signatures[i];
+            if (s.valid) {
+              this.onverify(s);
+              return;
+            }
+          }
+          this.loggingService.sendErrorLevelMessage(
+            &#x60;Checked ${i} signature(s) but none valid&#x60;,
+            this,
+            { error: &#x27;404 Not found!&#x27; }
+          );
+          this.onverify(false);
+        });
+      })
+      .catch((e) &#x3D;&gt; {
+        this.loggingService.sendErrorLevelMessage(e.message, this, { error: e });
+        this.onverify(false);
+      });
+  }
+}
+
+/** @exports */
+export { PGPSigner, Signable, Signature, Signer };
+</code></pre>
+    </div>
+</div>
+
+
+                   
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> result-matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'interface';
+            var COMPODOC_CURRENT_PAGE_URL = 'Signature-1.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+       <!-- Required to polyfill modern browsers as code is ES5 for IE... -->
+       <script src="../js/libs/custom-elements-es5-adapter.js" charset="utf-8" defer></script>
+       <script src="../js/menu-wc.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+       <script src="../js/libs/zepto.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

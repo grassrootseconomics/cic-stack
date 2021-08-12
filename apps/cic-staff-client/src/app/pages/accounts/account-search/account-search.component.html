@@ -1,0 +1,87 @@
+<!-- Begin page -->
+<div class="wrapper">
+  <app-sidebar></app-sidebar>
+
+  <!-- ============================================================== -->
+  <!-- Start Page Content here -->
+  <!-- ============================================================== -->
+
+  <div id="content">
+    <app-topbar></app-topbar>
+    <!-- Start Content-->
+    <div class="container-fluid" appMenuSelection>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a routerLink="/home">Home</a></li>
+          <li class="breadcrumb-item"><a routerLink="/accounts">Accounts</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Search</li>
+        </ol>
+      </nav>
+      <div class="card">
+        <mat-card-title class="card-header"> Accounts </mat-card-title>
+        <div class="card-body">
+          <mat-tab-group>
+            <mat-tab label="Phone Number">
+              <form [formGroup]="phoneSearchForm" (ngSubmit)="onPhoneSearch()">
+                <mat-form-field appearance="outline">
+                  <mat-label> Search </mat-label>
+                  <input
+                    matInput
+                    type="text"
+                    placeholder="Search by phone number"
+                    formControlName="phoneNumber"
+                    [errorStateMatcher]="matcher"
+                  />
+                  <mat-error *ngIf="phoneSearchSubmitted && phoneSearchFormStub.phoneNumber.errors"
+                    >Phone Number is required.</mat-error
+                  >
+                  <mat-icon matSuffix>phone</mat-icon>
+                  <mat-hint>Phone Number</mat-hint>
+                </mat-form-field>
+                <button
+                  mat-raised-button
+                  color="primary"
+                  type="submit"
+                  class="btn btn-outline-primary ml-3"
+                >
+                  SEARCH
+                </button>
+              </form>
+            </mat-tab>
+            <mat-tab label="Account Address">
+              <form [formGroup]="addressSearchForm" (ngSubmit)="onAddressSearch()">
+                <mat-form-field appearance="outline">
+                  <mat-label> Search </mat-label>
+                  <input
+                    matInput
+                    type="text"
+                    placeholder="Search by account address"
+                    formControlName="address"
+                    [errorStateMatcher]="matcher"
+                  />
+                  <mat-error *ngIf="addressSearchSubmitted && addressSearchFormStub.address.errors"
+                    >Account Address is required.</mat-error
+                  >
+                  <mat-icon matSuffix>view_in_ar</mat-icon>
+                  <mat-hint>Account Address</mat-hint>
+                </mat-form-field>
+                <button
+                  mat-raised-button
+                  color="primary"
+                  type="submit"
+                  class="btn btn-outline-primary ml-3"
+                >
+                  SEARCH
+                </button>
+              </form>
+            </mat-tab>
+          </mat-tab-group>
+        </div>
+      </div>
+    </div>
+    <app-footer appMenuSelection></app-footer>
+  </div>
+  <!-- ============================================================== -->
+  <!-- End Page content -->
+  <!-- ============================================================== -->
+</div>

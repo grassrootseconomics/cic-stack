@@ -1,0 +1,134 @@
+stages:
+  - build
+  # - test
+  # - package
+
+image:
+  name: gcr.io/kaniko-project/executor:debug
+  entrypoint: [""]
+
+variables:
+  KANIKO_CACHE_ARGS: "--cache=true --cache-copy-layers=true --cache-ttl=24h"
+
+ng_build_merge_request:
+  stage: build
+  variables:
+  script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > "/kaniko/.docker/config.json"
+    - /kaniko/executor --context . $KANIKO_CACHE_ARGS --cache-repo $CI_REGISTRY_IMAGE --no-push
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+
+ng_build:
+  stage: build
+  variables:
+      IMAGE_TAG_BASE: $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
+      LATEST_TAG: $CI_REGISTRY_IMAGE:latest
+  script:
+    - export IMAGE_TAG="$IMAGE_TAG_BASE-$(date +%s)"
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > "/kaniko/.docker/config.json"
+    - /kaniko/executor --context . $KANIKO_CACHE_ARGS --destination $IMAGE_TAG --destination $CI_REGISTRY_IMAGE:latest
+  rules:
+      - if: $CI_COMMIT_BRANCH == "master"
+        when: always
+
+
+# cache:
+#   key:
+#     files:
+#       - package-lock.json
+#   paths:
+#     - node_modules/
+#   policy: pull
+
+# image: node:alpine
+
+# variables:
+#   PROJECT_PATH: "$CI_PROJECT_DIR"
+#   APP_OUTPUT_PATH: "$CI_PROJECT_DIR/dist/cic-staff-client"
+#   OUTPUT_PATH: "$CI_PROJECT_DIR/dist"
+#   CLI_VERSION: 10.2.0
+
+# install_dependencies:
+#   stage: install
+#   tags:
+#     - docker
+#   script:
+#     - npm install -g @angular/cli@$CLI_VERSION
+#     - npm install
+#   only:
+#     refs:
+#       - merge_requests
+#       - master
+#     changes:
+#       - package-lock.json
+
+# build:
+#   stage: build
+#   tags:
+#     - docker
+#   script:
+#     - npm ng build --prod
+#   after_script:
+#     - mv $PROJECT_PATH/nginx.conf $PROJECT_PATH/default.conf
+#     - cp $PROJECT_PATH/default.conf  $APP_OUTPUT_PATH
+#     - cp $PROJECT_PATH/Dockerfile    $APP_OUTPUT_PATH
+#   artifacts:
+#     name: "cic-staff-client-pipeline"
+#     expire_in: 1 days
+#     paths:
+#       - $APP_OUTPUT_PATH
+
+# test:karma:
+#   stage: test
+#   allow_failure: false
+#   tags:
+#     - docker
+#   before_script:
+#     - apk add chromium
+#     - export CHROME_BIN=/usr/bin/chromium-browser
+#   script:
+#     - npm ng test --code-coverage --progress false --watch false --browsers=GitlabChromeHeadless
+#   coverage: '/Statements\s+:\s\d+.\d+%/'
+#   artifacts:
+#     name: "tests-and-coverage"
+#     reports:
+#       junit:
+#         - $OUTPUT_PATH/tests/junit-test-results.xml
+#       cobertura:
+#         - $OUTPUT_PATH/coverage/cobetura-coverage.xml
+#     paths:
+#       - coverage/
+
+# test:e2e:
+#   stage: test
+#   allow_failure: false
+#   tags:
+#     - docker
+#   script:
+#     - npm ng e2e
+
+# test:nglint:
+#   stage: test
+#   tags:
+#     - docker
+#   script:
+#     - npm ng lint
+
+# docker-build:
+#   stage: package
+#   image: docker:latest
+#   services:
+#     - docker:dind
+#   variables:
+#     IMAGE_TAG: "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
+#   before_script:
+#     - docker login -u $CI_DEPLOY_USER -p $CI_DEPLOY_PASSWORD $CI_REGISTRY
+#   script:
+#     - docker build -t $IMAGE_TAG -f Dockerfile .
+#     - docker push $IMAGE_TAG
+#   only:
+#     - master

@@ -1,0 +1,1438 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>CICADA</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+	      <link rel="stylesheet" href="../styles/style.css">
+    </head>
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top visible-xs">
+            <a href="../" class="navbar-brand">CICADA</a>
+            <button type="button" class="btn btn-default btn-menu ion-ios-menu" id="btn-menu"></button>
+        </div>
+
+        <div class="xs-menu menu" id="mobile-menu">
+                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+        </div>
+
+        <div class="container-fluid main">
+           <div class="row main">
+               <div class="hidden-xs menu">
+                   <compodoc-menu mode="normal"></compodoc-menu>
+               </div>
+               <!-- START CONTENT -->
+               <div class="content injectable">
+                   <div class="content-data">
+
+
+
+
+
+
+
+<ol class="breadcrumb">
+  <li>Injectables</li>
+  <li>AuthService</li>
+</ol>
+
+<ul class="nav nav-tabs" role="tablist">
+        <li class="active">
+            <a href="#info" role="tab" id="info-tab" data-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li >
+            <a href="#source" role="tab" id="source-tab" data-toggle="tab" data-link="source">Source</a>
+        </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="c-info">
+        <p class="comment">
+            <h3>File</h3>
+        </p>
+        <p class="comment">
+            <code>src/app/_services/auth.service.ts</code>
+        </p>
+
+
+
+
+            <section>
+    <h3 id="index">Index</h3>
+    <table class="table table-sm table-bordered index-table">
+        <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Properties</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                <a href="#mutableKeyStore">mutableKeyStore</a>
+                            </li>
+                            <li>
+                                <a href="#trustedUsers">trustedUsers</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Private</span>
+                                <a href="#trustedUsersList">trustedUsersList</a>
+                            </li>
+                            <li>
+                                <a href="#trustedUsersSubject">trustedUsersSubject</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                        <h6><b>Methods</b></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <ul class="index-list">
+                            <li>
+                                <a href="#addTrustedUser">addTrustedUser</a>
+                            </li>
+                            <li>
+                                <a href="#getChallenge">getChallenge</a>
+                            </li>
+                            <li>
+                                <a href="#getPrivateKey">getPrivateKey</a>
+                            </li>
+                            <li>
+                                <a href="#getPrivateKeyInfo">getPrivateKeyInfo</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#getPublicKeys">getPublicKeys</a>
+                            </li>
+                            <li>
+                                <a href="#getSessionToken">getSessionToken</a>
+                            </li>
+                            <li>
+                                <a href="#getTrustedUsers">getTrustedUsers</a>
+                            </li>
+                            <li>
+                                <a href="#getWithToken">getWithToken</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#init">init</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#login">login</a>
+                            </li>
+                            <li>
+                                <a href="#loginView">loginView</a>
+                            </li>
+                            <li>
+                                <a href="#logout">logout</a>
+                            </li>
+                            <li>
+                                <a href="#sendSignedChallenge">sendSignedChallenge</a>
+                            </li>
+                            <li>
+                                    <span class="modifier">Async</span>
+                                <a href="#setKey">setKey</a>
+                            </li>
+                            <li>
+                                <a href="#setSessionToken">setSessionToken</a>
+                            </li>
+                            <li>
+                                <a href="#setState">setState</a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+
+
+
+
+
+        </tbody>
+    </table>
+</section>
+
+            <section>
+    <h3 id="constructor">Constructor</h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+<code>constructor(httpClient: <a href="https://angular.io/api/common/http/HttpClient" target="_blank">HttpClient</a>, loggingService: <a href="../injectables/LoggingService.html">LoggingService</a>, errorDialogService: <a href="../injectables/ErrorDialogService.html">ErrorDialogService</a>)</code>
+                    </td>
+                </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="23" class="link-to-prism">src/app/_services/auth.service.ts:23</a></div>
+                            </td>
+                        </tr>
+
+                <tr>
+                    <td class="col-md-4">
+                            <div>
+                                    <b>Parameters :</b>
+                                    <table class="params">
+                                        <thead>
+                                            <tr>
+                                                <td>Name</td>
+                                                    <td>Type</td>
+                                                <td>Optional</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                                <tr>
+                                                        <td>httpClient</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="https://angular.io/api/common/http/HttpClient" target="_blank" >HttpClient</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                </tr>
+                                                <tr>
+                                                        <td>loggingService</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="../injectables/LoggingService.html" target="_self" >LoggingService</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                </tr>
+                                                <tr>
+                                                        <td>errorDialogService</td>
+                                                  
+                                                        <td>
+                                                                        <code><a href="../injectables/ErrorDialogService.html" target="_self" >ErrorDialogService</a></code>
+                                                        </td>
+                                                  
+                                                    <td>
+                                                            No
+                                                    </td>
+                                                    
+                                                </tr>
+                                        </tbody>
+                                    </table>
+                            </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+</section>
+
+            <section>
+    
+    <h3 id="methods">
+        Methods
+    </h3>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="addTrustedUser"></a>
+                    <span class="name">
+                        <b>
+                            addTrustedUser
+                        </b>
+                        <a href="#addTrustedUser"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>addTrustedUser(user: <a href="../interfaces/Staff.html">Staff</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="172"
+                            class="link-to-prism">src/app/_services/auth.service.ts:172</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>user</td>
+                                    <td>
+                                                <code><a href="../interfaces/Staff.html" target="_self" >Staff</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getChallenge"></a>
+                    <span class="name">
+                        <b>
+                            getChallenge
+                        </b>
+                        <a href="#getChallenge"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getChallenge()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="84"
+                            class="link-to-prism">src/app/_services/auth.service.ts:84</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;any&gt;</code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getPrivateKey"></a>
+                    <span class="name">
+                        <b>
+                            getPrivateKey
+                        </b>
+                        <a href="#getPrivateKey"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getPrivateKey()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="202"
+                            class="link-to-prism">src/app/_services/auth.service.ts:202</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >any</a></code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getPrivateKeyInfo"></a>
+                    <span class="name">
+                        <b>
+                            getPrivateKeyInfo
+                        </b>
+                        <a href="#getPrivateKeyInfo"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getPrivateKeyInfo()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="206"
+                            class="link-to-prism">src/app/_services/auth.service.ts:206</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >any</a></code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getPublicKeys"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Async</span>
+                            getPublicKeys
+                        </b>
+                        <a href="#getPublicKeys"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>getPublicKeys()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="190"
+                            class="link-to-prism">src/app/_services/auth.service.ts:190</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;any&gt;</code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getSessionToken"></a>
+                    <span class="name">
+                        <b>
+                            getSessionToken
+                        </b>
+                        <a href="#getSessionToken"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getSessionToken()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="38"
+                            class="link-to-prism">src/app/_services/auth.service.ts:38</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getTrustedUsers"></a>
+                    <span class="name">
+                        <b>
+                            getTrustedUsers
+                        </b>
+                        <a href="#getTrustedUsers"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getTrustedUsers()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="184"
+                            class="link-to-prism">src/app/_services/auth.service.ts:184</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="getWithToken"></a>
+                    <span class="name">
+                        <b>
+                            getWithToken
+                        </b>
+                        <a href="#getWithToken"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>getWithToken()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="50"
+                            class="link-to-prism">src/app/_services/auth.service.ts:50</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;boolean&gt;</code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="init"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Async</span>
+                            init
+                        </b>
+                        <a href="#init"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>init()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="31"
+                            class="link-to-prism">src/app/_services/auth.service.ts:31</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;void&gt;</code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="login"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Async</span>
+                            login
+                        </b>
+                        <a href="#login"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>login()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="93"
+                            class="link-to-prism">src/app/_services/auth.service.ts:93</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;boolean&gt;</code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="loginView"></a>
+                    <span class="name">
+                        <b>
+                            loginView
+                        </b>
+                        <a href="#loginView"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>loginView()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="128"
+                            class="link-to-prism">src/app/_services/auth.service.ts:128</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="logout"></a>
+                    <span class="name">
+                        <b>
+                            logout
+                        </b>
+                        <a href="#logout"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>logout()</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="166"
+                            class="link-to-prism">src/app/_services/auth.service.ts:166</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="sendSignedChallenge"></a>
+                    <span class="name">
+                        <b>
+                            sendSignedChallenge
+                        </b>
+                        <a href="#sendSignedChallenge"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>sendSignedChallenge(hobaResponseEncoded: <a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank">any</a>)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="72"
+                            class="link-to-prism">src/app/_services/auth.service.ts:72</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Type</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>hobaResponseEncoded</td>
+                                    <td>
+                                                <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >any</a></code>
+                                    </td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;any&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="setKey"></a>
+                    <span class="name">
+                        <b>
+                            <span class="modifier">Async</span>
+                            setKey
+                        </b>
+                        <a href="#setKey"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>setKey(privateKeyArmored)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="138"
+                            class="link-to-prism">src/app/_services/auth.service.ts:138</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Optional</td>
+                                    <td>Description</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>privateKeyArmored</td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                    <td>
+                                        <ul>
+<li>Private key.</li>
+</ul>
+
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>    <code>Promise&lt;boolean&gt;</code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="setSessionToken"></a>
+                    <span class="name">
+                        <b>
+                            setSessionToken
+                        </b>
+                        <a href="#setSessionToken"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>setSessionToken(token)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="42"
+                            class="link-to-prism">src/app/_services/auth.service.ts:42</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>token</td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="setState"></a>
+                    <span class="name">
+                        <b>
+                            setState
+                        </b>
+                        <a href="#setState"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>setState(s)</code>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-line">Defined in <a href="" data-line="46"
+                            class="link-to-prism">src/app/_services/auth.service.ts:46</a></div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+
+                    <div class="io-description">
+                        <b>Parameters :</b>
+                        <table class="params">
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Optional</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>s</td>
+
+                                    <td>
+                                        No
+                                    </td>
+
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                    </div>
+                    <div class="io-description">
+                        <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                    </div>
+                    <div class="io-description">
+                        
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+            <section>
+    
+        <h3 id="inputs">
+            Properties
+        </h3>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="mutableKeyStore"></a>
+                        <span class="name">
+                            <b>
+                            mutableKeyStore</b>
+                            <a href="#mutableKeyStore"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="../interfaces/MutableKeyStore.html" target="_self" >MutableKeyStore</a></code>
+
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="18" class="link-to-prism">src/app/_services/auth.service.ts:18</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="trustedUsers"></a>
+                        <span class="name">
+                            <b>
+                            trustedUsers</b>
+                            <a href="#trustedUsers"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="../interfaces/Staff.html" target="_self" >Array&lt;Staff&gt;</a></code>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>[]</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="19" class="link-to-prism">src/app/_services/auth.service.ts:19</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="trustedUsersList"></a>
+                        <span class="name">
+                            <b>
+                                <span class="modifier">Private</span>
+                            trustedUsersList</b>
+                            <a href="#trustedUsersList"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="../interfaces/Staff.html" target="_self" >BehaviorSubject&lt;Array&lt;Staff&gt;&gt;</a></code>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>new BehaviorSubject&lt;Array&lt;Staff&gt;&gt;(
+    this.trustedUsers
+  )</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="20" class="link-to-prism">src/app/_services/auth.service.ts:20</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+        <table class="table table-sm table-bordered">
+            <tbody>
+                <tr>
+                    <td class="col-md-4">
+                        <a name="trustedUsersSubject"></a>
+                        <span class="name">
+                            <b>
+                            trustedUsersSubject</b>
+                            <a href="#trustedUsersSubject"><span class="icon ion-ios-link"></span></a>
+                        </span>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Type : </i>        <code><a href="../interfaces/Staff.html" target="_self" >Observable&lt;Array&lt;Staff&gt;&gt;</a></code>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-md-4">
+                            <i>Default value : </i><code>this.trustedUsersList.asObservable()</code>
+                        </td>
+                    </tr>
+                        <tr>
+                            <td class="col-md-4">
+                                    <div class="io-line">Defined in <a href="" data-line="23" class="link-to-prism">src/app/_services/auth.service.ts:23</a></div>
+                            </td>
+                        </tr>
+
+
+            </tbody>
+        </table>
+</section>
+
+    </div>
+
+
+    <div class="tab-pane fade  tab-source-code" id="c-source">
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Injectable } from &#x27;@angular/core&#x27;;
+import { hobaParseChallengeHeader } from &#x27;@src/assets/js/hoba.js&#x27;;
+import { signChallenge } from &#x27;@src/assets/js/hoba-pgp.js&#x27;;
+import { environment } from &#x27;@src/environments/environment&#x27;;
+import { LoggingService } from &#x27;@app/_services/logging.service&#x27;;
+import { MutableKeyStore } from &#x27;@app/_pgp&#x27;;
+import { ErrorDialogService } from &#x27;@app/_services/error-dialog.service&#x27;;
+import { HttpClient } from &#x27;@angular/common/http&#x27;;
+import { HttpError, rejectBody } from &#x27;@app/_helpers/global-error-handler&#x27;;
+import { Staff } from &#x27;@app/_models&#x27;;
+import { BehaviorSubject, Observable } from &#x27;rxjs&#x27;;
+import { KeystoreService } from &#x27;@app/_services/keystore.service&#x27;;
+
+@Injectable({
+  providedIn: &#x27;root&#x27;,
+})
+export class AuthService {
+  mutableKeyStore: MutableKeyStore;
+  trustedUsers: Array&lt;Staff&gt; &#x3D; [];
+  private trustedUsersList: BehaviorSubject&lt;Array&lt;Staff&gt;&gt; &#x3D; new BehaviorSubject&lt;Array&lt;Staff&gt;&gt;(
+    this.trustedUsers
+  );
+  trustedUsersSubject: Observable&lt;Array&lt;Staff&gt;&gt; &#x3D; this.trustedUsersList.asObservable();
+
+  constructor(
+    private httpClient: HttpClient,
+    private loggingService: LoggingService,
+    private errorDialogService: ErrorDialogService
+  ) {}
+
+  async init(): Promise&lt;void&gt; {
+    this.mutableKeyStore &#x3D; await KeystoreService.getKeystore();
+    if (localStorage.getItem(btoa(&#x27;CICADA_PRIVATE_KEY&#x27;))) {
+      await this.mutableKeyStore.importPrivateKey(localStorage.getItem(btoa(&#x27;CICADA_PRIVATE_KEY&#x27;)));
+    }
+  }
+
+  getSessionToken(): string {
+    return sessionStorage.getItem(btoa(&#x27;CICADA_SESSION_TOKEN&#x27;));
+  }
+
+  setSessionToken(token): void {
+    sessionStorage.setItem(btoa(&#x27;CICADA_SESSION_TOKEN&#x27;), token);
+  }
+
+  setState(s): void {
+    document.getElementById(&#x27;state&#x27;).innerHTML &#x3D; s;
+  }
+
+  getWithToken(): Promise&lt;boolean&gt; {
+    const headers &#x3D; {
+      Authorization: &#x27;Bearer &#x27; + this.getSessionToken,
+      &#x27;Content-Type&#x27;: &#x27;application/json;charset&#x3D;utf-8&#x27;,
+      &#x27;x-cic-automerge&#x27;: &#x27;none&#x27;,
+    };
+    const options &#x3D; {
+      headers,
+    };
+    return fetch(environment.cicMetaUrl, options).then((response) &#x3D;&gt; {
+      if (!response.ok) {
+        this.loggingService.sendErrorLevelMessage(&#x27;failed to get with auth token.&#x27;, this, {
+          error: &#x27;&#x27;,
+        });
+
+        return false;
+      }
+      return true;
+    });
+  }
+
+  // TODO rename to send signed challenge and set session. Also separate these responsibilities
+  sendSignedChallenge(hobaResponseEncoded: any): Promise&lt;any&gt; {
+    const headers &#x3D; {
+      Authorization: &#x27;HOBA &#x27; + hobaResponseEncoded,
+      &#x27;Content-Type&#x27;: &#x27;application/json;charset&#x3D;utf-8&#x27;,
+      &#x27;x-cic-automerge&#x27;: &#x27;none&#x27;,
+    };
+    const options &#x3D; {
+      headers,
+    };
+    return fetch(environment.cicMetaUrl, options);
+  }
+
+  getChallenge(): Promise&lt;any&gt; {
+    return fetch(environment.cicMetaUrl).then((response) &#x3D;&gt; {
+      if (response.status &#x3D;&#x3D;&#x3D; 401) {
+        const authHeader: string &#x3D; response.headers.get(&#x27;WWW-Authenticate&#x27;);
+        return hobaParseChallengeHeader(authHeader);
+      }
+    });
+  }
+
+  async login(): Promise&lt;boolean&gt; {
+    if (this.getSessionToken()) {
+      sessionStorage.removeItem(btoa(&#x27;CICADA_SESSION_TOKEN&#x27;));
+    } else {
+      const o &#x3D; await this.getChallenge();
+
+      const r &#x3D; await signChallenge(
+        o.challenge,
+        o.realm,
+        environment.cicMetaUrl,
+        this.mutableKeyStore
+      );
+
+      const tokenResponse &#x3D; await this.sendSignedChallenge(r).then((response) &#x3D;&gt; {
+        const token &#x3D; response.headers.get(&#x27;Token&#x27;);
+        if (token) {
+          return token;
+        }
+        if (response.status &#x3D;&#x3D;&#x3D; 401) {
+          throw new HttpError(&#x27;You are not authorized to use this system&#x27;, response.status);
+        }
+        if (!response.ok) {
+          throw new HttpError(&#x27;Unknown error from authentication server&#x27;, response.status);
+        }
+      });
+
+      if (tokenResponse) {
+        this.setSessionToken(tokenResponse);
+        this.setState(&#x27;Click button to log in&#x27;);
+        return true;
+      }
+      return false;
+    }
+  }
+
+  loginView(): void {
+    document.getElementById(&#x27;one&#x27;).style.display &#x3D; &#x27;none&#x27;;
+    document.getElementById(&#x27;two&#x27;).style.display &#x3D; &#x27;block&#x27;;
+    this.setState(&#x27;Click button to log in with PGP key &#x27; + this.mutableKeyStore.getPrivateKeyId());
+  }
+
+  /**
+   * @throws
+   * @param privateKeyArmored - Private key.
+   */
+  async setKey(privateKeyArmored): Promise&lt;boolean&gt; {
+    try {
+      const isValidKeyCheck &#x3D; await this.mutableKeyStore.isValidKey(privateKeyArmored);
+      if (!isValidKeyCheck) {
+        throw Error(&#x27;The private key is invalid&#x27;);
+      }
+      // TODO leaving this out for now.
+      // const isEncryptedKeyCheck &#x3D; await this.mutableKeyStore.isEncryptedPrivateKey(privateKeyArmored);
+      // if (!isEncryptedKeyCheck) {
+      //   throw Error(&#x27;The private key doesn\&#x27;t have a password!&#x27;);
+      // }
+      const key &#x3D; await this.mutableKeyStore.importPrivateKey(privateKeyArmored);
+      localStorage.setItem(btoa(&#x27;CICADA_PRIVATE_KEY&#x27;), privateKeyArmored);
+    } catch (err) {
+      this.loggingService.sendErrorLevelMessage(
+        &#x60;Failed to set key: ${err.message || err.statusText}&#x60;,
+        this,
+        { error: err }
+      );
+      this.errorDialogService.openDialog({
+        message: &#x60;Failed to set key: ${err.message || err.statusText}&#x60;,
+      });
+      return false;
+    }
+    this.loginView();
+    return true;
+  }
+
+  logout(): void {
+    sessionStorage.removeItem(btoa(&#x27;CICADA_SESSION_TOKEN&#x27;));
+    localStorage.removeItem(btoa(&#x27;CICADA_PRIVATE_KEY&#x27;));
+    window.location.reload();
+  }
+
+  addTrustedUser(user: Staff): void {
+    const savedIndex &#x3D; this.trustedUsers.findIndex((staff) &#x3D;&gt; staff.userid &#x3D;&#x3D;&#x3D; user.userid);
+    if (savedIndex &#x3D;&#x3D;&#x3D; 0) {
+      return;
+    }
+    if (savedIndex &gt; 0) {
+      this.trustedUsers.splice(savedIndex, 1);
+    }
+    this.trustedUsers.unshift(user);
+    this.trustedUsersList.next(this.trustedUsers);
+  }
+
+  getTrustedUsers(): void {
+    this.mutableKeyStore.getPublicKeys().forEach((key) &#x3D;&gt; {
+      this.addTrustedUser(key.users[0].userId);
+    });
+  }
+
+  async getPublicKeys(): Promise&lt;any&gt; {
+    return new Promise((resolve, reject) &#x3D;&gt; {
+      fetch(environment.publicKeysUrl).then((res) &#x3D;&gt; {
+        if (!res.ok) {
+          // TODO does angular recommend an error interface?
+          return reject(rejectBody(res));
+        }
+        return resolve(res.text());
+      });
+    });
+  }
+
+  getPrivateKey(): any {
+    return this.mutableKeyStore.getPrivateKey();
+  }
+
+  getPrivateKeyInfo(): any {
+    return this.getPrivateKey().users[0].userId;
+  }
+}
+</code></pre>
+    </div>
+
+</div>
+
+
+
+
+
+
+
+                   
+
+
+
+
+                   </div><div class="search-results">
+    <div class="has-results">
+        <h1 class="search-results-title"><span class='search-results-count'></span> result-matching "<span class='search-query'></span>"</h1>
+        <ul class="search-results-list"></ul>
+    </div>
+    <div class="no-results">
+        <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+    </div>
+</div>
+</div>
+               <!-- END CONTENT -->
+           </div>
+       </div>
+
+       <script>
+            var COMPODOC_CURRENT_PAGE_DEPTH = 1;
+            var COMPODOC_CURRENT_PAGE_CONTEXT = 'injectable';
+            var COMPODOC_CURRENT_PAGE_URL = 'AuthService.html';
+            var MAX_SEARCH_RESULTS = 15;
+       </script>
+
+       <script src="../js/libs/custom-elements.min.js"></script>
+       <script src="../js/libs/lit-html.js"></script>
+       <!-- Required to polyfill modern browsers as code is ES5 for IE... -->
+       <script src="../js/libs/custom-elements-es5-adapter.js" charset="utf-8" defer></script>
+       <script src="../js/menu-wc.js" defer></script>
+
+       <script src="../js/libs/bootstrap-native.js"></script>
+
+       <script src="../js/libs/es6-shim.min.js"></script>
+       <script src="../js/libs/EventDispatcher.js"></script>
+       <script src="../js/libs/promise.min.js"></script>
+       <script src="../js/libs/zepto.min.js"></script>
+
+       <script src="../js/compodoc.js"></script>
+
+       <script src="../js/tabs.js"></script>
+       <script src="../js/menu.js"></script>
+       <script src="../js/libs/clipboard.min.js"></script>
+       <script src="../js/libs/prism.js"></script>
+       <script src="../js/sourceCode.js"></script>
+          <script src="../js/search/search.js"></script>
+          <script src="../js/search/lunr.min.js"></script>
+          <script src="../js/search/search-lunr.js"></script>
+          <script src="../js/search/search_index.js"></script>
+       <script src="../js/lazy-load-graphs.js"></script>
+
+
+    </body>
+</html>

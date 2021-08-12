@@ -1,0 +1,649 @@
+<!-- Begin page -->
+<div class="wrapper">
+  <app-sidebar></app-sidebar>
+
+  <!-- ============================================================== -->
+  <!-- Start Page Content here -->
+  <!-- ============================================================== -->
+
+  <div id="content">
+    <app-topbar></app-topbar>
+    <!-- Start Content-->
+    <div class="container-fluid" appMenuSelection>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a routerLink="/home">Home</a></li>
+          <li class="breadcrumb-item"><a routerLink="/accounts">Accounts</a></li>
+          <li *ngIf="account" class="breadcrumb-item active" aria-current="page">
+            {{ account?.vcard?.fn[0].value }}
+          </li>
+        </ol>
+      </nav>
+      <div *ngIf="!account" class="text-center">
+        <div class="spinner-grow text-primary m-1" role="status" style="width: 3rem; height: 3rem">
+          <span class="sr-only">Loading...</span>
+        </div>
+        <div class="spinner-grow text-primary m-1" role="status" style="width: 3rem; height: 3rem">
+          <span class="sr-only">Loading...</span>
+        </div>
+        <div class="spinner-grow text-primary m-1" role="status" style="width: 3rem; height: 3rem">
+          <span class="sr-only">Loading...</span>
+        </div>
+      </div>
+      <div *ngIf="account" class="card mb-3">
+        <div class="row card-body">
+          <h3>
+            <strong> {{ account?.vcard?.fn[0].value }} </strong>
+          </h3>
+          <span class="ml-auto"
+            ><strong>Balance:</strong> {{ account?.balance | tokenRatio }}
+            {{ tokenSymbol | uppercase }}</span
+          >
+          <span class="ml-2"
+            ><strong>Created:</strong> {{ account?.date_registered | unixDate }}</span
+          >
+          <span class="ml-2"
+            ><strong>Address:</strong>
+            <a href="{{ bloxbergLink }}" target="_blank"> {{ accountAddress }} </a>
+            <img
+              src="assets/images/checklist.svg"
+              class="ml-2"
+              height="20rem"
+              (click)="copyAddress()"
+              alt="Copy"
+            />
+          </span>
+        </div>
+      </div>
+      <div *ngIf="account" class="card mt-3 mb-3">
+        <div class="card-body">
+          <form [formGroup]="accountInfoForm" (ngSubmit)="saveInfo()">
+            <div class="row form-inline">
+              <div class="col-md-6 col-lg-4">
+                <mat-form-field appearance="outline">
+                  <mat-label>First Name: *</mat-label>
+                  <input
+                    matInput
+                    type="text"
+                    id="firstName"
+                    placeholder="{{ account?.vcard?.fn[0].value.split(' ')[0] }}"
+                    value="{{ account?.vcard?.fn[0].value.split(' ')[0] }}"
+                    formControlName="firstName"
+                    [errorStateMatcher]="matcher"
+                  />
+                  <mat-error *ngIf="submitted && accountInfoFormStub.firstName.errors"
+                    >First Name is required.</mat-error
+                  >
+                </mat-form-field>
+              </div>
+
+              <div class="col-md-6 col-lg-4">
+                <mat-form-field appearance="outline">
+                  <mat-label>Last Name(s): *</mat-label>
+                  <input
+                    matInput
+                    type="text"
+                    id="lastName"
+                    placeholder="{{ account?.vcard?.fn[0].value.split(' ').slice(1).join(' ') }}"
+                    value="{{ account?.vcard?.fn[0].value.split(' ').slice(1).join(' ') }}"
+                    formControlName="lastName"
+                    [errorStateMatcher]="matcher"
+                  />
+                  <mat-error *ngIf="submitted && accountInfoFormStub.lastName.errors"
+                    >Last Name is required.</mat-error
+                  >
+                </mat-form-field>
+              </div>
+
+              <div class="col-md-6 col-lg-4">
+                <mat-form-field appearance="outline">
+                  <mat-label>Phone Number: </mat-label>
+                  <input
+                    matInput
+                    type="text"
+                    id="phoneNumber"
+                    placeholder="{{ account?.vcard?.tel[0].value }}"
+                    value="{{ account?.vcard?.tel[0].value }}"
+                    formControlName="phoneNumber"
+                    [errorStateMatcher]="matcher"
+                  />
+                  <mat-error *ngIf="submitted && accountInfoFormStub.phoneNumber.errors"
+                    >Phone Number is required.</mat-error
+                  >
+                </mat-form-field>
+              </div>
+
+              <div class="col-md-6 col-lg-4">
+                <mat-form-field appearance="outline">
+                  <mat-label> ACCOUNT TYPE: </mat-label>
+                  <mat-select
+                    id="accountType"
+                    [(value)]="account.type"
+                    formControlName="type"
+                    [errorStateMatcher]="matcher"
+                  >
+                    <mat-option *ngFor="let accountType of accountTypes" [value]="accountType">
+                      {{ accountType | uppercase }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="submitted && accountInfoFormStub.type.errors"
+                    >Type is required.</mat-error
+                  >
+                </mat-form-field>
+              </div>
+
+              <div class="col-md-6 col-lg-4">
+                <mat-form-field appearance="outline">
+                  <mat-label> GENDER: </mat-label>
+                  <mat-select
+                    id="gender"
+                    [(value)]="account.gender"
+                    formControlName="gender"
+                    [errorStateMatcher]="matcher"
+                  >
+                    <mat-option *ngFor="let gender of genders" [value]="gender">
+                      {{ gender | uppercase }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="submitted && accountInfoFormStub.gender.errors"
+                    >Gender is required.</mat-error
+                  >
+                </mat-form-field>
+              </div>
+
+              <div class="col-md-6 col-lg-4">
+                <mat-form-field appearance="outline">
+                  <mat-label>Age: </mat-label>
+                  <input
+                    matInput
+                    type="text"
+                    id="age"
+                    placeholder="{{ account?.age }}"
+                    value="{{ account?.age }}"
+                    formControlName="age"
+                    [errorStateMatcher]="matcher"
+                  />
+                  <mat-error *ngIf="submitted && accountInfoFormStub.age.errors"
+                    >Age is required.</mat-error
+                  >
+                </mat-form-field>
+              </div>
+
+              <div class="col-md-6 col-lg-4">
+                <mat-form-field appearance="outline">
+                  <mat-label>Bio: </mat-label>
+                  <input
+                    matInput
+                    type="text"
+                    id="bio"
+                    placeholder="{{ account?.products }}"
+                    value="{{ account?.products }}"
+                    formControlName="bio"
+                    [errorStateMatcher]="matcher"
+                  />
+                  <mat-error *ngIf="submitted && accountInfoFormStub.bio.errors"
+                    >Bio is required.</mat-error
+                  >
+                </mat-form-field>
+              </div>
+
+              <div class="col-md-6 col-lg-4">
+                <mat-form-field appearance="outline">
+                  <mat-label> BUSINESS CATEGORY: </mat-label>
+                  <mat-select
+                    id="businessCategory"
+                    [(value)]="category"
+                    formControlName="businessCategory"
+                    [errorStateMatcher]="matcher"
+                  >
+                    <mat-option *ngFor="let category of categories" [value]="category">
+                      {{ category | titlecase }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="submitted && accountInfoFormStub.businessCategory.errors">
+                    Category is required.
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <div class="col-md-6 col-lg-4">
+                <mat-form-field appearance="outline">
+                  <mat-label>User Location: </mat-label>
+                  <input
+                    matInput
+                    type="text"
+                    id="userLocation"
+                    placeholder="{{ account?.location.area_name }}"
+                    value="{{ account?.location.area_name }}"
+                    formControlName="userLocation"
+                    [errorStateMatcher]="matcher"
+                  />
+                  <mat-error *ngIf="submitted && accountInfoFormStub.userLocation.errors">
+                    User Location is required.
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <div class="col-md-6 col-lg-4">
+                <mat-form-field appearance="outline">
+                  <mat-label> LOCATION: </mat-label>
+                  <mat-select
+                    id="location"
+                    [(value)]="area"
+                    formControlName="location"
+                    [errorStateMatcher]="matcher"
+                  >
+                    <mat-option *ngFor="let area of areaNames" [value]="area">
+                      {{ area | uppercase }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="submitted && accountInfoFormStub.location.errors"
+                    >Location is required.</mat-error
+                  >
+                </mat-form-field>
+              </div>
+
+              <div class="col-md-6 col-lg-4">
+                <mat-form-field appearance="outline">
+                  <mat-label> LOCATION TYPE: </mat-label>
+                  <mat-select
+                    id="locationType"
+                    [(value)]="areaType"
+                    formControlName="locationType"
+                    [errorStateMatcher]="matcher"
+                  >
+                    <mat-option *ngFor="let type of areaTypes" [value]="type">
+                      {{ type | uppercase }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="submitted && accountInfoFormStub.locationType.errors"
+                    >Location Type is required.</mat-error
+                  >
+                </mat-form-field>
+              </div>
+
+              <div class="col-md-6 col-lg-4">
+                <button
+                  mat-raised-button
+                  color="primary"
+                  type="button"
+                  class="btn btn-outline-success mb-3"
+                  (click)="resetPin()"
+                >
+                  Reset Pin
+                </button>
+              </div>
+
+              <div class="col-md-6 col-lg-4">
+                <button
+                  mat-raised-button
+                  color="warn"
+                  type="button"
+                  class="btn btn-outline-danger mb-3"
+                >
+                  Delete User
+                </button>
+              </div>
+
+              <div class="col-md-6 col-lg-4">
+                <button
+                  mat-raised-button
+                  color="primary"
+                  type="submit"
+                  class="btn btn-outline-primary"
+                >
+                  SAVE DETAILS
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <mat-card-title class="card-header"> USER </mat-card-title>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-striped table-bordered table-hover">
+              <caption>
+                1 user
+              </caption>
+              <thead class="thead-dark">
+                <tr>
+                  <th scope="col">NAME</th>
+                  <th scope="col">BALANCE</th>
+                  <th scope="col">CREATED</th>
+                  <th scope="col">STATUS</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{{ account?.vcard?.fn[0].value || accountAddress }}</td>
+                  <td>{{ account?.balance | tokenRatio }} {{ tokenSymbol | uppercase }}</td>
+                  <td>{{ account?.date_registered | unixDate }}</td>
+                  <td>
+                    <span class="badge badge-success badge-pill">
+                      {{ accountStatus }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-1">
+        <app-account-history
+          *ngIf="history"
+          [account]="history?.snapshot.data"
+          (closeWindow)="history = $event"
+        ></app-account-history>
+        <mat-card-title class="card-header"> HISTORY </mat-card-title>
+        <div class="card-body">
+          <div *ngIf="historyLoading">
+            <h2 class="text-center"><strong>Loading History!</strong></h2>
+            <mat-progress-bar [mode]="'query'"></mat-progress-bar>
+          </div>
+
+          <mat-table
+            class="mat-elevation-z10"
+            [dataSource]="historyDataSource"
+            matSort
+            matSortActive="timestamp"
+            #HistoryTableSort="matSort"
+            matSortDirection="asc"
+            matSortDisableClear
+          >
+            <ng-container matColumnDef="actor">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>Actor</mat-header-cell>
+              <mat-cell *matCellDef="let history">
+                {{ history?.change.actor }}
+              </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="signer">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>Signer</mat-header-cell>
+              <mat-cell *matCellDef="let history">
+                {{ history?.snapshot.signature?.data | signatureUser | async }}
+              </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="message">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>Message</mat-header-cell>
+              <mat-cell *matCellDef="let history">
+                {{ history?.change.message }}
+              </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="sequence">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>Sequence</mat-header-cell>
+              <mat-cell *matCellDef="let history">
+                {{ history?.change.seq }}
+              </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="dependencies">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>Dependencies</mat-header-cell>
+              <mat-cell *matCellDef="let history">
+                {{ getKeyValue(history?.change.deps) }}
+              </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="timestamp">
+              <mat-header-cell *matHeaderCellDef mat-sort-header>ChangedAt</mat-header-cell>
+              <mat-cell *matCellDef="let history">
+                {{ history?.snapshot.timestamp | unixDate }}
+              </mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="historyDisplayedColumns"></mat-header-row>
+            <mat-row
+              *matRowDef="let history; columns: historyDisplayedColumns"
+              (click)="viewHistory(history)"
+              matRipple
+            ></mat-row>
+          </mat-table>
+
+          <mat-paginator
+            #HistoryTablePaginator="matPaginator"
+            [pageSize]="historyDefaultPageSize"
+            [pageSizeOptions]="historyPageSizeOptions"
+            showFirstLastButtons
+          ></mat-paginator>
+        </div>
+      </div>
+
+      <mat-tab-group dynamicHeight mat-align-tabs="start">
+        <mat-tab label="Transactions">
+          <app-transaction-details
+            [transaction]="transaction"
+            (closeWindow)="transaction = $event"
+          ></app-transaction-details>
+          <div class="card mt-1">
+            <div class="card-header">
+              <div class="row">
+                <mat-form-field appearance="outline">
+                  <mat-label> TRANSACTION TYPE </mat-label>
+                  <mat-select
+                    id="transferSelect"
+                    [(value)]="transactionsType"
+                    (selectionChange)="filterTransactions()"
+                  >
+                    <mat-option value="all">ALL TRANSFERS</mat-option>
+                    <mat-option
+                      *ngFor="let transactionType of transactionsTypes"
+                      [value]="transactionType"
+                    >
+                      {{ transactionType | uppercase }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <button
+                  mat-raised-button
+                  color="primary"
+                  type="button"
+                  class="btn btn-outline-primary ml-auto mr-2"
+                  (click)="downloadCsv(transactions, 'transactions')"
+                >
+                  EXPORT
+                </button>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <mat-form-field appearance="outline">
+                <mat-label> Filter </mat-label>
+                <input
+                  matInput
+                  type="text"
+                  (keyup)="doTransactionFilter($event.target.value)"
+                  placeholder="Filter"
+                />
+                <mat-icon matSuffix>search</mat-icon>
+              </mat-form-field>
+
+              <div *ngIf="transactionsLoading">
+                <h2 class="text-center"><strong>Loading Transactions!</strong></h2>
+                <mat-progress-bar [mode]="'query'"></mat-progress-bar>
+              </div>
+
+              <table
+                mat-table
+                class="mat-elevation-z10"
+                [dataSource]="transactionsDataSource"
+                matSort
+                matSortActive="created"
+                #TransactionTableSort="matSort"
+                matSortDirection="asc"
+                matSortDisableClear
+              >
+                <ng-container matColumnDef="sender">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Sender</th>
+                  <td mat-cell *matCellDef="let transaction">
+                    {{ transaction?.sender?.vcard.fn[0].value || transaction.from }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="recipient">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Recipient</th>
+                  <td mat-cell *matCellDef="let transaction">
+                    {{ transaction?.recipient?.vcard.fn[0].value || transaction.to }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="value">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Value</th>
+                  <td mat-cell *matCellDef="let transaction">
+                    <span *ngIf="transaction.type == 'transaction'"
+                      >{{ transaction?.value | tokenRatio }} {{ tokenSymbol | uppercase }}</span
+                    >
+                    <span *ngIf="transaction.type == 'conversion'"
+                      >{{ transaction?.toValue | tokenRatio }} {{ tokenSymbol | uppercase }}</span
+                    >
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="created">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Created</th>
+                  <td mat-cell *matCellDef="let transaction">
+                    {{ transaction?.tx.timestamp | unixDate }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="type">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>TYPE</th>
+                  <td mat-cell *matCellDef="let transaction">
+                    <span class="badge badge-success badge-pill"> {{ transaction?.type }} </span>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="transactionsDisplayedColumns"></tr>
+                <tr
+                  mat-row
+                  *matRowDef="let transaction; columns: transactionsDisplayedColumns"
+                  matRipple
+                  (click)="viewTransaction(transaction)"
+                ></tr>
+              </table>
+
+              <mat-paginator
+                #TransactionTablePaginator="matPaginator"
+                [pageSize]="transactionsDefaultPageSize"
+                [pageSizeOptions]="transactionsPageSizeOptions"
+                showFirstLastButtons
+              ></mat-paginator>
+            </div>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Users">
+          <div class="card mt-1">
+            <mat-card-title class="card-header"> Accounts </mat-card-title>
+            <div class="card-body">
+              <div class="row card-header">
+                <mat-form-field appearance="outline">
+                  <mat-label> ACCOUNT TYPE </mat-label>
+                  <mat-select
+                    id="typeSelect"
+                    [(value)]="accountsType"
+                    (selectionChange)="filterAccounts()"
+                  >
+                    <mat-option value="all">ALL</mat-option>
+                    <mat-option *ngFor="let accountType of accountTypes" [value]="accountType">
+                      {{ accountType | uppercase }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <button
+                  mat-raised-button
+                  color="primary"
+                  type="button"
+                  class="btn btn-outline-primary ml-auto mr-2"
+                  (click)="downloadCsv(accounts, 'accounts')"
+                >
+                  EXPORT
+                </button>
+              </div>
+
+              <mat-form-field appearance="outline">
+                <mat-label> Filter </mat-label>
+                <input
+                  matInput
+                  type="text"
+                  (keyup)="doUserFilter($event.target.value)"
+                  placeholder="Filter"
+                />
+                <mat-icon matSuffix>search</mat-icon>
+              </mat-form-field>
+
+              <div *ngIf="accountsLoading">
+                <h2 class="text-center"><strong>Loading Accounts!</strong></h2>
+                <mat-progress-bar [mode]="'query'"></mat-progress-bar>
+              </div>
+
+              <mat-table
+                class="mat-elevation-z10"
+                [dataSource]="userDataSource"
+                matSort
+                #UserTableSort="matSort"
+                matSortActive="created"
+                matSortDirection="desc"
+                matSortDisableClear
+              >
+                <ng-container matColumnDef="name">
+                  <mat-header-cell *matHeaderCellDef mat-sort-header> NAME </mat-header-cell>
+                  <mat-cell *matCellDef="let user"> {{ user?.vcard.fn[0].value }} </mat-cell>
+                </ng-container>
+
+                <ng-container matColumnDef="phone">
+                  <mat-header-cell *matHeaderCellDef mat-sort-header>
+                    PHONE NUMBER
+                  </mat-header-cell>
+                  <mat-cell *matCellDef="let user"> {{ user?.vcard.tel[0].value }} </mat-cell>
+                </ng-container>
+
+                <ng-container matColumnDef="created">
+                  <mat-header-cell *matHeaderCellDef mat-sort-header> CREATED </mat-header-cell>
+                  <mat-cell *matCellDef="let user">
+                    {{ user?.date_registered | unixDate }}
+                  </mat-cell>
+                </ng-container>
+
+                <ng-container matColumnDef="balance">
+                  <mat-header-cell *matHeaderCellDef mat-sort-header> BALANCE </mat-header-cell>
+                  <mat-cell *matCellDef="let user">
+                    {{ user?.balance | tokenRatio }} {{ tokenSymbol | uppercase }}
+                  </mat-cell>
+                </ng-container>
+
+                <ng-container matColumnDef="location">
+                  <mat-header-cell *matHeaderCellDef mat-sort-header> LOCATION </mat-header-cell>
+                  <mat-cell *matCellDef="let user"> {{ user?.location.area_name }} </mat-cell>
+                </ng-container>
+
+                <mat-header-row *matHeaderRowDef="userDisplayedColumns"></mat-header-row>
+                <mat-row
+                  *matRowDef="let account; columns: userDisplayedColumns"
+                  (click)="viewAccount(account)"
+                  matRipple
+                ></mat-row>
+              </mat-table>
+
+              <mat-paginator
+                #UserTablePaginator="matPaginator"
+                [pageSize]="usersDefaultPageSize"
+                [pageSizeOptions]="usersPageSizeOptions"
+                showFirstLastButtons
+              ></mat-paginator>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
+    <app-footer appMenuSelection></app-footer>
+  </div>
+  <!-- ============================================================== -->
+  <!-- End Page content -->
+  <!-- ============================================================== -->
+</div>

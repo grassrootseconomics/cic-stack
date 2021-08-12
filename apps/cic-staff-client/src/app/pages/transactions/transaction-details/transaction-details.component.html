@@ -1,0 +1,235 @@
+<div *ngIf="transaction" class="mb-3 mt-1">
+  <div class="card text-center">
+    <mat-card-title class="card-header">
+      <div class="row">
+        TRANSACTION DETAILS
+        <button
+          mat-raised-button
+          type="button"
+          class="btn btn-outline-secondary ml-auto mr-2"
+          (click)="close()"
+        >
+          CLOSE
+        </button>
+      </div>
+    </mat-card-title>
+    <div *ngIf="transaction.type == 'transaction'" class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <h4>Exchange:</h4>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <span>Sender: {{ transaction.sender?.vcard.fn[0].value }}</span
+              ><br /><br />
+              <span>
+                Sender Address:
+                <a href="{{ senderBloxbergLink }}" target="_blank"> {{ transaction.from }} </a>
+                <img
+                  src="assets/images/checklist.svg"
+                  class="ml-2"
+                  height="20rem"
+                  (click)="copyAddress(transaction.from)"
+                  alt="Copy"
+                /> </span
+              ><br /><br />
+              <button
+                mat-raised-button
+                color="primary"
+                class="btn btn-outline-info"
+                (click)="viewSender()"
+              >
+                View Sender
+              </button>
+            </li>
+            <li class="list-group-item">
+              <span>Recipient: {{ transaction.recipient?.vcard.fn[0].value }}</span
+              ><br /><br />
+              <span>
+                Recipient Address:
+                <a href="{{ recipientBloxbergLink }}" target="_blank"> {{ transaction.to }} </a>
+                <img
+                  src="assets/images/checklist.svg"
+                  class="ml-2"
+                  height="20rem"
+                  (click)="copyAddress(transaction.to)"
+                  alt="Copy"
+                /> </span
+              ><br /><br />
+              <button
+                mat-raised-button
+                color="primary"
+                class="btn btn-outline-info"
+                (click)="viewRecipient()"
+              >
+                View Recipient
+              </button>
+            </li>
+            <li class="list-group-item">
+              <span
+                >Amount: {{ transaction.value | tokenRatio }} {{ tokenSymbol | uppercase }}</span
+              >
+            </li>
+          </ul>
+          <h4 class="mt-2">Token:</h4>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <span>
+                Address:
+                {{ transaction.token._address }}
+                <img
+                  src="assets/images/checklist.svg"
+                  class="ml-2"
+                  height="20rem"
+                  (click)="copyAddress(transaction.token._address)"
+                  alt="Copy"
+                />
+              </span>
+            </li>
+            <li class="list-group-item">
+              <span>Name: {{ tokenName }}</span>
+            </li>
+            <li class="list-group-item">
+              <span>Symbol: {{ tokenSymbol | uppercase }}</span>
+            </li>
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <h4>Transaction:</h4>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <span>Block: {{ transaction.tx.block }}</span>
+            </li>
+            <li class="list-group-item">
+              <span>Index: {{ transaction.tx.txIndex }}</span>
+            </li>
+            <li class="list-group-item">
+              <span>Hash: {{ transaction.tx.txHash }}</span>
+            </li>
+            <li class="list-group-item">
+              <span>Success: {{ transaction.tx.success }}</span>
+            </li>
+            <li class="list-group-item">
+              <span>Timestamp: {{ transaction.tx.timestamp | unixDate }}</span>
+            </li>
+          </ul>
+          <br />
+          <div class="mb-3">
+            <button mat-raised-button color="primary" type="button" class="btn btn-outline-success">
+              Resend SMS
+            </button>
+          </div>
+          <div>
+            <button mat-raised-button color="warn" type="button" class="btn btn-outline-danger">
+              Reverse Transaction
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="transaction.type == 'conversion'" class="card-body">
+      <h3>Exchange:</h3>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">
+          <span
+            ><strong>Trader: {{ transaction.sender?.vcard.fn[0].value }}</strong></span
+          >
+        </li>
+        <li class="list-group-item">
+          <span>
+            Trader Address:
+            <a href="{{ traderBloxbergLink }}" target="_blank"> {{ transaction.trader }} </a>
+            <img
+              src="assets/images/checklist.svg"
+              class="ml-2"
+              height="20rem"
+              (click)="copyAddress(transaction.trader)"
+              alt="Copy"
+            />
+          </span>
+        </li>
+      </ul>
+      <button mat-raised-button color="primary" class="btn btn-outline-info" (click)="viewTrader()">
+        View Trader
+      </button>
+      <br /><br />
+      <div class="row">
+        <div class="col-md-6">
+          <h4>Source Token:</h4>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <span>
+                Address:
+                {{ transaction.sourceToken.address }}
+                <img
+                  src="assets/images/checklist.svg"
+                  class="ml-2"
+                  height="20rem"
+                  (click)="copyAddress(transaction.sourceToken.address)"
+                  alt="Copy"
+                />
+              </span>
+            </li>
+            <li class="list-group-item">
+              <span>Name: {{ transaction.sourceToken.name }}</span>
+            </li>
+            <li class="list-group-item">
+              <span>Symbol: {{ transaction.sourceToken.symbol | uppercase }}</span>
+            </li>
+            <li class="list-group-item">
+              <span
+                >Amount: {{ transaction.fromValue }}
+                {{ transaction.sourceToken.symbol | uppercase }}</span
+              >
+            </li>
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <h4>Destination Token:</h4>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <span>
+                Address:
+                {{ transaction.destinationToken.address }}
+                <img
+                  src="assets/images/checklist.svg"
+                  class="ml-2"
+                  height="20rem"
+                  (click)="copyAddress(transaction.destinationToken.address)"
+                  alt="Copy"
+                />
+              </span>
+            </li>
+            <li class="list-group-item">
+              <span>Name: {{ transaction.destinationToken.name }}</span>
+            </li>
+            <li class="list-group-item">
+              <span>Symbol: {{ transaction.destinationToken.symbol | uppercase }}</span>
+            </li>
+            <li class="list-group-item">
+              <span
+                >Amount: {{ transaction.toValue }}
+                {{ transaction.destinationToken.symbol | uppercase }}</span
+              >
+            </li>
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <button mat-raised-button color="primary" type="button" class="btn btn-outline-success">
+            Resend SMS
+          </button>
+        </div>
+        <div class="col-md-6">
+          <button
+            mat-raised-button
+            color="warn"
+            type="button"
+            class="btn btn-outline-danger ml-2"
+            (click)="reverseTransaction()"
+          >
+            Reverse Transaction
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

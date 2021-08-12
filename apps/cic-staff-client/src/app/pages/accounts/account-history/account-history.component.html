@@ -1,0 +1,59 @@
+<div *ngIf="account" class="mb-3 mt-1">
+  <div class="card text-center">
+    <mat-card-title class="card-header">
+      <div class="row">
+        ACCOUNT DETAILS
+        <button
+          mat-raised-button
+          type="button"
+          class="btn btn-outline-secondary ml-auto mr-2"
+          (click)="close()"
+        >
+          CLOSE
+        </button>
+      </div>
+    </mat-card-title>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <span>Name: {{ account?.vcard?.fn[0].value }}</span>
+            </li>
+            <li class="list-group-item">
+              <span>Phone Number: {{ account?.vcard?.tel[0].value }}</span>
+            </li>
+            <li class="list-group-item">
+              <span>Account Type: {{ account?.type }}</span>
+            </li>
+            <li class="list-group-item">
+              <span>Gender: {{ account?.gender }}</span>
+            </li>
+            <li class="list-group-item">
+              <span>Age: {{ account?.age }}</span>
+            </li>
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <span>Bio: {{ account?.products }}</span>
+            </li>
+            <li class="list-group-item">
+              <span>Business Category: {{ account?.category }}</span>
+            </li>
+            <li class="list-group-item">
+              <span>User Location: {{ account?.location?.area_name }}</span>
+            </li>
+            <li class="list-group-item">
+              <span>Location: {{ account?.location?.area }}</span>
+            </li>
+            <li class="list-group-item">
+              <span>Location Type: {{ account?.location?.area_type }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

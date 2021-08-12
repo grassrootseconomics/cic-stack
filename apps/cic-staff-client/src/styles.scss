@@ -1,0 +1,357 @@
+/* You can add global styles to this file, and also import other style files */
+.declaration-order {
+  /* Positioning */
+  /* Box-model */
+  /* Typography */
+  /* Visual */
+  /* Misc */
+}
+@import '~bootstrap/dist/css/bootstrap.css';
+@import 'https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap';
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, 'Roboto', sans-serif;
+  background: #fafafa;
+}
+
+.background-dark {
+  background: #313a46 !important;
+}
+
+p {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.1em;
+  font-weight: 300;
+  line-height: 1.7em;
+  color: #000;
+}
+
+a,
+a:hover,
+a:focus {
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s;
+}
+
+.wrapper {
+  perspective: 1500px;
+  align-items: stretch;
+  display: flex;
+  width: 100%;
+  align-items: stretch;
+  height: inherit;
+  perspective: 1500px;
+}
+
+ul ul a {
+  padding-left: 30px;
+  font-size: 0.9em;
+  background: #6d7fcc;
+}
+
+.full-width,
+table {
+  width: 100%;
+}
+
+li.breadcrumb-item.active,
+footer.footer {
+  color: black;
+}
+
+.clipboard {
+  position: absolute;
+  left: -9999px;
+}
+
+#sidebar {
+  position: sticky;
+  position: -webkit-sticky;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  min-width: 200px;
+  max-width: 200px;
+  height: 100vh;
+  background: #313a46;
+  color: #fff;
+  transform-origin: center left;
+}
+
+#sidebar.active {
+  min-width: 100px;
+  max-width: 100px;
+  text-align: center;
+}
+
+#sidebar .sidebar-header {
+  padding: 20px;
+  background: #313a46;
+}
+
+#sidebar .sidebar-header strong,
+#sidebar.active .sidebar-header h3 {
+  display: none;
+}
+
+#sidebar.active .sidebar-header strong {
+  display: block;
+}
+
+#sidebar ul li a {
+  display: block;
+  padding: 10px;
+  text-align: left;
+  font-size: 1.1em;
+  color: #fff;
+}
+
+#sidebar ul li a.active,
+#sidebar.active ul li a.active {
+  background: #000;
+}
+
+#sidebar.active ul li a {
+  padding: 20px 10px;
+  font-size: 0.85em;
+  text-align: center;
+}
+
+#sidebar.active ul li a i {
+  display: block;
+  margin-right: 0;
+  margin-bottom: 5px;
+  font-size: 1.8em;
+}
+
+#sidebar.active ul li a {
+  padding: 10px;
+}
+
+#sidebar.active .dropdown-toggle::after {
+  top: auto;
+  bottom: 10px;
+  right: 50%;
+  transform: translateX(50%);
+  -ms-transform: translateX(50%);
+  -webkit-transform: translateX(50%);
+}
+
+#sidebar ul.components {
+  padding: 20px 0;
+  border-bottom: 1px solid #47748b;
+}
+
+#sidebar ul p {
+  padding: 10px;
+  color: #fff;
+}
+
+#sidebar ul li a:hover {
+  color: #313a46;
+  background: #fff;
+}
+
+#sidebar ul li.active > a,
+a[aria-expanded='true'] {
+  color: #fff;
+  background: #313a46;
+}
+
+a[data-toggle='collapse'] {
+  position: relative;
+}
+
+.dropdown-toggle::after {
+  position: absolute;
+  top: 50%;
+  right: 20%;
+  display: block;
+  transform: translateY(-50%);
+}
+
+#content {
+  position: relative;
+  overflow: auto;
+  width: 100%;
+  min-height: 100vh;
+}
+#sidebar,
+#sidebar.active,
+#content,
+#content.active {
+  transition: all 0.3s cubic-bezier(0.945, 0.02, 0.27, 0.665);
+}
+
+#sidebarCollapse {
+  width: 40px;
+  height: 40px;
+  background: #f5f5f5;
+}
+
+#sidebarCollapse span {
+  display: block;
+  width: 80%;
+  height: 2px;
+  margin: 0 auto;
+  background: #555;
+  transition: all 0.8s cubic-bezier(0.81, -0.33, 0.345, 1.375);
+}
+
+#sidebarCollapse span:first-of-type {
+  transform: rotate(45deg) translate(2px, 2px);
+}
+
+#sidebarCollapse span:nth-of-type(2) {
+  opacity: 0;
+}
+
+#sidebarCollapse span:last-of-type {
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+
+#sidebarCollapse.active span {
+  margin: 5px auto;
+  transform: none;
+  opacity: 1;
+}
+
+.footer {
+  padding: 10px;
+  text-align: center;
+  color: #98a6ad;
+}
+
+.mat-column-select {
+  overflow: initial;
+}
+
+button {
+  height: 2.5rem;
+}
+
+.badge-pill {
+  width: 5rem;
+}
+
+.mat-column {
+  word-wrap: break-word;
+  white-space: unset;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.mat-column-address {
+  flex: 0 0 30%;
+  width: 30%;
+}
+
+.mat-column-supply {
+  flex: 0 0 25%;
+  width: 25%;
+}
+
+.center-body {
+  float: none;
+  margin: 0 auto 10px;
+}
+
+@media (max-width: 768px) {
+  #sidebar.active {
+    min-width: 100px;
+    max-width: 100px;
+    margin-left: -100px;
+    text-align: center;
+  }
+
+  #sidebar .sidebar-header strong,
+  #sidebar.active .sidebar-header h3 {
+    display: none;
+  }
+
+  #sidebar.active .sidebar-header strong,
+  #sidebar.active ul li a i {
+    display: block;
+  }
+
+  #sidebar.active ul li a {
+    padding: 20px 10px;
+    font-size: 0.85em;
+  }
+
+  #sidebar.active ul li a i {
+    margin-right: 0;
+    margin-bottom: 5px;
+    font-size: 1.8em;
+  }
+
+  #sidebar.active ul ul a {
+    padding: 10px;
+  }
+
+  .dropdown-toggle::after {
+    top: auto;
+    bottom: 10px;
+    right: 50%;
+    transform: translateX(50%);
+    -ms-transform: translateX(50%);
+    -webkit-transform: translateX(50%);
+  }
+
+  #content,
+  #content.active {
+    position: fixed;
+    height: 100vh;
+  }
+
+  #content .menutoggle {
+    margin-left: 250px;
+  }
+
+  #sidebar,
+  #content,
+  #content.active,
+  #content.active .menutoggle {
+    margin-left: 0;
+  }
+
+  #content .menutoggle,
+  #content.active .menutoggle {
+    transition: all 0.3s cubic-bezier(0.945, 0.02, 0.27, 0.665);
+  }
+
+  #sidebarCollapse span:first-of-type,
+  #sidebarCollapse span:nth-of-type(2),
+  #sidebarCollapse span:last-of-type {
+    margin: 5px auto;
+    transform: none;
+    opacity: 1;
+  }
+
+  #sidebarCollapse.active span {
+    margin: 0 auto;
+  }
+
+  #sidebarCollapse.active span:first-of-type {
+    transform: rotate(45deg) translate(2px, 2px);
+  }
+
+  #sidebarCollapse.active span:nth-of-type(2) {
+    opacity: 0;
+  }
+
+  #sidebarCollapse.active span:last-of-type {
+    transform: rotate(-45deg) translate(1px, -1px);
+  }
+}
