@@ -1,5 +1,11 @@
+# standard imports
+
+# external imports
+
 # local imports
 from cic_ussd.translation import translation_for
+
+# tests imports
 
 
 def test_translation_for(set_locale_files):

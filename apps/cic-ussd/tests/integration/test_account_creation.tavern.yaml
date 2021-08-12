@@ -37,12 +37,13 @@ stages:
       status_code:
         - 200
       headers:
-        Content-Length: '175'
+        Content-Length: '91'
         Content-Type: "text/plain"
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "END Your account is being created. You will receive an SMS when your account is ready.\nAkaunti yako ya Sarafu inatayarishwa. Utapokea ujumbe wa SMS akaunti yako ikiwa tayari.\n"
+          expected_response: "END Akaunti yako ya Sarafu inatayarishwa. Utapokea ujumbe wa SMS akaunti yako ikiwa tayari."
+    delay_after: 5
 
   - name: Initiate account creation process [second account].
     request:
@@ -59,12 +60,12 @@ stages:
       status_code:
         - 200
       headers:
-        Content-Length: '175'
+        Content-Length: '91'
         Content-Type: "text/plain"
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "END Your account is being created. You will receive an SMS when your account is ready.\nAkaunti yako ya Sarafu inatayarishwa. Utapokea ujumbe wa SMS akaunti yako ikiwa tayari.\n"
+          expected_response: "END Akaunti yako ya Sarafu inatayarishwa. Utapokea ujumbe wa SMS akaunti yako ikiwa tayari."
     delay_after: 5
 
   - name: Initaite account metadata entry [first account]
@@ -82,12 +83,12 @@ stages:
       status_code:
         - 200
       headers:
-        Content-Length: '61'
+        Content-Length: '57'
         Content-Type: "text/plain"
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "CON Welcome to Sarafu Network\n1. English\n2. Kiswahili\n3. Help"
+          expected_response: "CON Karibu Sarafu Network\n1. English\n2. Kiswahili\n3. Help"
 
   - name: Initaite account metadata entry [second account]
     request:
@@ -104,12 +105,12 @@ stages:
       status_code:
         - 200
       headers:
-        Content-Length: '61'
+        Content-Length: '57'
         Content-Type: "text/plain"
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "CON Welcome to Sarafu Network\n1. English\n2. Kiswahili\n3. Help"
+          expected_response: "CON Karibu Sarafu Network\n1. English\n2. Kiswahili\n3. Help"
 
   - name: Select preferred language [English]
     request:
@@ -126,12 +127,13 @@ stages:
       status_code:
         - 200
       headers:
-        Content-Length: '64'
+        Content-Length: '71'
         Content-Type: "text/plain"
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "CON Please enter a new four number PIN for your account.\n0. Back"
+          expected_response: "CON Tafadhali weka pin mpya yenye nambari nne kwa akaunti yako\n0. Nyuma"
+    delay_after: 5
 
   - name: Select preferred language [Kiswahili]
     request:
@@ -154,6 +156,7 @@ stages:
         function: ext.validator:validate_response
         extra_kwargs:
           expected_response: "CON Tafadhali weka pin mpya yenye nambari nne kwa akaunti yako\n0. Nyuma"
+    delay_after: 5
 
   - name: Enter pin number [{first_account_pin_number} - first account]
     request:
@@ -176,6 +179,7 @@ stages:
         function: ext.validator:validate_response
         extra_kwargs:
           expected_response: "CON Enter your four number PIN again\n0. Back"
+    delay_after: 5
 
   - name: Enter pin number [second_account_pin_number - second account]
     request:
@@ -198,6 +202,7 @@ stages:
         function: ext.validator:validate_response
         extra_kwargs:
           expected_response: "CON Weka PIN yako tena\n0. Nyuma"
+    delay_after: 5
 
   - name: Pin number confirmation [first_account_pin_number - first account]
     request:

@@ -12,13 +12,13 @@ from chainlib.chain import ChainSpec
 from confini import Config
 
 # local imports
-from cic_ussd.chain import Chain
+from cic_ussd.account.chain import Chain
+from cic_ussd.cache import Cache
 from cic_ussd.db import dsn_from_config
 from cic_ussd.db.models.base import SessionBase
 from cic_ussd.metadata.signer import Signer
 from cic_ussd.metadata.base import Metadata
 from cic_ussd.phone_number import Support
-from cic_ussd.redis import InMemoryStore
 from cic_ussd.session.ussd_session import UssdSession as InMemoryUssdSession
 from cic_ussd.validator import validate_presence
 
@@ -34,7 +34,8 @@ arg_parser.add_argument('-c', type=str, default=config_directory, help='config d
 arg_parser.add_argument('-q', type=str, default='cic-ussd', help='queue name for worker tasks')
 arg_parser.add_argument('-v', action='store_true', help='be verbose')
 arg_parser.add_argument('-vv', action='store_true', help='be more verbose')
-arg_parser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
+arg_parser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str,
+                        help='environment prefix for variables to overwrite configuration')
 args = arg_parser.parse_args()
 
 # define log levels
@@ -52,7 +53,8 @@ logg.debug('config loaded from {}:\n{}'.format(args.c, config))
 
 # connect to database
 data_source_name = dsn_from_config(config)
-SessionBase.connect(data_source_name, pool_size=int(config.get('DATABASE_POOL_SIZE')), debug=config.true('DATABASE_DEBUG'))
+SessionBase.connect(data_source_name, pool_size=int(config.get('DATABASE_POOL_SIZE')),
+                    debug=config.true('DATABASE_DEBUG'))
 
 # verify database connection with minimal sanity query
 session = SessionBase.create_session()
@@ -60,12 +62,12 @@ session.execute('SELECT version_num FROM alembic_version')
 session.close()
 
 # define universal redis cache access
-InMemoryStore.cache = redis.StrictRedis(host=config.get('REDIS_HOSTNAME'),
-                                        port=config.get('REDIS_PORT'),
-                                        password=config.get('REDIS_PASSWORD'),
-                                        db=config.get('REDIS_DATABASE'),
-                                        decode_responses=True)
-InMemoryUssdSession.redis_cache = InMemoryStore.cache
+Cache.store = redis.StrictRedis(host=config.get('REDIS_HOST'),
+                                port=config.get('REDIS_PORT'),
+                                password=config.get('REDIS_PASSWORD'),
+                                db=config.get('REDIS_DATABASE'),
+                                decode_responses=True)
+InMemoryUssdSession.store = Cache.store
 
 # define metadata URL
 Metadata.base_url = config.get('CIC_META_URL')
@@ -82,8 +84,8 @@ if key_file_path:
 Signer.key_file_path = key_file_path
 
 # set up translations
-i18n.load_path.append(config.get('APP_LOCALE_PATH'))
-i18n.set('fallback', config.get('APP_LOCALE_FALLBACK'))
+i18n.load_path.append(config.get('LOCALE_PATH'))
+i18n.set('fallback', config.get('LOCALE_FALLBACK'))
 
 chain_spec = ChainSpec(
     common_name=config.get('CIC_COMMON_NAME'),
@@ -92,8 +94,7 @@ chain_spec = ChainSpec(
 )
 
 Chain.spec = chain_spec
-Support.phone_number = config.get('APP_SUPPORT_PHONE_NUMBER')
-
+Support.phone_number = config.get('OFFICE_SUPPORT_PHONE')
 # set up celery
 current_app = celery.Celery(__name__)
 
@@ -122,12 +123,12 @@ if result[:4] == 'file':
     result_queue = tempfile.mkdtemp()
     current_app.conf.update({
         'result_backend': 'file://{}'.format(result_queue),
-        })
+    })
     logg.warning('celery backend store dir {} created, will NOT be deleted on shutdown'.format(result_queue))
 else:
     current_app.conf.update({
         'result_backend': result,
-        })
+    })
 import cic_ussd.tasks
 
 
@@ -147,4 +148,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

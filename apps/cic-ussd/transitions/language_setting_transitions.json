@@ -3,14 +3,14 @@
     "trigger": "scan_data",
     "source": "select_preferred_language",
     "dest": "exit",
-    "after": "cic_ussd.state_machine.logic.user.change_preferred_language_to_en",
+    "after": "cic_ussd.state_machine.logic.account.change_preferred_language",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_one_selected"
   },
   {
     "trigger": "scan_data",
     "source": "select_preferred_language",
     "dest": "exit",
-    "after": "cic_ussd.state_machine.logic.user.change_preferred_language_to_sw",
+    "after": "cic_ussd.state_machine.logic.account.change_preferred_language",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_two_selected"
   },
   {

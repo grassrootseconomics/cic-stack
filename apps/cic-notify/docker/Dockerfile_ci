@@ -11,14 +11,12 @@ RUN pip install --index-url https://pypi.org/simple  \
 	  --extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL \
     -r requirements.txt
 
-COPY . . 
+COPY . .
 
 RUN python setup.py install
 
-# TODO please review..can this go into requirements?
-RUN pip install $pip_extra_index_url_flag .[africastalking,notifylog]
-
 COPY docker/*.sh .
+RUN chmod +x *.sh 
 
 # ini files in config directory defines the configurable parameters for the application
 # they can all be overridden by environment variables

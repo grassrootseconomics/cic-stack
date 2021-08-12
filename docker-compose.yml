@@ -502,6 +502,7 @@ services:
       context: apps/cic-ussd
       dockerfile: docker/Dockerfile
     environment:
+      APP_PASSWORD_PEPPER: ${APP_PASSWORD_PEPPER:-"QYbzKff6NhiQzY3ygl2BkiKOpER8RE/Upqs/5aZWW+I="}
       DATABASE_USER: grassroots
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432
@@ -533,6 +534,7 @@ services:
       context: apps/cic-ussd
       dockerfile: docker/Dockerfile
     environment:
+      APP_PASSWORD_PEPPER: ${APP_PASSWORD_PEPPER:-"QYbzKff6NhiQzY3ygl2BkiKOpER8RE/Upqs/5aZWW+I="}
       DATABASE_USER: grassroots
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432
@@ -557,6 +559,7 @@ services:
       context: apps/cic-ussd/
       dockerfile: docker/Dockerfile
     environment:
+      APP_PASSWORD_PEPPER: ${APP_PASSWORD_PEPPER:-"QYbzKff6NhiQzY3ygl2BkiKOpER8RE/Upqs/5aZWW+I="}
       DATABASE_USER: grassroots
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432

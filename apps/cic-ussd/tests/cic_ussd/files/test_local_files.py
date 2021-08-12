@@ -36,7 +36,7 @@ def test_json_file_parser(load_config):
     WHEN the json_file_parser function is passed a directory path containing JSON files
     THEN it dynamically loads all the files and compiles their content into one python array
     """
-    files_dir = load_config.get('STATEMACHINE_TRANSITIONS')
+    files_dir = load_config.get('MACHINE_TRANSITIONS')
     files_dir = os.path.join(root_directory, files_dir)
 
     # total files len
@@ -46,10 +46,7 @@ def test_json_file_parser(load_config):
         # get path of data files
         filepath = os.path.join(files_dir, filepath)
 
-        # read file content
-        data_file = open(filepath)
-        data = json.load(data_file)
-        file_content_length += len(data)
-        data_file.close()
+        with open(filepath) as data_file:
+            data = json.load(data_file)
+            file_content_length += len(data)
     assert len(json_file_parser(filepath=files_dir)) == file_content_length
-

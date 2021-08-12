@@ -295,7 +295,7 @@ def set_ussd_data(config: dict, ussd_data: dict):
     preferred_language = ussd_data['preferred_language']
     phone_number = ussd_data['phone']
 
-    sql = 'UPDATE account SET account_status = %s, preferred_language = %s WHERE phone_number = %s'
+    sql = 'UPDATE account SET status = %s, preferred_language = %s WHERE phone_number = %s'
     db_cursor.execute(sql, (account_status, preferred_language, phone_number))
 
     # commit changes

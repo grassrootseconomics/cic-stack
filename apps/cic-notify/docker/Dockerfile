@@ -12,19 +12,17 @@ RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
 	  --extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL \
     -r requirements.txt
 
-COPY . . 
-
+COPY . .
 RUN python setup.py install
 
-# TODO please review..can this go into requirements?
-RUN pip install $pip_extra_index_url_flag .[africastalking,notifylog]
-
 COPY docker/*.sh .
+RUN chmod +x *.sh 
 
 # ini files in config directory defines the configurable parameters for the application
 # they can all be overridden by environment variables
 # to generate a list of environment variables from configuration, use: confini-dump -z <dir> (executable provided by confini package)
 COPY .config/ /usr/local/etc/cic-notify/
 COPY cic_notify/db/migrations/ /usr/local/share/cic-notify/alembic/
+
 
 ENTRYPOINT []

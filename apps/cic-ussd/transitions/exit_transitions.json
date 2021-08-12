@@ -45,8 +45,7 @@
     "trigger": "scan_data",
     "source": "exit_invalid_recipient",
     "dest": "exit",
-    "conditions": "cic_ussd.state_machine.logic.menu.menu_ninety_nine_selected",
-    "after": "cic_ussd.state_machine.logic.sms.upsell_unregistered_recipient"
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_ninety_nine_selected"
   },
   {
     "trigger": "scan_data",
