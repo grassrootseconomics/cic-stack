@@ -46,7 +46,7 @@ def get_adjusted_balance(self, token_symbol, amount, timestamp):
 
 
 def aux_setup(rpc, config, sender_address=ZERO_ADDRESS):
-    chain_spec_str = config.get('CIC_CHAIN_SPEC')
+    chain_spec_str = config.get('CHAIN_SPEC')
     chain_spec = ChainSpec.from_chain_str(chain_spec_str)
     token_symbol = config.get('CIC_DEFAULT_TOKEN_SYMBOL')
     

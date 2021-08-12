@@ -255,7 +255,6 @@ services:
       ETH_GAS_PROVIDER_ADDRESS: $DEV_ETH_ACCOUNT_GAS_PROVIDER
       ETH_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
       RPC_HTTP_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
-      ETH_ABI_DIR: ${ETH_ABI_DIR:-/usr/local/share/cic/solidity/abi}
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
