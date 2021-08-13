@@ -31,23 +31,35 @@ services:
   postgres:
     environment:
       POSTGRES_HOST_AUTH_METHOD: trust # for postgres user access w/o password. Obvioulsy not safe but allows easy elevated debugging.  
+    ports:
+      - ${DEV_POSTGRES_PORT:-63432}:5432
 
   pgadmin:
     ports:
       - "5050:5050"
-
+        #    depends_on:
+        #      - postgres 
+        #
   flower:
     ports:
       - "5555:5555"
 
-  cic-cache-server:
+  eth:
+    restart: unless-stopped
     ports:
-      - "63313:8000"
+      - ${DEV_ETH_PORT_HTTP:-63545}:8545
+      - ${DEV_ETH_PORT_WS:-63546}:8546
+      - 30303
     labels:
       - traefik.enable=true
       - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
-      - traefik.http.routers.${STACK_NAME?Variable not set}-cache-http.rule=PathPrefix(`/cache`)
-      - traefik.http.services.${STACK_NAME?Variable not set}-cache.loadbalancer.server.port=80
+      - traefik.http.routers.${STACK_NAME?Variable not set}-bloxberg-http.rule=PathPrefix(`/`)
+      - traefik.http.services.${STACK_NAME?Variable not set}-bloxberg.loadbalancer.server.port=8545
+
+  redis:
+    ports:
+      - ${DEV_REDIS_PORT:-63379}:6379
+    command: "--loglevel verbose"
 
   cicada:
     build:
@@ -58,6 +70,104 @@ services:
       - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
       - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-http.rule=PathPrefix(`/`)
       - traefik.http.services.${STACK_NAME?Variable not set}-frontend.loadbalancer.server.port=80
+        
+        #contract-migration:
+        #  depends_on:
+        #    - eth
+        #    - postgres
+        #    - redis
+        #    - cic-eth-tasker
+
+        #cic-cache-tracker:
+        #  depends_on:
+        #    - redis
+        #    - postgres
+        #    - eth
+
+        #cic-cache-tasker:
+        #  depends_on:
+        #    - redis
+        #    - postgres
+        #    - eth
+
+  cic-cache-server:
+    ports:
+      - "63313:8000"
+        #depends_on:
+        #  - postgres
+    labels:
+      - traefik.enable=true
+      - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
+      - traefik.http.routers.${STACK_NAME?Variable not set}-cache-http.rule=PathPrefix(`/`)
+      - traefik.http.services.${STACK_NAME?Variable not set}-cache.loadbalancer.server.port=63313
+
+        #cic-eth-tasker:
+        #  depends_on:
+        #    - eth
+        #    - postgres
+        #    - redis
+
+        #cic-eth-tracker:
+        #  depends_on:
+        #    - eth
+        #    - postgres
+        #    - redis
+
+        #cic-eth-dispatcher:
+        #  depends_on:
+        #    - eth
+        #    - postgres
+        #    - redis
+
+        #cic-eth-retrier:
+        #  depends_on:
+        #    - eth
+        #    - postgres
+        #    - redis
+
+        #cic-notify-tasker:
+        #  depends_on:
+        #    - postgres
+        #    - redis
+
+  cic-meta-server:
+    ports:
+      - ${HTTP_PORT_CIC_META:-63380}:8000
+        #depends_on:
+        #  - postgres
+    labels:
+      - traefik.enable=true
+      - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
+      - traefik.http.routers.${STACK_NAME?Variable not set}-meta-http.rule=PathPrefix(`/`)
+      - traefik.http.services.${STACK_NAME?Variable not set}-meta.loadbalancer.server.port=63380
+
+  cic-user-ussd-server:
+    ports:
+      - ${HTTP_PORT_CIC_USER_USSD_SERVER:-63315}:9000
+        #depends_on:
+        #  - postgres
+        #  - redis
+    labels:
+      - traefik.enable=true
+      - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
+      - traefik.http.routers.${STACK_NAME?Variable not set}-ussd-http.rule=PathPrefix(`/`)
+      - traefik.http.services.${STACK_NAME?Variable not set}-ussd.loadbalancer.server.port=63315
+
+  cic-user-server:
+    ports:
+      - ${HTTP_PORT_CIC_USER_SERVER:-63415}:9500
+        #depends_on:
+        #  - postgres
+    labels:
+      - traefik.enable=true
+      - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
+      - traefik.http.routers.${STACK_NAME?Variable not set}-user-http.rule=PathPrefix(`/`)
+      - traefik.http.services.${STACK_NAME?Variable not set}-user.loadbalancer.server.port=63415
+
+        # cic-user-tasker:
+        #   depends_on:
+        #     - postgres
+        #     - redis
 
 networks:
   traefik-public:

@@ -12,8 +12,10 @@ image: tiangolo/docker-with-compose
 
 before_script:
   - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  - pip install docker-auto-labels
 
 stages:
+  - test
   - build
   - deploy
 
@@ -21,24 +23,93 @@ variables:
   DOCKER_BUILDKIT: 1
   COMPOSE_DOCKER_CLI_BUILD: 1 
 
-  #services:
-  #  - docker:stable-dind
-
-build-prod:
+build-staging:
   tags:
     - integration
   stage: build
   script:
-    -  docker-compose build
+    - TAG=stag FRONTEND_ENV=staging sh ./scripts/build-push.sh
   only:
     - bvander/integration-tests-on-docker
 
-deploy-prod:
+deploy-staging:
   tags:
     - integration
   stage: deploy
-  script:
-    - docker stack deploy -c docker-compose.yml --with-registry-auth my-stack
+  script: 
+        - >
+          DOMAIN=stag.grassrootseconomics.net
+          TRAEFIK_TAG=grassrootseconomics.net
+          STACK_NAME=stag-cic-net
+          TAG=stag
+          sh ./scripts/deploy.sh
+  environment:
+    name: staging
+    url: https://stag.grassrootseconomics.net
   only:
     - bvander/integration-tests-on-docker
 
+
+      #tests:
+      #  stage: test
+      #  script:
+      #    - sh ./scripts/test.sh
+      #  tags:
+      #    - build
+      #    - test
+      #
+      #build-stag:
+      #  stage: build
+      #  script:
+      #    - TAG=stag FRONTEND_ENV=staging sh ./scripts/build-push.sh
+      #  only:
+      #    - master
+      #  tags:
+      #    - build
+      #    - test
+      #    
+      #build-prod:
+      #  stage: build
+      #  script:
+      #    - TAG=prod FRONTEND_ENV=production sh ./scripts/build-push.sh
+      #  only:
+      #    - production
+      #  tags:
+      #    - build
+      #    - test
+      #
+      #deploy-stag:
+      #  stage: deploy
+      #  script: 
+      #    - >
+      #      DOMAIN=stag.demo1.com
+      #      TRAEFIK_TAG=stag.demo1.com
+      #      STACK_NAME=stag-demo1-com
+      #      TAG=stag
+      #      sh ./scripts/deploy.sh
+      #  environment:
+      #    name: staging
+      #    url: https://stag.demo1.com
+      #  only:
+      #    - master
+      #  tags:
+      #    - swarm
+      #    - stag
+      #
+      #deploy-prod:
+      #  stage: deploy
+      #  script:
+      #    - >
+      #      DOMAIN=demo1.com
+      #      TRAEFIK_TAG=demo1.com
+      #      STACK_NAME=demo1-com
+      #      TAG=prod
+      #      sh ./scripts/deploy.sh
+      #  environment:
+      #    name: production
+      #    url: https://demo1.com
+      #  only:
+      #    - production
+      #  tags:
+      #    - swarm
+      #    - prod
