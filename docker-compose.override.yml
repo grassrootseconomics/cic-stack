@@ -64,7 +64,7 @@ services:
   cicada:
     build:
       args:
-        BUILD_ENV: dev
+        FRONTEND_ENV: dev
     labels:
       - traefik.enable=true
       - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
