@@ -86,7 +86,7 @@ services:
     build:
       context: ./apps/cic-staff-client
       args:
-        BUILD_ENV: prod
+        FRONTEND_ENV: prod
     deploy:
       labels:
         - traefik.enable=true

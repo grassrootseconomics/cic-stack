@@ -13,10 +13,10 @@ RUN npm install
 
 COPY . .
 
-ARG BUILD_ENV="production"
+ARG FRONTEND_ENV="production"
 
 # running build script
-RUN npm run build:${BUILD_ENV}
+RUN npm run build:${FRONTEND_ENV}
 
 ### STAGE 2: Setup ###
 # defining nginx image version
