@@ -49,4 +49,3 @@ Thumbs.db
 
 # Configuration Files
 .env
-/src/environments/environment.ts
