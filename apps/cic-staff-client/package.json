@@ -8,6 +8,7 @@
     "start:prod": "ng serve --prod",
     "build:dev": "ng build  -c dev",
     "build:prod": "ng build --prod",
+    "build:staging": "ng build -c staging",
     "start:pwa": "npm run build:prod && http-server -p 4200 dist/cic-staff-client",
     "test": "ng test",
     "format:check": "prettier --config ./.prettierrc --list-different src/**/*.{ts,js,json,css,scss,html}",
@@ -89,13 +90,8 @@
     "yargs": "^13.3.2"
   },
   "lint-staged": {
-    "src/**/*.{js,ts,scss,md,html,json}": [
-      "prettier --write",
-      "git add"
-    ],
-    "*.scss": [
-      "stylelint src/**/*.scss"
-    ]
+    "src/**/*.{js,ts,scss,md,html,json}": ["prettier --write", "git add"],
+    "*.scss": ["stylelint src/**/*.scss"]
   },
   "husky": {
     "hooks": {
