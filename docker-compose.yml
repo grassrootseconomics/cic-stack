@@ -82,11 +82,11 @@ services:
         - traefik.http.routers.${STACK_NAME?Variable not set}-proxy-http.middlewares=${STACK_NAME?Variable not set}-www-redirect,${STACK_NAME?Variable not set}-https-redirect
 
   cicada:
-    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cicada:latest
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cicada:${TAG:-latest}
     build:
       context: ./apps/cic-staff-client
       args:
-        FRONTEND_ENV: prod
+        FRONTEND_ENV: ${FRONTEND_ENV:-prod}
     deploy:
       labels:
         - traefik.enable=true
