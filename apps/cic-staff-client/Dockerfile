@@ -13,8 +13,7 @@ RUN npm install
 
 COPY . .
 
-ARG FRONTEND_ENV="production"
-
+ARG FRONTEND_ENV=prod
 # running build script
 RUN npm run build:${FRONTEND_ENV}
 

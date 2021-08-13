@@ -6,7 +6,7 @@ export const environment = {
   logLevel: NgxLoggerLevel.ERROR,
   serverLogLevel: NgxLoggerLevel.OFF,
   loggingUrl: 'http://localhost:8000',
-  cicMetaUrl: 'http://localhost:8080',
+  cicMetaUrl: 'https://meta-auth.dev.grassrootseconomics.net',
   publicKeysUrl: 'https://dev.grassrootseconomics.net/.well-known/publickeys/',
   cicCacheUrl: 'https://cache.dev.grassrootseconomics.net',
   web3Provider: 'wss://bloxberg-ws.dev.grassrootseconomics.net',
