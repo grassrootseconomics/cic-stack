@@ -8,7 +8,7 @@
 #  - local: 'apps/cic-cache/.gitlab-ci.yml'
 #  - local: 'apps/data-seeding/.gitlab-ci.yml'
 
-#image: tiangolo/docker-with-compose
+image: tiangolo/docker-with-compose
 
 before_script:
   - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
