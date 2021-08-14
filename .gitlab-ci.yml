@@ -26,6 +26,8 @@ variables:
 build-staging:
   tags:
     - integration
+  variables: 
+    CI_DEBUG_TRACE: "true"
   stage: build
   script:
     - TAG=stag FRONTEND_ENV=staging sh ./scripts/build-push.sh
