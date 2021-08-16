@@ -29,6 +29,7 @@ build-staging:
     - blocal
   variables: 
     CI_DEBUG_TRACE: "true"
+    GIT_STRATEGY: "none"
   stage: build
   script:
     - TAG=stag FRONTEND_ENV=staging sh ./scripts/build-push.sh
