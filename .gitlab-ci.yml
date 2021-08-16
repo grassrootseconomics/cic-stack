@@ -25,7 +25,7 @@ variables:
 
 build-staging:
   tags:
-    - integration
+    # - integration
     - blocal
   variables: 
     CI_DEBUG_TRACE: "true"
