@@ -20,12 +20,13 @@ stages:
   - deploy
 
 variables:
-  DOCKER_BUILDKIT: 1
-  COMPOSE_DOCKER_CLI_BUILD: 1 
+  DOCKER_BUILDKIT: "1"
+  COMPOSE_DOCKER_CLI_BUILD: "1" 
 
 build-staging:
   tags:
     - integration
+    - blocal
   variables: 
     CI_DEBUG_TRACE: "true"
   stage: build
