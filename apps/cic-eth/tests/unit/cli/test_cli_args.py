@@ -1,5 +1,6 @@
 # standard imports
 import os
+import logging
 
 # external imports
 import chainlib.cli 
@@ -7,11 +8,13 @@ import chainlib.cli
 # local imports
 import cic_eth.cli
 
+logg = logging.getLogger()
+
 script_dir = os.path.dirname(os.path.realpath(__file__))
-config_dir = os.path.join(script_dir, '..', '..', 'testdata', 'config')
+#config_dir = os.path.join(script_dir, '..', '..', 'testdata', 'config')
 
 
-def test_argumentparserto_config():
+def test_argumentparser_to_config():
 
     argparser = cic_eth.cli.ArgumentParser()
     
@@ -36,7 +39,8 @@ def test_argumentparserto_config():
     extra_args = {
             'foo': '_BARBARBAR',
             }
-    config = cic_eth.cli.Config.from_args(args, chainlib.cli.argflag_std_base, local_flags, extra_args=extra_args, base_config_dir=config_dir)
+    #config = cic_eth.cli.Config.from_args(args, chainlib.cli.argflag_std_base, local_flags, extra_args=extra_args, base_config_dir=config_dir)
+    config = cic_eth.cli.Config.from_args(args, chainlib.cli.argflag_std_base, local_flags, extra_args=extra_args)
 
     assert config.get('_BARBARBAR') == 'bar'
     assert config.get('REDIS_HOST') == 'foo'
