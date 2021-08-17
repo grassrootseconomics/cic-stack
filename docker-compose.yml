@@ -81,18 +81,18 @@ services:
         # to disable www redirection remove the section: ${STACK_NAME?Variable not set}-www-redirect,
         - traefik.http.routers.${STACK_NAME?Variable not set}-proxy-http.middlewares=${STACK_NAME?Variable not set}-www-redirect,${STACK_NAME?Variable not set}-https-redirect
 
-          #cicada:
-          #  image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cicada:${TAG:-latest}
-          #  build:
-          #    context: ./apps/cic-staff-client
-          #    args:
-          #      FRONTEND_ENV: ${FRONTEND_ENV:-prod}
-          #  deploy:
-          #    labels:
-          #      - traefik.enable=true
-          #      - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
-          #      - traefik.http.routers.${STACK_NAME?Variable not set}-cicada-http.rule=PathPrefix(`/`)
-          #      - traefik.http.services.${STACK_NAME?Variable not set}-cicada.loadbalancer.server.port=80
+  cicada:
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cicada:${TAG:-latest}
+    build:
+      context: ./apps/cic-staff-client
+      args:
+        FRONTEND_ENV: ${FRONTEND_ENV:-prod}
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
+        - traefik.http.routers.${STACK_NAME?Variable not set}-cicada-http.rule=PathPrefix(`/`)
+        - traefik.http.services.${STACK_NAME?Variable not set}-cicada.loadbalancer.server.port=80
 
   eth:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/bloxberg-node:${TAG:-latest}

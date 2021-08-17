@@ -90,13 +90,8 @@
     "yargs": "^13.3.2"
   },
   "lint-staged": {
-    "src/**/*.{js,ts,scss,md,html,json}": [
-      "prettier --write",
-      "git add"
-    ],
-    "*.scss": [
-      "stylelint src/**/*.scss"
-    ]
+    "src/**/*.{js,ts,scss,md,html,json}": ["prettier --write", "git add"],
+    "*.scss": ["stylelint src/**/*.scss"]
   },
   "husky": {
     "hooks": {

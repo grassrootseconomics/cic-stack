@@ -97,7 +97,7 @@
             "dev": {
               "browserTarget": "cic-staff-client:build:dev"
             },
-            "dev": {
+            "staging": {
               "browserTarget": "cic-staff-client:build:staging"
             }
           }

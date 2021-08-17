@@ -31,6 +31,9 @@ build-staging:
     CI_DEBUG_TRACE: "true"
   stage: build
   script:
+    - ls
+    - ls apps/cic-staff-client/src/assets/js/ethtx/dist 
+    - ls apps/cic-staff-client/src/app/_services/
     - TAG=stag FRONTEND_ENV=staging sh ./scripts/build-push.sh
   only:
     - bvander/integration-tests-on-docker
