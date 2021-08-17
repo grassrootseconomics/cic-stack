@@ -10,6 +10,7 @@ from alembic.config import Config as AlembicConfig
 import confini
 
 from cic_eth.db import dsn_from_config
+import cic_eth.cli
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -19,25 +20,20 @@ rootdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 dbdir = os.path.join(rootdir, 'cic_eth', 'db')
 migrationsdir = os.path.join(dbdir, 'migrations')
 
-config_dir = os.path.join('/usr/local/etc/cic-eth')
+arg_flags = cic_eth.cli.argflag_std_base
 
-argparser = argparse.ArgumentParser()
-argparser.add_argument('-c', type=str, default=config_dir, help='config file')
-argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
+argparser = cic_eth.cli.ArgumentParser(arg_flags)
 argparser.add_argument('--migrations-dir', dest='migrations_dir', default=migrationsdir, type=str, help='path to alembic migrations directory')
 argparser.add_argument('--reset', action='store_true', help='downgrade before upgrading')
 argparser.add_argument('-f', action='store_true', help='force action')
-argparser.add_argument('-v', action='store_true', help='be verbose')
-argparser.add_argument('-vv', action='store_true', help='be more verbose')
 args = argparser.parse_args()
 
-if args.vv:
-    logging.getLogger().setLevel(logging.DEBUG)
-elif args.v:
-    logging.getLogger().setLevel(logging.INFO)
-
-config = confini.Config(args.c, args.env_prefix)
-config.process()
+extra_args = {
+    'migrations_dir': None,
+    'reset': None,
+    'f': '_FORCE_ACTION',
+        }
+config = cic_eth.cli.Config.from_args(args, arg_flags, 0, extra_args=extra_args)
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
 logg.debug('config:\n{}'.format(config))
