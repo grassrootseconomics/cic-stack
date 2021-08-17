@@ -1,5 +1,5 @@
 #!/bin/bash
 
-. ./db.sh
+. /root/db.sh
 
 /usr/local/bin/cic-notify-tasker -vv $@

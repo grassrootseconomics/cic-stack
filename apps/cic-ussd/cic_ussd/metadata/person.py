@@ -1,6 +1,6 @@
 # standard imports
 
-# third-party imports
+# external imports
 
 # local imports
 from .base import MetadataRequestsHandler

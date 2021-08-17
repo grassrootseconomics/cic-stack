@@ -29,9 +29,10 @@ def process_phone_number(phone_number: str, region: str):
             pass
 
     phone_number_object = phonenumbers.parse(phone_number, region)
-    parsed_phone_number = phonenumbers.format_number(phone_number_object, phonenumbers.PhoneNumberFormat.E164)
+    return phonenumbers.format_number(
+        phone_number_object, phonenumbers.PhoneNumberFormat.E164
+    )
 
-    return parsed_phone_number
 
 class Support:
     phone_number = None

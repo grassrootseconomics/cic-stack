@@ -1,14 +1,14 @@
-# third party imports
+# standard imports
+
+# external imports
 import pytest
 
 # local imports
 from cic_ussd.validator import (check_ip,
                                 check_request_content_length,
-                                check_service_code,
-                                check_known_user,
                                 check_request_method,
-                                validate_phone_number,
-                                validate_response_type)
+                                is_valid_response,
+                                validate_phone_number)
 
 
 def test_check_ip(load_config, uwsgi_env):
@@ -17,15 +17,6 @@ def test_check_ip(load_config, uwsgi_env):
 
 def test_check_request_content_length(load_config, uwsgi_env):
     assert check_request_content_length(config=load_config, env=uwsgi_env) is True
-
-
-def test_check_service_code(load_config):
-    assert check_service_code(code='*483*46#', config=load_config) is True
-
-
-def test_check_known_user(create_pending_user):
-    user = create_pending_user
-    assert check_known_user(phone=user.phone_number) is True
 
 
 def test_check_request_method(uwsgi_env):
@@ -49,5 +40,5 @@ def test_validate_phone_number(phone, expected_value):
     ('BIO testing', False)
 ])
 def test_validate_response_type(response, expected_value):
-    assert validate_response_type(response) is expected_value
+    assert is_valid_response(response) is expected_value
 

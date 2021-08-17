@@ -8,27 +8,27 @@ class SessionNotFoundError(Exception):
     pass
 
 
-class InvalidFileFormatError(OSError):
+class InvalidFileFormatError(Exception):
     """Raised when the file format is invalid."""
     pass
 
 
-class ActionDataNotFoundError(OSError):
-    """Raised when action data matching a specific task uuid is not found in the redis cache"""
+class AccountCreationDataNotFound(Exception):
+    """Raised when account creation data matching a specific task uuid is not found in the redis cache"""
     pass
 
 
-class MetadataNotFoundError(OSError):
+class MetadataNotFoundError(Exception):
     """Raised when metadata is expected but not available in cache."""
     pass
 
 
-class UnsupportedMethodError(OSError):
+class UnsupportedMethodError(Exception):
     """Raised when the method passed to the make request function is unsupported."""
     pass
 
 
-class CachedDataNotFoundError(OSError):
+class CachedDataNotFoundError(Exception):
     """Raised when the method passed to the make request function is unsupported."""
     pass
 
@@ -50,4 +50,6 @@ class InitializationError(Exception):
 
 class UnknownUssdRecipient(Exception):
     """Raised when a recipient of a transaction is not known to the ussd application."""
+
+
 

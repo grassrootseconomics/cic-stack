@@ -26,7 +26,7 @@ def upgrade():
                     sa.Column('msisdn', sa.String(), nullable=False),
                     sa.Column('user_input', sa.String(), nullable=True),
                     sa.Column('state', sa.String(), nullable=False),
-                    sa.Column('session_data', postgresql.JSON(astext_type=sa.Text()), nullable=True),
+                    sa.Column('data', postgresql.JSON(astext_type=sa.Text()), nullable=True),
                     sa.Column('version', sa.Integer(), nullable=False),
                     sa.PrimaryKeyConstraint('id')
                     )

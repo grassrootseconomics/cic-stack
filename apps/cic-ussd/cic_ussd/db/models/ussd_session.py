@@ -2,9 +2,10 @@
 import logging
 
 # third-party imports
-from sqlalchemy import Column, String, Integer
+from sqlalchemy import Column, desc, Integer, String
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm.attributes import flag_modified
+from sqlalchemy.orm.session import Session
 
 # local imports
 from cic_ussd.db.models.base import SessionBase
@@ -16,26 +17,26 @@ logg = logging.getLogger(__name__)
 class UssdSession(SessionBase):
     __tablename__ = 'ussd_session'
 
+    data = Column(JSON)
     external_session_id = Column(String, nullable=False, index=True, unique=True)
-    service_code = Column(String, nullable=False)
     msisdn = Column(String, nullable=False)
-    user_input = Column(String)
+    service_code = Column(String, nullable=False)
     state = Column(String, nullable=False)
-    session_data = Column(JSON)
+    user_input = Column(String)
     version = Column(Integer, nullable=False)
 
     def set_data(self, key, session, value):
-        if self.session_data is None:
-            self.session_data = {}
-        self.session_data[key] = value
+        if self.data is None:
+            self.data = {}
+        self.data[key] = value
 
         # https://stackoverflow.com/questions/42559434/updates-to-json-field-dont-persist-to-db
-        flag_modified(self, "session_data")
+        flag_modified(self, "data")
         session.add(self)
 
     def get_data(self, key):
-        if self.session_data is not None:
-            return self.session_data.get(key)
+        if self.data is not None:
+            return self.data.get(key)
         else:
             return None
 
@@ -51,9 +52,37 @@ class UssdSession(SessionBase):
         session.add(self)
 
     @staticmethod
-    def have_session_for_phone(phone):
-        r = UssdSession.session.query(UssdSession).filter_by(msisdn=phone).first()
-        return r is not None
+    def has_record_for_phone_number(phone_number: str, session: Session):
+        """
+        :param phone_number:
+        :type phone_number:
+        :param session:
+        :type session:
+        :return:
+        :rtype:
+        """
+        session = SessionBase.bind_session(session=session)
+        ussd_session = session.query(UssdSession).filter_by(msisdn=phone_number).first()
+        SessionBase.release_session(session=session)
+        return ussd_session is not None
+
+    @staticmethod
+    def last_ussd_session(phone_number: str, session: Session):
+        """
+        :param phone_number:
+        :type phone_number:
+        :param session:
+        :type session:
+        :return:
+        :rtype:
+        """
+        session = SessionBase.bind_session(session=session)
+        ussd_session = session.query(UssdSession) \
+            .filter_by(msisdn=phone_number) \
+            .order_by(desc(UssdSession.created)) \
+            .first()
+        SessionBase.release_session(session=session)
+        return ussd_session
 
     def to_json(self):
         """ This function serializes the in db ussd session object to a JSON object
@@ -61,11 +90,11 @@ class UssdSession(SessionBase):
         :rtype: dict
         """
         return {
+            "data": self.data,
             "external_session_id": self.external_session_id,
-            "service_code": self.service_code,
             "msisdn": self.msisdn,
-            "user_input": self.user_input,
+            "service_code": self.service_code,
             "state": self.state,
-            "session_data": self.session_data,
+            "user_input": self.user_input,
             "version": self.version
         }

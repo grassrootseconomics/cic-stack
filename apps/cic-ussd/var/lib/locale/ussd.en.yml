@@ -73,13 +73,15 @@ en:
       1. English
       2. Kiswahili
       0. Back
+    retry_pin_entry: |-
+      CON Incorrect PIN entered, please try again. You have %{remaining_attempts} attempts remaining.
+      0. Back
     enter_current_pin:
       first: |-
         CON Enter current PIN.
         0. Back
       retry: |-
-        CON Enter current PIN. You have %{remaining_attempts} attempts remaining.
-        0. Back
+        %{retry_pin_entry}
     enter_new_pin: |-
       CON Enter your new four number PIN
       0. Back
@@ -92,67 +94,58 @@ en:
         Please enter your PIN to confirm.
         0. Back
       retry: |-
-        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
-        0. Back
+        %{retry_pin_entry}
     display_metadata_pin_authorization:
       first: |-
         CON Please enter your PIN
         0. Back
       retry: |-
-        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
-        0. Back
+        %{retry_pin_entry}
     account_balances_pin_authorization:
       first: |-
         CON Please enter your PIN to view balances
         0. Back
       retry: |-
-        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
-        0. Back
+        %{retry_pin_entry}
     account_statement_pin_authorization:
       first: |-
         CON Please enter your PIN to view statement
         0. Back
       retry: |-
-        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
-        0. Back
+        %{retry_pin_entry}
     name_edit_pin_authorization:
       first: |-
         CON Please enter your PIN
         0. Back
       retry: |-
-        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
-        0. Back
+        %{retry_pin_entry}
     dob_edit_pin_authorization:
       first: |-
         CON Please enter your PIN
         0. Back
       retry: |-
-        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
-        0. Back
+        %{retry_pin_entry}
     gender_edit_pin_authorization:
       first: |-
         CON Please enter your PIN
         0. Back
       retry: |-
-        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
-        0. Back
+        %{retry_pin_entry}
     location_edit_pin_authorization:
       first: |-
         CON Please enter your PIN
         0. Back
       retry: |-
-        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
-        0. Back
+        %{retry_pin_entry}
     products_edit_pin_authorization:
       first: |-
         CON Please enter your PIN
         0. Back
       retry: |-
-        CON Please enter your PIN. You have %{remaining_attempts} attempts remaining
-        0. Back
+        %{retry_pin_entry}
     account_balances: |-
       CON Your balances are as follows:
-        balance: %{operational_balance} %{token_symbol}
+        balance: %{available_balance} %{token_symbol}
         fees: %{tax} %{token_symbol}
         rewards: %{bonus} %{token_symbol}
       0. Back
@@ -213,4 +206,4 @@ en:
       00. Back
       99. Exit
     account_creation_prompt: |-
-      Your account is being created. You will receive an SMS when your account is ready.
+      END Your account is being created. You will receive an SMS when your account is ready.

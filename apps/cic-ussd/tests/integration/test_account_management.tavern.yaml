@@ -162,12 +162,13 @@ stages:
       status_code:
         - 200
       headers:
-        Content-Length: '30'
+        Content-Length: '36'
         Content-Type: "text/plain"
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "END Asante kwa kutumia huduma."
+          expected_response: "END Thank you for using the service."
+    delay_after: 5
 
   - name: Select language [second account]
     request:
@@ -184,12 +185,13 @@ stages:
       status_code:
         - 200
       headers:
-        Content-Length: '36'
+        Content-Length: '30'
         Content-Type: "text/plain"
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "END Thank you for using the service."
+          expected_response: "END Asante kwa kutumia huduma."
+    delay_after: 5
 
   - name: Second account management start menu [first account]
     request:
@@ -512,12 +514,12 @@ stages:
       status_code:
         - 200
       headers:
-        Content-Length: '31'
+        Content-Length: '43'
         Content-Type: "text/plain"
       verify_response_with:
         function: ext.validator:validate_response
         extra_kwargs:
-          expected_response: "CON Weka PIN yako tena\n0. Nyuma"
+          expected_response: "CON Weka nambari yako ya siri tena\n0. Nyuma"
 
   - name: Enter new pin [second account]
     request:

@@ -1,0 +1,19 @@
+en:
+  female: |-
+    Female
+  from: |-
+    From
+  male: |-
+    Male
+  not_provided: |-
+    Not provided
+  no_transaction_history: |-
+    No transaction history
+  other: |-
+    Other
+  received: |-
+    Received
+  sent: |-
+    Sent
+  to: |-
+    To

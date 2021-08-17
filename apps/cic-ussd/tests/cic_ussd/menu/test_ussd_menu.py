@@ -1,12 +1,14 @@
 # standard imports
 import os
 
-# third party imports
+# external imports
 import pytest
 
 # local imports
 from cic_ussd.files.local_files import create_local_file_data_stores
 from cic_ussd.menu.ussd_menu import UssdMenu
+
+# tests imports
 from tests.helpers.tmp_files import create_tmp_file
 
 
@@ -49,4 +51,3 @@ def test_failed_create_ussd_menu():
     assert str(error.value) == "Menu already exists!"
     os.close(descriptor)
     os.remove(tmp_file)
-
