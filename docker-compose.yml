@@ -80,6 +80,7 @@ services:
         pip_index_url: ${PIP_DEFAULT_INDEX_URL:-https://pypi.org/simple}
         pip_extra_args: $PIP_EXTRA_ARGS
         EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     # image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:latest
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS

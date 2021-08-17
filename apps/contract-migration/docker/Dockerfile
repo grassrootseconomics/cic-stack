@@ -30,13 +30,14 @@ COPY requirements.txt .
 
 ARG pip_index_url=https://pypi.org/simple
 ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
+ARG EXTRA_PIP_ARGS=""
 ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple"
 ARG pip_trusted_host=pypi.org
 RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
     pip install --index-url https://pypi.org/simple \
     --force-reinstall \
     --trusted-host $pip_trusted_host \
-    --extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL \
+    --extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL $EXTRA_PIP_ARGS \
     -r requirements.txt 
 
 COPY . .

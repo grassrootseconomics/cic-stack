@@ -1,10 +1,10 @@
 cic-eth[tools]==0.12.2a4
 eth-erc20>=0.0.12a1,<0.1.0
-erc20-demurrage-token>=0.0.3a1,<0.1.0
+erc20-demurrage-token>=0.0.3a4,<0.1.0
 eth-address-index>=0.1.4a1,<0.2.0
 eth-accounts-index>=0.0.14a1,<0.1.0
 cic-eth-registry>=0.5.8a1,<0.6.0
 erc20-faucet>=0.2.4a1,<0.3.0
 erc20-transfer-authorization>=0.3.4a1,<0.4.0
-sarafu-faucet>=0.0.5a5,<0.1.0
-chainlib-eth>=0.0.7a1,<0.1.0
+sarafu-faucet>=0.0.5a7,<0.1.0
+chainlib-eth>=0.0.7a8,<0.1.0

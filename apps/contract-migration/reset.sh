@@ -99,11 +99,15 @@ if [[ -n "${ETH_PROVIDER}" ]]; then
 				>&2 echo -e "\033[;93mtoken sink address not set, so redistribution will be BURNED\033[;39m"
 			fi
 		fi
-		DEV_RESERVE_ADDRESS=`erc20-demurrage-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC --name "$TOKEN_NAME" --symbol $TOKEN_SYMBOL -vv -ww`
+		export _CONFINI_DIR=$CONFINI_DIR
+		unset CONFINI_DIR
+		DEV_RESERVE_ADDRESS=`erc20-demurrage-token-deploy $fee_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC --name "$TOKEN_NAME" --symbol $TOKEN_SYMBOL -vv -ww -s` 
+		export CONFINI_DIR=$_CONFINI_DIR
 	else
 		>&2 echo unknown token type $TOKEN_TYPE
 		exit 1
 	fi
+	echo "giftable-token-gift $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -w -a $DEV_RESERVE_ADDRESS $DEV_RESERVE_AMOUNT"
 	giftable-token-gift $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -w -a $DEV_RESERVE_ADDRESS $DEV_RESERVE_AMOUNT
 
 	>&2 echo "deploy account index contract"
