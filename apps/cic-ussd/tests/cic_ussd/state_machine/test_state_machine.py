@@ -2,11 +2,12 @@
 from cic_ussd.state_machine import UssdStateMachine
 
 
-def test_state_machine(create_in_db_ussd_session,
-                       get_in_redis_ussd_session,
-                       load_data_into_state_machine,
-                       create_pending_user):
-    serialized_in_db_ussd_session = create_in_db_ussd_session.to_json()
-    state_machine = UssdStateMachine(ussd_session=get_in_redis_ussd_session.to_json())
-    state_machine.scan_data(('1', serialized_in_db_ussd_session, create_pending_user))
+def test_state_machine(activated_account_ussd_session,
+                       celery_session_worker,
+                       init_database,
+                       init_state_machine,
+                       pending_account):
+    state_machine = UssdStateMachine(activated_account_ussd_session)
+    state_machine.scan_data(('1', activated_account_ussd_session, pending_account, init_database))
+    assert state_machine.__repr__() == f'<KenyaUssdStateMachine: {state_machine.state}>'
     assert state_machine.state == 'initial_pin_entry'

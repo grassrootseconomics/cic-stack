@@ -1,15 +1,13 @@
 # standard imports
+import ipaddress
 import logging
 import os
 import re
-import ipaddress
 
 # third-party imports
 from confini import Config
 
 # local imports
-from cic_ussd.db.models.account import Account
-from cic_ussd.db.models.base import SessionBase
 
 logg = logging.getLogger(__file__)
 
@@ -46,23 +44,6 @@ def check_request_content_length(config: Config, env: dict):
         config.get('APP_MAX_BODY_LENGTH'))
 
 
-def check_known_user(phone_number: str, session):
-    """This method attempts to ascertain whether the user already exists and is known to the system.
-    It sends a get request to the platform application and attempts to retrieve the user's data which it persists in
-    memory.
-    :param phone_number: A valid phone number
-    :type phone_number: str
-    :param session:
-    :type session:
-    :return: Is known phone number
-    :rtype: boolean
-    """
-    session = SessionBase.bind_session(session=session)
-    account = session.query(Account).filter_by(phone_number=phone_number).first()
-    SessionBase.release_session(session=session)
-    return account is not None
-
-
 def check_request_method(env: dict):
     """
     Checks whether request method is POST
@@ -74,17 +55,6 @@ def check_request_method(env: dict):
     return env.get('REQUEST_METHOD').upper() == 'POST'
 
 
-def check_session_id(session_id: str):
-    """
-    Checks whether session id is present
-    :param session_id: Session id value provided by AT
-    :type session_id: str
-    :return: Session id presence
-    :rtype: boolean
-    """
-    return session_id is not None
-
-
 def validate_phone_number(phone: str):
     """
     Check if phone number is in the correct format.
@@ -93,12 +63,10 @@ def validate_phone_number(phone: str):
     :return: Whether the phone number is of the correct format.
     :rtype: bool
     """
-    if phone and re.match('[+]?[0-9]{10,12}$', phone):
-        return True
-    return False
+    return bool(phone and re.match('[+]?[0-9]{10,12}$', phone))
 
 
-def validate_response_type(processor_response: str) -> bool:
+def is_valid_response(processor_response: str) -> bool:
     """
     This function checks the prefix for a corresponding menu's text from the response offered by the Ussd Processor and
     determines whether the response should prompt the end of a ussd session or the
@@ -111,9 +79,7 @@ def validate_response_type(processor_response: str) -> bool:
     if len(processor_response) > 164:
         logg.warning(f'Warning, text has length {len(processor_response)}, display may be truncated')
 
-    if re.match(matcher, processor_response):
-        return True
-    return False
+    return bool(re.match(matcher, processor_response))
 
 
 def validate_presence(path: str):

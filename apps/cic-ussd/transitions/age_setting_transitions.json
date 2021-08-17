@@ -3,9 +3,9 @@
     "trigger": "scan_data",
     "source": "enter_date_of_birth",
     "dest": "dob_edit_pin_authorization",
-    "after": "cic_ussd.state_machine.logic.user.save_metadata_attribute_to_session_data",
+    "after": "cic_ussd.state_machine.logic.account.save_metadata_attribute_to_session_data",
     "conditions": [
-      "cic_ussd.state_machine.logic.validator.has_cached_user_metadata",
+      "cic_ussd.state_machine.logic.validator.has_cached_person_metadata",
       "cic_ussd.state_machine.logic.validator.is_valid_date"
     ]
   },
@@ -14,8 +14,8 @@
     "source": "enter_date_of_birth",
     "dest": "enter_location",
     "conditions": "cic_ussd.state_machine.logic.validator.is_valid_date",
-    "after": "cic_ussd.state_machine.logic.user.save_metadata_attribute_to_session_data",
-    "unless": "cic_ussd.state_machine.logic.validator.has_cached_user_metadata"
+    "after": "cic_ussd.state_machine.logic.account.save_metadata_attribute_to_session_data",
+    "unless": "cic_ussd.state_machine.logic.validator.has_cached_person_metadata"
   },
   {
     "trigger": "scan_data",
@@ -28,7 +28,7 @@
     "source": "dob_edit_pin_authorization",
     "dest": "exit",
     "conditions": "cic_ussd.state_machine.logic.pin.is_authorized_pin",
-    "after": "cic_ussd.state_machine.logic.user.edit_user_metadata_attribute"
+    "after": "cic_ussd.state_machine.logic.account.edit_user_metadata_attribute"
   },
   {
     "trigger": "scan_data",

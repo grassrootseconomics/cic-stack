@@ -21,7 +21,7 @@ def health(*args, **kwargs):
     session = SessionBase.create_session()
 
     config = kwargs['config']
-    chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
+    chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
     logg.debug('check gas balance of gas gifter for chain {}'.format(chain_spec))
 
     try:

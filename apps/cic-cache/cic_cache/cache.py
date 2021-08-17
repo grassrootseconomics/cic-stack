@@ -10,12 +10,16 @@ from cic_cache.db.list import (
         list_transactions_mined,
         list_transactions_account_mined,
         list_transactions_mined_with_data,
+        list_transactions_mined_with_data_index,
+        list_transactions_account_mined_with_data_index,
+        list_transactions_account_mined_with_data,
         )
 
 logg = logging.getLogger()
 
 
 DEFAULT_FILTER_SIZE = 8192 * 8
+DEFAULT_LIMIT = 100
 
 class Cache:
 
@@ -32,7 +36,7 @@ class BloomCache(Cache):
         return n
 
 
-    def load_transactions(self, offset, limit):
+    def load_transactions(self, offset, limit, block_offset=None, block_limit=None, oldest=False):
         """Retrieves a list of transactions from cache and creates a bloom filter pointing to blocks and transactions.
 
         Block and transaction numbers are serialized as 32-bit big-endian numbers. The input to the second bloom filter is the concatenation of the serialized block number and transaction index.
@@ -49,7 +53,7 @@ class BloomCache(Cache):
         :return: Lowest block, bloom filter for blocks, bloom filter for blocks|tx
         :rtype: tuple
         """
-        rows = list_transactions_mined(self.session, offset, limit) 
+        rows = list_transactions_mined(self.session, offset, limit, block_offset=block_offset, block_limit=block_limit, oldest=oldest)
 
         f_block = moolb.Bloom(BloomCache.__get_filter_size(limit), 3)
         f_blocktx = moolb.Bloom(BloomCache.__get_filter_size(limit), 3)
@@ -58,7 +62,12 @@ class BloomCache(Cache):
         for r in rows:
             if highest_block == -1:
                 highest_block = r[0]
-            lowest_block = r[0]
+                lowest_block = r[0]
+            else:
+                if oldest:
+                    highest_block = r[0]
+                else:
+                    lowest_block = r[0]
             block = r[0].to_bytes(4, byteorder='big')
             tx = r[1].to_bytes(4, byteorder='big')
             f_block.add(block)
@@ -67,7 +76,7 @@ class BloomCache(Cache):
         return (lowest_block, highest_block, f_block.to_bytes(), f_blocktx.to_bytes(),)
 
 
-    def load_transactions_account(self, address, offset, limit):
+    def load_transactions_account(self, address, offset, limit, block_offset=None, block_limit=None, oldest=False):
         """Same as load_transactions(...), but only retrieves transactions where the specified account address is sender or recipient.
 
         :param address: Address to retrieve transactions for.
@@ -79,7 +88,7 @@ class BloomCache(Cache):
         :return: Lowest block, bloom filter for blocks, bloom filter for blocks|tx
         :rtype: tuple
         """
-        rows = list_transactions_account_mined(self.session, address, offset, limit) 
+        rows = list_transactions_account_mined(self.session, address, offset, limit, block_offset=block_offset, block_limit=block_limit, oldest=oldest) 
 
         f_block = moolb.Bloom(BloomCache.__get_filter_size(limit), 3)
         f_blocktx = moolb.Bloom(BloomCache.__get_filter_size(limit), 3)
@@ -88,7 +97,12 @@ class BloomCache(Cache):
         for r in rows:
             if highest_block == -1:
                 highest_block = r[0]
-            lowest_block = r[0]
+                lowest_block = r[0]
+            else:
+                if oldest:
+                    highest_block = r[0]
+                else:
+                    lowest_block = r[0]
             block = r[0].to_bytes(4, byteorder='big')
             tx = r[1].to_bytes(4, byteorder='big')
             f_block.add(block)
@@ -99,8 +113,21 @@ class BloomCache(Cache):
 
 class DataCache(Cache):
 
-    def load_transactions_with_data(self, offset, end):
-        rows = list_transactions_mined_with_data(self.session, offset, end) 
+    def load_transactions_with_data(self, offset, limit, block_offset=None, block_limit=None, oldest=False):
+        if limit == 0:
+            limit = DEFAULT_LIMIT
+        rows = list_transactions_mined_with_data(self.session, offset, limit, block_offset, block_limit, oldest=oldest) 
+        return self.__process_rows(rows, oldest)
+
+
+    def load_transactions_account_with_data(self, address, offset, limit, block_offset=None, block_limit=None, oldest=False):
+        if limit == 0:
+            limit = DEFAULT_LIMIT
+        rows = list_transactions_account_mined_with_data(self.session, address, offset, limit, block_offset, block_limit, oldest=oldest) 
+        return self.__process_rows(rows, oldest)
+
+
+    def __process_rows(self, rows, oldest):
         tx_cache = []
         highest_block = -1;
         lowest_block = -1;
@@ -108,7 +135,12 @@ class DataCache(Cache):
         for r in rows:
             if highest_block == -1:
                 highest_block = r['block_number']
-            lowest_block = r['block_number']
+                lowest_block = r['block_number']
+            else:
+                if oldest:
+                    highest_block = r['block_number']
+                else:
+                    lowest_block = r['block_number']
             tx_type = 'unknown'
 
             if r['value'] != None:

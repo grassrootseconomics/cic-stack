@@ -1,15 +1,18 @@
-# third-party imports
+# standard imports
+from logging import config
+
+# external imports
 from cic_types.pytest import *
 
-
-# local imports
-from tests.fixtures.config import *
-from tests.fixtures.db import *
-from tests.fixtures.celery import *
-from tests.fixtures.integration import *
-from tests.fixtures.user import *
-from tests.fixtures.ussd_session import *
-from tests.fixtures.redis import *
-from tests.fixtures.callback import *
-from tests.fixtures.requests import *
-from tests.fixtures.mocks import *
+# test imports
+from .fixtures.account import *
+from .fixtures.config import *
+from .fixtures.db import *
+from .fixtures.cache import *
+from .fixtures.integration import *
+from .fixtures.metadata import *
+from .fixtures.patches.account import *
+from .fixtures.tasker import *
+from .fixtures.transaction import *
+from .fixtures.ussd_session import *
+from .fixtures.util import *

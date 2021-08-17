@@ -6,11 +6,7 @@ import celery
 from hexathon import strip_0x
 
 # local imports
-from cic_ussd.metadata import blockchain_address_to_metadata_pointer
-from cic_ussd.metadata.custom import CustomMetadata
-from cic_ussd.metadata.person import PersonMetadata
-from cic_ussd.metadata.phone import PhonePointerMetadata
-from cic_ussd.metadata.preferences import PreferencesMetadata
+from cic_ussd.metadata import CustomMetadata, PersonMetadata, PhonePointerMetadata, PreferencesMetadata
 from cic_ussd.tasks.base import CriticalMetadataTask
 
 celery_app = celery.current_app
@@ -25,8 +21,7 @@ def query_person_metadata(blockchain_address: str):
     :return:
     :rtype:
     """
-    identifier = blockchain_address_to_metadata_pointer(blockchain_address=blockchain_address)
-    logg.debug(f'Retrieving person metadata for address: {blockchain_address}.')
+    identifier = bytes.fromhex(strip_0x(blockchain_address))
     person_metadata_client = PersonMetadata(identifier=identifier)
     person_metadata_client.query()
 
@@ -41,14 +36,14 @@ def create_person_metadata(blockchain_address: str, data: dict):
     :return:
     :rtype:
     """
-    identifier = blockchain_address_to_metadata_pointer(blockchain_address=blockchain_address)
+    identifier = bytes.fromhex(strip_0x(blockchain_address))
     person_metadata_client = PersonMetadata(identifier=identifier)
     person_metadata_client.create(data=data)
 
 
 @celery_app.task
 def edit_person_metadata(blockchain_address: str, data: dict):
-    identifier = blockchain_address_to_metadata_pointer(blockchain_address=blockchain_address)
+    identifier = bytes.fromhex(strip_0x(blockchain_address))
     person_metadata_client = PersonMetadata(identifier=identifier)
     person_metadata_client.edit(data=data)
 
@@ -63,16 +58,16 @@ def add_phone_pointer(self, blockchain_address: str, phone_number: str):
 
 @celery_app.task()
 def add_custom_metadata(blockchain_address: str, data: dict):
-    identifier = blockchain_address_to_metadata_pointer(blockchain_address=blockchain_address)
+    identifier = bytes.fromhex(strip_0x(blockchain_address))
     custom_metadata_client = CustomMetadata(identifier=identifier)
     custom_metadata_client.create(data=data)
 
 
 @celery_app.task()
 def add_preferences_metadata(blockchain_address: str, data: dict):
-    identifier = blockchain_address_to_metadata_pointer(blockchain_address=blockchain_address)
-    custom_metadata_client = PreferencesMetadata(identifier=identifier)
-    custom_metadata_client.create(data=data)
+    identifier = bytes.fromhex(strip_0x(blockchain_address))
+    preferences_metadata_client = PreferencesMetadata(identifier=identifier)
+    preferences_metadata_client.create(data=data)
 
 
 @celery_app.task()
@@ -81,7 +76,7 @@ def query_preferences_metadata(blockchain_address: str):
     :param blockchain_address: Blockchain address of an account.
     :type blockchain_address: str | Ox-hex
     """
-    identifier = blockchain_address_to_metadata_pointer(blockchain_address=blockchain_address)
+    identifier = bytes.fromhex(strip_0x(blockchain_address))
     logg.debug(f'Retrieving preferences metadata for address: {blockchain_address}.')
     person_metadata_client = PreferencesMetadata(identifier=identifier)
     return person_metadata_client.query()

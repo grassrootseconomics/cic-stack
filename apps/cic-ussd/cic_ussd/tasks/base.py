@@ -1,4 +1,5 @@
 # standard imports
+import logging
 
 # third-party imports
 import celery
@@ -7,6 +8,8 @@ import sqlalchemy
 # local imports
 from cic_ussd.error import MetadataStoreError
 from cic_ussd.db.models.base import SessionBase
+
+logg = logging.getLogger(__name__)
 
 
 class BaseTask(celery.Task):

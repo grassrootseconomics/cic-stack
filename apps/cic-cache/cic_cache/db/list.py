@@ -13,6 +13,9 @@ def list_transactions_mined(
         session,
         offset,
         limit,
+        block_offset,
+        block_limit,
+        oldest=False,
         ):
     """Executes db query to return all confirmed transactions according to the specified offset and limit.
 
@@ -23,7 +26,17 @@ def list_transactions_mined(
     :result: Result set
     :rtype: SQLAlchemy.ResultProxy
     """
-    s = "SELECT block_number, tx_index FROM tx ORDER BY block_number DESC, tx_index DESC LIMIT {} OFFSET {}".format(limit, offset)
+    order_by = 'DESC'
+    if oldest:
+        order_by = 'ASC'
+
+    if block_offset:
+        if block_limit:
+            s = "SELECT block_number, tx_index FROM tx WHERE block_number >= {} and block_number <= {} ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, block_limit, order_by, order_by, limit, offset)
+        else:
+            s = "SELECT block_number, tx_index FROM tx WHERE block_number >= {} ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, order_by, order_by, limit, offset)
+    else:
+        s = "SELECT block_number, tx_index FROM tx ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(order_by, order_by, limit, offset)
     r = session.execute(s)
     return r
 
@@ -31,7 +44,44 @@ def list_transactions_mined(
 def list_transactions_mined_with_data(
         session,
         offset,
+        limit,
+        block_offset,
+        block_limit,
+        oldest=False,
+        ):
+    """Executes db query to return all confirmed transactions according to the specified offset and limit.
+
+    :param block_offset: First block to include in search
+    :type block_offset: int
+    :param block_limit: Last block to include in search
+    :type block_limit: int
+    :result: Result set
+    :rtype: SQLAlchemy.ResultProxy
+    """
+    order_by = 'DESC'
+    if oldest:
+        order_by = 'ASC'
+
+    if block_offset:
+        if block_limit:
+            s = "SELECT tx_hash, block_number, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} AND block_number <= {} ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, block_limit, order_by, order_by, limit, offset)
+        else:
+            s = "SELECT tx_hash, block_number, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, order_by, order_by, limit, offset)
+    else:
+        s = "SELECT tx_hash, block_number, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(order_by, order_by, limit, offset)
+
+
+    r = session.execute(s)
+    return r
+
+
+def list_transactions_mined_with_data_index(
+        session,
+        offset,
         end,
+        block_offset,
+        block_limit,
+        oldest=False,
         ):
     """Executes db query to return all confirmed transactions according to the specified offset and limit.
 
@@ -42,7 +92,87 @@ def list_transactions_mined_with_data(
     :result: Result set
     :rtype: SQLAlchemy.ResultProxy
     """
-    s = "SELECT tx_hash, block_number, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} AND block_number <= {} ORDER BY block_number ASC, tx_index ASC".format(offset, end)
+
+    order_by = 'DESC'
+    if oldest:
+        order_by = 'ASC'
+
+    if block_offset:
+        if block_limit:
+            s = "SELECT tx_hash, block_number, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} and block_number <= {} ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, block_limit, order_by, order_by, offset, end)
+        else:
+            s = "SELECT tx_hash, block_number, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, order_by, order_by, offset, end)
+    else:
+        s = "SELECT tx_hash, block_number, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(order_by, order_by, offset, end)
+
+    r = session.execute(s)
+    return r
+
+
+def list_transactions_account_mined_with_data_index(
+        session,
+        address,
+        offset,
+        limit,
+        block_offset,
+        block_limit,
+        oldest=False,
+        ):
+    """Executes db query to return all confirmed transactions according to the specified offset and limit, filtered by address
+
+    :param offset: Offset in data set to return transactions from
+    :type offset: int
+    :param limit: Max number of transactions to retrieve
+    :type limit: int
+    :result: Result set
+    :rtype: SQLAlchemy.ResultProxy
+    """
+
+    order_by = 'DESC'
+    if oldest:
+        order_by = 'ASC'
+
+    if block_offset:
+        if block_limit:
+            s = "SELECT tx_hash, block_number, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} AND block_number <= {} AND (sender = '{}' OR recipient = '{}') ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, block_limit, address, address, order_by, order_by, limit, offset)
+        else:
+            s = "SELECT tx_hash, block_number, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} AND (sender = '{}' OR recipient = '{}') ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, address, address, order_by, order_by, limit, offset)
+    else:
+        s = "SELECT tx_hash, block_number, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE sender = '{}' OR recipient = '{}' ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(address, address, order_by, order_by, limit, offset)
+
+    r = session.execute(s)
+    return r
+
+def list_transactions_account_mined_with_data(
+        session,
+        address,
+        offset,
+        limit,
+        block_offset,
+        block_limit,
+        oldest=False,
+        ):
+    """Executes db query to return all confirmed transactions according to the specified offset and limit.
+
+    :param block_offset: First block to include in search
+    :type block_offset: int
+    :param block_limit: Last block to include in search
+    :type block_limit: int
+    :result: Result set
+    :rtype: SQLAlchemy.ResultProxy
+    """
+
+    order_by = 'DESC'
+    if oldest:
+        order_by = 'ASC'
+
+    if block_offset:
+        if block_limit:
+            s = "SELECT tx_hash, block_number, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} AND block_number <= {} AND (sender = '{}' OR recipient = '{}') ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, block_limit, address, address, order_by, order_by, limit, offset)
+        else:
+            s = "SELECT tx_hash, block_number, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} AND (sender = '{}' OR recipient = '{}') ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, address, address, order_by, order_by, limit, offset)
+    else:
+        s = "SELECT tx_hash, block_number, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE sender = '{}' OR recipient = '{}' ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(address, address, order_by, order_by, limit, offset)
 
     r = session.execute(s)
     return r
@@ -53,6 +183,9 @@ def list_transactions_account_mined(
         address,
         offset,
         limit,
+        block_offset,
+        block_limit,
+        oldest=False,
         ):
     """Same as list_transactions_mined(...), but only retrieves transaction where the specified account address is sender or recipient.
 
@@ -65,7 +198,20 @@ def list_transactions_account_mined(
     :result: Result set
     :rtype: SQLAlchemy.ResultProxy
     """
-    s = "SELECT block_number, tx_index FROM tx WHERE sender = '{}' OR recipient = '{}' ORDER BY block_number DESC, tx_index DESC LIMIT {} OFFSET {}".format(address, address, limit, offset)
+
+    order_by = 'DESC'
+    if oldest:
+        order_by = 'ASC'
+
+    if block_offset:
+        if block_limit:
+            s = "SELECT block_number, tx_index FROM tx WHERE block_number >= {} AND block_number <= {} AND (sender = '{}' OR recipient = '{}') ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, block_limit, address, address, order_by, order_by, limit, offset)
+        else:
+            s = "SELECT block_number, tx_index FROM tx WHERE block_number >= {} AND (sender = '{}' OR recipient = '{}') ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, address, address, order_by, order_by, limit, offset)
+
+    else:
+        s = "SELECT block_number, tx_index FROM tx WHERE sender = '{}' OR recipient = '{}' ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(address, address, order_by, order_by, limit, offset)
+
     r = session.execute(s)
     return r
 

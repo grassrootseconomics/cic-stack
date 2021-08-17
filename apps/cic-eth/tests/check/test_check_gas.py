@@ -11,7 +11,7 @@ def test_check_gas(
     whoever,
         ):
 
-    config.add(str(default_chain_spec), 'CIC_CHAIN_SPEC', exists_ok=True)
+    config.add(str(default_chain_spec), 'CHAIN_SPEC', exists_ok=True)
     config.add(100, 'ETH_GAS_GIFTER_MINIMUM_BALANCE', exists_ok=True)
     assert health(config=config)
 

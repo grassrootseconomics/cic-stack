@@ -65,11 +65,10 @@ class UssdMenu:
         :rtype: Document.
         """
         menu = UssdMenu.ussd_menu_db.get(UssdMenu.Menu.name == name)
-        if not menu:
-            logg.error("No USSD Menu with name {}".format(name))
-            return UssdMenu.ussd_menu_db.get(UssdMenu.Menu.name == 'exit_invalid_request')
-        else:
+        if menu:
             return menu
+        logg.error("No USSD Menu with name {}".format(name))
+        return UssdMenu.ussd_menu_db.get(UssdMenu.Menu.name == 'exit_invalid_request')
 
     @staticmethod
     def set_description(name: str, description: str):

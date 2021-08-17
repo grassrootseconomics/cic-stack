@@ -19,7 +19,7 @@ root_directory = os.path.dirname(os.path.dirname(__file__))
 db_directory = os.path.join(root_directory, 'cic_ussd', 'db')
 migrationsdir = os.path.join(db_directory, 'migrations')
 
-config_directory = os.path.join(root_directory, '.config')
+config_directory = os.path.join(root_directory, 'config')
 
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument('-c', type=str, default=config_directory, help='config file')
@@ -51,4 +51,3 @@ ac.set_main_option('sqlalchemy.url', dsn)
 ac.set_main_option('script_location', migrations_dir)
 
 alembic.command.upgrade(ac, 'head')
-
