@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 
 import { Envelope, Syncable, User } from 'cic-client-meta';
-import { add0x } from '@src/assets/js/ethtx/dist/hex';
+import { add0x } from '@src/assets/js/ethtx/hex';
 import { personValidation, vcardValidation } from '@app/_helpers/schema-validation';
 import * as vCard from 'vcard-parser';
 
@@ -29,7 +29,7 @@ addEventListener('message', async ({ data }) => {
 async function getAccountByAddress(
   accountAddress: string,
   metaUrl: string,
-  token: string
+  token: string,
 ): Promise<any> {
   const userKey = await User.toKey(add0x(accountAddress));
 

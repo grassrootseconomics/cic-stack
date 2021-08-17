@@ -10,7 +10,7 @@ import { Router } from '@angular/router';
 import { TokenService, TransactionService } from '@app/_services';
 import { copyToClipboard } from '@app/_helpers';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { strip0x } from '@src/assets/js/ethtx/dist/hex';
+import { strip0x } from '@src/assets/js/ethtx/hex';
 
 @Component({
   selector: 'app-transaction-details',

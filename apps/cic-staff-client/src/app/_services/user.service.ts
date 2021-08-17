@@ -11,7 +11,7 @@ import { MutableKeyStore, PGPSigner, Signer } from '@app/_pgp';
 import { RegistryService } from '@app/_services/registry.service';
 import { CICRegistry } from '@cicnet/cic-client';
 import { personValidation, updateSyncable, vcardValidation } from '@app/_helpers';
-import { add0x, strip0x } from '@src/assets/js/ethtx/dist/hex';
+import { add0x, strip0x } from '@src/assets/js/ethtx/hex';
 import { KeystoreService } from '@app/_services/keystore.service';
 import * as Automerge from 'automerge';
 const vCard = require('vcard-parser');

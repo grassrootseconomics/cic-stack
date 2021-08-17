@@ -11,7 +11,7 @@ import { MatSort } from '@angular/material/sort';
 import { LoggingService, TokenService, UserService } from '@app/_services';
 import { Router } from '@angular/router';
 import { exportCsv } from '@app/_helpers';
-import { strip0x } from '@src/assets/js/ethtx/dist/hex';
+import { strip0x } from '@src/assets/js/ethtx/hex';
 import { first } from 'rxjs/operators';
 import { environment } from '@src/environments/environment';
 import { AccountDetails } from '@app/_models';

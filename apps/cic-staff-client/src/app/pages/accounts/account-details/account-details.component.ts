@@ -22,7 +22,7 @@ import { first } from 'rxjs/operators';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { copyToClipboard, CustomErrorStateMatcher, exportCsv } from '@app/_helpers';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { add0x, strip0x } from '@src/assets/js/ethtx/dist/hex';
+import { add0x, strip0x } from '@src/assets/js/ethtx/hex';
 import { environment } from '@src/environments/environment';
 import { AccountDetails, Transaction } from '@app/_models';
 

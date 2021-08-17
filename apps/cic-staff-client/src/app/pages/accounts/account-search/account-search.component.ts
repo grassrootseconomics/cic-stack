@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CustomErrorStateMatcher } from '@app/_helpers';
 import { UserService } from '@app/_services';
 import { Router } from '@angular/router';
-import { strip0x } from '@src/assets/js/ethtx/dist/hex';
+import { strip0x } from '@src/assets/js/ethtx/hex';
 import { environment } from '@src/environments/environment';
 
 @Component({
