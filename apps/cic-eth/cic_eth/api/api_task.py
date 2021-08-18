@@ -520,9 +520,9 @@ class Api(ApiBase):
             s_external_get = celery.signature(
                 external_task,
                 [
-                    address,
                     offset,
                     limit,
+                    address,
                     ],
                 queue=external_queue,
                 )

@@ -27,6 +27,12 @@ RUN python setup.py install
 
 ENV PYTHONPATH .
 
+RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
+    pip install --index-url https://pypi.org/simple  \
+	  --extra-index-url $GITLAB_PYTHON_REGISTRY \
+    --extra-index-url $EXTRA_INDEX_URL \
+    cic-eth-aux-erc20-demurrage-token~=0.0.2a6
+
 COPY docker/entrypoints/* ./ 
 RUN chmod 755 *.sh
 

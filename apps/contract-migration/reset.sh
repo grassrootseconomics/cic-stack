@@ -17,7 +17,9 @@ token_redistribution_period: $TOKEN_REDISTRIBUTION_PERIOD
 token_supply_limit: $TOKEN_SUPPLY_LIMIT
 EOF
 
-CIC_CHAIN_SPEC=${CIC_CHAIN_SPEC:-evm:bloxberg:8995}
+CHAIN_SPEC=${CHAIN_SPEC:-$CIC_CHAIN_SPEC}
+RPC_HTTP_PROVIDER=${RPC_HTTP_PROVIDER:-$ETH_PROVIDER}
+
 DEV_ETH_ACCOUNT_RESERVE_MINTER=${DEV_ETH_ACCOUNT_RESERVE_MINTER:-$DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER}
 DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER=${DEV_ETH_ACCOUNT_RESERVE_MINTER:-$DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER}
 DEV_RESERVE_AMOUNT=${DEV_ETH_RESERVE_AMOUNT:-""10000000000000000000000000000000000}
@@ -30,6 +32,7 @@ DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER=`eth-checksum $(cat $DEV_ETH_KEYSTORE_FILE | j
 
 if [ ! -z $DEV_ETH_GAS_PRICE ]; then
 	gas_price_arg="--gas-price $DEV_ETH_GAS_PRICE"
+	fee_price_arg="--fee-price $DEV_ETH_GAS_PRICE"
 	>&2 echo using static gas price $DEV_ETH_GAS_PRICE
 fi
 
@@ -96,11 +99,15 @@ if [[ -n "${ETH_PROVIDER}" ]]; then
 				>&2 echo -e "\033[;93mtoken sink address not set, so redistribution will be BURNED\033[;39m"
 			fi
 		fi
-		DEV_RESERVE_ADDRESS=`erc20-demurrage-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC --name "$TOKEN_NAME" --symbol $TOKEN_SYMBOL -vv -ww`
+		export _CONFINI_DIR=$CONFINI_DIR
+		unset CONFINI_DIR
+		DEV_RESERVE_ADDRESS=`erc20-demurrage-token-deploy $fee_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC --name "$TOKEN_NAME" --symbol $TOKEN_SYMBOL -vv -ww -s` 
+		export CONFINI_DIR=$_CONFINI_DIR
 	else
 		>&2 echo unknown token type $TOKEN_TYPE
 		exit 1
 	fi
+	echo "giftable-token-gift $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -w -a $DEV_RESERVE_ADDRESS $DEV_RESERVE_AMOUNT"
 	giftable-token-gift $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -w -a $DEV_RESERVE_ADDRESS $DEV_RESERVE_AMOUNT
 
 	>&2 echo "deploy account index contract"
@@ -133,13 +140,22 @@ if [[ -n "${ETH_PROVIDER}" ]]; then
 
 	# Sarafu faucet contract
 	>&2 echo "deploy token faucet contract"
-	DEV_FAUCET_ADDRESS=`sarafu-faucet-deploy $gas_price_arg -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w -vv --account-index-address $DEV_ACCOUNT_INDEX_ADDRESS $DEV_RESERVE_ADDRESS`
+	export _CONFINI_DIR=$CONFINI_DIR
+	unset CONFINI_DIR
+	DEV_FAUCET_ADDRESS=`sarafu-faucet-deploy $fee_price_arg -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -w -vv --account-index-address $DEV_ACCOUNT_INDEX_ADDRESS $DEV_RESERVE_ADDRESS -s`
+
+	>&2 echo "set token faucet amount"
+	sarafu-faucet-set $fee_price_arg -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -e $DEV_FAUCET_ADDRESS -vv -s --fee-limit 100000 $DEV_FAUCET_AMOUNT
+
+	export CONFINI_DIR=$_CONFINI_DIR
+
+	>&2 echo "register faucet in registry"
 	eth-contract-registry-set $gas_price_arg -w -y $DEV_ETH_KEYSTORE_FILE -r $CIC_REGISTRY_ADDRESS -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -vv Faucet $DEV_FAUCET_ADDRESS
+
 	>&2 echo "set faucet as token minter"
 	giftable-token-minter $gas_price_arg -w -y $DEV_ETH_KEYSTORE_FILE -a $DEV_RESERVE_ADDRESS -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -vv $DEV_FAUCET_ADDRESS
 
-	>&2 echo "set token faucet amount"
-	sarafu-faucet-set $gas_price_arg -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_FAUCET_ADDRESS -vv $DEV_FAUCET_AMOUNT
+
 
 
 else

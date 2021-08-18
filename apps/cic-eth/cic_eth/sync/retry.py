@@ -3,7 +3,7 @@ import logging
 import datetime
 
 # external imports
-from chainsyncer.driver import HeadSyncer
+from chainsyncer.driver.head import HeadSyncer
 from chainsyncer.backend.memory import MemBackend
 from chainsyncer.error import NoBlockForYou
 from chainlib.eth.block import (
@@ -39,9 +39,9 @@ class DbSessionMemBackend(MemBackend):
 
 class RetrySyncer(HeadSyncer):
 
-    def __init__(self, conn, chain_spec, stalled_grace_seconds, batch_size=50, failed_grace_seconds=None):
+    def __init__(self, conn, chain_spec, chain_interface, stalled_grace_seconds, batch_size=50, failed_grace_seconds=None):
         backend = DbSessionMemBackend(chain_spec, None)
-        super(RetrySyncer, self).__init__(backend)
+        super(RetrySyncer, self).__init__(backend, chain_interface)
         self.chain_spec = chain_spec
         if failed_grace_seconds == None:
             failed_grace_seconds = stalled_grace_seconds

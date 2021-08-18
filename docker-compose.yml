@@ -210,15 +210,20 @@ services:
       args:
         pip_index_url: ${PIP_DEFAULT_INDEX_URL:-https://pypi.org/simple}
         pip_extra_args: $PIP_EXTRA_ARGS
+        EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     # image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:latest
     env_file:
       - .env
     environment:
-      # ETH_PROVIDER should be broken out into host/port but cic-eth expects this
-      # And these two are for wait-for-it (could parse this)
+      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
+      ETH_PROVIDER: ${CIC_HTTP_PROVIDER:-http://eth:8545}
+      RPC_HTTP_PROVIDER: ${CIC_HTTP_PROVIDER:-http://eth:8545}
       DEV_USE_DOCKER_WAIT_SCRIPT: 1
       ETH_PROVIDER_HOST: eth 
       ETH_PROVIDER_PORT: 8545
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
+      CIC_CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_DATA_DIR: ${CIC_DATA_DIR:-/tmp/cic/config}
       DATABASE_NAME: ${DEV_DATABASE_NAME_CIC_ETH:-cic_eth}
       DATABASE_USER: ${DATABASE_USER:-postgres}
@@ -279,9 +284,12 @@ services:
     build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
+      args:
+        EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS # supplied at contract-config after contract provisioning
-      ETH_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
+      ETH_PROVIDER: ${RPC_HTTP_PROVIDER:-http://eth:8545}
+      RPC_HTTP_PROVIDER: ${RPC_HTTP_PROVIDER:-http://eth:8545}
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala} # this is is set at initdb see: postgres/initdb/create_db.sql
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
@@ -290,9 +298,9 @@ services:
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       DATABASE_DEBUG: 1
-      ETH_ABI_DIR: ${ETH_ABI_DIR:-/usr/local/share/cic/solidity/abi}
       CIC_TRUST_ADDRESS: ${DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER:-0xEb3907eCad74a0013c259D5874AE7f22DcBcC95C}
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
+      CIC_CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
       CELERY_BROKER_URL: redis://redis:6379
       CELERY_RESULT_URL: redis://redis:6379
     deploy: 
@@ -312,6 +320,8 @@ services:
     build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
+      args:
+        EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS # supplied at contract-config after contract provisioning
       ETH_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
@@ -324,7 +334,6 @@ services:
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       DATABASE_DEBUG: 1
       DATABASE_POOL_SIZE: 0
-      ETH_ABI_DIR: ${ETH_ABI_DIR:-/usr/local/share/cic/solidity/abi}
       CIC_TRUST_ADDRESS: ${DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER:-0xEb3907eCad74a0013c259D5874AE7f22DcBcC95C}
       CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       CELERY_BROKER_URL: redis://redis:6379
@@ -346,6 +355,8 @@ services:
     build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
+      args:
+        EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
@@ -363,7 +374,7 @@ services:
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
         "/usr/local/bin/uwsgi" \
-        --wsgi-file /usr/src/cic-cache/cic_cache/runnable/daemons/server.py \
+        --wsgi-file /root/cic_cache/runnable/daemons/server.py \
         --http :8000 \
         --pyargv "-vv"
     deploy:
@@ -385,11 +396,13 @@ services:
     build: 
         context: apps/cic-eth
         dockerfile: docker/Dockerfile
+        args:
+          EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
       ETH_GAS_PROVIDER_ADDRESS: $DEV_ETH_ACCOUNT_GAS_PROVIDER
-      ETH_PROVIDER: http://eth:8545
-      ETH_ABI_DIR: ${ETH_ABI_DIR:-/usr/local/share/cic/solidity/abi}
+      ETH_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
+      RPC_HTTP_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
@@ -403,11 +416,12 @@ services:
       REDIS_HOST: redis
       PGPASSWORD: ${DATABASE_PASSWORD:-tralala}
       CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
-      BANCOR_DIR: ${BANCOR_DIR:-/usr/local/share/cic/bancor}
+      CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
       CELERY_DEBUG: ${CELERY_DEBUG:-1}
       SIGNER_SOCKET_PATH: ${SIGNER_SOCKET_PATH:-ipc:///run/crypto-dev-signer/jsonrpc.ipc}
+      SIGNER_PROVIDER: ${SIGNER_SOCKET_PATH:-ipc:///run/crypto-dev-signer/jsonrpc.ipc}
       SIGNER_SECRET: ${SIGNER_SECRET:-deadbeef}
       ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER: ${DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER:-0xACB0BC74E1686D62dE7DC6414C999EA60C09F0eA}
       TASKS_TRACE_QUEUE_STATUS: ${TASKS_TRACE_QUEUE_STATUS:-1}
@@ -431,8 +445,11 @@ services:
     build:
         context: apps/cic-eth
         dockerfile: docker/Dockerfile
+        args:
+          EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
-      ETH_PROVIDER: http://eth:8545
+      RPC_HTTP_PROVIDER: ${RPC_HTTP_PROVIDER:-http://eth:8545}
+      ETH_PROVIDER: ${RPC_HTTP_PROVIDER:-http://eth:8545}
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
@@ -441,7 +458,8 @@ services:
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
+      CIC_CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
         #BANCOR_DIR: $BANCOR_DIR
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
@@ -457,7 +475,8 @@ services:
       - -c
       - |
         if [[ -f /tmp/cic/config/.env ]]; then source /tmp/cic/config/.env; fi 
-        ./start_tracker.sh -vv -c /usr/local/etc/cic-eth
+        #./start_tracker.sh -vv -c /usr/local/etc/cic-eth
+        ./start_tracker.sh -vv
     # command: "/root/start_manager.sh head -vv"
 
 
@@ -466,8 +485,11 @@ services:
     build:
         context: apps/cic-eth
         dockerfile: docker/Dockerfile
+        args:
+          EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
       ETH_PROVIDER: http://eth:8545
+      RPC_HTTP_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
@@ -476,6 +498,7 @@ services:
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
+      CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
         #BANCOR_DIR: $BANCOR_DIR
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
@@ -502,8 +525,11 @@ services:
     build:
         context: apps/cic-eth
         dockerfile: docker/Dockerfile
+        args:
+          EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
       ETH_PROVIDER: http://eth:8545
+      RPC_HTTP_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
@@ -513,6 +539,7 @@ services:
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
       CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
+      CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
         #BANCOR_DIR: $BANCOR_DIR
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
