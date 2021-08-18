@@ -129,13 +129,15 @@ services:
     ports:
       - 5432
     command: [ "-c", "max_connections=200" ]
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
+    configs:
+      - source: create_db.sql
+        target: /docker-entrypoint-initdb.d/1-create_all_db.sql
     deploy:
       placement:
         constraints:
           - node.labels.${STACK_NAME?Variable not set}.app-db-data == true
-    volumes:
-      - ./scripts/initdb/create_db.sql:/docker-entrypoint-initdb.d/1-create_all_db.sql 
-      - postgres-db:/var/lib/postgresql/data
 
   redis:
     image: redis:6.0.9-alpine
