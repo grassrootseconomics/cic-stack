@@ -34,8 +34,6 @@ build-merge-request:
     - TAG=$MR_IMAGE_TAG FRONTEND_ENV=dev sh ./scripts/build-push.sh
   rules:
   - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    changes:
-        - apps/cic-cache/**/*
     when: always
 
 build-staging:
