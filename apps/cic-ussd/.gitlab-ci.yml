@@ -22,8 +22,8 @@ test-mr-cic-ussd:
       key:
         files:
         - test_requirements.txt
-        paths:
-        - /root/.cache/pip
+      paths:
+       - /root/.cache/pip
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/$APP_NAME:$MR_IMAGE_TAG
     script:
         - cd apps/$APP_NAME/
