@@ -2,51 +2,40 @@
     variables:
         APP_NAME: cic-cache
 
-        #build-mr-cic-cache:
-        #    extends:
-        #        - .py_build_merge_request
-        #        - .cic_cache_variables
-        #    rules:
-        #    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-        #      changes:
-        #          - apps/cic-cache/**/*
-        #      when: always
+#build-mr-cic-cache:
+#    extends:
+#        - .py_build_merge_request
+#        - .cic_cache_variables
+#    rules:
+#    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+#      changes:
+#          - apps/cic-cache/**/*
+#      when: always
 
 test-mr-cic-cache:
     stage: test
     tags:
       - integration
     extends:
-        - .cic_cache_variables
+    - .cic_cache_variables
     cache:
-        key:
-            files:
-                - test_requirements.txt
-        paths:
-        - /root/.cache/pip
+      key:
+        files:
+        - test_requirements.txt
+      paths:
+      - /root/.cache/pip
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/$APP_NAME:$MR_IMAGE_TAG
     script:
-        - cd apps/$APP_NAME/
-        - >
-          pip install --extra-index-url https://pip.grassrootseconomics.net:8433
-          --extra-index-url https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple
-          -r test_requirements.txt 
-        - export PYTHONPATH=. && pytest -x --cov=cic_cache --cov-fail-under=90 --cov-report term-missing tests
+      - cd apps/$APP_NAME/
+      - >
+        pip install --extra-index-url https://pip.grassrootseconomics.net:8433
+        --extra-index-url https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple
+        -r test_requirements.txt 
+      - export PYTHONPATH=. && pytest -x --cov=cic_cache --cov-fail-under=90 --cov-report term-missing tests
+    allow_failure: true
     needs: ["build-merge-request"]
     rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
           - apps/$APP_NAME/**/*
       when: always
-
-      #build-push-cic-cache:
-      #    extends:
-      #        - .py_build_push
-      #        - .cic_cache_variables
-      #    rules:
-      #    - if:  $CI_COMMIT_BRANCH == "master"
-      #      changes:
-      #          - apps/cic-cache/**/*
-      #      when: always
-        
-
