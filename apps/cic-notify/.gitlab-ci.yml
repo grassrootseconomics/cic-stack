@@ -1,30 +1,30 @@
 .cic_notify_variables:
     variables:
         APP_NAME: cic-notify
-        DOCKERFILE_PATH: docker/Dockerfile_ci
-        CONTEXT: apps/$APP_NAME
 
-build-mr-cic-notify:
-    extends:
-        - .py_build_merge_request
-        - .cic_notify_variables
-    rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-          - apps/cic-notify/**/*
-      when: always
+        #build-mr-cic-notify:
+        #    extends:
+        #        - .py_build_merge_request
+        #        - .cic_notify_variables
+        #    rules:
+        #    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+        #      changes:
+        #          - apps/cic-notify/**/*
+        #      when: always
 
 test-mr-cic-notify:
     stage: test
+    tags:
+     - integration
     extends:
-        - .cic_notify_variables
+     - .cic_notify_variables
     cache:
-        key:
-            files:
-                - test_requirements.txt
+      key:
+        files:
+        - test_requirements.txt
         paths:
         - /root/.cache/pip
-    image: $MR_IMAGE_TAG
+        image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/$APP_NAME:$MR_IMAGE_TAG
     script:
         - cd apps/$APP_NAME/
         - >
@@ -32,21 +32,10 @@ test-mr-cic-notify:
           --extra-index-url https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple
           -r test_requirements.txt 
         - export PYTHONPATH=. && pytest -x --cov=cic_notify --cov-fail-under=90 --cov-report term-missing tests
-    needs: ["build-mr-cic-notify"]
+    allow_failure: true
+    needs: ["build-merge-request"]
     rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
           - apps/$APP_NAME/**/*
       when: always
-
-build-push-cic-notify:
-    extends:
-        - .py_build_push
-        - .cic_notify_variables
-    rules:
-    - if:  $CI_COMMIT_BRANCH == "master"
-      changes:
-          - apps/cic-notify/**/*
-      when: always
-        
-

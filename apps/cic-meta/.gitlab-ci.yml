@@ -5,39 +5,32 @@
         DOCKERFILE_PATH: docker/Dockerfile_ci
         CONTEXT: apps/$APP_NAME
 
-build-mr-cic-meta:
-    extends:
-        - .py_build_merge_request
-        - .cic_meta_variables
-    rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-          - apps/cic-meta/**/*
-      when: always
+        #build-mr-cic-meta:
+        #    extends:
+        #        - .py_build_merge_request
+        #        - .cic_meta_variables
+        #    rules:
+        #    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+        #      changes:
+        #          - apps/cic-meta/**/*
+        #      when: always
 
 test-mr-cic-meta:
+    stage: test
+    tags:
+      - integration
     extends:
         - .cic_meta_variables
-    stage: test
-    image: $MR_IMAGE_TAG 
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/$APP_NAME:$MR_IMAGE_TAG 
     script:
         - cd /root
         - npm install --dev 
         - npm run test
         - npm run test:coverage
-    needs: ["build-mr-cic-meta"]
+    allow_failure: true
+    needs: ["build-merge-request"]
     rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
-          - apps/cic-meta/**/*
-      when: always
-
-build-push-cic-meta:
-    extends:
-        - .py_build_push
-        - .cic_meta_variables
-    rules:
-    - if:  $CI_COMMIT_BRANCH == "master"
-      changes:
-          - apps/cic-meta/**/*
+          - apps/$APP_NAME/**/*
       when: always
