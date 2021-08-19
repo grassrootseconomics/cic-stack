@@ -6,10 +6,10 @@ redis==3.5.3
 hexathon~=0.0.1a7
 pycryptodome==3.10.1
 liveness~=0.0.1a7
-eth-address-index>=0.1.4a1,<0.2.0
-eth-accounts-index>=0.0.14a1,<0.1.0
-cic-eth-registry>=0.5.8a1,<0.6.0
-erc20-faucet>=0.2.4a2,<0.3.0
+eth-address-index>=0.2.1a1,<0.3.0
+eth-accounts-index>=0.1.1a1,<0.2.0
+cic-eth-registry>=0.6.0a1,<0.7.0
+erc20-faucet>=0.3.1a1,<0.4.0
 erc20-transfer-authorization>=0.3.4a1,<0.4.0
-sarafu-faucet>=0.0.5a2,<0.1.0
+sarafu-faucet>=0.0.6a1,<0.1.0
 moolb~=0.1.1b2
