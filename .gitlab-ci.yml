@@ -1,11 +1,11 @@
-#include:
+include:
 #  - local: 'ci_templates/.cic-template.yml'
 #  - local: 'apps/contract-migration/.gitlab-ci.yml'
 #  - local: 'apps/cic-eth/.gitlab-ci.yml'
 #  - local: 'apps/cic-ussd/.gitlab-ci.yml'
 #  - local: 'apps/cic-notify/.gitlab-ci.yml'
 #  - local: 'apps/cic-meta/.gitlab-ci.yml'
-#  - local: 'apps/cic-cache/.gitlab-ci.yml'
+  - local: 'apps/cic-cache/.gitlab-ci.yml'
 #  - local: 'apps/data-seeding/.gitlab-ci.yml'
 
 image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/docker-with-compose:latest  
@@ -22,6 +22,22 @@ stages:
 variables:
   DOCKER_BUILDKIT: "1"
   COMPOSE_DOCKER_CLI_BUILD: "1" 
+  MR_IMAGE_TAG: $CI_REGISTRY_IMAGE/$APP_NAME:mr-$CI_COMMIT_SHORT_SHA
+
+build-merge-request:
+  tags:
+    - integration
+  variables:
+    CI_DEBUG_TRACE: "true"
+  stage: 
+    build
+  script:
+    - TAG=$MR_IMAGE_TAG FRONTEND_ENV=staging sh ./scripts/build-push.sh
+  rules:
+  - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    changes:
+        - apps/cic-cache/**/*
+    when: always
 
 build-staging:
   tags:
@@ -33,7 +49,7 @@ build-staging:
   script:
     - TAG=stag FRONTEND_ENV=staging sh ./scripts/build-push.sh
   only:
-    - bvander/integration-tests-on-docker
+    - staging 
 
 deploy-staging:
   tags:
@@ -50,27 +66,8 @@ deploy-staging:
     name: staging
     url: https://stag.grassrootseconomics.net
   only:
-    - bvander/integration-tests-on-docker
+    - staging 
 
-
-      #tests:
-      #  stage: test
-      #  script:
-      #    - sh ./scripts/test.sh
-      #  tags:
-      #    - build
-      #    - test
-      #
-      #build-stag:
-      #  stage: build
-      #  script:
-      #    - TAG=stag FRONTEND_ENV=staging sh ./scripts/build-push.sh
-      #  only:
-      #    - master
-      #  tags:
-      #    - build
-      #    - test
-      #    
       #build-prod:
       #  stage: build
       #  script:
@@ -80,24 +77,6 @@ deploy-staging:
       #  tags:
       #    - build
       #    - test
-      #
-      #deploy-stag:
-      #  stage: deploy
-      #  script: 
-      #    - >
-      #      DOMAIN=stag.demo1.com
-      #      TRAEFIK_TAG=stag.demo1.com
-      #      STACK_NAME=stag-demo1-com
-      #      TAG=stag
-      #      sh ./scripts/deploy.sh
-      #  environment:
-      #    name: staging
-      #    url: https://stag.demo1.com
-      #  only:
-      #    - master
-      #  tags:
-      #    - swarm
-      #    - stag
       #
       #deploy-prod:
       #  stage: deploy

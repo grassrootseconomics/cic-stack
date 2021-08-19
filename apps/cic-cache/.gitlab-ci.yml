@@ -1,18 +1,17 @@
 .cic_cache_variables:
     variables:
         APP_NAME: cic-cache
-        DOCKERFILE_PATH: docker/Dockerfile_ci
         CONTEXT: apps/$APP_NAME
 
-build-mr-cic-cache:
-    extends:
-        - .py_build_merge_request
-        - .cic_cache_variables
-    rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-          - apps/cic-cache/**/*
-      when: always
+        #build-mr-cic-cache:
+        #    extends:
+        #        - .py_build_merge_request
+        #        - .cic_cache_variables
+        #    rules:
+        #    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+        #      changes:
+        #          - apps/cic-cache/**/*
+        #      when: always
 
 test-mr-cic-cache:
     stage: test
@@ -32,21 +31,21 @@ test-mr-cic-cache:
           --extra-index-url https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple
           -r test_requirements.txt 
         - export PYTHONPATH=. && pytest -x --cov=cic_cache --cov-fail-under=90 --cov-report term-missing tests
-    needs: ["build-mr-cic-cache"]
+    needs: ["build-merge-request"]
     rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
           - apps/$APP_NAME/**/*
       when: always
 
-build-push-cic-cache:
-    extends:
-        - .py_build_push
-        - .cic_cache_variables
-    rules:
-    - if:  $CI_COMMIT_BRANCH == "master"
-      changes:
-          - apps/cic-cache/**/*
-      when: always
+      #build-push-cic-cache:
+      #    extends:
+      #        - .py_build_push
+      #        - .cic_cache_variables
+      #    rules:
+      #    - if:  $CI_COMMIT_BRANCH == "master"
+      #      changes:
+      #          - apps/cic-cache/**/*
+      #      when: always
         
 
