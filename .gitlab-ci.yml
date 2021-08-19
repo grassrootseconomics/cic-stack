@@ -22,8 +22,9 @@ stages:
 variables:
   DOCKER_BUILDKIT: "1"
   COMPOSE_DOCKER_CLI_BUILD: "1" 
-  MR_IMAGE_TAG: $CI_REGISTRY_IMAGE/$APP_NAME:mr-$CI_COMMIT_SHORT_SHA
+  MR_IMAGE_TAG: mr-$CI_COMMIT_SHORT_SHA
 
+# todo you can probably just build the single image w/o docker-compose
 build-merge-request:
   stage: build
   tags:
