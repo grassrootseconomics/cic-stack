@@ -39,6 +39,20 @@ docker-compose logs backend
 
 If your Docker is not running in `localhost` (the URLs above wouldn't work) check the sections below on **Development with Docker Toolbox** and **Development with a custom IP**.
 
+#### Deploy the stack locally
+
+If you want to run the docker stack locally on swarm 
+
+```
+ docker-compose -f docker-compose.yml -f docker-compose.override.yml  config > docker-stack.yml
+```
+
+```
+docker node update z1ehkrw1mvqlxc2udwt4xpype --label-add cic-net.app-db-data=true
+ docker stack deploy -c docker-stack.yml  cic-net  
+```
+
+
 ## Backend local development, additional details
 
 **fill  me in**
@@ -77,83 +91,14 @@ You should see an output like:
 root@7f2607af31c3:/app#
 ```
 
-that means that you are in a `bash` session inside your container, as a `root` user, under the `/app` directory.
 
-There you can use the script `/start-reload.sh` to run the debug live reloading server. You can run that script from inside the container with:
-
-```console
-$ bash /start-reload.sh
-```
-
-...it will look like:
-
-```console
-root@7f2607af31c3:/app# bash /start-reload.sh
-```
-
-and then hit enter. That runs the live reloading server that auto reloads when it detects code changes.
-
-Nevertheless, if it doesn't detect a change but a syntax error, it will just stop with an error. But as the container is still alive and you are in a Bash session, you can quickly restart it after fixing the error, running the same command ("up arrow" and "Enter").
-
-...this previous detail is what makes it useful to have the container alive doing nothing and then, in a Bash session, make it run the live reload server.
-
-### Backend tests
-
-To test the backend run:
-
-```console
-$ DOMAIN=backend sh ./scripts/test.sh
-```
-
-The file `./scripts/test.sh` has the commands to generate a testing `docker-stack.yml` file, start the stack and test it.
-
-The tests run with Pytest, modify and add tests to `./backend/app/app/tests/`.
-
-If you use GitLab CI the tests will run automatically.
-
-#### Local tests
-
-Start the stack with this command:
-
-```Bash
-DOMAIN=backend sh ./scripts/test-local.sh
-```
-The `./backend/app` directory is mounted as a "host volume" inside the docker container (set in the file `docker-compose.dev.volumes.yml`).
-You can rerun the test on live code:
-
-```Bash
-docker-compose exec backend /app/tests-start.sh
-```
 
 #### Test running stack
 
 If your stack is already up and you just want to run the tests, you can use:
 
 ```bash
-docker-compose exec backend /app/tests-start.sh
+docker-compose exec data-seeding /script/run_ussd_user_imports.sh
 ```
 
-That `/app/tests-start.sh` script just calls `pytest` after making sure that the rest of the stack is running. If you need to pass extra arguments to `pytest`, you can pass them to that command and they will be forwarded.
-
-For example, to stop on first error:
-
-```bash
-docker-compose exec backend bash /app/tests-start.sh -x
-```
-
-#### Test Coverage
-
-Because the test scripts forward arguments to `pytest`, you can enable test coverage HTML report generation by passing `--cov-report=html`.
-
-To run the local tests with coverage HTML reports:
-
-```Bash
-DOMAIN=backend sh ./scripts/test-local.sh --cov-report=html
-```
-
-To run the tests in a running stack with coverage HTML reports:
-
-```bash
-docker-compose exec backend bash /app/tests-start.sh --cov-report=html
-```
 

@@ -13,6 +13,10 @@ networks:
     # Allow setting it to false for testing
     external: ${TRAEFIK_PUBLIC_NETWORK_IS_EXTERNAL-true}
 
+configs:
+  create_db:
+    external: true
+
 services:
   proxy:
     image: traefik:v2.2
@@ -132,7 +136,7 @@ services:
     volumes:
       - postgres-db:/var/lib/postgresql/data
     configs:
-      - source: create_db.sql
+      - source: create_db
         target: /docker-entrypoint-initdb.d/1-create_all_db.sql
     deploy:
       placement:

@@ -65,6 +65,10 @@ services:
     build:
       args:
         FRONTEND_ENV: dev
+      target: build 
+    command: npm run start:dev
+    volumes:
+      - ./apps/cic-staff-client:/app/
     labels:
       - traefik.enable=true
       - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
@@ -81,6 +85,7 @@ services:
       - traefik.http.services.${STACK_NAME?Variable not set}-cache.loadbalancer.server.port=63313
 
   cic-meta-server:
+    image: $REGISTRY:$TAG
     ports:
       - ${HTTP_PORT_CIC_META:-63380}:8000
         #depends_on:

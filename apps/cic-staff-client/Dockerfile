@@ -8,8 +8,10 @@ WORKDIR /app
 COPY package*.json .
 COPY patch-webpack.js .
 
-RUN npm install
 # copying rest of project
+RUN --mount=type=cache,target=/app/.npm \
+    npm set cache /app/.npm && \
+    npm ci
 
 COPY . .
 
