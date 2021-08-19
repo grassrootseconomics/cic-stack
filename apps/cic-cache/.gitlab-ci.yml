@@ -1,7 +1,6 @@
 .cic_cache_variables:
     variables:
         APP_NAME: cic-cache
-        CONTEXT: apps/$APP_NAME
 
         #build-mr-cic-cache:
         #    extends:
@@ -25,7 +24,7 @@ test-mr-cic-cache:
                 - test_requirements.txt
         paths:
         - /root/.cache/pip
-    image: $MR_IMAGE_TAG
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/$APP_NAME:$MR_IMAGE_TAG
     script:
         - cd apps/$APP_NAME/
         - >
