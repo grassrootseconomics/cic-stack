@@ -14,7 +14,7 @@ ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages
 #	--extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL \
 #    -r requirements.txt 
 COPY *requirements.txt ./
-RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
+RUN --mount=type=cache,id=pip,mode=0755,target=/root/.cache/pip \
     pip install --index-url https://pypi.org/simple  \
 	  --extra-index-url $GITLAB_PYTHON_REGISTRY \
     --extra-index-url $EXTRA_INDEX_URL \

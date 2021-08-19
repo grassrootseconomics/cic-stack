@@ -95,10 +95,10 @@ root@7f2607af31c3:/app#
 
 #### Test running stack
 
-If your stack is already up and you just want to run the tests, you can use:
 
 ```bash
-docker-compose exec data-seeding /script/run_ussd_user_imports.sh
+docker-compose exec -T some-container bash /script/start-tests.sh
 ```
+
 
 

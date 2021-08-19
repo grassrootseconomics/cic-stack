@@ -8,7 +8,7 @@ RUN apk add --no-cache postgresql bash
 
 # copy the dependencies
 COPY package.json package-lock.json .
-RUN --mount=type=cache,mode=0755,target=/root/.npm \
+RUN --mount=type=cache,id=npm,mode=0755,target=/root/.npm \
     npm set cache /root/.npm && \
     npm ci
 
