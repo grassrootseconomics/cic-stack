@@ -15,6 +15,8 @@
 
 test-mr-cic-cache:
     stage: test
+    tags:
+      - integration
     extends:
         - .cic_cache_variables
     cache:

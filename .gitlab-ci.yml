@@ -25,14 +25,13 @@ variables:
   MR_IMAGE_TAG: $CI_REGISTRY_IMAGE/$APP_NAME:mr-$CI_COMMIT_SHORT_SHA
 
 build-merge-request:
+  stage: build
   tags:
     - integration
   variables:
     CI_DEBUG_TRACE: "true"
-  stage: 
-    build
   script:
-    - TAG=$MR_IMAGE_TAG FRONTEND_ENV=staging sh ./scripts/build-push.sh
+    - TAG=$MR_IMAGE_TAG FRONTEND_ENV=dev sh ./scripts/build-push.sh
   rules:
   - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     changes:
