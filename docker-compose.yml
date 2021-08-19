@@ -732,3 +732,23 @@ services:
       restart_policy:
         condition: on-failure
     command: "/root/start_cic_user_tasker.sh -q cic-ussd -vv"
+
+  auth-proxy-meta:
+      image: registry.gitlab.com/grassrootseconomics/cic-auth-proxy:latest
+      environment:
+        PROXY_HOST: cic-meta-server
+        PROXY_PORT: "80"
+        PROXY_PATH_PREFIX: "/"
+        HTTP_AUTH_ORIGIN: https://meta-auth.dev.grassrootseconomics.net:443
+        HTTP_AUTH_REALM: GE
+        ACL_CREDENTIALS_ENDPOINT: http://key-server:8081/
+        ACL_PATH: /data/acls/F3FAF668E82EF5124D5187BAEF26F4682343F692
+        GPG_PUBLICKEYS_ENDPOINT: http://key-server:8080/.well-known/publickeys/
+        GPG_SIGNATURE_ENDPOINT: http://key-server:8080/.well-known/signature/
+        GPG_TRUSTED_PUBLICKEY_FINGERPRINT: CCE2E1D2D0E36ADE0405E2D0995BB21816313BD5
+        GPG_HOMEDIR: /usr/local/etc/cic-auth-proxy/.gnupg/
+        GPG_IMPORT_DIR: /usr/local/etc/cic-auth-proxy/import/
+        GPG_PUBLICKEY_FILENAME: publickeys.asc
+        GPG_SIGNATURE_FILENAME: signature.asc
+        GPG_TRUSTED_PUBLICKEY_MATERIAL: /usr/local/etc/cic-auth-proxy/trusted/trustedpublickey.asc
+

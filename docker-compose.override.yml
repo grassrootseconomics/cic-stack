@@ -63,12 +63,15 @@ services:
 
   cicada:
     build:
+      dockerfile: Dockerfile.local
       args:
         FRONTEND_ENV: dev
-      target: build 
+    ports:
+      - 4200:4200
     command: npm run start:dev
+    #command: bash -c "while true; do sleep 1; done"  # Infinite loop to keep container live doing nothing
     volumes:
-      - ./apps/cic-staff-client:/app/
+      - ./apps/cic-staff-client:/app
     labels:
       - traefik.enable=true
       - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}

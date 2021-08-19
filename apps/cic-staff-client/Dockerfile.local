@@ -1,0 +1,25 @@
+# defining version of the base image
+FROM node:alpine
+
+RUN apk add --no-cache bash
+
+# defining work directory
+WORKDIR /app
+
+# copying the json files into the image
+COPY package*.json .
+COPY patch-webpack.js .
+
+# copying rest of project
+RUN --mount=type=cache,id=npm,target=/app/.npm \
+    npm set cache /app/.npm && \
+    npm ci
+
+COPY . .
+
+EXPOSE 4200
+
+ARG FRONTEND_ENV=dev
+# running build script
+
+

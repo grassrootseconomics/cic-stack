@@ -1,0 +1,47 @@
+0 verbose cli [ '/usr/local/bin/node', '/usr/local/bin/npm', 'run', 'start:dev' ]
+1 info using npm@7.20.3
+2 info using node@v16.7.0
+3 timing npm:load:whichnode Completed in 1ms
+4 timing config:load:defaults Completed in 6ms
+5 timing config:load:file:/usr/local/lib/node_modules/npm/npmrc Completed in 2ms
+6 timing config:load:builtin Completed in 2ms
+7 timing config:load:cli Completed in 4ms
+8 timing config:load:env Completed in 0ms
+9 timing config:load:file:/app/.npmrc Completed in 2ms
+10 timing config:load:project Completed in 5ms
+11 timing config:load:file:/root/.npmrc Completed in 4ms
+12 timing config:load:user Completed in 4ms
+13 timing config:load:file:/usr/local/etc/npmrc Completed in 0ms
+14 timing config:load:global Completed in 0ms
+15 timing config:load:validate Completed in 1ms
+16 timing config:load:credentials Completed in 2ms
+17 timing config:load:setEnvs Completed in 1ms
+18 timing config:load Completed in 26ms
+19 timing npm:load:configload Completed in 26ms
+20 timing npm:load:setTitle Completed in 0ms
+21 timing npm:load:setupLog Completed in 1ms
+22 timing npm:load:cleanupLog Completed in 3ms
+23 timing npm:load:configScope Completed in 0ms
+24 timing npm:load:projectScope Completed in 6ms
+25 timing npm:load Completed in 40ms
+26 timing config:load:flatten Completed in 8ms
+27 timing command:run-script Completed in 176849ms
+28 notice New minor version of npm available! 7.20.3 -> 7.21.0
+28 notice Changelog: <https://github.com/npm/cli/releases/tag/v7.21.0>
+28 notice Run `npm install -g npm@7.21.0` to update!
+29 verbose stack Error: command failed
+29 verbose stack     at ChildProcess.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/@npmcli/promise-spawn/index.js:64:27)
+29 verbose stack     at ChildProcess.emit (node:events:394:28)
+29 verbose stack     at maybeClose (node:internal/child_process:1064:16)
+29 verbose stack     at Process.ChildProcess._handle.onexit (node:internal/child_process:301:5)
+30 verbose pkgid cic-staff-client@0.0.0
+31 verbose cwd /app
+32 verbose Linux 5.10.25-linuxkit
+33 verbose argv "/usr/local/bin/node" "/usr/local/bin/npm" "run" "start:dev"
+34 verbose node v16.7.0
+35 verbose npm  v7.20.3
+36 error path /app
+37 error command failed
+38 error signal SIGTERM
+39 error command sh -c ng serve -c dev
+40 verbose exit 1

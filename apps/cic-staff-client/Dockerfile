@@ -1,6 +1,8 @@
 # defining version of the base image
 FROM node:alpine as build
 
+RUN apk add --no-cache bash
+
 # defining work directory
 WORKDIR /app
 
@@ -9,7 +11,7 @@ COPY package*.json .
 COPY patch-webpack.js .
 
 # copying rest of project
-RUN --mount=type=cache,target=/app/.npm \
+RUN --mount=type=cache,id=npm,target=/app/.npm \
     npm set cache /app/.npm && \
     npm ci
 
@@ -21,7 +23,7 @@ RUN npm run build:${FRONTEND_ENV}
 
 ### STAGE 2: Setup ###
 # defining nginx image version
-FROM nginx:alpine
+FROM nginx:alpine as server
 
 ## Remove default nginx website
 RUN rm -rf /usr/share/nginx/html/*
