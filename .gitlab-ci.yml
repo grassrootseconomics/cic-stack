@@ -10,9 +10,6 @@ include:
 
 image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/docker-with-compose:latest  
 
-before_script:
-  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-  - pip install docker-auto-labels
 
 stages:
   - build
@@ -26,6 +23,8 @@ variables:
 
 # todo you can probably just build the single image w/o docker-compose
 build-merge-request:
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   stage: build
   tags:
     - integration
@@ -38,6 +37,8 @@ build-merge-request:
     when: always
 
 build-staging:
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   tags:
     - integration
        #- blocal
@@ -50,6 +51,9 @@ build-staging:
     - staging 
 
 deploy-staging:
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - pip install docker-auto-labels
   tags:
     - integration
   stage: deploy
