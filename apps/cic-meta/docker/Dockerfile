@@ -27,6 +27,9 @@ COPY .config/ /usr/local/etc/cic-meta/
 COPY docker/db.sh ./db.sh
 RUN chmod 755 ./db.sh
 #
+
+EXPOSE 8000
+
 RUN alias tsc=node_modules/typescript/bin/tsc 
 COPY docker/start_server.sh ./start_server.sh
 RUN chmod 755 ./start_server.sh

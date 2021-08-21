@@ -1,25 +1,11 @@
-# defining version of the base image
-FROM node:alpine
+FROM nginx:alpine as server
 
-RUN apk add --no-cache bash
+## Remove default nginx website
+RUN rm -rf /usr/share/nginx/html/*
 
-# defining work directory
-WORKDIR /app
+# copy nginx configuration file
+COPY nginx.conf /etc/nginx/
 
-# copying the json files into the image
-COPY package*.json .
-COPY patch-webpack.js .
+EXPOSE 80
 
-# copying rest of project
-RUN --mount=type=cache,id=npm,target=/app/.npm \
-    npm set cache /app/.npm && \
-    npm ci
-
-COPY . .
-
-EXPOSE 4200
-
-ARG FRONTEND_ENV=dev
-# running build script
-
-
+CMD [ "nginx", "-g", "daemon off;" ]

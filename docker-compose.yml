@@ -751,4 +751,6 @@ services:
         GPG_PUBLICKEY_FILENAME: publickeys.asc
         GPG_SIGNATURE_FILENAME: signature.asc
         GPG_TRUSTED_PUBLICKEY_MATERIAL: /usr/local/etc/cic-auth-proxy/trusted/trustedpublickey.asc
+      volumes:
+        - ./test/testdata/dev:/usr/local/etc/cic-auth-proxy/import/
 

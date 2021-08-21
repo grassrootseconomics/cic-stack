@@ -53,7 +53,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
-      - traefik.http.routers.${STACK_NAME?Variable not set}-bloxberg-http.rule=PathPrefix(`/`)
+      - traefik.http.routers.${STACK_NAME?Variable not set}-bloxberg-http.rule=Host(`bloxberg.${DOMAIN?Variable not set}`)
       - traefik.http.services.${STACK_NAME?Variable not set}-bloxberg.loadbalancer.server.port=8545
 
   redis:
@@ -62,16 +62,21 @@ services:
     command: "--loglevel verbose"
 
   cicada:
-    build:
-      dockerfile: Dockerfile.local
-      args:
-        FRONTEND_ENV: dev
     ports:
-      - 4200:4200
-    command: npm run start:dev
-    #command: bash -c "while true; do sleep 1; done"  # Infinite loop to keep container live doing nothing
+      - 4200:80
+    build:
+      context: ./apps/cic-staff-client
+      dockerfile: Dockerfile.local
+    #build:
+    #  dockerfile: Dockerfile.local
+    #  args:
+    #    FRONTEND_ENV: dev
+    #ports:
+    #  - 4200:4200
+    #command: npm run start:dev
+    ##command: bash -c "while true; do sleep 1; done"  # Infinite loop to keep container live doing nothing
     volumes:
-      - ./apps/cic-staff-client:/app
+      - ./apps/cic-staff-client/dist/cic-staff-client:/usr/share/nginx/html/
     labels:
       - traefik.enable=true
       - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
@@ -84,43 +89,42 @@ services:
     labels:
       - traefik.enable=true
       - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
-      - traefik.http.routers.${STACK_NAME?Variable not set}-cache-http.rule=PathPrefix(`/`)
-      - traefik.http.services.${STACK_NAME?Variable not set}-cache.loadbalancer.server.port=63313
+      - traefik.http.routers.${STACK_NAME?Variable not set}-cache-http.rule=Host(`cache.${DOMAIN?Variable not set}`)
+      - traefik.http.services.${STACK_NAME?Variable not set}-cache.loadbalancer.server.port=8000
 
   cic-meta-server:
     ports:
       - ${HTTP_PORT_CIC_META:-63380}:8000
-        #depends_on:
-        #  - postgres
     labels:
       - traefik.enable=true
       - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
-      - traefik.http.routers.${STACK_NAME?Variable not set}-meta-http.rule=PathPrefix(`/`)
-      - traefik.http.services.${STACK_NAME?Variable not set}-meta.loadbalancer.server.port=63380
+      - traefik.http.routers.${STACK_NAME?Variable not set}-meta-http.rule=Host(`meta.${DOMAIN?Variable not set}`)
+      - traefik.http.services.${STACK_NAME?Variable not set}-meta.loadbalancer.server.port=8000
+      - traefik.http.middlewares.${STACK_NAME?Variable not set}.forwardauth.address=http://auth-proxy-meta/
 
   cic-user-ussd-server:
     ports:
       - ${HTTP_PORT_CIC_USER_USSD_SERVER:-63315}:9000
-        #depends_on:
-        #  - postgres
-        #  - redis
     labels:
       - traefik.enable=true
       - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
-      - traefik.http.routers.${STACK_NAME?Variable not set}-ussd-http.rule=PathPrefix(`/`)
-      - traefik.http.services.${STACK_NAME?Variable not set}-ussd.loadbalancer.server.port=63315
+      - traefik.http.routers.${STACK_NAME?Variable not set}-ussd-http.rule=Host(`ussd.${DOMAIN?Variable not set}`)
+      - traefik.http.services.${STACK_NAME?Variable not set}-ussd.loadbalancer.server.port=9000
 
   cic-user-server:
     ports:
       - ${HTTP_PORT_CIC_USER_SERVER:-63415}:9500
-        #depends_on:
-        #  - postgres
     labels:
       - traefik.enable=true
       - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
-      - traefik.http.routers.${STACK_NAME?Variable not set}-user-http.rule=PathPrefix(`/`)
-      - traefik.http.services.${STACK_NAME?Variable not set}-user.loadbalancer.server.port=63415
+      - traefik.http.routers.${STACK_NAME?Variable not set}-user-http.rule=Host(`user.${DOMAIN?Variable not set}`)
+      - traefik.http.services.${STACK_NAME?Variable not set}-user.loadbalancer.server.port=9500
 
+  auth-proxy-meta:
+    labels:
+      - "traefik.http.middlewares.${STACK_NAME?Variable not set}-meta.forwardauth.address=http://auth-proxy-meta:4181"
+      - "traefik.http.middlewares.${STACK_NAME?Variable not set}-meta.forwardauth.authResponseHeaders=WWW-Authenticate, Token"
+      - "traefik.http.services.traefik-forward-auth.loadbalancer.server.port=4181"
 
 networks:
   traefik-public:

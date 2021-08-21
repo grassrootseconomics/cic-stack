@@ -68,6 +68,11 @@
               "ngswConfigPath": "ngsw-config.json"
             },
             "dev": {
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
@@ -100,7 +105,8 @@
             "staging": {
               "browserTarget": "cic-staff-client:build:staging"
             }
-          }
+          },
+          "defaultConfiguration": "development"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
