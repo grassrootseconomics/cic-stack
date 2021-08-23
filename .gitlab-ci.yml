@@ -16,6 +16,8 @@ stages:
 
 deploy-k8s-dev:
   stage: deploy
+  variables:
+    CI_DEBUG_TRACE: "true"
   tags:
     - dev
     - k8s
