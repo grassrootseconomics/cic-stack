@@ -26,3 +26,18 @@ deploy-k8s-dev:
     - kubectl -n grassroots get po 
   only:
     - bvander/deploy-to-k8s-dev 
+
+deploy:
+  stage: deploy
+  image: dtzar/helm-kubectl
+  variables:
+    CI_DEBUG_TRACE: "true"
+  script:
+    - kubectl config set-cluster k8s --server="${K8S_DEV_SERVER}"
+    - kubectl config set clusters.k8s.certificate-authority-data ${K8S_DEV_CERTIFICATE_AUTHORITY_DATA}
+    - kubectl config set-credentials gitlab --token="${K8S_DEV_USER_TOKEN}"
+    - kubectl config set-context grassroots --cluster=k8s --user=gitlab
+    - kubectl config use-context grassroots  
+      #- sed -i "s/<VERSION>/${CI_COMMIT_SHORT_SHA}/g" deployment.yaml
+      #- kubectl apply -f deployment.yaml
+    - kubectl get po 
