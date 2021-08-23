@@ -1,12 +1,12 @@
-image:
-  name: gcr.io/kaniko-project/executor:debug
-  entrypoint: [""]
 
 variables:
   KANIKO_CACHE_ARGS: "--cache=true --cache-copy-layers=true --cache-ttl=24h"
   MR_IMAGE_TAG: $CI_REGISTRY_IMAGE/mergerequest/$APP_NAME:$CI_COMMIT_SHORT_SHA
 
 .py_build_merge_request:
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
   stage: build
   script:
     - mkdir -p /kaniko/.docker
@@ -16,6 +16,9 @@ variables:
       --cache-repo $CI_REGISTRY_IMAGE --destination $MR_IMAGE_TAG 
 
 .py_build_target_dev:
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
   stage: build
   variables:
     IMAGE_TAG_BASE: $CI_REGISTRY_IMAGE/$APP_NAME:mr-unittest-$CI_COMMIT_SHORT_SHA
@@ -28,6 +31,9 @@ variables:
       --destination $MR_IMAGE_TAG
 
 .py_build_push:
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
   stage: build
   variables:
       IMAGE_TAG_BASE: $CI_REGISTRY_IMAGE/$APP_NAME:$CI_COMMIT_BRANCH-$CI_COMMIT_SHORT_SHA
