@@ -32,9 +32,9 @@ deploy-k8s-dev:
     - kubectl delete hr postgresql && kubectl delete --wait=false pvc -l 'app.kubernetes.io/name=postgresql'
     - kubectl delete sts,pvc -l 'app=bloxberg-validator'
     - kubectl delete hr redis && kubectl delete --wait=false pvc -l 'app=redis'
-    - kubectl apply -f kubernetes/grassroots/eth-node/ -f kubernetes/grassroots/postgresql/ -f kubernetes/grassroots/redis/
+    - kubectl apply -f kubernetes/eth-node/ -f kubernetes/postgresql/ -f kubernetes/redis/
     - echo "run database migrations..."
     - kubectl rollout restart deployments
     - echo "run contract migrations..."
-    - kubectl apply -f kubernetes/grassroots/contract-migration/contract-migration-job.yaml
+    - kubectl apply -f kubernetes/contract-migration/contract-migration-job.yaml
     - kubectl delete job --all 
