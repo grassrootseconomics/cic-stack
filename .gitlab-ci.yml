@@ -11,4 +11,16 @@ include:
 stages:
   - build
   - test
-  - release
+  - deploy 
+
+
+deploy-k8s-dev:
+  stage: deploy
+  tags:
+    - dev
+    - k8s
+  script:
+    - ls 
+    - kubectl -n grassroots get po 
+  only:
+    - bvander/deploy-to-k8s-dev 
