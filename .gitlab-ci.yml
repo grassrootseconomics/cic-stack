@@ -27,4 +27,5 @@ deploy-k8s-dev:
     - kubectl config use-context default  
       #- sed -i "s/<VERSION>/${CI_COMMIT_SHORT_SHA}/g" deployment.yaml
       #- kubectl apply -f deployment.yaml
-    - kubectl get po 
+    - kubectl config view
+    - kubectl -v=4 get po 
