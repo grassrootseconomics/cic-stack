@@ -98,7 +98,8 @@ spec:
               name: contract-migration-output
               key: CIC_TRUST_ADDRESS
       - name: cic-cache-tracker
-        image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-cache:master-402b968b-1626300208 # {"$imagepolicy": "flux-system:cic-cache"}
+        #image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-cache:master-402b968b-1626300208 # {"$imagepolicy": "flux-system:cic-cache"}
+        image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-cache:latest
         # command: ["/usr/local/bin/cic-cache-trackerd", "-vv", "-c", "/usr/local/etc/cic-cache"]
         command: ["./start_tracker.sh", "-c", "/usr/local/etc/cic-cache", "-vv"]
         resources:

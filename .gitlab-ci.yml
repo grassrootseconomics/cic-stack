@@ -37,4 +37,3 @@ deploy-k8s-dev:
     - kubectl rollout restart deployments
     - echo "run contract migrations..."
     - kubectl apply -f kubernetes/contract-migration/contract-migration-job.yaml
-    - kubectl delete job --all 

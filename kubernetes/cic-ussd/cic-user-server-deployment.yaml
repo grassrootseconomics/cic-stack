@@ -29,7 +29,8 @@ spec:
     spec:
       containers:
       - name: cic-user-server
-        image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-ussd:master-fad0a4b5-1628267359 # {"$imagepolicy": "flux-system:cic-ussd"}       
+        #image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-ussd:master-fad0a4b5-1628267359 # {"$imagepolicy": "flux-system:cic-ussd"}       
+        image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-ussd:latest
         command: ["/root/start_cic_user_server.sh", "-vv"]
         resources:
           requests:
