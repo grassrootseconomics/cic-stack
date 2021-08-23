@@ -1,0 +1,127 @@
+# https://kubernetes.io/docs/concepts/workloads/pods/
+apiVersion: v1
+kind: Pod
+metadata:
+  name: data-seeding 
+  namespace: grassroots
+  labels:
+    app: data-seeding 
+    group: cic
+spec:
+  imagePullSecrets: 
+  - name: gitlab-grassroots-registry
+  containers:
+  - name: data-seeding 
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/data-seeding:latest
+    command: ["sleep", "360000"]
+    resources:
+      requests:
+        cpu: 50m
+        memory: 200Mi
+      limits:
+        cpu: 100m
+        memory: 400Mi
+    env:
+      - name: DATABASE_USER
+        valueFrom:
+          configMapKeyRef:
+            name: postgresql-conn-common
+            key: DATABASE_USER
+      - name: DATABASE_HOST
+        valueFrom:
+          configMapKeyRef:
+            name: postgresql-conn-common
+            key: DATABASE_HOST
+      - name: DATABASE_PORT
+        valueFrom:
+          configMapKeyRef:
+            name: postgresql-conn-common
+            key: DATABASE_PORT
+      - name: DATABASE_ENGINE
+        valueFrom:
+          configMapKeyRef:
+            name: postgresql-conn-common
+            key: DATABASE_ENGINE
+      - name: DATABASE_DRIVER
+        valueFrom:
+          configMapKeyRef:
+            name: postgresql-conn-common
+            key: DATABASE_DRIVER
+      - name: DATABASE_PASSWORD
+        valueFrom:
+          configMapKeyRef:
+            name: postgresql-conn-common
+            key: DATABASE_PASSWORD
+      - name: CELERY_BROKER_URL
+        valueFrom:
+          configMapKeyRef:
+            name: redis-conn-common
+            key: CELERY_BROKER_URL
+      - name: CELERY_RESULT_URL
+        valueFrom:
+          configMapKeyRef:
+            name: redis-conn-common
+            key: CELERY_RESULT_URL
+      - name: ETH_PROVIDER
+        value: http://bloxberg-validator.grassroots.svc.cluster.local:8547
+      - name: CIC_REGISTRY_ADDRESS
+        valueFrom:
+          configMapKeyRef:
+            name: contract-migration-output
+            key: CIC_REGISTRY_ADDRESS
+      - name: CIC_TRUST_ADDRESS
+        valueFrom:
+          configMapKeyRef:
+            name: contract-migration-output
+            key: CIC_TRUST_ADDRESS
+      - name: CELERY_BROKER_URL
+        valueFrom:
+          configMapKeyRef:
+            name: redis-conn-common
+            key: CELERY_BROKER_URL
+      - name: CELERY_RESULT_URL
+        valueFrom:
+          configMapKeyRef:
+            name: redis-conn-common
+            key: CELERY_RESULT_URL
+      - name: DATABASE_NAME
+        value: cic_eth
+      - name: META_URL
+        value: http://cic-meta-server:80
+      - name: META_HOST
+        value: cic-meta-server
+      - name: META_PORT
+        value: "80"
+      - name: PGP_PRIVATE_KEY_FILE # Private key here is for enrypting data
+        value: privatekey.asc
+      - name: PGP_PUBLIC_KEY_FILE
+        value: publickeys.asc
+      - name: PGP_PASSPHRASE
+        value: queenmarlena # TODO move to secret
+      - name: REDIS_HOST
+        value: redis-master
+      - name: REDIS_PORT
+        value: "6379"
+      - name: TOKEN_SYMBOL
+        value: "GFT"
+      - name: USER_USSD_HOST
+        value: cic-user-ussd-svc 
+      - name: USER_USSD_PORT
+        value: "80"
+      - name: KEYSTORE_FILE_PATH
+        value: /root/keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c
+      - name: PGP_EXPORTS_DIR
+        value: /tmp/src/keys
+      - name: OUT_DIR
+        value: /root/out
+      - name: NUMBER_OF_USERS
+        value: "10"
+    volumeMounts:
+    - mountPath: /tmp/src/keys
+      readOnly: true
+      name: pgp
+  volumes:
+  - name: pgp
+    configMap:
+      name: pgp-meta-test
+  restartPolicy: Never 

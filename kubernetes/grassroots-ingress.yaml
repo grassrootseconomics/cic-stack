@@ -1,0 +1,129 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grassroots-ingress
+  namespace: grassroots
+  annotations:  
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "3600"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "x-cic-automerge, authorization, content-type"
+spec:
+  tls:
+  - hosts:
+    - meta-auth.dev.grassrootseconomics.net
+    - meta.dev.grassrootseconomics.net
+    - user.dev.grassrootseconomics.net
+    - ussd.dev.grassrootseconomics.net
+    - ussd-auth.dev.grassrootseconomics.net
+    - cache.dev.grassrootseconomics.net
+    - dev.grassrootseconomics.net
+    - cicada.dev.grassrootseconomics.net
+    - bloxberg-rpc.dev.grassrootseconomics.net
+    - bloxberg-ws.dev.grassrootseconomics.net
+    secretName: dev-grassrootseconomics-net-tls
+  rules:
+  - host: cicada.dev.grassrootseconomics.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: cic-staff-client 
+            port: 
+              name: http 
+  - host: dev.grassrootseconomics.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: key-server 
+            port: 
+              name: http 
+  - host: meta.dev.grassrootseconomics.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: cic-meta-server 
+            port:
+              name: http 
+  - host: meta-auth.dev.grassrootseconomics.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: cic-auth-proxy-meta
+            port: 
+              name: http
+  - host: user.dev.grassrootseconomics.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: cic-user-server-svc
+            port: 
+              name: server
+  - host: ussd.dev.grassrootseconomics.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: cic-user-ussd-svc
+            port: 
+              name: server
+  - host: ussd-auth.dev.grassrootseconomics.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: cic-auth-proxy-ussd
+            port: 
+              name: http 
+  - host: cache.dev.grassrootseconomics.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: cic-cache-svc
+            port: 
+              name: server
+  - host: bloxberg-rpc.dev.grassrootseconomics.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bloxberg-validator
+            port: 
+              name: rpc
+  - host: bloxberg-ws.dev.grassrootseconomics.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bloxberg-validator
+            port: 
+              name: websocket

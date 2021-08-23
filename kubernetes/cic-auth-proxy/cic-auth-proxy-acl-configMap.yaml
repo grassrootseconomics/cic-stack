@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cic-auth-proxy-acl-configmap
+  namespace: grassroots
+data:
+    F3FAF668E82EF5124D5187BAEF26F4682343F692: |
+        - "^/user(/.*)?$":
+            read:
+            - user

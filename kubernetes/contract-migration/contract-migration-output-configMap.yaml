@@ -1,0 +1,11 @@
+# https://kubernetes.io/docs/concepts/configuration/configmap/
+# PURPOSE: These values are *manually* populated after execution of the contract migration container
+# The contract migration pod should output these vars among the STDOUT
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: contract-migration-output
+  namespace: grassroots
+data:
+  CIC_REGISTRY_ADDRESS: "0xea6225212005e86a4490018ded4bf37f3e772161"
+  CIC_TRUST_ADDRESS: "0xEb3907eCad74a0013c259D5874AE7f22DcBcC95C"

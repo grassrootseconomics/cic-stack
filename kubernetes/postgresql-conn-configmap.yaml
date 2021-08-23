@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgresql-conn-common 
+  namespace: grassroots
+data:
+  DATABASE_USER: grassroots
+  DATABASE_HOST: postgresql
+  DATABASE_PORT: "5432"
+  DATABASE_ENGINE: postgres
+  DATABASE_DRIVER: psycopg2
+  DATABASE_PASSWORD: tralala

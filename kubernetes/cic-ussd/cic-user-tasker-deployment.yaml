@@ -1,0 +1,124 @@
+# https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cic-user-tasker
+  namespace: grassroots
+  labels:
+    app: cic-user-tasker
+  annotations:
+      keel.sh/policy: "glob:master-*"
+      keel.sh/trigger: poll
+      keel.sh/pollSchedule: "@every 5m"
+spec:
+  selector:
+    matchLabels:
+      app: cic-user-tasker
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: cic-user-tasker
+        group: cic
+        task: queue
+    spec:
+      containers:
+      - name: cic-user-tasker
+        #image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-ussd:master-7a3cb7ab-1627053361 # {"$imagepolicy": "flux-system:cic-ussd"}       
+        image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-ussd:latest
+        imagePullPolicy: Always   
+        command: ["/root/start_cic_user_tasker.sh", "-q", "cic-ussd", "-vv"]
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 500m
+            memory: 250Mi
+        env:
+        - name: APP_PASSWORD_PEPPER
+          valueFrom:
+            secretKeyRef:
+              name: cic-ussd-secret
+              key: app_password_pepper
+        - name: DATABASE_USER
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_USER
+        - name: DATABASE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_HOST
+        - name: DATABASE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_PORT
+        - name: DATABASE_ENGINE
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_ENGINE
+        - name: DATABASE_DRIVER
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_DRIVER
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_PASSWORD
+        - name: DATABASE_NAME
+          value: cic_ussd
+        - name: DATABASE_POOL_SIZE
+          value: "0"
+        - name: CELERY_BROKER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: redis-conn-common
+              key: CELERY_BROKER_URL
+        - name: CELERY_RESULT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: redis-conn-common
+              key: CELERY_RESULT_URL
+        - name: REDIS_HOST
+          value: redis-master
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_DATABASE
+          value: "0"
+        - name: CIC_META_URL
+          value: http://cic-meta-server:80
+        - name: PGP_KEYS_PATH
+          value: /tmp/src/keys/
+        - name: PGP_EXPORTS_DIR
+          value: /tmp/src/keys/
+        - name: PGP_PRIVATE_KEYS
+          value: privatekey.asc
+        - name: PGP_PASSPHRASE
+          value: queenmarlena # TODO move to secret
+        - name: CIC_META_URL
+          value: http://cic-meta-server:80
+        - name: APP_PASSWORD_PEPPER
+          value: "QYbzKff6NhiQzY3ygl2BkiKOpER8RE/Upqs/5aZWW+I="
+        volumeMounts:
+        - mountPath: /tmp/src/keys
+          name: pgp
+          readOnly: true
+      volumes:
+      #- name: pgp
+      #  secret:
+      #    secretName: pgp
+      - name: pgp
+        configMap:
+          name: pgp-meta-test
+      restartPolicy: Always

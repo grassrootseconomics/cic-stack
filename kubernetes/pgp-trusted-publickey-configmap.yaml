@@ -1,0 +1,50 @@
+apiVersion: v1
+data:
+  trustedpublickey.asc: |
+    -----BEGIN PGP PUBLIC KEY BLOCK-----
+
+    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
+    eqZTM7wRlwM=
+    =irpP
+    -----END PGP PUBLIC KEY BLOCK-----
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: pgp-trusted-publickey
+  namespace: grassroots

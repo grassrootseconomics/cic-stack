@@ -1,0 +1,120 @@
+apiVersion: image.toolkit.fluxcd.io/v1alpha1
+kind: ImagePolicy
+metadata:
+  name: cic-eth 
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: cic-eth
+  filterTags:
+    pattern: '^master-[a-f0-9]+-(?P<ts>[0-9]+)'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1alpha1
+kind: ImagePolicy
+metadata:
+  name: cic-ussd 
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: cic-ussd
+  filterTags:
+    pattern: '^master-[a-f0-9]+-(?P<ts>[0-9]+)'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1alpha1
+kind: ImagePolicy
+metadata:
+  name: cic-cache 
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: cic-cache
+  filterTags:
+    pattern: '^master-[a-f0-9]+-(?P<ts>[0-9]+)'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1alpha1
+kind: ImagePolicy
+metadata:
+  name: cic-meta 
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: cic-meta
+  filterTags:
+    pattern: '^master-[a-f0-9]+-(?P<ts>[0-9]+)'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1alpha1
+kind: ImagePolicy
+metadata:
+  name: cic-staff-client 
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: cic-staff-client
+  filterTags:
+    pattern: '^master-[a-f0-9]+-(?P<ts>[0-9]+)'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1alpha1
+kind: ImagePolicy
+metadata:
+  name: cic-contract-migration 
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: cic-contract-migration
+  filterTags:
+    pattern: '^master-[a-f0-9]+-(?P<ts>[0-9]+)'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1alpha1
+kind: ImagePolicy
+metadata:
+  name: cic-notify 
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: cic-notify
+  filterTags:
+    pattern: '^master-[a-f0-9]+-(?P<ts>[0-9]+)'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1alpha1
+kind: ImagePolicy
+metadata:
+  name: cic-auth-proxy 
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: cic-auth-proxy
+  filterTags:
+    pattern: '^master-[a-f0-9]+-(?P<ts>[0-9]+)'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+

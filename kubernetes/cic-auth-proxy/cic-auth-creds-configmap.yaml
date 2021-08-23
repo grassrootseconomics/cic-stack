@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cic-auth-proxy-credentials-configmap
+  namespace: grassroots
+data:
+    credentials.yaml: | 
+        level: 9
+        items:
+        user: 1

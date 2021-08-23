@@ -1,0 +1,248 @@
+# https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+# The guardian is composed of: 
+# cic-manager-head
+# cic-dispatch
+# cic-retrier
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cic-eth-tracker
+  namespace: grassroots
+  labels:
+    app: cic-eth-tracker
+  annotations:
+      keel.sh/policy: "glob:master-*"
+      keel.sh/trigger: poll
+      keel.sh/pollSchedule: "@every 5m"
+spec:
+  selector:
+    matchLabels:
+      app: cic-eth-tracker
+  replicas: 1 # these are all strictly 1 
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: cic-eth-tracker
+        group: cic
+    spec:
+      containers:
+      - name: cic-eth-tracker
+        #image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth:master-f1917300-1626888924 # {"$imagepolicy": "flux-system:cic-eth"}       
+        image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth:latest
+        imagePullPolicy: Always   
+        command: ["./start_tracker.sh", "-v", "-c", "/usr/local/etc/cic-eth"]
+        resources:
+          requests:
+            cpu: 50m
+            memory: 100Mi
+          limits:
+            cpu: 500m
+            memory: 250Mi
+        env:
+        - name: TASKS_TRANSFER_CALLBACKS
+          value: "cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback"
+        - name: CIC_REGISTRY_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: contract-migration-output
+              key: CIC_REGISTRY_ADDRESS
+        - name: CIC_TRUST_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: contract-migration-output
+              key: CIC_TRUST_ADDRESS
+        - name: DATABASE_USER
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_USER
+        - name: DATABASE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_HOST
+        - name: DATABASE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_PORT
+        - name: DATABASE_ENGINE
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_ENGINE
+        - name: DATABASE_DRIVER
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_DRIVER
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_PASSWORD
+        - name: CELERY_BROKER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: redis-conn-common
+              key: CELERY_BROKER_URL
+        - name: CELERY_RESULT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: redis-conn-common
+              key: CELERY_RESULT_URL
+        - name: ETH_PROVIDER
+          value: http://bloxberg-validator.grassroots.svc.cluster.local:8547
+        - name: DATABASE_NAME
+          value: cic_eth
+        - name: DATABASE_DEBUG
+          value: "0"
+        - name: ETH_ABI_DIR
+          value: /usr/local/share/cic/solidity/abi
+        - name: CIC_CHAIN_SPEC
+          value: "evm:bloxberg:8996"
+        - name: REDIS_HOSTNAME
+          value: redis-master
+      - name: cic-eth-dispatcher
+        #image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth:master-f1917300-1626888924 # {"$imagepolicy": "flux-system:cic-eth"}       
+        image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth:latest      
+        imagePullPolicy: Always   
+        command: ["./start_dispatcher.sh", "-q", "cic-eth", "-v"]
+        resources:
+          requests:
+            cpu: 50m
+            memory: 100Mi
+          limits:
+            cpu: 500m
+            memory: 250Mi
+        env:
+        - name: CIC_REGISTRY_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: contract-migration-output
+              key: CIC_REGISTRY_ADDRESS
+        - name: CIC_TRUST_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: contract-migration-output
+              key: CIC_TRUST_ADDRESS
+        - name: TASKS_TRANSFER_CALLBACKS
+          value: "cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback"
+        - name: CIC_REGISTRY_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: contract-migration-output
+              key: CIC_REGISTRY_ADDRESS
+        - name: CIC_TRUST_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: contract-migration-output
+              key: CIC_TRUST_ADDRESS
+        - name: DATABASE_USER
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_USER
+        - name: DATABASE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_HOST
+        - name: DATABASE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_PORT
+        - name: DATABASE_ENGINE
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_ENGINE
+        - name: DATABASE_DRIVER
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_DRIVER
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_PASSWORD
+        - name: CELERY_BROKER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: redis-conn-common
+              key: CELERY_BROKER_URL
+        - name: CELERY_RESULT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: redis-conn-common
+              key: CELERY_RESULT_URL
+        - name: ETH_PROVIDER
+          value: http://bloxberg-validator.grassroots.svc.cluster.local:8547
+        - name: DATABASE_NAME
+          value: cic_eth
+        - name: DATABASE_DEBUG
+          value: "0"
+        - name: CIC_CHAIN_SPEC
+          value: "evm:bloxberg:8996"
+        - name: REDIS_HOSTNAME
+          value: redis-master
+          # - name:  cic-eth-retrier
+          #   image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth:latest
+          #   command: [ "./start_retry.sh", "-v" ]
+          #   resources:
+          #     requests:
+          #       cpu: 50m
+          #       memory: 100Mi
+          #     limits:
+          #       cpu: 500m
+          #       memory: 250Mi
+          #   env:
+          #   - name: CIC_REGISTRY_ADDRESS
+          #     valueFrom:
+          #       configMapKeyRef:
+          #         name: contract-migration-output
+          #         key: CIC_REGISTRY_ADDRESS
+          #   - name: CIC_TRUST_ADDRESS
+          #     valueFrom: 
+          #       configMapKeyRef:
+          #         name: contract-migration-output
+          #         key: CIC_TRUST_ADDRESS
+          #   - name: CIC_TX_RETRY_DELAY # TODO what is this value?
+          #     value: "15"
+          #   - name: TASKS_TRANSFER_CALLBACKS # TODO what is this value?
+          #     value: "taskcall:cic_eth.callbacks.noop.noop"
+          #   - name: ETH_PROVIDER 
+          #     value: http://bloxberg-validator.grassroots.svc.cluster.local:8547
+          #   - name: DATABASE_USER
+          #     value: grassroots
+          #   - name: DATABASE_HOST
+          #     value: postgres-helm-postgresqlsql 
+          #   - name: DATABASE_PASSWORD
+          #     value: tralala
+          #   - name: DATABASE_NAME
+          #     value: cic_eth
+          #   - name: DATABASE_PORT
+          #     value: "5432"
+          #   - name: DATABASE_ENGINE
+          #     value: postgres
+          #   - name: DATABASE_DRIVER
+          #     value: psycopg2
+          #   - name: DATABASE_DEBUG
+          #     value: "1"
+        # - name: REDIS_HOSTNAME
+        #   value: grassroots-redis-master
+      #   - name: CIC_CHAIN_SPEC
+      #     value: "evm:bloxberg:8996"
+      #   - name: CELERY_BROKER_URL
+      #     value: redis://grassroots-redis-master
+      #   - name: CELERY_RESULT_URL
+      #     value: redis://grassroots-redis-master
+      restartPolicy: Always

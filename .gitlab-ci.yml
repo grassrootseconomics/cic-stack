@@ -20,12 +20,21 @@ deploy-k8s-dev:
   variables:
     CI_DEBUG_TRACE: "true"
   script:
-    - kubectl config set-cluster k8s --server="${K8S_DEV_SERVER}"
+    - kubectl config set-cluster k8s --server="${K8S_DEV_SERVER?dev server missing}"
     - kubectl config set clusters.k8s.certificate-authority-data ${K8S_DEV_CERTIFICATE_AUTHORITY_DATA}
     - kubectl config set-credentials gitlab --token="${K8S_DEV_USER_TOKEN}"
-    - kubectl config set-context default --cluster=k8s --user=gitlab
-    - kubectl config use-context default  
+    - kubectl config set-context grassroots --cluster=k8s --user=gitlab --namespace grassroots
+    - kubectl config use-context grassroots  
       #- sed -i "s/<VERSION>/${CI_COMMIT_SHORT_SHA}/g" deployment.yaml
       #- kubectl apply -f deployment.yaml
-    - kubectl config view
-    - kubectl -v=4 get po 
+    - echo "Wiping state..."
+    - kubectl delete jobs.batch --all 
+    - kubectl delete hr postgresql && kubectl delete --wait=false pvc -l 'app.kubernetes.io/name=postgresql'
+    - kubectl delete sts,pvc -l 'app=bloxberg-validator'
+    - kubectl delete hr redis && kubectl delete --wait=false pvc -l 'app=redis'
+    - kubectl apply -f kubernetes/grassroots/eth-node/ -f kubernetes/grassroots/postgresql/ -f kubernetes/grassroots/redis/
+    - echo "run database migrations..."
+    - kubectl rollout restart deployments
+    - echo "run contract migrations..."
+    - kubectl apply -f kubernetes/grassroots/contract-migration/contract-migration-job.yaml
+    - kubectl delete job --all 

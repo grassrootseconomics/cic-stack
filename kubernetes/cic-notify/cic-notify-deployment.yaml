@@ -1,0 +1,100 @@
+# https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cic-notify-tasker
+  namespace: grassroots
+  labels:
+    app: cic-notify-tasker
+  annotations:
+      keel.sh/policy: "glob:master-*"
+      keel.sh/trigger: poll
+      keel.sh/pollSchedule: "@every 5m"
+spec:
+  selector:
+    matchLabels:
+      app: cic-notify-tasker
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cic-notify-tasker
+        group: cic
+    spec:
+      containers:
+      - name: cic-notify-tasker
+        #image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-notify:master-7a3cb7ab-1627053362 # {"$imagepolicy": "flux-system:cic-notify"}
+        image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-notify:latest
+        imagePullPolicy: Always   
+        command: ["./start_tasker.sh", "-q", "cic-notify", "-vv"]
+        resources:
+          requests:
+            cpu: 25m
+            memory: 100Mi
+          limits:
+            cpu: 50m
+            memory: 200Mi
+        env:
+        - name: DATABASE_USER
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_USER
+        - name: DATABASE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_HOST
+        - name: DATABASE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_PORT
+        - name: DATABASE_ENGINE
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_ENGINE
+        - name: DATABASE_DRIVER
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_DRIVER
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_PASSWORD
+        - name: DATABASE_POOL_SIZE
+          value: "0"
+        - name: CELERY_BROKER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: redis-conn-common
+              key: CELERY_BROKER_URL
+        - name: CELERY_RESULT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: redis-conn-common
+              key: CELERY_RESULT_URL
+        - name: DATABASE_NAME
+          value: cic_notify
+        - name: AFRICASTALKING_API_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: cic-notify-africastalking-sandbox-secret
+              key: api_username
+        - name: AFRICASTALKING_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: cic-notify-africastalking-sandbox-secret
+              key: api_key
+        - name: AFRICASTALKING_API_SENDER_ID
+          valueFrom:
+            secretKeyRef:
+              name: cic-notify-africastalking-sandbox-secret
+              key: api_sender_id
+        ports:
+        - containerPort: 80 # What is this value?
+          name: cic-eth-manager
+      restartPolicy: Always

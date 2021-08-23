@@ -1,0 +1,55 @@
+# https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cic-staff-client
+  namespace: grassroots
+  labels:
+    app: cic-staff-client
+  annotations:
+      keel.sh/policy: "glob:master-*"
+      keel.sh/trigger: poll
+      keel.sh/pollSchedule: "@every 5m"
+spec:
+  selector:
+    matchLabels:
+      app: cic-staff-client
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cic-staff-client
+        group: cic
+    spec:
+      containers:
+      - name: cicada
+        #image: registry.gitlab.com/grassrootseconomics/cic-staff-client:master-858e1e65-1627284988 # {"$imagepolicy": "flux-system:cic-staff-client"} 
+        image: registry.gitlab.com/grassrootseconomics/cic-staff-client:latest
+        imagePullPolicy: Always   
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        ports:
+        - containerPort: 80
+          name: http
+      restartPolicy: Always
+---
+# https://kubernetes.io/docs/concepts/services-networking/service/
+apiVersion: v1
+kind: Service
+metadata:
+  name: cic-staff-client
+  namespace: grassroots
+spec:
+  selector:
+    app: cic-staff-client
+  type: ClusterIP
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 80

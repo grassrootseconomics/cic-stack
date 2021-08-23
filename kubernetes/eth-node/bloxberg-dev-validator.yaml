@@ -1,0 +1,83 @@
+# See https://github.com/openethereum/openethereum/issues/7288#issuecomment-393500569
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: bloxberg-validator
+  namespace: grassroots
+  labels:
+    app: bloxberg-validator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bloxberg-validator
+  serviceName: bloxberg-validator
+  template:
+    metadata:
+      labels:
+        app: bloxberg-validator
+        name: bloxberg-validator
+    spec:
+      terminationGracePeriodSeconds: 20
+      initContainers:
+      - name: data-permission-fix
+        image: busybox
+        command: ["/bin/sh", "-c"]
+        args: [ "cp -r /keys /keys-cp ; /bin/chown -R 1000:1000 /data /keys-cp" ]
+        securityContext:
+          runAsUser: 0
+        volumeMounts:
+        - name: bloxberg-keys
+          mountPath: /keys/Bloxberg
+        - name: bloxberg-keys-cp
+          mountPath: /keys-cp
+        - name: pv
+          mountPath: /data
+      containers:
+        - image: parity/parity:latest
+          name: parity
+          imagePullPolicy: IfNotPresent
+          args: ["--config=/config/config.toml",
+                "--keys-path=/keys-cp/keys", 
+                "--password=/secret/validator.pwd"]
+          ports:
+            - containerPort: 8547
+            - containerPort: 8548
+            - containerPort: 30303
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "120Mi"
+          volumeMounts:
+            - name: bloxberg-keys-cp
+              mountPath: /keys-cp/
+            - name: bloxberg-keys
+              mountPath: /keys/Bloxberg
+            - name: bloxberg-validator-config
+              mountPath: /config
+              readOnly: true
+            - name: bloxberg-validator-secret
+              mountPath: /secret
+              readOnly: true
+            - name: pv
+              mountPath: /data
+      volumes:
+        - name: bloxberg-keys-cp
+          emptyDir: {}
+        - name: bloxberg-validator-config
+          configMap:
+            name: bloxberg-validator-config
+            items:
+
+        - name: bloxberg-validator-secret
+          secret:
+            secretName: bloxberg-validator-secret
+        - name: bloxberg-keys
+          secret:
+            secretName: bloxberg-keys
+            defaultMode: 0755
+        - name: pv
+          persistentVolumeClaim:
+            claimName: bloxberg-validator
+---

@@ -1,0 +1,221 @@
+# https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cic-eth-tasker
+  namespace: grassroots
+  labels:
+    app: cic-eth-tasker
+  annotations:
+      keel.sh/policy: "glob:master-*"
+      keel.sh/trigger: poll
+      keel.sh/pollSchedule: "@every 5m"
+spec:
+  selector:
+    matchLabels:
+      app: cic-eth-tasker
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: cic-eth-tasker
+        group: cic
+        tier: queue
+    spec:
+      containers:
+      - name: cic-eth-tasker
+        #image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth:master-f1917300-1626888924 # {"$imagepolicy": "flux-system:cic-eth"}       
+        image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth:latest
+        imagePullPolicy: Always   
+        # command: ["./start_tasker.sh", "-q", "cic-eth", "-vv"]
+        command: ["/usr/local/bin/cic-eth-taskerd"]
+        resources:
+          requests:
+            cpu: 50m
+            memory: 100Mi
+          limits:
+            cpu: 500m
+            memory: 250Mi
+        env:
+        - name: DATABASE_USER
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_USER
+        - name: DATABASE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_HOST
+        - name: DATABASE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_PORT
+        - name: DATABASE_ENGINE
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_ENGINE
+        - name: DATABASE_DRIVER
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_DRIVER
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_PASSWORD
+        - name: CELERY_BROKER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: redis-conn-common
+              key: CELERY_BROKER_URL
+        - name: CELERY_RESULT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: redis-conn-common
+              key: CELERY_RESULT_URL
+        - name: CIC_REGISTRY_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: contract-migration-output
+              key: CIC_REGISTRY_ADDRESS
+        - name: CIC_TRUST_ADDRESS # - name: ETH_GAS_PROVIDER_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: contract-migration-output
+              key: CIC_TRUST_ADDRESS
+        - name: REDIS_HOST
+          value: redis-master
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_DB
+          value: "0"
+        - name: ETH_PROVIDER
+          value: http://bloxberg-validator.grassroots.svc.cluster.local:8547
+        - name: ETH_ABI_DIR
+          value: /usr/local/share/cic/solidity/abi
+        - name: DATABASE_NAME
+          value: cic_eth
+        - name: DATABASE_POOL_SIZE
+          value: "0"
+        - name: CIC_CHAIN_SPEC
+          value: "evm:bloxberg:8996"
+        - name: BANCOR_DIR
+          value: /usr/local/share/cic/bancor
+        - name: SIGNER_SOCKET_PATH
+          value: ipc:///run/crypto-dev-signer/jsonrpc.ipc
+        - name: SIGNER_SECRET
+          value: deadbeef
+        - name: ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER
+          value: "0xACB0BC74E1686D62dE7DC6414C999EA60C09F0eA"
+        - name: TASKS_TRACE_QUEUE_STATUS
+          value: "1"
+        - name: "DATABASE_DEBUG"
+          value: "false"
+        volumeMounts:
+        - name: socket-path
+          mountPath: /run/crypto-dev-signer/
+      - name: cic-eth-signer
+        #image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth:master-f1917300-1626888924 # {"$imagepolicy": "flux-system:cic-eth"}       
+        image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth:latest
+        imagePullPolicy: Always   
+        # command: ["./start_tasker.sh", "-q", "cic-eth", "-vv"]
+        command: ["python", "/usr/local/bin/crypto-dev-daemon", "-c", "/usr/local/etc/crypto-dev-signer",
+          "-vv"]
+        resources:
+          requests:
+            cpu: 50m
+            memory: 100Mi
+          limits:
+            cpu: 500m
+            memory: 250Mi
+        env:
+        - name: DATABASE_USER
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_USER
+        - name: DATABASE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_HOST
+        - name: DATABASE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_PORT
+        - name: DATABASE_ENGINE
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_ENGINE
+        - name: DATABASE_DRIVER
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_DRIVER
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_PASSWORD
+        - name: CELERY_BROKER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: redis-conn-common
+              key: CELERY_BROKER_URL
+        - name: CELERY_RESULT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: redis-conn-common
+              key: CELERY_RESULT_URL
+        - name: CIC_REGISTRY_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: contract-migration-output
+              key: CIC_REGISTRY_ADDRESS
+        - name: CIC_TRUST_ADDRESS # - name: ETH_GAS_PROVIDER_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: contract-migration-output
+              key: CIC_TRUST_ADDRESS
+        - name: ETH_PROVIDER
+          value: http://bloxberg-validator.grassroots.svc.cluster.local:8547
+        - name: ETH_ABI_DIR
+          value: /usr/local/share/cic/solidity/abi
+        - name: DATABASE_NAME
+          value: cic_eth
+        - name: DATABASE_POOL_SIZE
+          value: "0"
+        - name: CIC_CHAIN_SPEC
+          value: "evm:bloxberg:8996"
+        - name: BANCOR_DIR
+          value: /usr/local/share/cic/bancor
+        - name: SIGNER_SOCKET_PATH
+          value: ipc:///run/crypto-dev-signer/jsonrpc.ipc
+        - name: SIGNER_SECRET
+          value: deadbeef
+        - name: ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER
+          value: "0xACB0BC74E1686D62dE7DC6414C999EA60C09F0eA"
+        - name: TASKS_TRACE_QUEUE_STATUS
+          value: "1"
+        - name: "DATABASE_DEBUG"
+          value: "false"
+        - name: "CIC_DEFAULT_TOKEN_SYMBOL"
+          value: GFT
+        volumeMounts:
+        - name: socket-path
+          mountPath: /run/crypto-dev-signer/
+      volumes:
+      - name: socket-path
+        emptyDir: {}
+      restartPolicy: Always

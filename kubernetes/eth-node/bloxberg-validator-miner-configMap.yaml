@@ -1,0 +1,250 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bloxberg-validator-config
+  namespace: grassroots
+data:
+  config.toml: |
+    [parity]
+    base_path = "/data"
+    chain = "/config/bloxberg.json"
+
+    [network]
+    port = 30303
+    # reserved_peers = "/config/bootnodes.txt"
+    nat = "none"
+    discovery = false
+
+    [rpc]
+    port = 8547
+    apis = ["all"]
+    interface = "all"
+    cors = ["*"]
+
+    [websockets]
+    disable = false
+    port = 8548
+    apis = ["all"]
+    interface = "all"
+    origins = ["*"]
+    
+    [mining]
+    #CHANGE ENGINE SIGNER TO VALIDATOR ADDRESS
+    engine_signer = "0x494cc42e63f076ff7bc81043ff310255a527b377"
+    reseal_on_txs = "none"
+    force_sealing = true
+    min_gas_price = 1000000
+    gas_floor_target = "10000000"
+
+    [footprint]
+    tracing = "off"
+
+    [misc]
+    # Logging pattern (`<module>=<level>`, e.g. `own_tx=trace`).
+    logging = "miner=trace,own_tx=trace"
+
+    #bootnodes.txt: |
+    #MPDL Bootnode and Authority
+    # enode://a7a53baf91b612b25b84993c964beb987879bfe7430cf6acb55bd721b9c0d96ceb1849049b1dcc0aa6e86fa1e2234280581b16c1265d56644fb09085e6906034@141.5.98.231:30304
+    # enode://a7a53baf91b612b25b84993c964beb987879bfe7430cf6acb55bd721b9c0d96ceb1849049b1dcc0aa6e86fa1e2234280581b16c1265d56644fb09085e6906034@130.183.206.234:30304
+    # enode://e6b181c16d20194029c220ce886fdc7a745cb37ee655c3b41ea744ec89143db6731a1c01ff3c40b39f969079090ad34e0e3319e47b0d22a8d510ff1f7b5a9ac7@141.5.98.231:30303
+    # enode://e6b181c16d20194029c220ce886fdc7a745cb37ee655c3b41ea744ec89143db6731a1c01ff3c40b39f969079090ad34e0e3319e47b0d22a8d510ff1f7b5a9ac7@130.183.206.234:30303
+    # #GeorgiaTech
+    # enode://4d9e6925ef3a92315283a655e856aa29dd516172c4f38d2a8fcd58c233a2cd80c57b507fed3bf351b1ac0611e8c7fefd6fb1c49de2d0d15eb1816d43629ac4ba@3.14.148.213:30303
+    # #CMU
+    # enode://ce0154eb13c1c038017151dd1ff4d736178ffedc33f5e11fe694c247eb09279886d253c3c775486eb709a65057901e2788098f991c58e6ad26ff957a8f45253e@128.2.25.89:30303
+    # #UCL
+    # enode://e41a38d659f13d47f3d88c5178e0cfe97487d3568000b85ae3a4abbcc35404d2628cee8a7e9071b63802542bafd886447ecf1d02fc663be0534779094a3e4fd1@128.16.12.165:30303
+    # #Sarajevo
+    # enode://6959137e1c66384e82ce6d9ba7e09bb0e56817f4834416448b98f646a335168c2967760a1daa5e3ec5ac2a3401be1cd05927568cdebf49c25d4770f5bb8fbfd7@195.222.43.21:30303
+    # #Zurich
+    # enode://6173beaabd1a82d41e3615da2a755e99f3bd53e04737e2ae2f02a004c42445d8dfd1d87aadfafabc4c45a1df2a80f359ab628c93522d1dac70690a9689912bbc@129.132.178.74:30303
+    # #Internet Security
+    # enode://bc50cf41d29f346f43f84ee7d03b21cd2d4176cd759cd0d26ce04c16448d4c8611c4eab4c5543e29075c758c0afc2fd6743fa38f48dc0ed1f016efbb5c5a7654@194.94.127.78:30303
+  
+  bloxberg.json: |
+    {
+      "name": "Bloxberg",
+      "engine": {
+        "authorityRound": {
+          "params": {
+            "maximumUncleCountTransition": 5006743,
+            "maximumUncleCount": 0,
+            "stepDuration": "5",
+            "validators": {
+              "list": ["0x494cc42e63f076ff7bc81043ff310255a527b377"]
+            }
+          }
+        }
+      },
+      "params": {
+        "gasLimitBoundDivisor": "0x400",
+        "maximumExtraDataSize": "0x20",
+        "minGasLimit": "0x7A1200",
+        "networkID": "0x2324",
+
+        "eip140Transition": "0x0",
+        "eip211Transition": "0x0",
+        "eip214Transition": "0x0",
+        "eip658Transition": "0x0",
+
+        "eip145Transition": 5006743,
+        "eip1014Transition": 5006743,
+        "eip1052Transition": 5006743,
+
+        "eip1283Transition": 5006743,
+        "eip1344Transition": 5006743,
+        "eip1706Transition": 5006743,
+        "eip1884Transition": 5006743,
+        "eip2028Transition": 5006743
+      },
+      "genesis": {
+        "seal": {
+          "authorityRound": {
+            "step": "0x0",
+            "signature": "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          }
+        },
+        "difficulty": "0x20000",
+        "gasLimit": "0x7A1200"
+      },
+      "accounts": {
+        "0x0000000000000000000000000000000000000001": {
+          "balance": "1",
+          "builtin": {
+            "name": "ecrecover",
+            "pricing": {
+              "linear": {
+                "base": 3000,
+                "word": 0
+              }
+            }
+          }
+        },
+        "0x0000000000000000000000000000000000000002": {
+          "balance": "1",
+          "builtin": {
+            "name": "sha256",
+            "pricing": {
+              "linear": {
+                "base": 60,
+                "word": 12
+              }
+            }
+          }
+        },
+        "0x0000000000000000000000000000000000000003": {
+          "balance": "1",
+          "builtin": {
+            "name": "ripemd160",
+            "pricing": {
+              "linear": {
+                "base": 600,
+                "word": 120
+              }
+            }
+          }
+        },
+        "0x0000000000000000000000000000000000000004": {
+          "balance": "1",
+          "builtin": {
+            "name": "identity",
+            "pricing": {
+              "linear": {
+                "base": 15,
+                "word": 3
+              }
+            }
+          }
+        },
+        "0x0000000000000000000000000000000000000005": {
+          "builtin": {
+            "name": "modexp",
+            "activate_at": 0,
+            "pricing": {
+              "modexp": {
+                "divisor": 20
+              }
+            }
+          }
+        },
+        "0x0000000000000000000000000000000000000006": {
+          "builtin": {
+            "name": "alt_bn128_add",
+            "activate_at": 0,
+            "pricing": {
+              "alt_bn128_const_operations": {
+                "price": 500
+              }
+            }
+          }
+        },
+        "0000000000000000000000000000000000000007": {
+          "builtin": {
+            "name": "alt_bn128_mul",
+            "pricing": {
+              "0": {
+                "price": {
+                  "alt_bn128_const_operations": {
+                    "price": 40000
+                  }
+                }
+              },
+              "5006743": {
+                "info": "Istanbul HF",
+                "price": {
+                  "alt_bn128_const_operations": {
+                    "price": 6000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "0000000000000000000000000000000000000008": {
+          "builtin": {
+            "name": "alt_bn128_pairing",
+            "pricing": {
+              "0": {
+                "price": {
+                  "alt_bn128_pairing": {
+                    "base": 100000,
+                    "pair": 80000
+                  }
+                }
+              },
+              "5006743": {
+                "info": "Istanbul HF",
+                "price": {
+                  "alt_bn128_pairing": {
+                    "base": 45000,
+                    "pair": 34000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "0x0000000000000000000000000000000000000009": {
+          "builtin": {
+            "name": "blake2_f",
+            "pricing": {
+              "5006743": {
+                "info": "Istanbul HF",
+                "price": {
+                  "blake2_f": {
+                    "gas_per_round": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "0xEb3907eCad74a0013c259D5874AE7f22DcBcC95C": {
+          "balance": "102000000000000000000000000000000"
+        }
+      }
+    }
+
+

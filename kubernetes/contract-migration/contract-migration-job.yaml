@@ -1,0 +1,122 @@
+# https://kubernetes.io/docs/concepts/workloads/controllers/job/
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: contract-migration
+  namespace: grassroots
+  labels:
+    app: contract-migration
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      imagePullSecrets:
+      - name: gitlab-internal-integration-registry
+      # securityContext:
+      #   runAsUser: 1000
+      #   runAsGroup: 1000
+      restartPolicy: Never
+      containers:
+      - name: contract-migration
+        #image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:master-621780e9-1618865959 # {"$imagepolicy": "flux-system:cic-contract-migration"}
+        image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:latest
+        command: ["./run_job.sh"]
+        # command: ["sleep", "3600"]
+        env:
+        - name: CIC_REGISTRY_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: contract-migration-output
+              key: CIC_REGISTRY_ADDRESS
+        - name: CIC_TRUST_ADDRESS # - name: ETH_GAS_PROVIDER_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: contract-migration-output
+              key: CIC_TRUST_ADDRESS
+        - name: DATABASE_USER
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_USER
+        - name: DATABASE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_HOST
+        - name: DATABASE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_PORT
+        - name: DATABASE_ENGINE
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_ENGINE
+        - name: DATABASE_DRIVER
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_DRIVER
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_PASSWORD
+        - name: CELERY_BROKER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: redis-conn-common
+              key: CELERY_BROKER_URL
+        - name: CELERY_RESULT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: redis-conn-common
+              key: CELERY_RESULT_URL
+        - name: DATABASE_NAME
+          value: cic_eth
+        - name: REDIS_HOST
+          value: redis-master
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_DB
+          value: "0"
+        - name: DEV_PIP_EXTRA_INDEX_URL
+          value: https://pip.grassrootseconomics.net:8433
+        - name: ETH_PROVIDER
+          value: http://bloxberg-validator.grassroots.svc.cluster.local:8547
+        - name: ETH_PROVIDER_HOST
+          value: bloxberg-validator.grassroots.svc.cluster.local
+        - name: ETH_PROVIDER_PORT
+          value: "8547"
+        - name: CIC_CHAIN_SPEC
+          value: "evm:bloxberg:8996"
+        - name: CIC_DATA_DIR
+          value: /tmp/cic/config
+        - name: RUN_MASK
+          value: "3" # bit flags; 1: contract migrations 2: seed data
+        - name: DEV_FAUCET_AMOUNT
+          value: "50000000"
+        - name: CIC_DEFAULT_TOKEN_SYMBOL
+          value: GFT
+        - name: DEV_SARAFU_DEMURRAGE_LEVEL
+          value: "196454828847045000000000000000000"
+        - name: DEV_ETH_GAS_PRICE
+          value: "1"
+        - name: TOKEN_TYPE
+          value: giftable_erc20_token
+        - name: WALLET_KEY_FILE
+          value: /root/keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c
+        volumeMounts:
+        - mountPath: /tmp/cic/config
+          name: migration-output
+        resources:
+          requests:
+            memory: "250Mi"
+            cpu: "100m"
+          limits:
+            memory: "500Mi"
+            cpu: "250m"
+      volumes:
+      - name: migration-output
+        emptyDir: {}

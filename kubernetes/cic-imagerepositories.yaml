@@ -1,0 +1,71 @@
+apiVersion: image.toolkit.fluxcd.io/v1alpha1
+kind: ImageRepository
+metadata:
+  name: cic-eth 
+  namespace: flux-system
+spec:
+  image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth
+  interval: 1m0s
+---
+apiVersion: image.toolkit.fluxcd.io/v1alpha1
+kind: ImageRepository
+metadata:
+  name: cic-ussd 
+  namespace: flux-system
+spec:
+  image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-ussd
+  interval: 1m0s
+---
+apiVersion: image.toolkit.fluxcd.io/v1alpha1
+kind: ImageRepository
+metadata:
+  name: cic-cache 
+  namespace: flux-system
+spec:
+  image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-cache
+  interval: 1m0s
+---
+apiVersion: image.toolkit.fluxcd.io/v1alpha1
+kind: ImageRepository
+metadata:
+  name: cic-meta
+  namespace: flux-system
+spec:
+  image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-meta
+  interval: 1m0s
+---
+apiVersion: image.toolkit.fluxcd.io/v1alpha1
+kind: ImageRepository
+metadata:
+  name: cic-staff-client
+  namespace: flux-system
+spec:
+  image: registry.gitlab.com/grassrootseconomics/cic-staff-client
+  interval: 1m0s
+---
+apiVersion: image.toolkit.fluxcd.io/v1alpha1
+kind: ImageRepository
+metadata:
+  name: cic-contract-migration
+  namespace: flux-system
+spec:
+  image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration 
+  interval: 1m0s
+---
+apiVersion: image.toolkit.fluxcd.io/v1alpha1
+kind: ImageRepository
+metadata:
+  name: cic-notify
+  namespace: flux-system
+spec:
+  image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-notify 
+  interval: 1m0s
+---
+apiVersion: image.toolkit.fluxcd.io/v1alpha1
+kind: ImageRepository
+metadata:
+  name: cic-auth-proxy
+  namespace: flux-system
+spec:
+  image: registry.gitlab.com/grassrootseconomics/cic-auth-proxy 
+  interval: 1m0s

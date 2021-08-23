@@ -1,0 +1,119 @@
+# https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cic-user-server
+  namespace: grassroots
+  labels:
+    app: cic-user-server
+  annotations:
+    keel.sh/policy: "glob:master-*"
+    keel.sh/trigger: poll
+    keel.sh/pollSchedule: "@every 5m"
+spec:
+  selector:
+    matchLabels:
+      app: cic-user-server
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: cic-user-server
+        group: cic
+        tier: backend
+    spec:
+      containers:
+      - name: cic-user-server
+        image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-ussd:master-fad0a4b5-1628267359 # {"$imagepolicy": "flux-system:cic-ussd"}       
+        command: ["/root/start_cic_user_server.sh", "-vv"]
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 500m
+            memory: 250Mi
+        env:
+        - name: APP_PASSWORD_PEPPER
+          valueFrom:
+            secretKeyRef:
+              name: cic-ussd-secret
+              key: app_password_pepper
+        - name: DATABASE_USER
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_USER
+        - name: DATABASE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_HOST
+        - name: DATABASE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_PORT
+        - name: DATABASE_ENGINE
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_ENGINE
+        - name: DATABASE_DRIVER
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_DRIVER
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: postgresql-conn-common
+              key: DATABASE_PASSWORD
+        - name: DATABASE_POOL_SIZE
+          value: "0"
+        - name: DATABASE_NAME
+          value: cic_ussd
+        - name: HTTP_PORT_CIC_USER_SERVER
+          value: "9500"
+        - name: PGP_KEYS_PATH
+          value: /tmp/src/keys/
+        - name: PGP_EXPORTS_DIR
+          value: /tmp/src/keys/
+        - name: APP_PASSWORD_PEPPER
+          value: "QYbzKff6NhiQzY3ygl2BkiKOpER8RE/Upqs/5aZWW+I="
+        ports:
+        - containerPort: 9500
+          name: server
+        volumeMounts:
+        - mountPath: /tmp/src/keys
+          name: pgp
+          readOnly: true
+      volumes:
+      #- name: pgp
+      #  secret:
+      #    secretName: pgp
+      - name: pgp
+        configMap:
+          name: pgp-meta-test
+      restartPolicy: Always
+---
+# https://kubernetes.io/docs/concepts/services-networking/service/
+apiVersion: v1
+kind: Service
+metadata:
+  name: cic-user-server-svc
+  namespace: grassroots
+spec:
+  selector:
+    app: cic-user-server
+  type: ClusterIP
+  ports:
+  - name: server
+    protocol: TCP
+    port: 80
+    targetPort: 9500

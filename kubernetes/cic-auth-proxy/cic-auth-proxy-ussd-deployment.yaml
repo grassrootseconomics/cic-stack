@@ -1,0 +1,129 @@
+# https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cic-auth-proxy-ussd
+  namespace: grassroots
+  labels:
+    app: cic-auth-proxy-ussd
+    group: cic
+  annotations:
+      keel.sh/policy: "glob:master-*"
+      keel.sh/trigger: poll
+      keel.sh/pollSchedule: "@every 5m"
+spec:
+  selector:
+    matchLabels:
+      app: cic-auth-proxy-ussd
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cic-auth-proxy-ussd
+        group: cic
+    spec:
+      containers:
+      - name: cic-auth-proxy-ussd
+        #image: registry.gitlab.com/grassrootseconomics/cic-auth-proxy:master-c05fafbf-1627493790 # {"$imagepolicy": "flux-system:cic-auth-proxy"} 
+        image: registry.gitlab.com/grassrootseconomics/cic-auth-proxy:latest
+        imagePullPolicy: Always   
+        command: ["uwsgi", "--wsgi-file", "meta/scripts/proxy-ussd.py", "--http",
+          ":8080"]
+        resources:
+          requests:
+
+            cpu: 50m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 200Mi
+        env:
+        - name: PROXY_HOST
+          value: cic-user-ussd-server
+        - name: PROXY_PORT
+          value: "80"
+        - name: PROXY_PATH_PREFIX
+          value: "/"
+        - name: HTTP_AUTH_ORIGIN
+          value: https://ussd-auth.dev.grassrootseconomics.net:443
+        - name: HTTP_AUTH_REALM
+          value: GE
+        - name: ACL_CREDENTIALS_ENDPOINT
+          value: http://key-server:8081/
+        - name: ACL_PATH
+          value: /data/acls/F3FAF668E82EF5124D5187BAEF26F4682343F692
+        - name: ACL_QUERYSTRING_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: cic-ussd-querystring-creds
+              key: username
+        - name: ACL_QUERYSTRING_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: cic-ussd-querystring-creds
+              key: password
+        - name: ACL_WHITELIST
+          value: "37.188.113.15, 164.177.157.18, 5.79.0.242, 164.177.141.82, 164.177.141.83"
+        - name: GPG_PUBLICKEYS_ENDPOINT
+          value: http://key-server:8080/.well-known/publickeys/
+        - name: GPG_SIGNATURE_ENDPOINT
+          value: http://key-server:8080/.well-known/signature/
+        - name: GPG_TRUSTED_PUBLICKEY_FINGERPRINT # fingerprint of trusted key
+          value: CCE2E1D2D0E36ADE0405E2D0995BB21816313BD5
+        - name: GPG_HOMEDIR
+          value: /usr/local/etc/cic-auth-proxy/.gnupg/
+        - name: GPG_IMPORT_DIR
+          value: /usr/local/etc/cic-auth-proxy/import/
+        - name: GPG_PUBLICKEY_FILENAME
+          value: publickeys.asc
+        - name: GPG_SIGNATURE_FILENAME
+          value: signature.asc
+        - name: GPG_TRUSTED_PUBLICKEY_MATERIAL
+          value: /usr/local/etc/cic-auth-proxy/trusted/trustedpublickey.asc
+        ports:
+        - containerPort: 8080
+          name: http
+        volumeMounts:
+        - name: acl-config
+          mountPath: /data/acls/
+          readOnly: true
+        - name: credentials-config
+          mountPath: /data/noop/
+          readOnly: true
+        - name: trusted-publickey
+          mountPath: /usr/local/etc/cic-auth-proxy/trusted/
+        - name: gpg-homedir
+          mountPath: /usr/local/etc/cic-auth-proxy/.gnupg
+        - name: pgp-meta-test
+          mountPath: /usr/local/etc/cic-auth-proxy/import
+      volumes:
+      - name: pgp-meta-test
+        configMap:
+          name: pgp-meta-test
+      - name: acl-config
+        configMap:
+          name: cic-auth-proxy-acl-configmap
+      - name: credentials-config
+        configMap:
+          name: cic-auth-proxy-credentials-configmap
+      - name: trusted-publickey
+        configMap:
+          name: pgp-trusted-publickey
+      - name: gpg-homedir
+        emptyDir: {}
+---
+# https://kubernetes.io/docs/concepts/services-networking/service/
+apiVersion: v1
+kind: Service
+metadata:
+  name: cic-auth-proxy-ussd
+  namespace: grassroots
+spec:
+  selector:
+    app: cic-auth-proxy-ussd
+  type: ClusterIP
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8080
