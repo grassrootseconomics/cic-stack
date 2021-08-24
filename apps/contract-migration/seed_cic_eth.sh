@@ -35,10 +35,13 @@ set -a
 
 #pip install --extra-index-url $DEV_PIP_EXTRA_INDEX_URL  eth-address-index==0.1.1a7
 
+export CONFINI_DIR=$_CONFINI_DIR
+unset CONFINI_DIR
+
 # get required addresses from registries
-DEV_TOKEN_INDEX_ADDRESS=`eth-contract-registry-list -i $CHAIN_SPEC -p $ETH_PROVIDER -r $CIC_REGISTRY_ADDRESS -f brief TokenRegistry`
-DEV_ACCOUNT_INDEX_ADDRESS=`eth-contract-registry-list -i $CHAIN_SPEC -p $ETH_PROVIDER -r $CIC_REGISTRY_ADDRESS -f brief AccountRegistry`
-DEV_RESERVE_ADDRESS=`eth-token-index-list -i $CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_TOKEN_INDEX_ADDRESS -f brief $CIC_DEFAULT_TOKEN_SYMBOL`
+DEV_TOKEN_INDEX_ADDRESS=`eth-contract-registry-list -u -i $CHAIN_SPEC -p $ETH_PROVIDER -e $CIC_REGISTRY_ADDRESS -vv --raw TokenRegistry`
+DEV_ACCOUNT_INDEX_ADDRESS=`eth-contract-registry-list -u -i $CHAIN_SPEC -p $ETH_PROVIDER -e $CIC_REGISTRY_ADDRESS -vv --raw AccountRegistry`
+DEV_RESERVE_ADDRESS=`eth-token-index-list -i $CHAIN_SPEC -u -p $ETH_PROVIDER -e $DEV_TOKEN_INDEX_ADDRESS -vv --raw $CIC_DEFAULT_TOKEN_SYMBOL`
 cat <<EOF
 Token registry: $DEV_TOKEN_INDEX_ADDRESS
 Account reigstry: $DEV_ACCOUNT_INDEX_ADDRESS
@@ -72,28 +75,29 @@ DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER=`CONFINI_DIR=$empty_config_dir cic-eth-c
 echo DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER=$DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER >> $env_out_file
 cic-eth-tag -i $CHAIN_SPEC ACCOUNT_REGISTRY_WRITER $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER
 >&2 echo "add acccounts index writer account as writer on contract"
-eth-accounts-index-writer -y $keystore_file -i $CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_ACCOUNT_INDEX_ADDRESS -ww $debug $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER
+eth-accounts-index-writer -s -u -y $keystore_file -i $CHAIN_SPEC -p $ETH_PROVIDER -e $DEV_ACCOUNT_INDEX_ADDRESS -ww $debug $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER
 
 # Transfer gas to custodial gas provider adddress
 _CONFINI_DIR=$CONFINI_DIR
 unset CONFINI_DIR
 >&2 echo gift gas to gas gifter
->&2 eth-gas --send -y $keystore_file -i $CHAIN_SPEC -p $ETH_PROVIDER -w $debug -a $DEV_ETH_ACCOUNT_GAS_GIFTER $gas_amount
+>&2 eth-gas -s -u -y $keystore_file -i $CHAIN_SPEC -p $ETH_PROVIDER -w $debug -a $DEV_ETH_ACCOUNT_GAS_GIFTER $gas_amount
 
 >&2 echo gift gas to sarafu token owner
->&2 eth-gas --send -y $keystore_file -i $CHAIN_SPEC -p $ETH_PROVIDER -w $debug -a $DEV_ETH_ACCOUNT_SARAFU_GIFTER $gas_amount
+>&2 eth-gas -s -u -y $keystore_file -i $CHAIN_SPEC -p $ETH_PROVIDER -w $debug -a $DEV_ETH_ACCOUNT_SARAFU_GIFTER $gas_amount
 
 >&2 echo gift gas to account index owner
->&2 eth-gas --send -y $keystore_file -i $CHAIN_SPEC -p $ETH_PROVIDER -w $debug -a $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER $gas_amount
+>&2 eth-gas -s -u -y $keystore_file -i $CHAIN_SPEC -p $ETH_PROVIDER -w $debug -a $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER $gas_amount
 
 
 # Send token to token creator
 >&2 echo "gift tokens to sarafu owner"
->&2 giftable-token-gift -y $keystore_file -i $CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_RESERVE_ADDRESS --recipient $DEV_ETH_ACCOUNT_SARAFU_GIFTER -w $debug $token_amount
+echo "giftable-token-gift -s -u -y $keystore_file -i $CHAIN_SPEC -p $ETH_PROVIDER -e $DEV_RESERVE_ADDRESS -a $DEV_ETH_ACCOUNT_SARAFU_GIFTER -w $debug $token_amount"
+>&2 giftable-token-gift -s -u -y $keystore_file -i $CHAIN_SPEC -p $ETH_PROVIDER -e $DEV_RESERVE_ADDRESS -a $DEV_ETH_ACCOUNT_SARAFU_GIFTER -w $debug $token_amount
 
 # Send token to token gifter
 >&2 echo "gift tokens to keystore address"
->&2 giftable-token-gift -y $keystore_file -i $CHAIN_SPEC -p $ETH_PROVIDER -a $DEV_RESERVE_ADDRESS --recipient $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER -w $debug $token_amount
+>&2 giftable-token-gift -s -u -y $keystore_file -i $CHAIN_SPEC -p $ETH_PROVIDER -e $DEV_RESERVE_ADDRESS -a $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER -w $debug $token_amount
 
 >&2 echo "set sarafu token to reserve token (temporarily while bancor contracts are not connected)"
 echo DEV_ETH_SARAFU_TOKEN_ADDRESS=$DEV_ETH_RESERVE_ADDRESS >> $env_out_file
@@ -101,15 +105,17 @@ export DEV_ETH_SARAFU_TOKEN_ADDRESS=$DEV_ETH_RESERVE_ADDRESS
 
 # Transfer tokens to gifter address
 >&2 echo "transfer tokens to token gifter address"
->&2 erc20-transfer -y $keystore_file -i $CHAIN_SPEC -p $ETH_PROVIDER --gas-limit 100000 --token-address $DEV_RESERVE_ADDRESS -w $debug $DEV_ETH_ACCOUNT_SARAFU_GIFTER ${token_amount:0:-1}
+>&2 erc20-transfer -s -u -y $keystore_file -i $CHAIN_SPEC -p $ETH_PROVIDER --fee-limit 100000 -e $DEV_RESERVE_ADDRESS -w $debug -a $DEV_ETH_ACCOUNT_SARAFU_GIFTER ${token_amount:0:-1}
 
 #echo -n 0 > $init_level_file
 
-CONFINI_DIR=$_CONFINI_DIR
+#CONFINI_DIR=$_CONFINI_DIR
 # Remove the SEND (8), QUEUE (16) and INIT (2) locks (or'ed), set by default at migration
-cic-eth-ctl -i :: unlock INIT
-cic-eth-ctl -i :: unlock SEND
-cic-eth-ctl -i :: unlock QUEUE
+cic-eth-ctl -i $CHAIN_SPEC unlock INIT
+cic-eth-ctl -i $CHAIN_SPEC unlock SEND
+cic-eth-ctl -i $CHAIN_SPEC unlock QUEUE
+
+export CONFINI_DIR=$_CONFINI_DIR
 
 set +a
 set +e

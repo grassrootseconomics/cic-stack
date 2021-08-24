@@ -37,7 +37,8 @@ from crypto_dev_signer.eth.signer import ReferenceSigner as EIP155Signer
 from crypto_dev_signer.keystore.dict import DictKeystore
 from cic_types.models.person import Person
 from eth_erc20 import ERC20
-from cic_base.eth.syncer import chain_interface
+#from cic_base.eth.syncer import chain_interface
+from cic_eth.cli.chain import chain_interface
 from eth_accounts_index import AccountsIndex
 from eth_contract_registry import Registry
 from eth_token_index import TokenUniqueSymbolIndex
@@ -172,6 +173,7 @@ class Handler:
         erc20 = ERC20(self.chain_spec, signer=self.signer, gas_oracle=self.gas_oracle, nonce_oracle=self.nonce_oracle)
         o = erc20.decimals(self.token_address)
         r = conn.do(o)
+        logg.debug('parse dec {}'.format(r))
         decimals = erc20.parse_decimals(r)
         multiplier = 10 ** decimals
         balance_full = balance * multiplier
