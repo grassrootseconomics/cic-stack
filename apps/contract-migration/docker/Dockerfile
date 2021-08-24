@@ -16,14 +16,6 @@ RUN mkdir -vp /usr/local/etc/cic
 ENV CONFINI_DIR /usr/local/etc/cic/
 #RUN mkdir -vp $CONFINI_DIR
 
-#ARG cic_config_commit=24287fb253196820f23ff8a7177b122f2cd99a11
-#ARG cic_config_url=https://gitlab.com/grassrootseconomics/cic-config.git/
-#RUN echo Install confini schema files && \
-#	git clone --depth 1 $cic_config_url cic-config && \
-#	cd cic-config && \
-#	git fetch --depth 1 origin $cic_config_commit && \
-#	git checkout $cic_config_commit && \	
-#	cp -v *.ini $CONFINI_DIR
 
 COPY config_template/ /usr/local/etc/cic/
 COPY requirements.txt . 
@@ -36,13 +28,16 @@ ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages
 ARG pip_trusted_host=pypi.org
 RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
     pip install --index-url https://pypi.org/simple \
+    --pre \
     --force-reinstall \
     --trusted-host $pip_trusted_host \
     --extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL $EXTRA_PIP_ARGS \
     -r requirements.txt 
+
 RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
     pip install --index-url https://pypi.org/simple \
     --force-reinstall \
+    --pre \
     --trusted-host $pip_trusted_host \
     --extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL $EXTRA_PIP_ARGS \
     -r override_requirements.txt 
