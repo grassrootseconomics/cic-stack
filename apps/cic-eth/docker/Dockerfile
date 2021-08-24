@@ -8,6 +8,7 @@ FROM registry.gitlab.com/grassrootseconomics/cic-base-images:python-3.8.6-dev-55
 
 ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
 ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple"
+ARG EXTRA_PIP_ARGS=""
 #RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
 #    pip install --index-url https://pypi.org/simple \
 #    --force-reinstall \
@@ -18,6 +19,7 @@ RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
     pip install --index-url https://pypi.org/simple  \
 	  --extra-index-url $GITLAB_PYTHON_REGISTRY \
     --extra-index-url $EXTRA_INDEX_URL \
+    $EXTRA_PIP_ARGS \
     -r requirements.txt \
     -r services_requirements.txt \
     -r admin_requirements.txt
@@ -31,6 +33,7 @@ RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
     pip install --index-url https://pypi.org/simple  \
 	  --extra-index-url $GITLAB_PYTHON_REGISTRY \
     --extra-index-url $EXTRA_INDEX_URL \
+    $EXTRA_PIP_ARGS \
     cic-eth-aux-erc20-demurrage-token~=0.0.2a6
 
 COPY docker/entrypoints/* ./ 

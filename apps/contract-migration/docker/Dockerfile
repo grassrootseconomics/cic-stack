@@ -14,7 +14,6 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com  --recv-keys 2A518C819BE37D2C20
 RUN mkdir -vp /usr/local/etc/cic
 
 ENV CONFINI_DIR /usr/local/etc/cic/
-#RUN mkdir -vp $CONFINI_DIR
 
 
 COPY config_template/ /usr/local/etc/cic/
