@@ -1,10 +1,10 @@
 sarafu-faucet~=0.0.7a1
-cic-eth[tools]~=0.12.4a2
+cic-eth[tools]~=0.12.4a3
 cic-types~=0.1.0a14
 crypto-dev-signer>=0.4.15a1,<=0.4.15
 faker==4.17.1
 chainsyncer~=0.0.6a1
-chainlib-eth~=0.0.9a2
+chainlib-eth~=0.0.9a3
 eth-address-index~=0.2.3a1
 eth-contract-registry~=0.6.3a1
 eth-accounts-index~=0.1.2a1

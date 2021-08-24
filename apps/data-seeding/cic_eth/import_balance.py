@@ -38,7 +38,7 @@ from crypto_dev_signer.eth.signer import ReferenceSigner as EIP155Signer
 from crypto_dev_signer.keystore.dict import DictKeystore
 from cic_types.models.person import Person
 from eth_erc20 import ERC20
-from cic_base.eth.syncer import chain_interface
+from cic_eth.cli.chain import chain_interface
 from eth_accounts_index import AccountsIndex
 from eth_contract_registry import Registry
 from eth_token_index import TokenUniqueSymbolIndex
@@ -215,8 +215,6 @@ def main():
         logg.critical('lookup failed for token {}: {}'.format(token_symbol, e))
         sys.exit(1)
     logg.info('found token address {}'.format(token_address))
-    
-    sys.exit(0)
 
     syncer_backend = MemBackend(chain_str, 0)
 
@@ -248,7 +246,7 @@ def main():
 
     syncer_backend.set(block_offset, 0)
     syncer = HeadSyncer(syncer_backend, chain_interface, block_callback=progress_callback)
-    handler = Handler(conn, chain_spec, user_dir, balances, sarafu_token_address, signer, gas_oracle, nonce_oracle)
+    handler = Handler(conn, chain_spec, user_dir, balances, token_address, signer, gas_oracle, nonce_oracle)
     syncer.add_filter(handler)
     syncer.loop(1, conn)
     

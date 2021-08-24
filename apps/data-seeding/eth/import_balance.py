@@ -37,7 +37,6 @@ from crypto_dev_signer.eth.signer import ReferenceSigner as EIP155Signer
 from crypto_dev_signer.keystore.dict import DictKeystore
 from cic_types.models.person import Person
 from eth_erc20 import ERC20
-#from cic_base.eth.syncer import chain_interface
 from cic_eth.cli.chain import chain_interface
 from eth_accounts_index import AccountsIndex
 from eth_contract_registry import Registry
