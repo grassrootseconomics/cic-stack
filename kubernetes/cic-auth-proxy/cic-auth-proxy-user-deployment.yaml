@@ -79,7 +79,7 @@ spec:
           mountPath: /usr/local/etc/cic-auth-proxy/trusted/
         - name: gpg-homedir
           mountPath: /usr/local/etc/cic-auth-proxy/.gnupg
-        - name: pgp-user-test
+        - name: pgp-meta-test
           mountPath: /usr/local/etc/cic-auth-proxy/import
       volumes:
       - name: pgp-meta-test
