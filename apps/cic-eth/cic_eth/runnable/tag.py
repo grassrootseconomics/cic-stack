@@ -18,7 +18,7 @@ from cic_eth.db.models.base import SessionBase
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
-arg_flags = cic_eth.cli.argflag_std_base
+arg_flags = cic_eth.cli.argflag_std_base | cic_eth.cli.Flag.UNSAFE | cic_eth.cli.Flag.CHAIN_SPEC
 local_arg_flags = cic_eth.cli.argflag_local_taskcallback
 argparser = cic_eth.cli.ArgumentParser(arg_flags)
 argparser.add_positional('tag', type=str, help='address tag')

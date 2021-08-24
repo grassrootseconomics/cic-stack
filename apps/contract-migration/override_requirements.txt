@@ -1,3 +1,4 @@
-#eth-contract-registry==0.5.5a3
+eth-contract-registry==0.6.3a2
 #erc20-demurrage-token==0.0.2a3
 #eth-address-index==0.1.1a12
+
