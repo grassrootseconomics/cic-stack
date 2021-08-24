@@ -105,11 +105,9 @@ spec:
         - name: PGP_PRIVATE_KEYS
           value: privatekey.asc
         - name: PGP_PASSPHRASE
-          value: queenmarlena # TODO move to secret
+          value: queenmarlena 
         - name: CIC_META_URL
           value: http://cic-meta-server:80
-        - name: APP_PASSWORD_PEPPER
-          value: "QYbzKff6NhiQzY3ygl2BkiKOpER8RE/Upqs/5aZWW+I="
         volumeMounts:
         - mountPath: /tmp/src/keys
           name: pgp

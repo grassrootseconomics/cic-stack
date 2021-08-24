@@ -110,8 +110,6 @@ spec:
           value: privatekey.asc
         - name: PGP_PASSPHRASE
           value: queenmarlena # TODO move to secret
-        - name: APP_PASSWORD_PEPPER
-          value: "QYbzKff6NhiQzY3ygl2BkiKOpER8RE/Upqs/5aZWW+I="
         volumeMounts:
         - mountPath: /tmp/src/keys
           name: pgp

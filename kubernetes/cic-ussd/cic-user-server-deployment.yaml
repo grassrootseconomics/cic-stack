@@ -40,11 +40,6 @@ spec:
             cpu: 500m
             memory: 250Mi
         env:
-        - name: APP_PASSWORD_PEPPER
-          valueFrom:
-            secretKeyRef:
-              name: cic-ussd-secret
-              key: app_password_pepper
         - name: DATABASE_USER
           valueFrom:
             configMapKeyRef:
@@ -85,8 +80,6 @@ spec:
           value: /tmp/src/keys/
         - name: PGP_EXPORTS_DIR
           value: /tmp/src/keys/
-        - name: APP_PASSWORD_PEPPER
-          value: "QYbzKff6NhiQzY3ygl2BkiKOpER8RE/Upqs/5aZWW+I="
         ports:
         - containerPort: 9500
           name: server
