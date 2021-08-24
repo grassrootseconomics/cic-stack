@@ -34,6 +34,12 @@ deploy-k8s-dev:
     - kubectl delete hr redis && kubectl delete pvc -l 'app=redis'
     - kubectl apply -f kubernetes/eth-node/ -f kubernetes/postgresql/ -f kubernetes/redis/
     - echo "deploy and run database migrations..."
-    - k apply -f kubernetes/
+    - kubectl apply -f kubernetes/cic-auth-proxy
+    - kubectl apply -f kubernetes/cic-cache
+    - kubectl apply -f kubernetes/cic-eth
+    - kubectl apply -f kubernetes/cic-meta
+    - kubectl apply -f kubernetes/cic-notify
+    - kubectl apply -f kubernetes/cic-staff-client
+    - kubectl apply -f kubernetes/cic-ussd
     - echo "run contract migrations..."
     - kubectl apply -f kubernetes/contract-migration/contract-migration-job.yaml
