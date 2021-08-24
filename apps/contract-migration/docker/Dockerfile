@@ -27,6 +27,7 @@ ENV CONFINI_DIR /usr/local/etc/cic/
 
 COPY config_template/ /usr/local/etc/cic/
 COPY requirements.txt . 
+COPY override_requirements.txt . 
 
 ARG pip_index_url=https://pypi.org/simple
 ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
@@ -39,6 +40,13 @@ RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
     --trusted-host $pip_trusted_host \
     --extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL $EXTRA_PIP_ARGS \
     -r requirements.txt 
+RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
+    pip install --index-url https://pypi.org/simple \
+    --force-reinstall \
+    --trusted-host $pip_trusted_host \
+    --extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL $EXTRA_PIP_ARGS \
+    -r override_requirements.txt 
+
 
 COPY . .
 RUN chmod +x *.sh
