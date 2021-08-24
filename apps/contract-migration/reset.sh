@@ -82,8 +82,8 @@ if [[ -n "${ETH_PROVIDER}" ]]; then
 			TOKEN_NAME=$TOKEN_SYMBOL
 		fi
 		>&2 echo deploying default token $TOKEN_TYPE
-		echo giftable-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -ww --name "$TOKEN_NAME" --symbol $TOKEN_SYMBOL --decimals 6 -vv
-		DEV_RESERVE_ADDRESS=`giftable-token-deploy $gas_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -ww --name "$TOKEN_NAME" --symbol $TOKEN_SYMBOL --decimals 6 -vv`
+		echo giftable-token-deploy $fee_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -ww --name "$TOKEN_NAME" --symbol $TOKEN_SYMBOL --decimals 6 -vv
+		DEV_RESERVE_ADDRESS=`giftable-token-deploy $fee_price_arg -p $ETH_PROVIDER -y $DEV_ETH_KEYSTORE_FILE -i $CIC_CHAIN_SPEC -vv -ww --name "$TOKEN_NAME" --symbol $TOKEN_SYMBOL --decimals 6 -vv`
 	elif [ "$TOKEN_TYPE" == "erc20_demurrage_token" ]; then
 		if [ -z "$TOKEN_SYMBOL" ]; then
 			>&2 echo token symbol not set, setting defaults for type $TOKEN_TYPE
