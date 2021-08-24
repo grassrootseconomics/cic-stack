@@ -10,8 +10,9 @@ COPY requirements.txt .
 
 ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
 ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple"
+ARG EXTRA_PIP_ARGS=""
 RUN pip install --index-url https://pypi.org/simple  \
-	  --extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL --pre \
+	  --extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL $EXTRA_PIP_ARGS \
     -r requirements.txt
 
 COPY . . 
