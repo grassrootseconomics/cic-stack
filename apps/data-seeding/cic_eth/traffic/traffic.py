@@ -17,14 +17,9 @@ from chainlib.eth.gas import RPCGasOracle
 from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.block import block_latest
 from hexathon import strip_0x
-from cic_base import (
-        argparse,
-        config,
-        log,
-        rpc,
-        signer as signer_funcs,
-        )
-from cic_base.eth.syncer import chain_interface
+import chainlib.eth.cli
+import cic_eth.cli
+from cic_eth.cli.chain import chain_interface
 
 # local imports
 #import common
@@ -42,41 +37,42 @@ from cmd.cache import (
 
 
 # common basics
-script_dir = os.path.realpath(os.path.dirname(__file__))
-logg = log.create()
-argparser = argparse.create(script_dir, argparse.full_template)
-argparser = argparse.add(argparser, add_traffic_args, 'traffic')
-args = argparse.parse(argparser, logg)
-config = config.create(args.c, args, args.env_prefix)
+script_dir = os.path.dirname(os.path.realpath(__file__))
+traffic_schema_dir = os.path.join(script_dir, 'data', 'config') 
+logging.basicConfig(level=logging.WARNING)
+logg = logging.getLogger()
 
-# map custom args to local config entries
-batchsize = args.batch_size
-if batchsize < 1:
-    batchsize = 1
-logg.info('batch size {}'.format(batchsize))
-config.add(batchsize, '_BATCH_SIZE', True)
+arg_flags = cic_eth.cli.argflag_std_read | cic_eth.cli.Flag.WALLET
+local_arg_flags = cic_eth.cli.argflag_local_taskcallback | cic_eth.cli.argflag_local_chain
+argparser = cic_eth.cli.ArgumentParser(arg_flags)
+argparser.add_argument('--batch-size', default=10, type=int, help='number of events to process simultaneously')
+argparser.process_local_flags(local_arg_flags)
+args = argparser.parse_args()
 
-config.add(args.redis_host_callback, '_REDIS_HOST_CALLBACK', True)
-config.add(args.redis_port_callback, '_REDIS_PORT_CALLBACK', True)
+extra_args = {
+    'batch_size': None,
+        }
+config = cic_eth.cli.Config.from_args(args, arg_flags, local_arg_flags, base_config_dir=traffic_schema_dir, extra_args=extra_args)
 
-config.add(args.y, '_KEYSTORE_FILE', True)
+wallet = chainlib.eth.cli.Wallet()
+wallet.from_config(config)
 
-config.add(args.q, '_CELERY_QUEUE', True)
+rpc = chainlib.eth.cli.Rpc(wallet=wallet)
+conn = rpc.connect_by_config(config)
 
-logg.debug(config)
-
-chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
+chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
 
 def main():
     # create signer (not currently in use, but needs to be accessible for custom traffic item generators)
-    (signer_address, signer) = signer_funcs.from_keystore(config.get('_KEYSTORE_FILE'))
+    signer = rpc.get_signer()
+    signer_address = rpc.get_sender_address()
 
     # connect to celery
     celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
     # set up registry
-    rpc.setup(config.get('CIC_CHAIN_SPEC'), config.get('ETH_PROVIDER')) # replace with HTTPConnection when registry has been so refactored
-    conn = EthHTTPConnection(config.get('ETH_PROVIDER'))
+    #rpc.setup(config.get('CHAIN_SPEC'), config.get('RPC_HTTP_PROVIDER')) # replace with HTTPConnection when registry has been so refactored
+    #conn = EthHTTPConnection(config.get('RPC_HTTP_PROVIDER'))
     #registry = registry.init_legacy(config, w3)
     CICRegistry.address = config.get('CIC_REGISTRY_ADDRESS')
     registry = CICRegistry(chain_spec, conn)
@@ -91,7 +87,7 @@ def main():
     handler = TrafficSyncHandler(config, traffic_router, conn)
 
     # Set up syncer
-    syncer_backend = MemBackend(config.get('CIC_CHAIN_SPEC'), 0)
+    syncer_backend = MemBackend(config.get('CHAIN_SPEC'), 0)
     o = block_latest()
     r = conn.do(o)
     block_offset = int(strip_0x(r), 16) + 1
@@ -107,18 +103,18 @@ def main():
     account_cache = AccountRegistryCache(chain_spec, account_registry)
    
     # Set up provisioner for common task input data
-    #TrafficProvisioner.oracles['token']= common.registry.TokenOracle(w3, config.get('CIC_CHAIN_SPEC'), registry)
-    #TrafficProvisioner.oracles['account'] = common.registry.AccountsOracle(w3, config.get('CIC_CHAIN_SPEC'), registry)
+    #TrafficProvisioner.oracles['token']= common.registry.TokenOracle(w3, config.get('CHAIN_SPEC'), registry)
+    #TrafficProvisioner.oracles['account'] = common.registry.AccountsOracle(w3, config.get('CHAIN_SPEC'), registry)
     TrafficProvisioner.oracles['token'] = token_cache
     TrafficProvisioner.oracles['account'] = account_cache
     
     TrafficProvisioner.default_aux = {
-            'chain_spec': config.get('CIC_CHAIN_SPEC'),
+            'chain_spec': config.get('CHAIN_SPEC'),
             'registry': registry,
             'redis_host_callback': config.get('_REDIS_HOST_CALLBACK'),
             'redis_port_callback': config.get('_REDIS_PORT_CALLBACK'),
             'redis_db': config.get('REDIS_DB'),
-            'api_queue': config.get('_CELERY_QUEUE'),
+            'api_queue': config.get('CELERY_QUEUE'),
             }
 
     syncer = HeadSyncer(syncer_backend, chain_interface, block_callback=handler.refresh)

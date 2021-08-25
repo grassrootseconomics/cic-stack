@@ -7,7 +7,7 @@ chainsyncer~=0.0.6a1
 chainlib-eth~=0.0.9a3
 eth-address-index~=0.2.3a4
 eth-contract-registry~=0.6.3a3
-eth-accounts-index~=0.1.2a2
+eth-accounts-index~=0.1.2a3
 eth-erc20~=0.1.2a2
 erc20-faucet~=0.3.2a2
 psycopg2==2.8.6
