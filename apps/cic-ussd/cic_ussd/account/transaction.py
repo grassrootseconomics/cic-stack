@@ -117,18 +117,18 @@ def transaction_actors(transaction: dict) -> Tuple[Dict, Dict]:
     return recipient_transaction_data, sender_transaction_data
 
 
-def validate_transaction_account(session: Session, transaction: dict) -> Account:
+def validate_transaction_account(blockchain_address: str, role: str, session: Session) -> Account:
     """This function checks whether the blockchain address specified in a parsed transaction object resolves to an
     account object in the ussd system.
-    :param session: Database session object.
-    :type session: Session
-    :param transaction: Parsed transaction data object.
-    :type transaction: dict
+    :param blockchain_address:
+    :type blockchain_address:
+    :param role:
+    :type role:
+    :param session:
+    :type session:
     :return:
     :rtype:
     """
-    blockchain_address = transaction.get('blockchain_address')
-    role = transaction.get('role')
     session = SessionBase.bind_session(session)
     account = session.query(Account).filter_by(blockchain_address=blockchain_address).first()
     if not account:

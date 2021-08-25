@@ -7,10 +7,8 @@ en:
       3. Help
     initial_pin_entry: |-
       CON Please enter a new four number PIN for your account.
-      0. Back
     initial_pin_confirmation: |-
       CON Enter your four number PIN again
-      0. Back
     enter_given_name: |-
       CON Enter first name
       0. Back
@@ -183,7 +181,7 @@ en:
     exit_pin_mismatch: |-
       END The new PIN does not match the one you entered. Please try again. For help, call %{support_phone}.
     exit_invalid_recipient: |-
-      CON Recipient phone number is incorrect.
+      CON Recipient's phone number is not registered or is invalid:
         00. Retry
         99. Exit
     exit_successful_transaction: |-

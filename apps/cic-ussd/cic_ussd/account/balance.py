@@ -20,7 +20,7 @@ def get_balances(address: str,
                  asynchronous: bool = False,
                  callback_param: any = None,
                  callback_queue='cic-ussd',
-                 callback_task='cic_ussd.tasks.callback_handler.process_balances_callback') -> Optional[list]:
+                 callback_task='cic_ussd.tasks.callback_handler.balances_callback') -> Optional[list]:
     """This function queries cic-eth for an account's balances, It provides a means to receive the balance either
     asynchronously or synchronously.. It returns a dictionary containing the network, outgoing and incoming balances.
     :param address: Ethereum address of an account.

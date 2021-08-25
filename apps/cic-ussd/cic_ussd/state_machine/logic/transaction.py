@@ -4,6 +4,7 @@ from typing import Tuple
 
 # third party imports
 import celery
+from phonenumbers.phonenumberutil import NumberParseException
 
 # local imports
 from cic_ussd.account.balance import get_cached_available_balance
@@ -21,23 +22,21 @@ logg = logging.getLogger(__file__)
 
 
 def is_valid_recipient(state_machine_data: Tuple[str, dict, Account, Session]) -> bool:
-    """This function checks that a user exists, is not the initiator of the transaction, has an active account status
-    and is authorized to perform  standard transactions.
+    """This function checks that a phone number provided as the recipient of a transaction does not match the sending
+    party's own phone number.
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
     :type state_machine_data: tuple
-    :return: A user's validity
+    :return: A recipient account's validity for a transaction
     :rtype: bool
     """
     user_input, ussd_session, account, session = state_machine_data
-    phone_number = process_phone_number(user_input, E164Format.region)
-    session = SessionBase.bind_session(session=session)
-    recipient = Account.get_by_phone_number(phone_number=phone_number, session=session)
-    SessionBase.release_session(session=session)
+    try:
+        phone_number = process_phone_number(user_input, E164Format.region)
+    except NumberParseException:
+        phone_number = None
     is_not_initiator = phone_number != account.phone_number
-    has_active_account_status = False
-    if recipient:
-        has_active_account_status = recipient.get_status(session) == AccountStatus.ACTIVE.name
-    return is_not_initiator and has_active_account_status and recipient is not None
+    is_present = Account.get_by_phone_number(phone_number, session) is not None
+    return phone_number is not None and phone_number.startswith('+') and is_present and is_not_initiator
 
 
 def is_valid_transaction_amount(state_machine_data: Tuple[str, dict, Account, Session]) -> bool:

@@ -7,13 +7,10 @@ sw:
       3. Help
     initial_pin_entry: |-
       CON Tafadhali weka pin mpya yenye nambari nne kwa akaunti yako
-      0. Nyuma
     initial_pin_confirmation: |-
       CON Weka PIN yako tena
-      0. Nyuma
     enter_given_name: |-
       CON Weka jina lako la kwanza
-      0. Nyuma
     enter_family_name: |-
       CON Weka jina lako la mwisho
       0. Nyuma

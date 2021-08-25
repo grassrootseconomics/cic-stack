@@ -29,7 +29,8 @@ def transaction(notification_data: dict):
     phone_number = notification_data.get('phone_number')
     preferred_language = notification_data.get('preferred_language')
     token_symbol = notification_data.get('token_symbol')
-    transaction_account_metadata = notification_data.get('metadata_id')
+    alt_metadata_id = notification_data.get('alt_metadata_id')
+    metadata_id = notification_data.get('metadata_id')
     transaction_type = notification_data.get('transaction_type')
     timestamp = datetime.datetime.now().strftime('%d-%m-%y, %H:%M %p')
 
@@ -47,7 +48,8 @@ def transaction(notification_data: dict):
                                            preferred_language=preferred_language,
                                            amount=amount,
                                            token_symbol=token_symbol,
-                                           tx_sender_information=transaction_account_metadata,
+                                           tx_recipient_information=metadata_id,
+                                           tx_sender_information=alt_metadata_id,
                                            timestamp=timestamp,
                                            balance=balance)
         if role == 'sender':
@@ -56,6 +58,7 @@ def transaction(notification_data: dict):
                                            preferred_language=preferred_language,
                                            amount=amount,
                                            token_symbol=token_symbol,
-                                           tx_recipient_information=transaction_account_metadata,
+                                           tx_recipient_information=alt_metadata_id,
+                                           tx_sender_information=metadata_id,
                                            timestamp=timestamp,
                                            balance=balance)

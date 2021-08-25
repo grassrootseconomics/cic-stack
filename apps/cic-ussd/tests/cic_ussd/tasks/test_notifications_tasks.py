@@ -24,7 +24,8 @@ def test_transaction(celery_session_worker,
     phone_number = notification_data.get('phone_number')
     preferred_language = notification_data.get('preferred_language')
     token_symbol = notification_data.get('token_symbol')
-    transaction_account_metadata = notification_data.get('metadata_id')
+    alt_metadata_id = notification_data.get('alt_metadata_id')
+    metadata_id = notification_data.get('metadata_id')
     timestamp = datetime.datetime.now().strftime('%d-%m-%y, %H:%M %p')
     s_transaction = celery.signature(
         'cic_ussd.tasks.notifications.transaction', [notification_data]
@@ -36,7 +37,8 @@ def test_transaction(celery_session_worker,
                               preferred_language=preferred_language,
                               amount=amount,
                               token_symbol=token_symbol,
-                              tx_recipient_information=transaction_account_metadata,
+                              tx_recipient_information=alt_metadata_id,
+                              tx_sender_information=metadata_id,
                               timestamp=timestamp,
                               balance=balance)
     assert mock_notifier_api.get('message') == message
@@ -52,7 +54,8 @@ def test_transaction(celery_session_worker,
                               preferred_language=preferred_language,
                               amount=amount,
                               token_symbol=token_symbol,
-                              tx_sender_information=transaction_account_metadata,
+                              tx_recipient_information=metadata_id,
+                              tx_sender_information=alt_metadata_id,
                               timestamp=timestamp,
                               balance=balance)
     assert mock_notifier_api.get('message') == message

@@ -75,17 +75,21 @@ def test_transaction_actors(activated_account, transaction_result, valid_recipie
 def test_validate_transaction_account(activated_account, init_database, transactions_list):
     sample_transaction = transactions_list[0]
     recipient_transaction, sender_transaction = transaction_actors(sample_transaction)
-    recipient_account = validate_transaction_account(init_database, recipient_transaction)
-    sender_account = validate_transaction_account(init_database, sender_transaction)
+    recipient_account = validate_transaction_account(
+        recipient_transaction.get('blockchain_address'), recipient_transaction.get('role'), init_database)
+    sender_account = validate_transaction_account(
+        sender_transaction.get('blockchain_address'), sender_transaction.get('role'),  init_database)
     assert isinstance(recipient_account, Account)
     assert isinstance(sender_account, Account)
     sample_transaction = transactions_list[1]
     recipient_transaction, sender_transaction = transaction_actors(sample_transaction)
     with pytest.raises(UnknownUssdRecipient) as error:
-        validate_transaction_account(init_database, recipient_transaction)
+        validate_transaction_account(
+            recipient_transaction.get('blockchain_address'), recipient_transaction.get('role'), init_database)
     assert str(
         error.value) == f'Tx for recipient: {recipient_transaction.get("blockchain_address")} has no matching account in the system.'
-    validate_transaction_account(init_database, sender_transaction)
+    validate_transaction_account(
+        sender_transaction.get('blockchain_address'), sender_transaction.get('role'), init_database)
     assert f'Tx from sender: {sender_transaction.get("blockchain_address")} has no matching account in system.'
 
 

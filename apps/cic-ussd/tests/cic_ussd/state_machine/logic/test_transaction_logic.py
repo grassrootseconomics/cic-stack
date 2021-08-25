@@ -30,8 +30,6 @@ def test_is_valid_recipient(activated_account,
                             valid_recipient):
     state_machine = ('0112365478', generic_ussd_session, valid_recipient, init_database)
     assert is_valid_recipient(state_machine) is False
-    state_machine = (pending_account.phone_number, generic_ussd_session, valid_recipient, init_database)
-    assert is_valid_recipient(state_machine) is False
     state_machine = (valid_recipient.phone_number, generic_ussd_session, activated_account, init_database)
     assert is_valid_recipient(state_machine) is True
 

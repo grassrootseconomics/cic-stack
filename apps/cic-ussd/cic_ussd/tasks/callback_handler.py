@@ -138,7 +138,7 @@ def transaction_balances_callback(self, result: list, param: dict, status_code: 
     balances_data = result[0]
     available_balance = calculate_available_balance(balances_data)
     transaction = param
-    blockchain_address = param.get('blockchain_address')
+    blockchain_address = transaction.get('blockchain_address')
     transaction['available_balance'] = available_balance
     queue = self.request.delivery_info.get('routing_key')
 
@@ -150,10 +150,10 @@ def transaction_balances_callback(self, result: list, param: dict, status_code: 
     )
     s_notify_account = celery.signature('cic_ussd.tasks.notifications.transaction', queue=queue)
 
-    if param.get('transaction_type') == 'transfer':
+    if transaction.get('transaction_type') == 'transfer':
         celery.chain(s_preferences_metadata, s_process_account_metadata, s_notify_account).apply_async()
 
-    if param.get('transaction_type') == 'tokengift':
+    if transaction.get('transaction_type') == 'tokengift':
         s_process_account_metadata = celery.signature(
             'cic_ussd.tasks.processor.parse_transaction', [{}, transaction], queue=queue
         )
@@ -184,10 +184,11 @@ def transaction_callback(result: dict, param: str, status_code: int):
     source_token_value = result.get('source_token_value')
 
     recipient_metadata = {
-        "token_symbol": destination_token_symbol,
-        "token_value": destination_token_value,
+        "alt_blockchain_address": sender_blockchain_address,
         "blockchain_address": recipient_blockchain_address,
         "role": "recipient",
+        "token_symbol": destination_token_symbol,
+        "token_value": destination_token_value,
         "transaction_type": param
     }
 
@@ -201,10 +202,11 @@ def transaction_callback(result: dict, param: str, status_code: int):
 
     if param == 'transfer':
         sender_metadata = {
+            "alt_blockchain_address": recipient_blockchain_address,
             "blockchain_address": sender_blockchain_address,
+            "role": "sender",
             "token_symbol": source_token_symbol,
             "token_value": source_token_value,
-            "role": "sender",
             "transaction_type": param
         }
 

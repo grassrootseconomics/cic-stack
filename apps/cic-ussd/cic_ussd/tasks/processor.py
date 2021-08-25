@@ -11,6 +11,7 @@ from chainlib.hash import strip_0x
 from cic_ussd.account.statement import get_cached_statement
 from cic_ussd.account.transaction import aux_transaction_data, validate_transaction_account
 from cic_ussd.cache import cache_data, cache_data_key
+from cic_ussd.db.models.account import Account
 from cic_ussd.db.models.base import SessionBase
 
 
@@ -72,13 +73,17 @@ def parse_transaction(preferences: dict, transaction: dict) -> dict:
     preferred_language = preferences.get('preferred_language')
     if not preferred_language:
         preferred_language = i18n.config.get('fallback')
-
+    transaction['preferred_language'] = preferred_language
     transaction = aux_transaction_data(preferred_language, transaction)
     session = SessionBase.create_session()
-    account = validate_transaction_account(session, transaction)
-    metadata_id = account.standard_metadata_id()
-    transaction['metadata_id'] = metadata_id
+    role = transaction.get('role')
+    alt_blockchain_address = transaction.get('alt_blockchain_address')
+    blockchain_address = transaction.get('blockchain_address')
+    account = validate_transaction_account(blockchain_address, role, session)
+    alt_account = session.query(Account).filter_by(blockchain_address=alt_blockchain_address).first()
+    if alt_account:
+        transaction['alt_metadata_id'] = alt_account.standard_metadata_id()
+    transaction['metadata_id'] = account.standard_metadata_id()
     transaction['phone_number'] = account.phone_number
-    session.commit()
     session.close()
     return transaction

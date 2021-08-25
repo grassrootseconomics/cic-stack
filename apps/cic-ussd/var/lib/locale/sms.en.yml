@@ -2,9 +2,9 @@ en:
   account_successfully_created: |-
     You have been registered on Sarafu Network! To use dial *384*96# on Safaricom and *483*96# on other networks. For help %{support_phone}.
   received_tokens: |-
-    Successfully received %{amount} %{token_symbol} from %{tx_sender_information} %{timestamp}. New balance is %{balance} %{token_symbol}.
+    Successfully received %{amount} %{token_symbol} from %{tx_sender_information} %{timestamp} to %{tx_recipient_information}. New balance is %{balance} %{token_symbol}.
   sent_tokens: |-
-    Successfully sent %{amount} %{token_symbol} to %{tx_recipient_information} %{timestamp}. New balance is %{balance} %{token_symbol}.
+    Successfully sent %{amount} %{token_symbol} to %{tx_recipient_information} %{timestamp} from %{tx_sender_information}. New balance is %{balance} %{token_symbol}.
   terms: |-
     By using the service, you agree to the terms and conditions at http://grassecon.org/tos
   upsell_unregistered_recipient: |-

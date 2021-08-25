@@ -67,6 +67,7 @@ def resume_last_ussd_session(last_state: str) -> Document:
         'exit',
         'exit_invalid_pin',
         'exit_invalid_new_pin',
+        'exit_invalid_recipient',
         'exit_invalid_request',
         'exit_pin_blocked',
         'exit_pin_mismatch',

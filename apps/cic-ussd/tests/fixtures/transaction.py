@@ -5,12 +5,18 @@ import random
 import pytest
 
 # local import
+from cic_ussd.account.balance import get_cached_available_balance
 
 # tests imports
 
 
 @pytest.fixture(scope='function')
-def notification_data(activated_account, cache_person_metadata, cache_preferences, preferences):
+def notification_data(activated_account,
+                      cache_person_metadata,
+                      cache_preferences,
+                      cache_balances,
+                      preferences,
+                      valid_recipient):
     return {
         'blockchain_address': activated_account.blockchain_address,
         'token_symbol': 'GFT',
@@ -18,6 +24,7 @@ def notification_data(activated_account, cache_person_metadata, cache_preference
         'role': 'sender',
         'action_tag': 'Sent',
         'direction_tag': 'To',
+        'alt_metadata_id': valid_recipient.standard_metadata_id(),
         'metadata_id': activated_account.standard_metadata_id(),
         'phone_number': activated_account.phone_number,
         'available_balance': 50.0,
