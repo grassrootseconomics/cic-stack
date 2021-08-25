@@ -20,6 +20,7 @@ from hexathon import strip_0x
 import chainlib.eth.cli
 import cic_eth.cli
 from cic_eth.cli.chain import chain_interface
+from chainlib.eth.constant import ZERO_ADDRESS
 
 # local imports
 #import common
@@ -62,6 +63,11 @@ conn = rpc.connect_by_config(config)
 
 chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
 
+
+class NetworkError(Exception):
+    pass
+
+
 def main():
     # create signer (not currently in use, but needs to be accessible for custom traffic item generators)
     signer = rpc.get_signer()
@@ -95,10 +101,14 @@ def main():
 
     # get relevant registry entries
     token_registry = registry.lookup('TokenRegistry')
+    if token_registry == ZERO_ADDRESS:
+        raise NetworkError('TokenRegistry value missing from contract registry {}'.format(config.get('CIC_REGISTRY_ADDRESS')))
     logg.info('using token registry {}'.format(token_registry))
     token_cache = TokenRegistryCache(chain_spec, token_registry)
 
     account_registry = registry.lookup('AccountRegistry')
+    if account_registry == ZERO_ADDRESS:
+        raise NetworkError('AccountRegistry value missing from contract registry {}'.format(config.get('CIC_REGISTRY_ADDRESS')))
     logg.info('using account registry {}'.format(account_registry))
     account_cache = AccountRegistryCache(chain_spec, account_registry)
    

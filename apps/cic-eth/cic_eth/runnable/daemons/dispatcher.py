@@ -101,14 +101,14 @@ class DispatchSyncer:
                     LockEnum.QUEUE,
                     tx['from'],
                     ],
-                queue=queue,
+                queue=config.get('CELERY_QUEUE'),
                 )
             s_send = celery.signature(
                     'cic_eth.eth.tx.send',
                     [
                         self.chain_spec.asdict(),
                         ], 
-                    queue=queue,
+                    queue=config.get('CELERY_QUEUE'),
                     )
             s_check.link(s_send)
             t = s_check.apply_async()
