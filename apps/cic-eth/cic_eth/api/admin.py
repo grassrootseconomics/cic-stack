@@ -21,6 +21,7 @@ from chainlib.hash import keccak256_hex_to_hex
 from hexathon import (
         strip_0x,
         add_0x,
+        uniform as hex_uniform,
         )
 from chainlib.eth.gas import balance
 from chainqueue.db.enum import (
@@ -307,6 +308,8 @@ class AdminApi:
         :param address: Ethereum address to return transactions for
         :type address: str, 0x-hex
         """
+
+        address = add_0x(hex_uniform(strip_0x(address)))
         last_nonce = -1
         s = celery.signature(
                 'cic_eth.queue.query.get_account_tx',

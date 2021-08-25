@@ -9,6 +9,7 @@ from chainlib.chain import ChainSpec
 from chainlib.eth.address import is_checksum_address
 from chainlib.connection import RPCConnection
 from chainqueue.db.enum import StatusBits
+from chainqueue.sql.tx import cache_tx_dict
 from chainlib.eth.gas import (
         balance,
         price,
@@ -133,20 +134,17 @@ def cache_gas_data(
 
     session = SessionBase.create_session()
 
-    tx_cache = TxCache(
-        tx_hash_hex,
-        tx['from'],
-        tx['to'],
-        ZERO_ADDRESS,
-        ZERO_ADDRESS,
-        tx['value'],
-        tx['value'],
-        session=session,
-            )
+    tx_dict = {
+            'hash': tx_hash_hex,
+            'from': tx['from'],
+            'to': tx['to'],
+            'source_token': ZERO_ADDRESS,
+            'destination_token': ZERO_ADDRESS,
+            'from_value': tx['value'],
+            'to_value': tx['value'],
+            }
 
-    session.add(tx_cache)
-    session.commit()
-    cache_id = tx_cache.id
+    (tx_dict, cache_id) = cache_tx_dict(tx_dict, session=session)
     session.close()
     return (tx_hash_hex, cache_id)
 

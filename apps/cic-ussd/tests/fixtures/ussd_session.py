@@ -1,52 +1,69 @@
 # standard imports
-import json
+import os
+import random
 
-# third-party imports
+# external imports
 import pytest
 
 # local imports
 from cic_ussd.db.models.ussd_session import UssdSession
-from cic_ussd.redis import InMemoryStore
-from cic_ussd.session.ussd_session import UssdSession as InMemoryUssdSession
+from cic_ussd.session.ussd_session import create_ussd_session
+
+# test imports
+from tests.helpers.accounts import phone_number
 
 
 @pytest.fixture(scope='function')
-def ussd_session_data():
+def activated_account_ussd_session(load_config, activated_account):
+    valid_service_codes = load_config.get('USSD_SERVICE_CODE').split(",")
     return {
-        'external_session_id': 'AT974186',
-        'service_code': '*483*46#',
-        'msisdn': '+25498765432',
-        'user_input': '1',
+        'data': {},
+        'external_session_id': os.urandom(20).hex(),
+        'msisdn': activated_account.phone_number,
+        'service_code': valid_service_codes[0],
         'state': 'initial_language_selection',
-        'session_data': {},
+        'user_input': '1',
+    }
+
+
+@pytest.fixture(scope='function')
+def generic_ussd_session(load_config, activated_account):
+    valid_service_codes = load_config.get('USSD_SERVICE_CODE').split(",")
+    return {
+        'data': {},
+        'service_code': valid_service_codes[0],
+        'state': 'initial_language_selection',
+        'user_input': '1',
         'version': 2
     }
 
 
 @pytest.fixture(scope='function')
-def create_in_redis_ussd_session(ussd_session_data, init_redis_cache):
-    external_session_id = ussd_session_data.get('external_session_id')
-    InMemoryUssdSession.redis_cache = InMemoryStore.cache
-    InMemoryUssdSession.redis_cache.set(external_session_id, json.dumps(ussd_session_data))
-    return InMemoryUssdSession.redis_cache
+def ussd_session_traffic(generic_ussd_session, init_database, persisted_ussd_session):
+    for _ in range((random.randint(5, 15))):
+        generic_ussd_session['external_session_id'] = os.urandom(20).hex()
+        generic_ussd_session['msisdn'] = phone_number()
+        ussd = UssdSession(**{key: value for key, value in generic_ussd_session.items()})
+        init_database.add(ussd)
+        init_database.commit()
 
 
 @pytest.fixture(scope='function')
-def get_in_redis_ussd_session(ussd_session_data, create_in_redis_ussd_session):
-    external_session_id = ussd_session_data.get('external_session_id')
-    ussd_session_data = create_in_redis_ussd_session.get(external_session_id)
-    ussd_session_data = json.loads(ussd_session_data)
-    # remove version from ussd_session data because the ussd_session object does not expect a version at initialization
-    del ussd_session_data['version']
-    ussd_session = InMemoryUssdSession(**{key: value for key, value in ussd_session_data.items()})
-    ussd_session.version = ussd_session_data.get('version')
-    return ussd_session
+def ussd_session_data(load_config):
+    return {
+        'recipient': phone_number()
+    }
 
 
 @pytest.fixture(scope='function')
-def create_in_db_ussd_session(init_database, ussd_session_data):
-    ussd_session_data['session_data'] = {}
-    ussd_session = UssdSession(**{key: value for key, value in ussd_session_data.items()})
-    init_database.add(ussd_session)
+def cached_ussd_session(init_cache, activated_account_ussd_session):
+    return create_ussd_session(**{key: value for key, value in activated_account_ussd_session.items()})
+
+
+@pytest.fixture(scope='function')
+def persisted_ussd_session(init_cache, init_database, activated_account_ussd_session):
+    activated_account_ussd_session['version'] = 2
+    ussd = UssdSession(**{key: value for key, value in activated_account_ussd_session.items()})
+    init_database.add(ussd)
     init_database.commit()
-    return ussd_session
+    return ussd

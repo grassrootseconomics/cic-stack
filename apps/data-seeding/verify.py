@@ -205,8 +205,9 @@ def send_ussd_request(address, data_dir):
 
 class VerifierState:
 
-    def __init__(self, item_keys, active_tests=None):
+    def __init__(self, item_keys, target_count, active_tests=None):
         self.items = {}
+        self.target_count = target_count
         for k in item_keys:
             self.items[k] = 0
         if active_tests == None:
@@ -223,7 +224,7 @@ class VerifierState:
         r = ''
         for k in self.items.keys():
             if k in self.active_tests:
-                r += '{}: {}\n'.format(k, self.items[k])
+                r += '{}: {}/{}\n'.format(k, self.items[k], self.target_count)
             else:
                 r += '{}: skipped\n'.format(k)
         return r
@@ -244,7 +245,7 @@ class VerifierError(Exception):
 class Verifier:
 
     # TODO: what an awful function signature
-    def __init__(self, conn, cic_eth_api, gas_oracle, chain_spec, index_address, token_address, faucet_address, data_dir, exit_on_error=False):
+    def __init__(self, conn, target_count, cic_eth_api, gas_oracle, chain_spec, index_address, token_address, faucet_address, data_dir, exit_on_error=False):
         self.conn = conn
         self.gas_oracle = gas_oracle
         self.chain_spec = chain_spec
@@ -268,7 +269,7 @@ class Verifier:
         self.faucet_amount = self.faucet_tx_factory.parse_token_amount(r)
         logg.info('faucet amount set to {} at verify initialization time'.format(self.faucet_amount))
 
-        self.state = VerifierState(verifymethods, active_tests=active_tests)
+        self.state = VerifierState(verifymethods, target_count, active_tests=active_tests)
 
 
     def verify_accounts_index(self, address, balance=None):
@@ -290,7 +291,7 @@ class Verifier:
             actual_balance = int(r)
         balance = int(balance / 1000000) * 1000000
         balance += self.faucet_amount
-        logg.debug('balance for {}: {}'.format(address, balance))
+        logg.info('balance for {}: {}'.format(address, balance))
         if balance != actual_balance:
             raise VerifierError((actual_balance, balance), 'balance')
 
@@ -481,7 +482,7 @@ def main():
 
     f.close()
 
-    verifier = Verifier(conn, api, gas_oracle, chain_spec, account_index_address, token_address, faucet_address, user_dir, exit_on_error)
+    verifier = Verifier(conn, i, api, gas_oracle, chain_spec, account_index_address, token_address, faucet_address, user_dir, exit_on_error)
 
     user_new_dir = os.path.join(user_dir, 'new')
     i = 0
@@ -517,6 +518,7 @@ def main():
             verifier.verify(new_address, balance, debug_stem=s)
             i += 1
 
+    print()
     print(verifier)
 
 

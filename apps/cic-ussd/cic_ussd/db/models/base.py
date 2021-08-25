@@ -8,11 +8,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import (
-        StaticPool,
-        QueuePool,
-        AssertionPool,
-        NullPool,
-        )
+    StaticPool,
+    QueuePool,
+    AssertionPool,
+    NullPool,
+)
 
 logg = logging.getLogger().getChild(__name__)
 
@@ -42,13 +42,11 @@ class SessionBase(Model):
     localsessions = {}
     """Contains dictionary of sessions initiated by db model components"""
 
-
     @staticmethod
     def create_session():
         """Creates a new database session.
         """
         return SessionBase.sessionmaker()
-
 
     @staticmethod
     def _set_engine(engine):
@@ -56,7 +54,6 @@ class SessionBase(Model):
         """
         SessionBase.engine = engine
         SessionBase.sessionmaker = sessionmaker(bind=SessionBase.engine)
-
 
     @staticmethod
     def connect(dsn, pool_size=16, debug=False):
@@ -71,14 +68,14 @@ class SessionBase(Model):
             if pool_size > 1:
                 logg.info('db using queue pool')
                 e = create_engine(
-                        dsn,
-                        max_overflow=pool_size*3,
-                        pool_pre_ping=True,
-                        pool_size=pool_size,
-                        pool_recycle=60,
-                        poolclass=poolclass,
-                        echo=debug,
-                    )
+                    dsn,
+                    max_overflow=pool_size * 3,
+                    pool_pre_ping=True,
+                    pool_size=pool_size,
+                    pool_recycle=60,
+                    poolclass=poolclass,
+                    echo=debug,
+                )
             else:
                 if pool_size == 0:
                     poolclass = NullPool
@@ -87,19 +84,18 @@ class SessionBase(Model):
                 else:
                     poolclass = StaticPool
                 e = create_engine(
-                        dsn,
-                        poolclass=poolclass,
-                        echo=debug,
-                    )
+                    dsn,
+                    poolclass=poolclass,
+                    echo=debug,
+                )
         else:
             logg.info('db connection not poolable')
             e = create_engine(
-                    dsn,
-                    echo=debug,
-                    )
+                dsn,
+                echo=debug,
+            )
 
         SessionBase._set_engine(e)
-
 
     @staticmethod
     def disconnect():
@@ -108,17 +104,15 @@ class SessionBase(Model):
         SessionBase.engine.dispose()
         SessionBase.engine = None
 
-
     @staticmethod
     def bind_session(session=None):
         localsession = session
-        if localsession == None:
+        if localsession is None:
             localsession = SessionBase.create_session()
             localsession_key = str(id(localsession))
             logg.debug('creating new session {}'.format(localsession_key))
             SessionBase.localsessions[localsession_key] = localsession
         return localsession
-
 
     @staticmethod
     def release_session(session=None):

@@ -64,7 +64,6 @@ def txs(
         dt.timestamp(),
             )
 
-
     tx_number = 42
     tx_hash_second = '0x' + os.urandom(32).hex()
     tx_signed_second = '0x' + os.urandom(128).hex()
@@ -91,6 +90,44 @@ def txs(
             tx_hash_first,
             tx_hash_second,
             ]
+
+
+@pytest.fixture(scope='function')
+def more_txs(
+        init_database,
+        list_defaults,
+        list_actors,
+        list_tokens,
+        txs,
+        ):
+
+    session = init_database
+
+    tx_number = 666
+    tx_hash = '0x' + os.urandom(32).hex()
+    tx_signed = '0x' + os.urandom(128).hex()
+    nonce = 3
+
+    dt = datetime.datetime.utcnow()
+    dt += datetime.timedelta(hours=1)
+    db.add_transaction(
+        session,
+        tx_hash,
+        list_defaults['block']+2,
+        tx_number,
+        list_actors['alice'],
+        list_actors['diane'],
+        list_tokens['bar'],
+        list_tokens['bar'],
+        2048,
+        4096,
+        False,
+        dt.timestamp(),
+        )
+
+    session.commit()
+
+    return [tx_hash] + txs
 
 
 @pytest.fixture(scope='function')

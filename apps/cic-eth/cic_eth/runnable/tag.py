@@ -6,8 +6,7 @@ import argparse
 import re
 
 # external imports
-import celery
-import confini
+import cic_eth.cli
 from chainlib.chain import ChainSpec
 from xdg.BaseDirectory import xdg_config_home
 
@@ -19,43 +18,28 @@ from cic_eth.db.models.base import SessionBase
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
-default_config_dir = os.environ.get('CONFINI_DIR', '/usr/local/etc/cic')
+arg_flags = cic_eth.cli.argflag_std_base | cic_eth.cli.Flag.UNSAFE | cic_eth.cli.Flag.CHAIN_SPEC
+local_arg_flags = cic_eth.cli.argflag_local_taskcallback
+argparser = cic_eth.cli.ArgumentParser(arg_flags)
+argparser.add_positional('tag', type=str, help='address tag')
+argparser.add_positional('address', type=str, help='address')
+argparser.process_local_flags(local_arg_flags)
+args = argparser.parse_args()
 
+config = cic_eth.cli.Config.from_args(args, arg_flags, local_arg_flags)
 
-argparser = argparse.ArgumentParser(description='daemon that monitors transactions in new blocks')
-argparser.add_argument('-p', '--provider', dest='p', type=str, help='Web3 provider url (http only)')
-argparser.add_argument('-c', type=str, default=default_config_dir, help='config root to use')
-argparser.add_argument('-v', help='be verbose', action='store_true')
-argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
-argparser.add_argument('-vv', help='be more verbose', action='store_true')
-argparser.add_argument('tag', type=str, help='address tag')
-argparser.add_argument('address', type=str, help='address')
-args = argparser.parse_args(sys.argv[1:])
+celery_app = cic_eth.cli.CeleryApp.from_config(config)
 
-if args.v == True:
-    logging.getLogger().setLevel(logging.INFO)
-elif args.vv == True:
-    logging.getLogger().setLevel(logging.DEBUG)
+admin_api = AdminApi(None)
 
-config = confini.Config(args.c)
-config.process()
-args_override = {
-        'ETH_PROVIDER': getattr(args, 'p'),
-        'CIC_CHAIN_SPEC': getattr(args, 'i'),
-        }
-config.dict_override(args_override, 'cli flag')
-config.censor('PASSWORD', 'DATABASE')
-config.censor('PASSWORD', 'SSL')
-logg.debug('config loaded from {}\n{}'.format(args.c, config))
+chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
 
-chain_spec = ChainSpec.from_chain_str(args.i)
-
-celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
+celery_app = cic_eth.cli.CeleryApp.from_config(config)
+api = AdminApi(None)
 
 
 def main():
-    api = AdminApi(None)
-    api.tag_account(args.tag, args.address, chain_spec)
+    admin_api.tag_account(args.tag, args.address, chain_spec)
 
 
 if __name__ == '__main__':

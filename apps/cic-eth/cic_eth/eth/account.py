@@ -23,7 +23,7 @@ from chainlib.error import JSONRPCException
 from eth_accounts_index.registry import AccountRegistry
 from eth_accounts_index import AccountsIndex 
 from sarafu_faucet import MinterFaucet
-from chainqueue.db.models.tx import TxCache
+from chainqueue.sql.tx import cache_tx_dict
 
 # local import
 from cic_eth_registry import CICRegistry
@@ -300,20 +300,17 @@ def cache_gift_data(
 
     session = self.create_session()
 
-    tx_cache = TxCache(
-        tx_hash_hex,
-        tx['from'],
-        tx['to'],
-        ZERO_ADDRESS,
-        ZERO_ADDRESS,
-        0,
-        0,
-        session=session,
-            )
+    tx_dict = {
+            'hash': tx_hash_hex,
+            'from': tx['from'],
+            'to': tx['to'],
+            'source_token': ZERO_ADDRESS,
+            'destination_token': ZERO_ADDRESS,
+            'from_value': 0,
+            'to_value': 0,
+            }
 
-    session.add(tx_cache)
-    session.commit()
-    cache_id = tx_cache.id
+    (tx_dict, cache_id) = cache_tx_dict(tx_dict, session=session)
     session.close()
     return (tx_hash_hex, cache_id)
 
@@ -342,18 +339,15 @@ def cache_account_data(
     tx_data = AccountsIndex.parse_add_request(tx['data'])
 
     session = SessionBase.create_session()
-    tx_cache = TxCache(
-        tx_hash_hex,
-        tx['from'],
-        tx['to'],
-        ZERO_ADDRESS,
-        ZERO_ADDRESS,
-        0,
-        0,
-        session=session,
-            )
-    session.add(tx_cache)
-    session.commit()
-    cache_id = tx_cache.id
+    tx_dict = {
+            'hash': tx_hash_hex,
+            'from': tx['from'],
+            'to': tx['to'],
+            'source_token': ZERO_ADDRESS,
+            'destination_token': ZERO_ADDRESS,
+            'from_value': 0,
+            'to_value': 0,
+            }
+    (tx_dict, cache_id) = cache_tx_dict(tx_dict, session=session)
     session.close()
     return (tx_hash_hex, cache_id)

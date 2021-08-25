@@ -16,8 +16,7 @@ from cic_ussd.db.models.account import Account
 from cic_ussd.db.models.base import SessionBase
 from cic_ussd.db.enum import AccountStatus
 from cic_ussd.encoder import create_password_hash, check_password_hash
-from cic_ussd.operations import persist_session_to_db_task, create_or_update_session
-from cic_ussd.redis import InMemoryStore
+from cic_ussd.session.ussd_session import create_or_update_session, persist_ussd_session
 
 
 logg = logging.getLogger(__file__)
@@ -31,7 +30,7 @@ def is_valid_pin(state_machine_data: Tuple[str, dict, Account, Session]) -> bool
     :return: A pin's validity
     :rtype: bool
     """
-    user_input, ussd_session, user, session = state_machine_data
+    user_input, ussd_session, account, session = state_machine_data
     pin_is_valid = False
     matcher = r'^\d{4}$'
     if re.match(matcher, user_input):
@@ -46,8 +45,11 @@ def is_authorized_pin(state_machine_data: Tuple[str, dict, Account, Session]) ->
     :return: A match between two pin values.
     :rtype: bool
     """
-    user_input, ussd_session, user, session = state_machine_data
-    return user.verify_password(password=user_input)
+    user_input, ussd_session, account, session = state_machine_data
+    is_verified_password = account.verify_password(password=user_input)
+    if not is_verified_password:
+        account.failed_pin_attempts += 1
+    return is_verified_password
 
 
 def is_locked_account(state_machine_data: Tuple[str, dict, Account, Session]) -> bool:
@@ -57,8 +59,8 @@ def is_locked_account(state_machine_data: Tuple[str, dict, Account, Session]) ->
     :return: A match between two pin values.
     :rtype: bool
     """
-    user_input, ussd_session, user, session = state_machine_data
-    return user.get_account_status() == AccountStatus.LOCKED.name
+    user_input, ussd_session, account, session = state_machine_data
+    return account.get_status(session) == AccountStatus.LOCKED.name
 
 
 def save_initial_pin_to_session_data(state_machine_data: Tuple[str, dict, Account, Session]):
@@ -67,38 +69,25 @@ def save_initial_pin_to_session_data(state_machine_data: Tuple[str, dict, Accoun
     :type state_machine_data: tuple
     """
     user_input, ussd_session, user, session = state_machine_data
-
-    # define redis cache entry point
-    cache = InMemoryStore.cache
-
-    # get external session id
-    external_session_id = ussd_session.get('external_session_id')
-
-    # get corresponding session record
-    in_redis_ussd_session = cache.get(external_session_id)
-    in_redis_ussd_session = json.loads(in_redis_ussd_session)
-
-    # set initial pin data
     initial_pin = create_password_hash(user_input)
-    if ussd_session.get('session_data'):
-        session_data = ussd_session.get('session_data')
-        session_data['initial_pin'] = initial_pin
+    if ussd_session.get('data'):
+        data = ussd_session.get('data')
+        data['initial_pin'] = initial_pin
     else:
-        session_data = {
+        data = {
             'initial_pin': initial_pin
         }
-
-    # create new in memory ussd session with current ussd session data
+    external_session_id = ussd_session.get('external_session_id')
     create_or_update_session(
         external_session_id=external_session_id,
-        phone=in_redis_ussd_session.get('msisdn'),
-        service_code=in_redis_ussd_session.get('service_code'),
+        msisdn=ussd_session.get('msisdn'),
+        service_code=ussd_session.get('service_code'),
         user_input=user_input,
-        current_menu=in_redis_ussd_session.get('state'),
+        state=ussd_session.get('state'),
         session=session,
-        session_data=session_data
+        data=data
     )
-    persist_session_to_db_task(external_session_id=external_session_id, queue='cic-ussd')
+    persist_ussd_session(external_session_id, 'cic-ussd')
 
 
 def pins_match(state_machine_data: Tuple[str, dict, Account, Session]) -> bool:
@@ -109,7 +98,7 @@ def pins_match(state_machine_data: Tuple[str, dict, Account, Session]) -> bool:
     :rtype: bool
     """
     user_input, ussd_session, user, session = state_machine_data
-    initial_pin = ussd_session.get('session_data').get('initial_pin')
+    initial_pin = ussd_session.get('data').get('initial_pin')
     return check_password_hash(user_input, initial_pin)
 
 
@@ -120,7 +109,7 @@ def complete_pin_change(state_machine_data: Tuple[str, dict, Account, Session]):
     """
     user_input, ussd_session, user, session = state_machine_data
     session = SessionBase.bind_session(session=session)
-    password_hash = ussd_session.get('session_data').get('initial_pin')
+    password_hash = ussd_session.get('data').get('initial_pin')
     user.password_hash = password_hash
     session.add(user)
     session.flush()
@@ -134,8 +123,8 @@ def is_blocked_pin(state_machine_data: Tuple[str, dict, Account, Session]) -> bo
     :return: A match between two pin values.
     :rtype: bool
     """
-    user_input, ussd_session, user, session = state_machine_data
-    return user.get_account_status() == AccountStatus.LOCKED.name
+    user_input, ussd_session, account, session = state_machine_data
+    return account.get_status(session) == AccountStatus.LOCKED.name
 
 
 def is_valid_new_pin(state_machine_data: Tuple[str, dict, Account, Session]) -> bool:

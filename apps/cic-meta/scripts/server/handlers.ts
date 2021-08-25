@@ -147,7 +147,7 @@ function handleClientMergeGet(db, digest, keystore) {
 					doh(e);
 				});
 			}).catch((e) => {
-				console.error('mesage', e);
+				console.error('message', e);
 				doh(e);
 			});
 		});

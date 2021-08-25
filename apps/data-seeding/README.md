@@ -167,7 +167,7 @@ If you have previously run the `cic_ussd` import incompletely, it could be a goo
 
 Then, in sequence, run in first terminal:
 
-`python cic_eth/import_balance.py -v -c config -p <eth_provider> -r <cic_registry_address> --token-symbol <token_symbol> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c out`
+`python cic_ussd/import_balance.py -v -c config -p <eth_provider> -r <cic_registry_address> --token-symbol <token_symbol> -y ../contract-migration/keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c out`
 
 In second terminal:
 

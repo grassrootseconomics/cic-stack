@@ -200,6 +200,7 @@ def test_callback_filter(
     assert r['status'] == 1
 
     rcpt = snake_and_camel(r)
+    tx.block.hash = rcpt['block_hash']
     tx.apply_receipt(rcpt)
 
     fltr = CallbackFilter(default_chain_spec, None, None, caller_address=contract_roles['CONTRACT_DEPLOYER'])

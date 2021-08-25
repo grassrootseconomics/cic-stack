@@ -13,9 +13,9 @@ from chainlib.eth.tx import (
 from cic_eth_registry import CICRegistry
 from cic_eth_registry.erc20 import ERC20Token
 from hexathon import strip_0x
-from chainqueue.db.models.tx import TxCache
 from chainqueue.error import NotLocalTxError
 from eth_erc20 import ERC20
+from chainqueue.sql.tx import cache_tx_dict
 
 # local imports
 from cic_eth.db.models.base import SessionBase
@@ -375,19 +375,16 @@ def cache_transfer_data(
     token_value = tx_data[1]
 
     session = SessionBase.create_session()
-    tx_cache = TxCache(
-        tx_hash_hex,
-        tx['from'],
-        recipient_address,
-        tx['to'],
-        tx['to'],
-        token_value,
-        token_value,
-        session=session,
-            )
-    session.add(tx_cache)
-    session.commit()
-    cache_id = tx_cache.id
+    tx_dict = {
+            'hash': tx_hash_hex,
+            'from': tx['from'],
+            'to': recipient_address,
+            'source_token': tx['to'],
+            'destination_token': tx['to'],
+            'from_value': token_value,
+            'to_value': token_value,
+            }
+    (tx_dict, cache_id) = cache_tx_dict(tx_dict, session=session)
     session.close()
     return (tx_hash_hex, cache_id)
 
@@ -417,19 +414,16 @@ def cache_transfer_from_data(
     token_value = tx_data[2]
 
     session = SessionBase.create_session()
-    tx_cache = TxCache(
-        tx_hash_hex,
-        tx['from'],
-        recipient_address,
-        tx['to'],
-        tx['to'],
-        token_value,
-        token_value,
-        session=session,
-            )
-    session.add(tx_cache)
-    session.commit()
-    cache_id = tx_cache.id
+    tx_dict = {
+            'hash': tx_hash_hex,
+            'from': tx['from'],
+            'to': recipient_address,
+            'source_token': tx['to'],
+            'destination_token': tx['to'],
+            'from_value': token_value,
+            'to_value': token_value,
+            }
+    (tx_dict, cache_id) = cache_tx_dict(tx_dict, session=session)
     session.close()
     return (tx_hash_hex, cache_id)
 
@@ -458,19 +452,16 @@ def cache_approve_data(
     token_value = tx_data[1]
 
     session = SessionBase.create_session()
-    tx_cache = TxCache(
-        tx_hash_hex,
-        tx['from'],
-        recipient_address,
-        tx['to'],
-        tx['to'],
-        token_value,
-        token_value,
-        session=session,
-            )
-    session.add(tx_cache)
-    session.commit()
-    cache_id = tx_cache.id
+    tx_dict = {
+            'hash': tx_hash_hex,
+            'from': tx['from'],
+            'to': recipient_address,
+            'source_token': tx['to'],
+            'destination_token': tx['to'],
+            'from_value': token_value,
+            'to_value': token_value,
+            }
+    (tx_dict, cache_id) = cache_tx_dict(tx_dict, session=session)
     session.close()
     return (tx_hash_hex, cache_id)
 

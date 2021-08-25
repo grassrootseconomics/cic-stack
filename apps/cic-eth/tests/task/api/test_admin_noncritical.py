@@ -184,7 +184,7 @@ def test_admin_api_account(
 
 
     api = AdminApi(eth_rpc, queue=None, call_address=contract_roles['CONTRACT_DEPLOYER'])
-    r = api.account(default_chain_spec, agent_roles['ALICE'])
+    r = api.account(default_chain_spec, agent_roles['ALICE'], include_sender=True, include_recipient=True)
     assert len(r) == 5
 
     api = AdminApi(eth_rpc, queue=None, call_address=contract_roles['CONTRACT_DEPLOYER'])

@@ -7,10 +7,10 @@ import celery
 from celery.utils.log import get_logger
 
 # local imports
+from cic_ussd.cache import Cache, get_cached_data
 from cic_ussd.db.models.base import SessionBase
 from cic_ussd.db.models.ussd_session import UssdSession
 from cic_ussd.error import SessionNotFoundError
-from cic_ussd.session.ussd_session import UssdSession as InMemoryUssdSession
 from cic_ussd.tasks.base import CriticalSQLAlchemyTask
 
 celery_app = celery.current_app
@@ -28,46 +28,36 @@ def persist_session_to_db(external_session_id: str):
     :raises SessionNotFoundError: If the session object is not found in memory.
     :raises VersionTooLowError: If the session's version doesn't match the latest version.
     """
-    # create session
     session = SessionBase.create_session()
-
-    # get ussd session in redis cache
-    in_memory_session = InMemoryUssdSession.redis_cache.get(external_session_id)
-
-    # process persistence to db
-    if in_memory_session:
-        in_memory_session = json.loads(in_memory_session)
-        in_db_ussd_session = session.query(UssdSession).filter_by(external_session_id=external_session_id).first()
-        if in_db_ussd_session:
-            in_db_ussd_session.update(
+    cached_ussd_session = get_cached_data(external_session_id)
+    if cached_ussd_session:
+        cached_ussd_session = json.loads(cached_ussd_session)
+        ussd_session = session.query(UssdSession).filter_by(external_session_id=external_session_id).first()
+        if ussd_session:
+            ussd_session.update(
                 session=session,
-                user_input=in_memory_session.get('user_input'),
-                state=in_memory_session.get('state'),
-                version=in_memory_session.get('version'),
+                user_input=cached_ussd_session.get('user_input'),
+                state=cached_ussd_session.get('state'),
+                version=cached_ussd_session.get('version'),
             )
         else:
-            in_db_ussd_session = UssdSession(
+            ussd_session = UssdSession(
                 external_session_id=external_session_id,
-                service_code=in_memory_session.get('service_code'),
-                msisdn=in_memory_session.get('msisdn'),
-                user_input=in_memory_session.get('user_input'),
-                state=in_memory_session.get('state'),
-                version=in_memory_session.get('version'),
+                service_code=cached_ussd_session.get('service_code'),
+                msisdn=cached_ussd_session.get('msisdn'),
+                user_input=cached_ussd_session.get('user_input'),
+                state=cached_ussd_session.get('state'),
+                version=cached_ussd_session.get('version'),
             )
-
-        # handle the updating of session data for persistence to db
-        session_data = in_memory_session.get('session_data')
-
-        if session_data:
-            for key, value in session_data.items():
-                in_db_ussd_session.set_data(key=key, value=value, session=session)
-
-        session.add(in_db_ussd_session)
+        data = cached_ussd_session.get('data')
+        if data:
+            for key, value in data.items():
+                ussd_session.set_data(key=key, value=value, session=session)
+        session.add(ussd_session)
         session.commit()
         session.close()
-        InMemoryUssdSession.redis_cache.expire(external_session_id, timedelta(minutes=1))
+        Cache.store.expire(external_session_id, timedelta(minutes=1))
     else:
         session.close()
         raise SessionNotFoundError('Session does not exist!')
-
     session.close()

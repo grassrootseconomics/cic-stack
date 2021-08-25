@@ -1,0 +1,1 @@
+include *requirements.txt cic_cache/data/config/*

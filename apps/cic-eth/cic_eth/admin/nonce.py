@@ -14,7 +14,11 @@ from chainqueue.sql.query import get_tx
 from chainqueue.sql.state import set_cancel
 from chainqueue.db.models.otx import Otx
 from chainqueue.db.models.tx import TxCache
-from hexathon import strip_0x
+from hexathon import (
+        strip_0x,
+        add_0x,
+        uniform as hex_uniform,
+        )
 from potaahto.symbols import snake_and_camel
 
 # local imports
@@ -69,15 +73,17 @@ def shift_nonce(self, chainspec_dict, tx_hash_orig_hex, delta=1):
 
     set_cancel(chain_spec, strip_0x(tx['hash']), manual=True, session=session)
 
+    query_address = add_0x(hex_uniform(strip_0x(address))) # aaaaargh
     q = session.query(Otx)
     q = q.join(TxCache)
-    q = q.filter(TxCache.sender==address)
+    q = q.filter(TxCache.sender==query_address)
     q = q.filter(Otx.nonce>=nonce+delta)
     q = q.order_by(Otx.nonce.asc())
     otxs = q.all()
 
     tx_hashes = []
     txs = []
+    gas_total = 0
     for otx in otxs:
         tx_raw = bytes.fromhex(strip_0x(otx.signed_tx))
         tx_new = unpack(tx_raw, chain_spec)
@@ -89,8 +95,10 @@ def shift_nonce(self, chainspec_dict, tx_hash_orig_hex, delta=1):
         tx_new['gas_price'] += 1
         tx_new['gasPrice'] = tx_new['gas_price']
         tx_new['nonce'] -= delta
+        gas_total += tx_new['gas_price'] * tx_new['gas']
 
         logg.debug('tx_new {}'.format(tx_new))
+        logg.debug('gas running total {}'.format(gas_total))
 
         del(tx_new['hash'])
         del(tx_new['hash_unsigned'])
@@ -122,8 +130,10 @@ def shift_nonce(self, chainspec_dict, tx_hash_orig_hex, delta=1):
     s = create_check_gas_task(
          txs, 
          chain_spec,
-         tx_new['from'],
-         gas=tx_new['gas'],
+         #tx_new['from'],
+         address,
+         #gas=tx_new['gas'],
+         gas=gas_total,
          tx_hashes_hex=tx_hashes, 
          queue=queue,
         )
@@ -132,7 +142,8 @@ def shift_nonce(self, chainspec_dict, tx_hash_orig_hex, delta=1):
         'cic_eth.admin.ctrl.unlock_send',
         [
             chain_spec.asdict(),
-            tx_new['from'],
+            address,
+            #tx_new['from'],
             ],
         queue=queue,
         )
@@ -140,7 +151,8 @@ def shift_nonce(self, chainspec_dict, tx_hash_orig_hex, delta=1):
         'cic_eth.admin.ctrl.unlock_queue',
         [
             chain_spec.asdict(),
-            tx_new['from'],
+            address,
+            #tx_new['from'],
             ],
         queue=queue,
         )

@@ -1,2 +1,2 @@
 #!/bin/bash
-PYTHONPATH=. py.test --debug -vv --log-level debug -s --log-cli-level debug
+PYTHONPATH=. pytest --log-level debug -x .

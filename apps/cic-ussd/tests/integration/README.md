@@ -14,7 +14,7 @@ There are four files defining the integration tests.
 ## REQUIREMENTS
 
 In order to run the transaction tests, please ensure that the faucet amount is set to a non-zero value, ideally `50000000`
-which is the value set in the config file `.config/test/integration.ini`.
+which is the value set in the config file `config/test/integration.ini`.
 
 This implies setting the `DEV_FAUCET_AMOUNT` to a non-zero value before bringing up the contract-migration image:
 

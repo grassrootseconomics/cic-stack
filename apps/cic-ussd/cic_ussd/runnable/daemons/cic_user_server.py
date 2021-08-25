@@ -5,7 +5,7 @@ requests offering control of user account states to a staff behind the client.
 
 # standard imports
 import logging
-from urllib.parse import quote_plus
+
 
 # third-party imports
 from confini import Config
@@ -13,12 +13,11 @@ from confini import Config
 # local imports
 from cic_ussd.db import dsn_from_config
 from cic_ussd.db.models.base import SessionBase
-from cic_ussd.operations import define_response_with_content
-from cic_ussd.requests import (get_request_endpoint,
-                               get_query_parameters,
-                               process_pin_reset_requests,
-                               process_locked_accounts_requests)
+from cic_ussd.http.requests import get_request_endpoint
+from cic_ussd.http.responses import with_content_headers
+from cic_ussd.http.routes import locked_accounts, handle_pin_requests
 from cic_ussd.runnable.server_base import exportable_parser, logg
+
 args = exportable_parser.parse_args()
 
 # define log levels
@@ -28,7 +27,7 @@ elif args.v:
     logging.getLogger().setLevel(logging.INFO)
 
 # parse config
-config = Config(config_dir=args.c, env_prefix=args.env_prefix)
+config = Config(args.c, args.env_prefix)
 config.process()
 config.censor('PASSWORD', 'DATABASE')
 logg.debug('config loaded from {}:\n{}'.format(args.c, config))
@@ -56,20 +55,13 @@ def application(env, start_response):
     session = SessionBase.create_session()
 
     if get_request_endpoint(env) == '/pin':
-        phone_number = get_query_parameters(env=env, query_name='phoneNumber')
-        phone_number = quote_plus(phone_number)
-        response, message = process_pin_reset_requests(env=env, phone_number=phone_number, session=session)
-        response_bytes, headers = define_response_with_content(headers=errors_headers, response=response)
-        session.commit()
-        session.close()
-        start_response(message, headers)
-        return [response_bytes]
+        return handle_pin_requests(env, session, errors_headers, start_response)
 
-    # handle requests for locked accounts
-    response, message = process_locked_accounts_requests(env=env, session=session)
-    response_bytes, headers = define_response_with_content(headers=headers, response=response)
+    response, message = locked_accounts(env, session)
+    response_bytes, headers = with_content_headers(headers, response)
     start_response(message, headers)
     session.commit()
     session.close()
     return [response_bytes]
+
 

@@ -8,8 +8,7 @@ import sys
 import re
 import datetime
 
-# third-party imports
-import confini
+# external imports
 import celery
 from cic_eth_registry import CICRegistry
 from chainlib.chain import ChainSpec
@@ -24,7 +23,7 @@ from chainqueue.error import NotLocalTxError
 from chainqueue.sql.state import set_reserved
 
 # local imports
-import cic_eth
+import cic_eth.cli
 from cic_eth.db import SessionBase
 from cic_eth.db.enum import LockEnum
 from cic_eth.db import dsn_from_config
@@ -39,50 +38,29 @@ from cic_eth.error import (
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
+arg_flags = cic_eth.cli.argflag_std_read 
+local_arg_flags = cic_eth.cli.argflag_local_sync | cic_eth.cli.argflag_local_task
+argparser = cic_eth.cli.ArgumentParser(arg_flags)
+argparser.process_local_flags(local_arg_flags)
+args = argparser.parse_args()
 
-config_dir = os.path.join('/usr/local/etc/cic-eth')
+config = cic_eth.cli.Config.from_args(args, arg_flags, local_arg_flags)
 
-argparser = argparse.ArgumentParser(description='daemon that monitors transactions in new blocks')
-argparser.add_argument('-p', '--provider', default='http://localhost:8545', dest='p', type=str, help='rpc provider')
-argparser.add_argument('-c', type=str, default=config_dir, help='config root to use')
-argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
-argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
-argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
-argparser.add_argument('-v', help='be verbose', action='store_true')
-argparser.add_argument('-vv', help='be more verbose', action='store_true')
-args = argparser.parse_args(sys.argv[1:])
+# connect to celery
+celery_app = cic_eth.cli.CeleryApp.from_config(config)
 
-if args.v == True:
-    logging.getLogger().setLevel(logging.INFO)
-elif args.vv == True:
-    logging.getLogger().setLevel(logging.DEBUG)
-
-config_dir = os.path.join(args.c)
-os.makedirs(config_dir, 0o777, True)
-config = confini.Config(config_dir, args.env_prefix)
-config.process()
-# override args
-args_override = {
-        'CIC_CHAIN_SPEC': getattr(args, 'i'),
-        'ETH_PROVIDER': getattr(args, 'p'),
-        }
-config.dict_override(args_override, 'cli flag')
-config.censor('PASSWORD', 'DATABASE')
-config.censor('PASSWORD', 'SSL')
-logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
-
-app = celery.Celery(backend=config.get('CELERY_RESULT_URL'),  broker=config.get('CELERY_BROKER_URL'))
-
-queue = args.q
-
+# connect to database
 dsn = dsn_from_config(config)
 SessionBase.connect(dsn, debug=config.true('DATABASE_DEBUG'))
 
-chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
+chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
 
-RPCConnection.register_location(config.get('ETH_PROVIDER'), chain_spec, tag='default')
+# set up rpc
+rpc = cic_eth.cli.RPC.from_config(config)
+conn = rpc.get_default()
 
 run = True
+
 
 class DispatchSyncer:
 
@@ -123,14 +101,14 @@ class DispatchSyncer:
                     LockEnum.QUEUE,
                     tx['from'],
                     ],
-                queue=queue,
+                queue=config.get('CELERY_QUEUE'),
                 )
             s_send = celery.signature(
                     'cic_eth.eth.tx.send',
                     [
                         self.chain_spec.asdict(),
                         ], 
-                    queue=queue,
+                    queue=config.get('CELERY_QUEUE'),
                     )
             s_check.link(s_send)
             t = s_check.apply_async()

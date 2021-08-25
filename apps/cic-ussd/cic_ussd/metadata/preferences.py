@@ -1,6 +1,7 @@
 # standard imports
 
 # external imports
+import celery
 
 # local imports
 from .base import MetadataRequestsHandler

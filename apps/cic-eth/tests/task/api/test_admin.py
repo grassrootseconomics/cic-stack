@@ -290,6 +290,7 @@ def test_fix_nonce(
     txs = get_nonce_tx_cache(default_chain_spec, 3, agent_roles['ALICE'], session=init_database)
     ks = txs.keys()
     assert len(ks) == 2
+
     for k in ks:
         hsh = add_0x(k)
         otx = Otx.load(hsh, session=init_database)

@@ -29,10 +29,8 @@ class Signer:
     def __init__(self):
         self.gpg = gnupg.GPG(gnupghome=self.gpg_path)
 
-        # parse key file data
-        key_file = open(self.key_file_path, 'r')
-        self.key_data = key_file.read()
-        key_file.close()
+        with open(self.key_file_path, 'r') as key_file:
+            self.key_data = key_file.read()
 
     def get_operational_key(self):
         """

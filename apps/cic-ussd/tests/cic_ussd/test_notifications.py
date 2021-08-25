@@ -1,6 +1,6 @@
 # standard imports
 
-# third-party imports
+# external imports
 import pytest
 
 # local imports
@@ -14,19 +14,15 @@ from cic_ussd.notifications import Notifier
 def test_send_sms_notification(celery_session_worker,
                                expected_message,
                                key,
+                               mock_notifier_api,
                                preferred_language,
                                recipient,
-                               set_locale_files,
-                               mock_notifier_api):
-
+                               set_locale_files):
     notifier = Notifier()
     notifier.queue = None
-
     notifier.send_sms_notification(key=key, phone_number=recipient, preferred_language=preferred_language)
-    messages = mock_notifier_api
-
-    assert messages[0].get('message') == expected_message
-    assert messages[0].get('recipient') == recipient
+    assert mock_notifier_api.get('message') == expected_message
+    assert mock_notifier_api.get('recipient') == recipient
 
 
 

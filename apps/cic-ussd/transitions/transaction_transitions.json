@@ -12,7 +12,10 @@
   {
     "trigger": "scan_data",
     "source": "enter_transaction_recipient",
-    "dest": "exit_invalid_recipient"
+    "dest": "exit_invalid_recipient",
+    "after": [
+      "cic_ussd.state_machine.logic.transaction.save_recipient_phone_to_session_data",
+      "cic_ussd.state_machine.logic.sms.upsell_unregistered_recipient"]
   },
   {
     "trigger": "scan_data",

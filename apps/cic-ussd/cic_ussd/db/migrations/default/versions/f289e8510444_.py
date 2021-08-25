@@ -24,7 +24,7 @@ def upgrade():
                     sa.Column('preferred_language', sa.String(), nullable=True),
                     sa.Column('password_hash', sa.String(), nullable=True),
                     sa.Column('failed_pin_attempts', sa.Integer(), nullable=False),
-                    sa.Column('account_status', sa.Integer(), nullable=False),
+                    sa.Column('status', sa.Integer(), nullable=False),
                     sa.Column('created', sa.DateTime(), nullable=False),
                     sa.Column('updated', sa.DateTime(), nullable=False),
                     sa.PrimaryKeyConstraint('id')

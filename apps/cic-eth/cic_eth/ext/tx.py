@@ -12,9 +12,11 @@ from chainlib.eth.tx import (
         transaction_by_block,
         receipt,
         )
+from chainlib.eth.error import RequestMismatchException
 from chainlib.eth.block import block_by_number
 from chainlib.eth.contract import abi_decode_single
 from chainlib.eth.constant import ZERO_ADDRESS
+from chainlib.eth.tx import Tx
 from hexathon import strip_0x
 from cic_eth_registry import CICRegistry
 from cic_eth_registry.erc20 import ERC20Token
@@ -23,6 +25,8 @@ from chainqueue.db.models.otx import Otx
 from chainqueue.db.enum import StatusEnum
 from chainqueue.sql.query import get_tx_cache
 from eth_erc20 import ERC20
+from erc20_faucet import Faucet
+from potaahto.symbols import snake_and_camel
 
 # local imports
 from cic_eth.queue.time import tx_times
@@ -33,6 +37,32 @@ celery_app = celery.current_app
 logg = logging.getLogger()
 
 MAX_BLOCK_TX = 250
+
+
+def parse_transaction(chain_spec, rpc, tx, sender_address=None):
+    try:
+        transfer_data = ERC20.parse_transfer_request(tx['input'])
+        tx_address = transfer_data[0]
+        tx_token_value = transfer_data[1]
+        logg.debug('matched transfer transaction {} in block {} sender {} recipient {} value {}'.format(tx['hash'], tx['block_number'], tx['from'], tx_address, tx_token_value))
+        return (tx_address, tx_token_value)
+    except RequestMismatchException:
+        pass
+
+    try:
+        transfer_data = Faucet.parse_give_to_request(tx['input'])
+        tx_address = transfer_data[0]
+        c = Faucet(chain_spec)
+        o = c.token_amount(tx['to'], sender_address=sender_address, height=tx['block_number'])
+        r = rpc.do(o)
+        tx_token_value = Faucet.parse_token_amount(r)
+        logg.debug('matched giveto transaction {} in block {} sender {} recipient {} value {}'.format(tx['hash'], tx['block_number'], tx['from'], tx_address, tx_token_value))
+        return (tx_address, tx_token_value)
+
+    except RequestMismatchException:
+        pass
+
+    return None
 
 
 # TODO: Make this method easier to read
@@ -71,36 +101,39 @@ def list_tx_by_bloom(self, bloomspec, address, chain_spec_dict):
     tx_filter = moolb.Bloom(databitlen, bloomspec['filter_rounds'], default_data=tx_filter_data)
 
     txs = {}
+    logg.debug('processing filter with span low {} to high {}'.format(bloomspec['low'], bloomspec['high']))
     for block_height in range(bloomspec['low'], bloomspec['high']):
         block_height_bytes = block_height.to_bytes(4, 'big')
         if block_filter.check(block_height_bytes):
             logg.debug('filter matched block {}'.format(block_height))
             o = block_by_number(block_height)
             block = rpc.do(o)
-            logg.debug('block {}'.format(block))
 
             for tx_index in range(0, len(block['transactions'])):
-                composite = tx_index + block_height
-                tx_index_bytes = composite.to_bytes(4, 'big')
-                if tx_filter.check(tx_index_bytes):
+                tx_index_bytes = tx_index.to_bytes(4, 'big')
+                composite = block_height_bytes + tx_index_bytes
+                if tx_filter.check(composite):
                     logg.debug('filter matched block {} tx {}'.format(block_height, tx_index))
 
+                    o = transaction_by_block(block['hash'], tx_index)
                     try:
-                        #tx = c.w3.eth.getTransactionByBlock(block_height, tx_index)
-                        o = transaction_by_block(block['hash'], tx_index)
                         tx = rpc.do(o)
                     except Exception as e:
                         logg.debug('false positive on block {} tx {} ({})'.format(block_height, tx_index, e))
                         continue
+
+                    tx = Tx(tx).src()
+
+                    logg.debug('got tx {}'.format(tx))
                     tx_address = None
                     tx_token_value = 0
-                    try:
-                        transfer_data = ERC20.parse_transfer_request(tx['data'])
-                        tx_address = transfer_data[0]
-                        tx_token_value = transfer_data[1]
-                    except ValueError:
-                        logg.debug('not a transfer transaction, skipping {}'.format(tx))
+
+                    transfer_data = parse_transaction(chain_spec, rpc, tx, sender_address=BaseTask.call_address)
+                    if transfer_data == None:
                         continue
+                    tx_address = transfer_data[0]
+                    tx_token_value = transfer_data[1]
+                    
                     if address == tx_address:
                         status = StatusEnum.SENT
                         try:
@@ -134,6 +167,7 @@ def list_tx_by_bloom(self, bloomspec, address, chain_spec_dict):
                         txs[tx['hash']] = tx_r
                         break
     return txs
+
 
 
 # TODO: Surely it must be possible to optimize this

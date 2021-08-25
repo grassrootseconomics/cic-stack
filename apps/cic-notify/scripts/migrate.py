@@ -35,9 +35,10 @@ elif args.v:
 
 config = confini.Config(args.c, args.env_prefix)
 config.process()
+config.censor('API_KEY', 'AFRICASTALKING')
+config.censor('API_USERNAME', 'AFRICASTALKING')
 config.censor('PASSWORD', 'DATABASE')
-#config.censor('PASSWORD', 'SSL')
-logg.debug('config:\n{}'.format(config))
+logg.debug('config loaded from {}:\n{}'.format(args.c, config))
 
 migrations_dir = os.path.join(args.migrations_dir, config.get('DATABASE_ENGINE'))
 if not os.path.isdir(migrations_dir):

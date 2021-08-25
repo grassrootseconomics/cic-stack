@@ -140,8 +140,11 @@ class TrafficRouter:
         for k in keys:
             if len(k) > 8 and k[:8] == 'TRAFFIC_':
                 v = int(dct.get(k))
-                self.add(k[8:].lower(), v)
-                logg.debug('found traffic item {} weight {}'.format(k, v))
+                if v == 0:
+                    logg.debug('skipping traffic item {} with weight {}'.format(k, v))
+                else:
+                    logg.debug('found traffic item {} weight {}'.format(k, v))
+                    self.add(k[8:].lower(), v)
 
 
 # TODO: This will not work well with big networks. The provisioner should use lazy loading and LRU instead.

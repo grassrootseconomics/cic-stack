@@ -73,18 +73,20 @@ sw:
       1. Kingereza
       2. Kiswahili
       0. Nyuma
+    retry_pin_entry: |-
+      CON Nambari uliyoweka si sahihi, jaribu tena. Una majaribio %{remaining_attempts} yaliyobaki.
+      0. Back
     enter_current_pin:
       first: |-
         CON Weka nambari ya siri.
         0. Nyuma
       retry: |-
-        CON Weka nambari ya siri. Una majaribio %{remaining_attempts} yaliyobaki.
-        0. Back
+        %{retry_pin_entry}
     enter_new_pin: |-
       CON Weka nambari ya siri mpya
       0. Nyuma
     new_pin_confirmation: |-
-      CON Weka PIN yako tena
+      CON Weka nambari yako ya siri tena
       0. Nyuma
     transaction_pin_authorization:
       first: |-
@@ -92,67 +94,58 @@ sw:
         Tafadhali weka nambari yako ya siri kudhibitisha.
         0. Nyuma
       retry: |-
-        CON Weka nambari ya siri. Una majaribio %{remaining_attempts} yaliyobaki.
-        0. Nyuma
+        %{retry_pin_entry}
     display_metadata_pin_authorization:
       first: |-
         CON Tafadhali weka PIN yako
         0. Nyuma
       retry: |-
-        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
-        0. Nyuma
+        %{retry_pin_entry}
     account_balances_pin_authorization:
       first: |-
         CON Tafadhali weka PIN yako kuona salio.
         0. Nyuma
       retry: |-
-        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
-        0. Nyuma
+        %{retry_pin_entry}
     account_statement_pin_authorization:
       first: |-
         CON Tafadhali weka PIN yako kuona taarifa ya matumizi.
         0. Nyuma
       retry: |-
-        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
-        0. Nyuma
+        %{retry_pin_entry}
     name_edit_pin_authorization:
       first: |-
         CON Tafadhali weka PIN yako
         0. Nyuma
       retry: |-
-        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
-        0. Nyuma
+        %{retry_pin_entry}
     dob_edit_pin_authorization:
       first: |-
         CON Tafadhali weka PIN yako
         0. Nyuma
       retry: |-
-        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
-        0. Nyuma
+        %{retry_pin_entry}
     gender_edit_pin_authorization:
       first: |-
         CON Tafadhali weka PIN yako
         0. Nyuma
       retry: |-
-        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
-        0. Nyuma
+        %{retry_pin_entry}
     location_edit_pin_authorization:
       first: |-
         CON Tafadhali weka PIN yako
         0. Nyuma
       retry: |-
-        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
-        0. Nyuma
+        %{retry_pin_entry}
     products_edit_pin_authorization:
       first: |-
         CON Tafadhali weka PIN yako
         0. Nyuma
       retry: |-
-        CON Tafadhali weka PIN yako. Una majaribio %{remaining_attempts} yaliyobaki.
-        0. Nyuma
+        %{retry_pin_entry}
     account_balances: |-
       CON Salio zako ni zifuatazo:
-        salio: %{operational_balance} %{token_symbol}
+        salio: %{available_balance} %{token_symbol}
         ushuru: %{tax} %{token_symbol}
         tuzo: %{bonus} %{token_symbol}
       0. Nyuma
@@ -213,4 +206,4 @@ sw:
       00. Nyuma
       99. Ondoka
     account_creation_prompt: |-
-      Akaunti yako ya Sarafu inatayarishwa. Utapokea ujumbe wa SMS akaunti yako ikiwa tayari.
+      END Akaunti yako ya Sarafu inatayarishwa. Utapokea ujumbe wa SMS akaunti yako ikiwa tayari.

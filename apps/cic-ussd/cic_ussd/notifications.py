@@ -21,9 +21,6 @@ class Notifier:
         :param preferred_language: A notification recipient's preferred language.
         :type preferred_language: str
         """
-        if self.queue is False:
-            notify_api = Api()
-        else:
-            notify_api = Api(queue=self.queue)
+        notify_api = Api() if self.queue is False else Api(queue=self.queue)
         message = translation_for(key=key, preferred_language=preferred_language, **kwargs)
         notify_api.sms(recipient=phone_number, message=message)
