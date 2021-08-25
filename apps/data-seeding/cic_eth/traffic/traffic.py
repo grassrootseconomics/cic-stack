@@ -77,9 +77,6 @@ def main():
     celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
     # set up registry
-    #rpc.setup(config.get('CHAIN_SPEC'), config.get('RPC_HTTP_PROVIDER')) # replace with HTTPConnection when registry has been so refactored
-    #conn = EthHTTPConnection(config.get('RPC_HTTP_PROVIDER'))
-    #registry = registry.init_legacy(config, w3)
     CICRegistry.address = config.get('CIC_REGISTRY_ADDRESS')
     registry = CICRegistry(chain_spec, conn)
 
@@ -113,8 +110,6 @@ def main():
     account_cache = AccountRegistryCache(chain_spec, account_registry)
    
     # Set up provisioner for common task input data
-    #TrafficProvisioner.oracles['token']= common.registry.TokenOracle(w3, config.get('CHAIN_SPEC'), registry)
-    #TrafficProvisioner.oracles['account'] = common.registry.AccountsOracle(w3, config.get('CHAIN_SPEC'), registry)
     TrafficProvisioner.oracles['token'] = token_cache
     TrafficProvisioner.oracles['account'] = account_cache
     
