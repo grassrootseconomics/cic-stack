@@ -1,7 +1,7 @@
 alembic==1.4.2
 bcrypt==3.2.0
 celery==4.4.7
-cic-eth[services]~=0.12.4a3
+cic-eth[services]~=0.12.4a4
 cic-notify~=0.4.0a10
 cic-types~=0.1.0a14
 confini>=0.4.1a1,<0.5.0
