@@ -46,6 +46,7 @@ def test_set(
         tx_hash_hex,
         tx_signed_raw_hex,
         )
+    otx.block = 666
     init_database.add(otx)
     init_database.commit()
 
@@ -74,7 +75,6 @@ def test_set(
     assert (tx_stored.destination_token_address == ZERO_ADDRESS)
     assert (tx_stored.from_value == tx['value'])
     assert (tx_stored.to_value == to_value)
-    assert (tx_stored.block_number == 666)
     assert (tx_stored.tx_index == 13)
 
 
