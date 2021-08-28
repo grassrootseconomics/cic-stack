@@ -38,7 +38,7 @@ build-push:
 
 deploy-k8s-dev:
   stage: deploy
-  image: k8s.gcr.io/kustomize/kustomize:v3.8.7
+  image: line/kubectl-kustomize
   variables:
     CI_DEBUG_TRACE: "true"
   script:
