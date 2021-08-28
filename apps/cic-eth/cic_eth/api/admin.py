@@ -32,7 +32,6 @@ from chainqueue.db.enum import (
         status_str,
     )
 from chainqueue.error import TxStateChangeError
-from chainqueue.sql.query import get_tx
 from eth_erc20 import ERC20
 
 # local imports
@@ -40,6 +39,7 @@ from cic_eth.db.models.base import SessionBase
 from cic_eth.db.models.role import AccountRole
 from cic_eth.db.models.nonce import Nonce
 from cic_eth.error import InitializationError
+from cic_eth.queue.query import get_tx_local
 
 app = celery.current_app
 
@@ -284,7 +284,7 @@ class AdminApi:
         tx_hash_hex = None
         session = SessionBase.create_session()
         for k in txs.keys():
-            tx_dict = get_tx(chain_spec, k, session=session)
+            tx_dict = get_tx_local(chain_spec, k, session=session)
             if tx_dict['nonce'] == nonce:
                 tx_hash_hex = k
         session.close()

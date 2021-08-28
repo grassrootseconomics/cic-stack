@@ -6,6 +6,7 @@ import celery
 from cic_eth.task import CriticalSQLAlchemyTask
 from cic_eth.db import SessionBase
 from cic_eth.db.models.lock import Lock
+from cic_eth.encode import tx_normalize
 
 celery_app = celery.current_app
 
@@ -21,6 +22,9 @@ def get_lock(address=None):
     :returns: List of locks
     :rtype: list of dicts
     """
+    if address != None:
+        address = tx_normalize.wallet_address(address)
+
     session = SessionBase.create_session()
     q = session.query(
             Lock.date_created,

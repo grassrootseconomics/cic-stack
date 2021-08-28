@@ -15,10 +15,9 @@ RUN --mount=type=cache,mode=0755,target=/root/.npm \
 COPY webpack.config.js .
 COPY tsconfig.json . 
 ## required to build the cic-client-meta module
-COPY src/ src/
-COPY scripts/ scripts/
-COPY tests/ tests/
+COPY . .
 COPY tests/*.asc /root/pgp/
+
 
 ## copy runtime configs
 COPY .config/ /usr/local/etc/cic-meta/

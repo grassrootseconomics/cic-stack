@@ -22,10 +22,11 @@ from hexathon import (
         strip_0x,
         add_0x,
         )
-from chainqueue.sql.query import get_account_tx
 
 # local imports
 from cic_eth.runnable.daemons.filters.register import RegistrationFilter
+from cic_eth.encode import tx_normalize
+from cic_eth.queue.query import get_account_tx_local
 
 logg = logging.getLogger()
 
@@ -79,7 +80,7 @@ def test_register_filter(
     t.get_leaf()
     assert t.successful()
 
-    gift_txs = get_account_tx(default_chain_spec.asdict(), agent_roles['ALICE'], as_sender=True, session=init_database)
+    gift_txs = get_account_tx_local(default_chain_spec, agent_roles['ALICE'], as_sender=True, session=init_database)
     ks = list(gift_txs.keys())
     assert len(ks) == 1
 

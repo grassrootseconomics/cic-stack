@@ -1,18 +1,39 @@
 include:
-  - local: 'ci_templates/.cic-template.yml'
-  - local: 'apps/contract-migration/.gitlab-ci.yml'
+  #- local: 'ci_templates/.cic-template.yml' #kaniko build templates
+  # these includes are app specific unit tests
   - local: 'apps/cic-eth/.gitlab-ci.yml'
   - local: 'apps/cic-ussd/.gitlab-ci.yml'
   - local: 'apps/cic-notify/.gitlab-ci.yml'
   - local: 'apps/cic-meta/.gitlab-ci.yml'
   - local: 'apps/cic-cache/.gitlab-ci.yml'
-  - local: 'apps/data-seeding/.gitlab-ci.yml'
+    #- local: 'apps/contract-migration/.gitlab-ci.yml'
+    #- local: 'apps/data-seeding/.gitlab-ci.yml'
 
 stages:
   - build
   - test
   - deploy 
 
+image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/docker-with-compose:latest  
+
+variables:
+  DOCKER_BUILDKIT: "1"
+  COMPOSE_DOCKER_CLI_BUILD: "1" 
+  CI_DEBUG_TRACE: "true"
+
+before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+
+# runs on protected branches and pushes to repo
+build-push:
+  stage: build
+  tags:
+    - integration
+  script:
+    - TAG=$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA sh ./scripts/build-push.sh
+  rules:
+  - if: $CI_COMMIT_REF_PROTECTED == "true"
+    when: always
 
 deploy-k8s-dev:
   stage: deploy

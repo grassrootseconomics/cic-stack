@@ -4,12 +4,12 @@ import logging
 
 # third-party imports
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey
-from chainlib.eth.constant import ZERO_ADDRESS
 from chainqueue.db.models.tx import TxCache
 from chainqueue.db.models.otx import Otx
 
 # local imports
 from cic_eth.db.models.base import SessionBase
+from cic_eth.encode  import ZERO_ADDRESS_NORMAL
 
 logg = logging.getLogger()
 
@@ -37,7 +37,7 @@ class Lock(SessionBase):
 
 
     @staticmethod
-    def set(chain_str, flags, address=ZERO_ADDRESS, session=None, tx_hash=None):
+    def set(chain_str, flags, address=ZERO_ADDRESS_NORMAL, session=None, tx_hash=None):
         """Sets flags associated with the given address and chain.
 
         If a flags entry does not exist it is created.
@@ -90,7 +90,7 @@ class Lock(SessionBase):
 
 
     @staticmethod
-    def reset(chain_str, flags, address=ZERO_ADDRESS, session=None):
+    def reset(chain_str, flags, address=ZERO_ADDRESS_NORMAL, session=None):
         """Resets flags associated with the given address and chain.
 
         If the resulting flags entry value is 0, the entry will be deleted.
@@ -134,7 +134,7 @@ class Lock(SessionBase):
 
 
     @staticmethod
-    def check(chain_str, flags, address=ZERO_ADDRESS, session=None):
+    def check(chain_str, flags, address=ZERO_ADDRESS_NORMAL, session=None):
         """Checks whether all given flags are set for given address and chain. 
 
         Does not validate the address against any other tables or components.

@@ -15,6 +15,7 @@ from chainqueue.db.enum import (
 # local imports
 from cic_eth.db import SessionBase
 from cic_eth.task import CriticalSQLAlchemyTask
+from cic_eth.encode import tx_normalize
 
 celery_app = celery.current_app
 
@@ -22,6 +23,9 @@ logg = logging.getLogger()
 
 
 def __balance_outgoing_compatible(token_address, holder_address):
+    token_address = tx_normalize.executable_address(token_address)
+    holder_address = tx_normalize.wallet_address(holder_address)
+
     session = SessionBase.create_session()
     q = session.query(TxCache.from_value)
     q = q.join(Otx)
@@ -58,6 +62,9 @@ def balance_outgoing(tokens, holder_address, chain_spec_dict):
 
 
 def __balance_incoming_compatible(token_address, receiver_address):
+    token_address = tx_normalize.executable_address(token_address)
+    receiver_address = tx_normalize.wallet_address(receiver_address)
+
     session = SessionBase.create_session()
     q = session.query(TxCache.to_value)
     q = q.join(Otx)
@@ -110,7 +117,7 @@ def assemble_balances(balances_collection):
     logg.debug('received collection {}'.format(balances_collection))
     for c in balances_collection:
         for b in c:
-            address = b['address']
+            address = tx_normalize.executable_address(b['address'])
             if tokens.get(address) == None:
                 tokens[address] = {
                     'address': address,

@@ -1,52 +1,16 @@
-.cic_ussd_variables:
-    variables:
-        APP_NAME: cic-ussd
-        DOCKERFILE_PATH: docker/Dockerfile_ci
-        CONTEXT: apps/$APP_NAME
-
-build-mr-cic-ussd:
-    extends:
-        - .py_build_merge_request
-        - .cic_ussd_variables
-    rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-          - apps/cic-ussd/**/*
-      when: always
-
-test-mr-cic-ussd:
-    stage: test
-    extends:
-        - .cic_ussd_variables
-    cache:
-        key:
-            files:
-                - test_requirements.txt
-        paths:
-        - /root/.cache/pip
-    image: $MR_IMAGE_TAG
-    script:
-        - cd apps/$APP_NAME/
-        - >
-          pip install --extra-index-url https://pip.grassrootseconomics.net:8433
-          --extra-index-url https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple
-          -r test_requirements.txt 
-        - export PYTHONPATH=. && pytest -x --cov=cic_ussd --cov-fail-under=90 --cov-report term-missing tests/cic_ussd
-    needs: ["build-mr-cic-ussd"]
-    rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-          - apps/$APP_NAME/**/*
-      when: always
-
-build-push-cic-ussd:
-    extends:
-        - .py_build_push
-        - .cic_ussd_variables
-    rules:
-    - if:  $CI_COMMIT_BRANCH == "master"
-      changes:
-          - apps/cic-ussd/**/*
-      when: always
-
-
+build-test-cic-ussd:
+  stage: test
+  tags:
+  - integration
+  variables:
+    APP_NAME: cic-ussd
+    MR_IMAGE_TAG: mr-$APP_NAME-$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
+  script:
+    - cd apps/cic-ussd
+    - docker build -t $MR_IMAGE_TAG -f docker/Dockerfile . 
+    - docker run $MR_IMAGE_TAG sh docker/run_tests.sh
+  rules:
+  - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    changes:
+        - apps/$APP_NAME/**/*
+    when: always

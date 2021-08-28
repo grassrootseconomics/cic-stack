@@ -4,8 +4,8 @@ import datetime
 # external imports
 import celery
 from chainlib.chain import ChainSpec
-from chainlib.eth.tx import unpack
 import chainqueue.sql.query
+from chainlib.eth.tx import unpack
 from chainqueue.db.enum import (
         StatusEnum,
         is_alive,
@@ -20,6 +20,10 @@ from cic_eth.db.enum import LockEnum
 from cic_eth.task import CriticalSQLAlchemyTask
 from cic_eth.db.models.lock import Lock
 from cic_eth.db.models.base import SessionBase
+from cic_eth.encode import (
+        tx_normalize,
+        unpack_normal,
+        )
 
 celery_app = celery.current_app
 
@@ -27,49 +31,76 @@ celery_app = celery.current_app
 @celery_app.task(base=CriticalSQLAlchemyTask)
 def get_tx_cache(chain_spec_dict, tx_hash):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
-    session = SessionBase.create_session()
+    return get_tx_cache_local(chain_spec, tx_hash)
+
+
+def get_tx_cache_local(chain_spec, tx_hash, session=None):
+    tx_hash = tx_normalize.tx_hash(tx_hash)
+    session = SessionBase.bind_session(session)
     r = chainqueue.sql.query.get_tx_cache(chain_spec, tx_hash, session=session)
-    session.close()
+    SessionBase.release_session(session)
     return r
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
 def get_tx(chain_spec_dict, tx_hash):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
-    session = SessionBase.create_session()
+    return get_tx_local(chain_spec, tx_hash)
+
+
+def get_tx_local(chain_spec, tx_hash, session=None):
+    tx_hash = tx_normalize.tx_hash(tx_hash)
+    session = SessionBase.bind_session(session)
     r =  chainqueue.sql.query.get_tx(chain_spec, tx_hash, session=session)
-    session.close()
+    SessionBase.release_session(session)
     return r
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
 def get_account_tx(chain_spec_dict, address, as_sender=True, as_recipient=True, counterpart=None):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
-    session = SessionBase.create_session()
+    return get_account_tx_local(chain_spec, address, as_sender=as_sender, as_recipient=as_recipient, counterpart=counterpart)
+
+
+def get_account_tx_local(chain_spec, address, as_sender=True, as_recipient=True, counterpart=None, session=None):
+    address = tx_normalize.wallet_address(address)
+    session = SessionBase.bind_session(session)
     r = chainqueue.sql.query.get_account_tx(chain_spec, address, as_sender=True, as_recipient=True, counterpart=None, session=session)
-    session.close()
+    SessionBase.release_session(session)
     return r
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
-def get_upcoming_tx_nolock(chain_spec_dict, status=StatusEnum.READYSEND, not_status=None, recipient=None, before=None, limit=0, session=None):
+def get_upcoming_tx_nolock(chain_spec_dict, status=StatusEnum.READYSEND, not_status=None, recipient=None, before=None, limit=0):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
+    return get_upcoming_tx_nolock_local(chain_spec, status=status, not_status=not_status, recipient=recipient, before=before, limit=limit)
+
+
+def get_upcoming_tx_nolock_local(chain_spec, status=StatusEnum.READYSEND, not_status=None, recipient=None, before=None, limit=0, session=None):
+    recipient = tx_normalize.wallet_address(recipient)
     session = SessionBase.create_session()
-    r = chainqueue.sql.query.get_upcoming_tx(chain_spec, status, not_status=not_status, recipient=recipient, before=before, limit=limit, session=session, decoder=unpack)
+    r = chainqueue.sql.query.get_upcoming_tx(chain_spec, status, not_status=not_status, recipient=recipient, before=before, limit=limit, session=session, decoder=unpack_normal)
     session.close()
     return r
 
 
 def get_status_tx(chain_spec, status, not_status=None, before=None, exact=False, limit=0, session=None):
-    return chainqueue.sql.query.get_status_tx_cache(chain_spec, status, not_status=not_status, before=before, exact=exact, limit=limit, session=session, decoder=unpack)
+    return chainqueue.sql.query.get_status_tx_cache(chain_spec, status, not_status=not_status, before=before, exact=exact, limit=limit, session=session, decoder=unpack_normal)
 
 
 def get_paused_tx(chain_spec, status=None, sender=None, session=None, decoder=None):
-    return chainqueue.sql.query.get_paused_tx_cache(chain_spec, status=status, sender=sender, session=session, decoder=unpack)
+    sender = tx_normalize.wallet_address(sender)
+    return chainqueue.sql.query.get_paused_tx_cache(chain_spec, status=status, sender=sender, session=session, decoder=unpack_normal)
 
 
 def get_nonce_tx(chain_spec, nonce, sender):
-    return get_nonce_tx_cache(chain_spec, nonce, sender, decoder=unpack)
+    sender = tx_normalize.wallet_address(sender)
+    return get_nonce_tx_local(chain_spec, nonce, sender)
+
+
+def get_nonce_tx_local(chain_spec, nonce, sender, session=None):
+    sender = tx_normalize.wallet_address(sender)
+    return chainqueue.sql.query.get_nonce_tx_cache(chain_spec, nonce, sender, decoder=unpack_normal, session=session)
 
 
 def get_upcoming_tx(chain_spec, status=StatusEnum.READYSEND, not_status=None, recipient=None, before=None, limit=0, session=None):
@@ -91,6 +122,8 @@ def get_upcoming_tx(chain_spec, status=StatusEnum.READYSEND, not_status=None, re
     :returns: Transactions
     :rtype: dict, with transaction hash as key, signed raw transaction as value
     """
+    if recipient != None:
+        recipient = tx_normalize.wallet_address(recipient)
     session = SessionBase.bind_session(session)
     q_outer = session.query(
             TxCache.sender,

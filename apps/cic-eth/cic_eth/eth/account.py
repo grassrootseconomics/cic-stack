@@ -14,10 +14,7 @@ from chainlib.eth.sign import (
         sign_message,
         )
 from chainlib.eth.address import to_checksum_address
-from chainlib.eth.tx import (
-        TxFormat,
-        unpack,
-        )
+from chainlib.eth.tx import TxFormat
 from chainlib.chain import ChainSpec
 from chainlib.error import JSONRPCException
 from eth_accounts_index.registry import AccountRegistry
@@ -48,6 +45,10 @@ from cic_eth.eth.nonce import (
         )
 from cic_eth.queue.tx import (
         register_tx,
+        )
+from cic_eth.encode import (
+        unpack_normal,
+        ZERO_ADDRESS_NORMAL,
         )
 
 logg = logging.getLogger()
@@ -295,17 +296,17 @@ def cache_gift_data(
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
 
     tx_signed_raw_bytes = bytes.fromhex(strip_0x(tx_signed_raw_hex))
-    tx = unpack(tx_signed_raw_bytes, chain_spec)
+    tx = unpack_normal(tx_signed_raw_bytes, chain_spec)
     tx_data = Faucet.parse_give_to_request(tx['data'])
 
     session = self.create_session()
 
     tx_dict = {
-            'hash': tx_hash_hex,
+            'hash': tx['hash'],
             'from': tx['from'],
             'to': tx['to'],
-            'source_token': ZERO_ADDRESS,
-            'destination_token': ZERO_ADDRESS,
+            'source_token': ZERO_ADDRESS_NORMAL,
+            'destination_token': ZERO_ADDRESS_NORMAL,
             'from_value': 0,
             'to_value': 0,
             }
@@ -334,17 +335,17 @@ def cache_account_data(
     :rtype: tuple
     """
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
-    tx_signed_raw_bytes = bytes.fromhex(tx_signed_raw_hex[2:])
-    tx = unpack(tx_signed_raw_bytes, chain_spec)
+    tx_signed_raw_bytes = bytes.fromhex(strip_0x(tx_signed_raw_hex))
+    tx = unpack_normal(tx_signed_raw_bytes, chain_spec)
     tx_data = AccountsIndex.parse_add_request(tx['data'])
 
     session = SessionBase.create_session()
     tx_dict = {
-            'hash': tx_hash_hex,
+            'hash': tx['hash'],
             'from': tx['from'],
             'to': tx['to'],
-            'source_token': ZERO_ADDRESS,
-            'destination_token': ZERO_ADDRESS,
+            'source_token': ZERO_ADDRESS_NORMAL,
+            'destination_token': ZERO_ADDRESS_NORMAL,
             'from_value': 0,
             'to_value': 0,
             }

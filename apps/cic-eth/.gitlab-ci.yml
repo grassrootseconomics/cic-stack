@@ -1,52 +1,16 @@
-.cic_eth_variables:
-    variables:
-        APP_NAME: cic-eth
-        DOCKERFILE_PATH: docker/Dockerfile_ci
-        CONTEXT: apps/$APP_NAME
-
-build-mr-cic-eth:
-    extends:
-        - .cic_eth_variables
-        - .py_build_target_dev
-    rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-          - apps/cic-eth/**/*
-      when: always
-
-test-mr-cic-eth:
-    stage: test
-    extends:
-        - .cic_eth_variables
-    cache:
-        key:
-            files:
-                - test_requirements.txt
-        paths:
-        - /root/.cache/pip
-    image: $MR_IMAGE_TAG
-    script:
-        - cd apps/$APP_NAME/
-        - >
-          pip install --extra-index-url https://pip.grassrootseconomics.net:8433
-          --extra-index-url https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple
-          -r admin_requirements.txt
-          -r services_requirements.txt
-          -r test_requirements.txt 
-        - export PYTHONPATH=. && pytest -x --cov=cic_eth --cov-fail-under=90 --cov-report term-missing tests
-    needs: ["build-mr-cic-eth"]
-    rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-          - apps/cic-eth/**/*
-      when: always
-
-build-push-cic-eth:
-    extends:
-        - .py_build_push
-        - .cic_eth_variables
-    rules:
-    - if:  $CI_COMMIT_BRANCH == "master"
-      changes:
-          - apps/cic-eth/**/*
-      when: always
+build-test-cic-eth:
+  stage: test
+  tags:
+    - integration
+  variables:
+    APP_NAME: cic-eth
+    MR_IMAGE_TAG: mr-$APP_NAME-$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
+  script:
+    - cd apps/cic-eth
+    - docker build -t $MR_IMAGE_TAG -f docker/Dockerfile . 
+    - docker run $MR_IMAGE_TAG sh docker/run_tests.sh
+      #rules:
+      #- if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      #  changes:
+      #      - apps/$APP_NAME/**/*
+      #  when: always

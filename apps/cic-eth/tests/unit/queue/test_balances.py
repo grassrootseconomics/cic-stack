@@ -13,6 +13,7 @@ from cic_eth.queue.balance import (
         balance_incoming,
         assemble_balances,
         )
+from cic_eth.encode import tx_normalize
 
 logg = logging.getLogger()
 
@@ -51,8 +52,8 @@ def test_assemble():
     r = assemble_balances(b)
     logg.debug('r {}'.format(r))
 
-    assert r[0]['address'] == token_foo
-    assert r[1]['address'] == token_bar
+    assert r[0]['address'] == tx_normalize.executable_address(token_foo)
+    assert r[1]['address'] == tx_normalize.executable_address(token_bar)
     assert r[0].get('balance_foo') != None
     assert r[0].get('balance_bar') != None
     assert r[1].get('balance_baz') != None
@@ -74,11 +75,11 @@ def test_outgoing_balance(
     token_address = '0x' + os.urandom(20).hex()
     sender = '0x' + os.urandom(20).hex()
     txc = TxCache(
-            tx_hash,
-            sender,
-            recipient,
-            token_address,
-            token_address,
+            tx_normalize.tx_hash(tx_hash),
+            tx_normalize.wallet_address(sender),
+            tx_normalize.wallet_address(recipient),
+            tx_normalize.executable_address(token_address),
+            tx_normalize.executable_address(token_address),
             1000,
             1000,
             session=init_database,
@@ -125,11 +126,11 @@ def test_incoming_balance(
     token_address = '0x' + os.urandom(20).hex()
     sender = '0x' + os.urandom(20).hex()
     txc = TxCache(
-            tx_hash,
-            sender,
-            recipient,
-            token_address,
-            token_address,
+            tx_normalize.tx_hash(tx_hash),
+            tx_normalize.wallet_address(sender),
+            tx_normalize.wallet_address(recipient),
+            tx_normalize.executable_address(token_address),
+            tx_normalize.executable_address(token_address),
             1000,
             1000,
             session=init_database,

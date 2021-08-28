@@ -21,7 +21,6 @@ from chainlib.eth.constant import (
         MINIMUM_FEE_UNITS,
         MINIMUM_FEE_PRICE,
         )
-from chainqueue.sql.tx import create as queue_create
 from chainqueue.sql.query import get_tx
 from chainqueue.db.enum import StatusBits
 from chainqueue.sql.state import (
@@ -35,6 +34,7 @@ from hexathon import strip_0x
 # local imports
 from cic_eth.eth.gas import cache_gas_data
 from cic_eth.error import OutOfGasError
+from cic_eth.queue.tx import queue_create
 
 logg = logging.getLogger()
 

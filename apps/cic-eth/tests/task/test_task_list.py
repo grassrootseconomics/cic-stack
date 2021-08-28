@@ -51,6 +51,7 @@ def test_ext_tx_collate(
         tx_hash_hex,
         tx_signed_raw_hex,
         )
+    otx.block = 666
     init_database.add(otx)
     init_database.commit()
 
