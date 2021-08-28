@@ -20,24 +20,25 @@ variables:
   DOCKER_BUILDKIT: "1"
   COMPOSE_DOCKER_CLI_BUILD: "1" 
   CI_DEBUG_TRACE: "true"
+  TAG: $CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
 
-before_script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-
+     
 # runs on protected branches and pushes to repo
 build-push:
   stage: build
   tags:
     - integration
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
-    - TAG=$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA sh ./scripts/build-push.sh
+    - TAG=$TAG sh ./scripts/build-push.sh
   rules:
   - if: $CI_COMMIT_REF_PROTECTED == "true"
     when: always
 
 deploy-k8s-dev:
   stage: deploy
-  image: dtzar/helm-kubectl
+  image: k8s.gcr.io/kustomize/kustomize:v3.8.7
   variables:
     CI_DEBUG_TRACE: "true"
   script:
@@ -55,12 +56,12 @@ deploy-k8s-dev:
     - kubectl delete hr redis && kubectl delete pvc -l 'app=redis'
     - kubectl apply -f kubernetes/eth-node/ -f kubernetes/postgresql/ -f kubernetes/redis/
     - echo "deploy and run database migrations..."
-    - kubectl apply -f kubernetes/cic-auth-proxy
-    - kubectl apply -f kubernetes/cic-cache
-    - kubectl apply -f kubernetes/cic-eth
-    - kubectl apply -f kubernetes/cic-meta
-    - kubectl apply -f kubernetes/cic-notify
-    - kubectl apply -f kubernetes/cic-staff-client
-    - kubectl apply -f kubernetes/cic-ussd
+      # set image based on deploy tag
+    - bash ./scripts/set-image.sh
+    - kubectl apply -f . 
     - echo "run contract migrations..."
     - kubectl apply -f kubernetes/contract-migration/contract-migration-job.yaml
+  rules:
+  - if: $CI_COMMIT_REF_PROTECTED == "true"
+    when: always
+
