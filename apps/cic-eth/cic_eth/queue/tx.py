@@ -32,12 +32,16 @@ from cic_eth.db import SessionBase
 from cic_eth.db.enum import LockEnum
 from cic_eth.task import CriticalSQLAlchemyTask
 from cic_eth.error import LockedError
+from cic_eth.encode import tx_normalize
 
 celery_app = celery.current_app
 logg = logging.getLogger()
 
 
 def queue_create(chain_spec, nonce, holder_address, tx_hash, signed_tx, session=None):
+    tx_hash = tx_normalize.tx_hash(tx_hash)
+    signed_tx = tx_normalize.tx_hash(signed_tx)
+    holder_address = tx_normalize.wallet_address(holder_address)
     session = SessionBase.bind_session(session)
 
     lock = Lock.check_aggregate(str(chain_spec), LockEnum.QUEUE, holder_address, session=session) 
@@ -67,6 +71,8 @@ def register_tx(tx_hash_hex, tx_signed_raw_hex, chain_spec, queue, cache_task=No
     :returns: Tuple; Transaction hash, signed raw transaction data
     :rtype: tuple
     """
+    tx_hash_hex = tx_normalize.tx_hash(tx_hash_hex)
+    tx_signed_raw_hex = tx_normalize.tx_hash(tx_signed_raw_hex)
     logg.debug('adding queue tx {}:{} -> {}'.format(chain_spec, tx_hash_hex, tx_signed_raw_hex))
     tx_signed_raw = bytes.fromhex(strip_0x(tx_signed_raw_hex))
     tx = unpack(tx_signed_raw, chain_spec)

@@ -21,6 +21,7 @@ from cic_eth.db.models.lock import Lock
 from cic_eth.queue.query import get_upcoming_tx
 from cic_eth.queue.tx import register_tx
 from cic_eth.eth.gas import cache_gas_data
+from cic_eth.encode import tx_normalize
 
 # test imports
 from tests.util.nonce import StaticNonceOracle
@@ -39,8 +40,8 @@ def test_upcoming_with_lock(
     gas_oracle = RPCGasOracle(eth_rpc)
     c = Gas(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
 
-    alice_normal = add_0x(hex_uniform(strip_0x(agent_roles['ALICE'])))
-    bob_normal = add_0x(hex_uniform(strip_0x(agent_roles['BOB'])))
+    alice_normal = tx_normalize.wallet_address(agent_roles['ALICE'])
+    bob_normal = tx_normalize.wallet_address(agent_roles['BOB'])
 
     (tx_hash_hex, tx_rpc) = c.create(alice_normal, bob_normal, 100 * (10 ** 6))
     tx_signed_raw_hex = tx_rpc['params'][0]

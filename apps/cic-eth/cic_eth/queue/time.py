@@ -13,6 +13,7 @@ from chainqueue.error import NotLocalTxError
 # local imports
 from cic_eth.task import CriticalSQLAlchemyAndWeb3Task
 from cic_eth.db.models.base import SessionBase
+from cic_eth.encode import tx_normalize
 
 celery_app = celery.current_app
 
@@ -20,6 +21,7 @@ logg = logging.getLogger()
 
 
 def tx_times(tx_hash, chain_spec, session=None):
+    tx_hash = tx_normalize.tx_hash(tx_hash)
 
     session = SessionBase.bind_session(session)
 

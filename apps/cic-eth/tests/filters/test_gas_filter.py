@@ -1,7 +1,6 @@
 # external imports
 from chainlib.connection import RPCConnection
 from chainlib.eth.nonce import OverrideNonceOracle
-from chainqueue.sql.tx import create as queue_create
 from chainlib.eth.tx import (
         TxFormat,
         unpack,
@@ -26,6 +25,8 @@ from chainqueue.db.enum import StatusBits
 # local imports
 from cic_eth.runnable.daemons.filters.gas import GasFilter
 from cic_eth.eth.gas import cache_gas_data
+from cic_eth.encode import tx_normalize
+from cic_eth.queue.tx import queue_create
 
 
 def test_filter_gas(

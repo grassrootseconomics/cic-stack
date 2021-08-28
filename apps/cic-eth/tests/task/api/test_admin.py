@@ -34,10 +34,6 @@ from chainqueue.sql.state import (
         set_ready,
         set_reserved,
         )
-from chainqueue.sql.query import (
-        get_tx,
-        get_nonce_tx_cache,
-        )
 
 # local imports
 from cic_eth.api.admin import AdminApi
@@ -46,6 +42,11 @@ from cic_eth.db.enum import LockEnum
 from cic_eth.error import InitializationError
 from cic_eth.eth.gas import cache_gas_data
 from cic_eth.queue.tx import queue_create
+from cic_eth.queue.query import (
+        get_tx,
+        get_nonce_tx_local,
+        )
+from cic_eth.encode import tx_normalize
 
 logg = logging.getLogger()
 
@@ -286,13 +287,15 @@ def test_fix_nonce(
     assert t.successful()
 
     init_database.commit()
-    
-    txs = get_nonce_tx_cache(default_chain_spec, 3, agent_roles['ALICE'], session=init_database)
+   
+    logg.debug('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+    txs = get_nonce_tx_local(default_chain_spec, 3, agent_roles['ALICE'], session=init_database)
     ks = txs.keys()
     assert len(ks) == 2
 
     for k in ks:
-        hsh = add_0x(k)
+        #hsh = add_0x(k)
+        hsh = tx_normalize.tx_hash(k)
         otx = Otx.load(hsh, session=init_database)
         init_database.refresh(otx)
         logg.debug('checking nonce {} tx {} status {}'.format(3, otx.tx_hash, otx.status))

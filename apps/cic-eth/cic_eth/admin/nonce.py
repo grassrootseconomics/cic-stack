@@ -33,6 +33,7 @@ from cic_eth.admin.ctrl import (
 from cic_eth.queue.tx import queue_create
 from cic_eth.eth.gas import create_check_gas_task
 from cic_eth.task import BaseTask
+from cic_eth.encode import tx_normalize
 
 celery_app = celery.current_app
 logg = logging.getLogger()
@@ -73,7 +74,7 @@ def shift_nonce(self, chainspec_dict, tx_hash_orig_hex, delta=1):
 
     set_cancel(chain_spec, strip_0x(tx['hash']), manual=True, session=session)
 
-    query_address = add_0x(hex_uniform(strip_0x(address))) # aaaaargh
+    query_address = tx_normalize.wallet_address(address)
     q = session.query(Otx)
     q = q.join(TxCache)
     q = q.filter(TxCache.sender==query_address)

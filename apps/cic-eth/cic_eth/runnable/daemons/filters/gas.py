@@ -10,15 +10,14 @@ from chainlib.eth.tx import unpack
 from chainqueue.db.enum import StatusBits
 from chainqueue.db.models.tx import TxCache
 from chainqueue.db.models.otx import Otx
-from chainqueue.sql.query import get_paused_tx_cache as get_paused_tx
 from chainlib.eth.address import to_checksum_address
 
 # local imports
 from cic_eth.db.models.base import SessionBase
 from cic_eth.eth.gas import create_check_gas_task
+from cic_eth.queue.query import get_paused_tx
 from .base import SyncFilter
 
-#logg = logging.getLogger().getChild(__name__)
 logg = logging.getLogger()
 
 

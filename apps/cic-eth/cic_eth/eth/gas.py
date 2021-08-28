@@ -4,7 +4,7 @@ import logging
 # external imports
 import celery
 from hexathon import strip_0x
-from chainlib.eth.constant import ZERO_ADDRESS
+#from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.chain import ChainSpec
 from chainlib.eth.address import is_checksum_address
 from chainlib.connection import RPCConnection
@@ -21,7 +21,6 @@ from chainlib.eth.error import (
 from chainlib.eth.tx import (
         TxFactory,
         TxFormat,
-        unpack,
         )
 from chainlib.eth.contract import (
         abi_decode_single,
@@ -45,6 +44,7 @@ from cic_eth.eth.nonce import CustodialTaskNonceOracle
 from cic_eth.queue.tx import (
         queue_create,
         register_tx,
+        unpack,
         )
 from cic_eth.queue.query import get_tx
 from cic_eth.task import (
@@ -52,6 +52,11 @@ from cic_eth.task import (
         CriticalSQLAlchemyAndWeb3Task,
         CriticalSQLAlchemyAndSignerTask,
         CriticalWeb3AndSignerTask,
+        )
+from cic_eth.encode import (
+        tx_normalize,
+        ZERO_ADDRESS_NORMAL,
+        unpack_normal,
         )
 
 celery_app = celery.current_app
@@ -66,6 +71,7 @@ class MaxGasOracle:
         return MAXIMUM_FEE_UNITS
 
 
+#def create_check_gas_task(tx_signed_raws_hex, chain_spec, holder_address, gas=None, tx_hashes_hex=None, queue=None):
 def create_check_gas_task(tx_signed_raws_hex, chain_spec, holder_address, gas=None, tx_hashes_hex=None, queue=None):
     """Creates a celery task signature for a check_gas task that adds the task to the outgoing queue to be processed by the dispatcher.
 
@@ -130,16 +136,16 @@ def cache_gas_data(
     """
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
     tx_signed_raw_bytes = bytes.fromhex(strip_0x(tx_signed_raw_hex))
-    tx = unpack(tx_signed_raw_bytes, chain_spec)
+    tx = unpack_normal(tx_signed_raw_bytes, chain_spec)
 
     session = SessionBase.create_session()
 
     tx_dict = {
-            'hash': tx_hash_hex,
+            'hash': tx['hash'],
             'from': tx['from'],
             'to': tx['to'],
-            'source_token': ZERO_ADDRESS,
-            'destination_token': ZERO_ADDRESS,
+            'source_token': ZERO_ADDRESS_NORMAL,
+            'destination_token': ZERO_ADDRESS_NORMAL,
             'from_value': tx['value'],
             'to_value': tx['value'],
             }
@@ -150,7 +156,7 @@ def cache_gas_data(
 
 
 @celery_app.task(bind=True, throws=(OutOfGasError), base=CriticalSQLAlchemyAndWeb3Task)
-def check_gas(self, tx_hashes, chain_spec_dict, txs=[], address=None, gas_required=MAXIMUM_FEE_UNITS):
+def check_gas(self, tx_hashes_hex, chain_spec_dict, txs_hex=[], address=None, gas_required=MAXIMUM_FEE_UNITS):
     """Check the gas level of the sender address of a transaction.
 
     If the account balance is not sufficient for the required gas, gas refill is requested and OutOfGasError raiser.
@@ -170,6 +176,20 @@ def check_gas(self, tx_hashes, chain_spec_dict, txs=[], address=None, gas_requir
     :return: Signed raw transaction data list
     :rtype: param txs, unchanged
     """
+    if address != None:
+        if not is_checksum_address(address):
+            raise ValueError('invalid address {}'.format(address))
+        address = tx_normalize.wallet_address(address)
+
+    tx_hashes = []
+    txs = []
+    for tx_hash in tx_hashes_hex:
+        tx_hash = tx_normalize.tx_hash(tx_hash)
+        tx_hashes.append(tx_hash)
+    for tx in txs_hex:
+        tx = tx_normalize.tx_wire(tx)
+        txs.append(tx)
+
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
     logg.debug('txs {} tx_hashes {}'.format(txs, tx_hashes))
 
@@ -186,9 +206,6 @@ def check_gas(self, tx_hashes, chain_spec_dict, txs=[], address=None, gas_requir
             elif address != tx['from']:
                 raise ValueError('txs passed to check gas must all have same sender; had {} got {}'.format(address, tx['from']))
             addresspass.append(address)
-
-    if not is_checksum_address(address):
-        raise ValueError('invalid address {}'.format(address))
 
     queue = self.request.delivery_info.get('routing_key')
 
@@ -304,6 +321,7 @@ def refill_gas(self, recipient_address, chain_spec_dict):
     # Determine value of gas tokens to send
     # if an uncompleted gas refill for the same recipient already exists, we still need to spend the nonce
     # however, we will perform a 0-value transaction instead
+    recipient_address = tx_normalize.wallet_address(recipient_address)
     zero_amount = False
     session = SessionBase.create_session()
     status_filter = StatusBits.FINAL | StatusBits.NODE_ERROR | StatusBits.NETWORK_ERROR | StatusBits.UNKNOWN_ERROR
@@ -378,6 +396,7 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_spec_dict, gas=None, defa
     :returns: Transaction hash
     :rtype: str, 0x-hex
     """
+    txold_hash_hex = tx_normalize.tx_hash(txold_hash_hex)
     session = SessionBase.create_session()
 
     otx = Otx.load(txold_hash_hex, session)

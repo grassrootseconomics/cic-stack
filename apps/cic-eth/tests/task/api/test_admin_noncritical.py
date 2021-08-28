@@ -30,7 +30,6 @@ from chainqueue.sql.state import (
         )
 from chainqueue.db.models.otx import Otx
 from chainqueue.db.enum import StatusBits
-from chainqueue.sql.query import get_nonce_tx_cache
 from eth_erc20 import ERC20
 from cic_eth_registry import CICRegistry
 
@@ -38,6 +37,7 @@ from cic_eth_registry import CICRegistry
 from cic_eth.api.admin import AdminApi
 from cic_eth.eth.gas import cache_gas_data
 from cic_eth.eth.erc20 import cache_transfer_data
+from cic_eth.queue.query import get_nonce_tx_local
 
 logg = logging.getLogger()
 
@@ -312,7 +312,7 @@ def test_resend_inplace(
     otx = Otx.load(tx_hash_hex, session=init_database)
     assert otx.status & StatusBits.OBSOLETE == StatusBits.OBSOLETE
 
-    txs = get_nonce_tx_cache(default_chain_spec, otx.nonce, agent_roles['ALICE'], session=init_database)
+    txs = get_nonce_tx_local(default_chain_spec, otx.nonce, agent_roles['ALICE'], session=init_database)
     assert len(txs) == 2
 
 
@@ -363,10 +363,10 @@ def test_resend_clone(
     assert otx.status & StatusBits.IN_NETWORK == StatusBits.IN_NETWORK
     assert otx.status & StatusBits.OBSOLETE == StatusBits.OBSOLETE
 
-    txs = get_nonce_tx_cache(default_chain_spec, otx.nonce, agent_roles['ALICE'], session=init_database)
+    txs = get_nonce_tx_local(default_chain_spec, otx.nonce, agent_roles['ALICE'], session=init_database)
     assert len(txs) == 1
 
-    txs = get_nonce_tx_cache(default_chain_spec, otx.nonce + 1, agent_roles['ALICE'], session=init_database)
+    txs = get_nonce_tx_local(default_chain_spec, otx.nonce + 1, agent_roles['ALICE'], session=init_database)
     assert len(txs) == 1
 
     otx = Otx.load(txs[0], session=init_database)
