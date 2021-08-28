@@ -8,7 +8,7 @@ semver==2.13.0
 psycopg2==2.8.6
 celery==4.4.7
 redis==3.5.3
-chainsyncer[sql]>=0.0.6a1,<0.1.0
+chainsyncer[sql]>=0.0.6a3,<0.1.0
 erc20-faucet>=0.3.2a1, <0.4.0
 chainlib-eth>=0.0.9a7,<0.1.0
 chainlib>=0.0.9a3,<0.1.0
