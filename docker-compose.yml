@@ -117,6 +117,7 @@ services:
     volumes:
       - contract-config:/tmp/cic/config
 
+
   cic-cache-tracker:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-cache:${TAG:-latest}
     profiles:

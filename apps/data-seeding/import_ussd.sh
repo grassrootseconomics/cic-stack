@@ -33,7 +33,9 @@ then
 else
   python cic_ussd/import_users.py -vv -c "$CONFIG" --ussd-host "$USSD_HOST" --ussd-port "$USSD_PORT" --ussd-no-ssl "$IMPORT_DIR"
 fi
+
 echo "Waiting for import balance job to complete ..."
+
 tail --pid="$IMPORT_BALANCE_JOB" -f /dev/null
 set -e
 echo "Importing pins"
