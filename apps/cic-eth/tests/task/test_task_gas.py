@@ -75,7 +75,7 @@ def test_task_check_gas_ok(
             'cic_eth.eth.gas.check_gas',
             [
                 [
-                    tx_hash_hex,
+                    strip_0x(tx_hash_hex),
                     ],
                 default_chain_spec.asdict(),
                 [],
@@ -283,4 +283,3 @@ def test_task_resend_explicit(
     tx_after = unpack(bytes.fromhex(strip_0x(otx.signed_tx)), default_chain_spec)
     logg.debug('gasprices before {} after {}'.format(tx_before['gasPrice'], tx_after['gasPrice']))
     assert tx_after['gasPrice'] > tx_before['gasPrice']
-
