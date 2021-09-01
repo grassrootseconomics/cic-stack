@@ -3,7 +3,10 @@ import logging
 
 # external imports
 import celery
-from hexathon import strip_0x
+from hexathon import (
+        strip_0x,
+        add_0x,
+        )
 #from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.chain import ChainSpec
 from chainlib.eth.address import is_checksum_address
@@ -180,6 +183,8 @@ def check_gas(self, tx_hashes_hex, chain_spec_dict, txs_hex=[], address=None, ga
         if not is_checksum_address(address):
             raise ValueError('invalid address {}'.format(address))
         address = tx_normalize.wallet_address(address)
+
+    address = add_0x(address)
 
     tx_hashes = []
     txs = []

@@ -13,7 +13,6 @@ from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.gas import RPCGasOracle
 from cic_eth_registry import CICRegistry
 from cic_eth_registry.error import UnknownContractError
-import liveness.linux
 
 # local imports
 from cic_eth.error import SeppukuError
@@ -48,6 +47,7 @@ class BaseTask(celery.Task):
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         if isinstance(exc, SeppukuError):
+            import liveness.linux
             liveness.linux.reset(rundir=self.run_dir)
             logg.critical(einfo)
             msg = 'received critical exception {}, calling shutdown'.format(str(exc))

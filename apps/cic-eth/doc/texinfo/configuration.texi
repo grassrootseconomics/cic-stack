@@ -1,8 +1,6 @@
 @node cic-eth configuration
 @section Configuration
 
-(refer to @code{cic-base} for a general overview of the config pipeline)
-
 Configuration parameters are grouped by configuration filename.
 
 
@@ -40,7 +38,26 @@ Boolean value. If set, the amount of available context for a task in the result 
 
 @subsection database
 
-See ref cic-base when ready
+@table @var
+@item host
+Database host
+@item port
+Database port
+@item name
+Database name
+@item user
+Database user
+@item password
+Database password
+@item engine
+The engine part of the dsn connection string (@code{postgresql} in @code{postgresql+psycopg2})
+@item driver
+The driver part of the dsn connection string (@code{psycopg2} in @code{postgresql+psycopg2})
+@item pool_size
+Connection pool size for database drivers that provide connection pooling
+@item debug
+Output actual sql queries to logs. Potentially very verbose
+@end table
 
 
 @subsection eth

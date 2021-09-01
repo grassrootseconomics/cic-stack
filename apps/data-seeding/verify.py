@@ -64,6 +64,10 @@ phone_tests = [
         'ussd_pins'
         ]
 
+admin_tests = [
+        'local_key',
+        ]
+
 all_tests = eth_tests + custodial_tests + metadata_tests + phone_tests
 
 argparser = argparse.ArgumentParser(description='daemon that monitors transactions in new blocks')
@@ -74,6 +78,7 @@ argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spe
 argparser.add_argument('--meta-provider', type=str, dest='meta_provider', default='http://localhost:63380', help='cic-meta url')
 argparser.add_argument('--ussd-provider', type=str, dest='ussd_provider', default='http://localhost:63315', help='cic-ussd url')
 argparser.add_argument('--skip-custodial', dest='skip_custodial', action='store_true', help='skip all custodial verifications')
+argparser.add_argument('--skip-ussd', dest='skip_ussd', action='store_true', help='skip all ussd verifications')
 argparser.add_argument('--skip-metadata', dest='skip_metadata', action='store_true', help='skip all metadata verifications')
 argparser.add_argument('--exclude', action='append', type=str, default=[], help='skip specified verification')
 argparser.add_argument('--include', action='append', type=str, help='include specified verification')
@@ -132,6 +137,11 @@ for t in args.exclude:
 if args.skip_custodial:
     logg.info('will skip all custodial verifications ({})'.format(','.join(custodial_tests)))
     for t in custodial_tests:
+        if t not in exclude:
+            exclude.append(t)
+if args.skip_ussd:
+    logg.info('will skip all ussd verifications ({})'.format(','.join(phone_tests)))
+    for t in phone_tests:
         if t not in exclude:
             exclude.append(t)
 if args.skip_metadata:
