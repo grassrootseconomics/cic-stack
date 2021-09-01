@@ -11,12 +11,12 @@ celery_app = celery.current_app
 
 
 @celery_app.task
-def persist_notification(recipient, message):
+def persist_notification(message, recipient):
     """
-    :param recipient:
-    :type recipient:
     :param message:
     :type message:
+    :param recipient:
+    :type recipient:
     :return:
     :rtype:
     """

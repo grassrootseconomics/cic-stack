@@ -1,67 +1,67 @@
 # standard imports
 import argparse
-import json
+import csv
 import logging
 import os
+import psycopg2
 
 # external imports
-import celery
 from confini import Config
 
 # local imports
 
+
+default_config_dir = './config'
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
-default_config_dir = '/usr/local/etc/cic'
+arg_parser = argparse.ArgumentParser(description='Pins import script.')
+arg_parser.add_argument('-c', type=str, default=default_config_dir, help='config root to use.')
+arg_parser.add_argument('--env-prefix',
+                        default=os.environ.get('CONFINI_ENV_PREFIX'),
+                        dest='env_prefix',
+                        type=str,
+                        help='environment prefix for variables to overwrite configuration.')
+arg_parser.add_argument('import_dir', default='out', type=str, help='user export directory')
+arg_parser.add_argument('-v', help='be verbose', action='store_true')
+arg_parser.add_argument('-vv', help='be more verbose', action='store_true')
 
-arg_parser = argparse.ArgumentParser()
-arg_parser.add_argument('-c', type=str, default=default_config_dir, help='config file')
-arg_parser.add_argument('-q', type=str, default='cic-import-ussd', help='Task queue')
-arg_parser.add_argument('-v', action='store_true', help='Be verbose')
-arg_parser.add_argument('-vv', action='store_true', help='Be more verbose')
-arg_parser.add_argument('user_dir', type=str, help='path to users export dir tree')
 args = arg_parser.parse_args()
 
-if args.v:
-    logg.setLevel(logging.INFO)
-elif args.vv:
-    logg.setLevel(logging.DEBUG)
+if args.vv:
+    logging.getLogger().setLevel(logging.DEBUG)
+elif args.v:
+    logging.getLogger().setLevel(logging.INFO)
 
-config_dir = args.c
-config = Config(config_dir, os.environ.get('CONFINI_ENV_PREFIX'))
+config = Config(args.c, args.env_prefix)
 config.process()
-logg.debug('config loaded from {}:\n{}'.format(args.c, config))
+config.censor('PASSWORD', 'DATABASE')
+logg.debug(f'config loaded from {args.c}:\n{config}')
 
-ussd_data_dir = os.path.join(args.user_dir, 'ussd')
 
-db_configs = {
-    'database': config.get('DATABASE_NAME'),
-    'host': config.get('DATABASE_HOST'),
-    'port': config.get('DATABASE_PORT'),
-    'user': config.get('DATABASE_USER'),
-    'password': config.get('DATABASE_PASSWORD')
-}
-celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
+def main():
+    with open(f'{args.import_dir}/ussd_data.csv') as ussd_data_file:
+        ussd_data = [tuple(row) for row in csv.reader(ussd_data_file)]
+
+    db_conn = psycopg2.connect(
+        database=config.get('DATABASE_NAME'),
+        host=config.get('DATABASE_HOST'),
+        port=config.get('DATABASE_PORT'),
+        user=config.get('DATABASE_USER'),
+        password=config.get('DATABASE_PASSWORD')
+    )
+    db_cursor = db_conn.cursor()
+    sql = 'UPDATE account SET status = %s, preferred_language = %s WHERE phone_number = %s'
+    for element in ussd_data:
+        status = 2 if int(element[1]) == 1 else 1
+        preferred_language = element[2]
+        phone_number = element[0]
+        db_cursor.execute(sql, (status, preferred_language, phone_number))
+        logg.debug(f'Updating account:{phone_number} with: preferred language: {preferred_language} status: {status}.')
+    db_conn.commit()
+    db_cursor.close()
+    db_conn.close()
+
 
 if __name__ == '__main__':
-    for x in os.walk(ussd_data_dir):
-        for y in x[2]:
-
-            if y[len(y) - 5:] == '.json':
-                filepath = os.path.join(x[0], y)
-                f = open(filepath, 'r')
-                try:
-                    ussd_data = json.load(f)
-                    logg.debug(f'LOADING USSD DATA: {ussd_data}')
-                except json.decoder.JSONDecodeError as e:
-                    f.close()
-                    logg.error('load error for {}: {}'.format(y, e))
-                    continue
-                f.close()
-
-                s_set_ussd_data = celery.signature(
-                    'import_task.set_ussd_data',
-                    [db_configs, ussd_data]
-                )
-                s_set_ussd_data.apply_async(queue='cic-import-ussd')
+    main()

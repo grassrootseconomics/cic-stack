@@ -197,9 +197,10 @@ def send_ussd_request(address, data_dir):
     phone = p.tel
 
     session = uuid.uuid4().hex
+    valid_service_codes = config.get('USSD_SERVICE_CODE').split(",")
     data = {
         'sessionId': session,
-        'serviceCode': config.get('APP_SERVICE_CODE'),
+        'serviceCode': valid_service_codes[0],
         'phoneNumber': phone,
         'text': '',
     }

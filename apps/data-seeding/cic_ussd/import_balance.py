@@ -1,64 +1,61 @@
-# standard imports
 import argparse
 import logging
-import sys
 import os
+import sys
 
 # external imports
 import celery
-import confini
-import redis
 from chainlib.chain import ChainSpec
 from chainlib.eth.address import to_checksum_address
 from chainlib.eth.connection import EthHTTPConnection
+from confini import Config
 from crypto_dev_signer.eth.signer import ReferenceSigner as EIP155Signer
 from crypto_dev_signer.keystore.dict import DictKeystore
 
 # local imports
-from import_task import ImportTask, MetadataTask
 from import_util import BalanceProcessor, get_celery_worker_status
+from import_task import ImportTask, MetadataTask
 
-logging.basicConfig(level=logging.WARNING)
+default_config_dir = './config'
 logg = logging.getLogger()
 
-config_dir = './config'
+arg_parser = argparse.ArgumentParser(description='Daemon worker that handles data seeding tasks.')
+arg_parser.add_argument('-c', type=str, default=default_config_dir, help='config root to use.')
+arg_parser.add_argument('--env-prefix',
+                        default=os.environ.get('CONFINI_ENV_PREFIX'),
+                        dest='env_prefix',
+                        type=str,
+                        help='environment prefix for variables to overwrite configuration.')
+arg_parser.add_argument('--head', action='store_true', help='start at current block height (overrides --offset)')
+arg_parser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
+arg_parser.add_argument('--include-balances', dest='include_balances', help='include opening balance transactions',
+                        action='store_true')
+arg_parser.add_argument('--meta-host', dest='meta_host', type=str, help='metadata server host')
+arg_parser.add_argument('--meta-port', dest='meta_port', type=int, help='metadata server host')
+arg_parser.add_argument('-p', '--provider', dest='p', type=str, help='chain rpc provider address')
+arg_parser.add_argument('-q', type=str, default='cic-import-ussd', help='celery queue to submit data seeding tasks to.')
+arg_parser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
+arg_parser.add_argument('--redis-db', dest='redis_db', type=int, help='redis db to use for task submission and callback')
+arg_parser.add_argument('--redis-host', dest='redis_host', type=str, help='redis host to use for task submission')
+arg_parser.add_argument('--redis-port', dest='redis_port', type=int, help='redis host to use for task submission')
+arg_parser.add_argument('--token-symbol', default='GFT', type=str, dest='token_symbol',
+                        help='Token symbol to use for transactions')
+arg_parser.add_argument('-v', help='be verbose', action='store_true')
+arg_parser.add_argument('-vv', help='be more verbose', action='store_true')
+arg_parser.add_argument('-y', '--key-file', dest='y', type=str, help='Ethereum keystore file to use for signing')
+arg_parser.add_argument('--offset', type=int, default=0, help='block offset to start syncer from')
+arg_parser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:oldchain:1',
+                        help='chain spec')
+arg_parser.add_argument('import_dir', default='out', type=str, help='user export directory')
+args = arg_parser.parse_args()
 
-argparser = argparse.ArgumentParser(description='daemon that monitors transactions in new blocks')
-argparser.add_argument('-p', '--provider', dest='p', type=str, help='chain rpc provider address')
-argparser.add_argument('-y', '--key-file', dest='y', type=str, help='Ethereum keystore file to use for signing')
-argparser.add_argument('-c', type=str, default=config_dir, help='config root to use')
-argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:oldchain:1', help='chain spec')
-argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
-argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
-argparser.add_argument('--meta-host', dest='meta_host', type=str, help='metadata server host')
-argparser.add_argument('--meta-port', dest='meta_port', type=int, help='metadata server host')
-argparser.add_argument('--redis-host', dest='redis_host', type=str, help='redis host to use for task submission')
-argparser.add_argument('--redis-port', dest='redis_port', type=int, help='redis host to use for task submission')
-argparser.add_argument('--redis-db', dest='redis_db', type=int, help='redis db to use for task submission and callback')
-argparser.add_argument('--token-symbol', default='GFT', type=str, dest='token_symbol',
-                       help='Token symbol to use for transactions')
-argparser.add_argument('--head', action='store_true', help='start at current block height (overrides --offset)')
-argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str,
-                       help='environment prefix for variables to overwrite configuration')
-argparser.add_argument('-q', type=str, default='cic-import-ussd', help='celery queue to submit transaction tasks to')
-argparser.add_argument('--offset', type=int, default=0, help='block offset to start syncer from')
-argparser.add_argument('-v', help='be verbose', action='store_true')
-argparser.add_argument('-vv', help='be more verbose', action='store_true')
-argparser.add_argument('user_dir', default='out', type=str, help='user export directory')
-args = argparser.parse_args(sys.argv[1:])
-
-if args.v:
+if args.vv:
+    logging.getLogger().setLevel(logging.DEBUG)
+elif args.v:
     logging.getLogger().setLevel(logging.INFO)
 
-elif args.vv:
-    logging.getLogger().setLevel(logging.DEBUG)
-
-config_dir = os.path.join(args.c)
-os.makedirs(config_dir, 0o777, True)
-config = confini.Config(config_dir, args.env_prefix)
+config = Config(args.c, args.env_prefix)
 config.process()
-
-# override args
 args_override = {
     'CIC_CHAIN_SPEC': getattr(args, 'i'),
     'ETH_PROVIDER': getattr(args, 'p'),
@@ -73,88 +70,76 @@ args_override = {
 config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
-logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
+logg.debug(f'config loaded from {args.c}:\n{config}')
 
-redis_host = config.get('REDIS_HOST')
-redis_port = config.get('REDIS_PORT')
-redis_db = config.get('REDIS_DB')
-r = redis.Redis(redis_host, redis_port, redis_db)
+db_config = {
+    'database': config.get('DATABASE_NAME'),
+    'host': config.get('DATABASE_HOST'),
+    'port': config.get('DATABASE_PORT'),
+    'user': config.get('DATABASE_USER'),
+    'password': config.get('DATABASE_PASSWORD')
+}
+ImportTask.db_config = db_config
 
-# create celery apps
-celery_app = celery.Celery(backend=config.get('CELERY_RESULT_URL'), broker=config.get('CELERY_BROKER_URL'))
-status = get_celery_worker_status(celery_app=celery_app)
-
-signer_address = None
 keystore = DictKeystore()
-if args.y is not None:
-    logg.debug('loading keystore file {}'.format(args.y))
-    signer_address = keystore.import_keystore_file(args.y)
-    logg.debug('now have key for signer address {}'.format(signer_address))
-
-# define signer
+os.path.isfile(args.y)
+logg.debug(f'loading keystore file {args.y}')
+signer_address = keystore.import_keystore_file(args.y)
+logg.debug(f'now have key for signer address {signer_address}')
 signer = EIP155Signer(keystore)
 
-queue = args.q
-chain_str = config.get('CIC_CHAIN_SPEC')
-block_offset = 0
-if args.head:
-    block_offset = -1
-else:
-    block_offset = args.offset
+block_offset = -1 if args.head else args.offset
 
+chain_str = config.get('CIC_CHAIN_SPEC')
 chain_spec = ChainSpec.from_chain_str(chain_str)
+ImportTask.chain_spec = chain_spec
 old_chain_spec_str = args.old_chain_spec
 old_chain_spec = ChainSpec.from_chain_str(old_chain_spec_str)
 
-user_dir = args.user_dir  # user_out_dir from import_users.py
-
-token_symbol = args.token_symbol
-
 MetadataTask.meta_host = config.get('META_HOST')
 MetadataTask.meta_port = config.get('META_PORT')
-ImportTask.chain_spec = chain_spec
+
+txs_dir = os.path.join(args.import_dir, 'txs')
+os.makedirs(txs_dir, exist_ok=True)
+sys.stdout.write(f'created txs dir: {txs_dir}')
+
+celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
+get_celery_worker_status(celery_app)
 
 
 def main():
     conn = EthHTTPConnection(config.get('ETH_PROVIDER'))
-
-    ImportTask.balance_processor = BalanceProcessor(conn, chain_spec, config.get('CIC_REGISTRY_ADDRESS'),
-                                                    signer_address, signer)
-    ImportTask.balance_processor.init(token_symbol)
-
-    # TODO get decimals from token
+    ImportTask.balance_processor = BalanceProcessor(conn,
+                                                    chain_spec,
+                                                    config.get('CIC_REGISTRY_ADDRESS'),
+                                                    signer_address,
+                                                    signer)
+    ImportTask.balance_processor.init(args.token_symbol)
     balances = {}
-    f = open('{}/balances.csv'.format(user_dir, 'r'))
-    remove_zeros = 10 ** 6
-    i = 0
-    while True:
-        l = f.readline()
-        if l is None:
-            break
-        r = l.split(',')
-        try:
-            address = to_checksum_address(r[0])
-            sys.stdout.write('loading balance {} {} {}'.format(i, address, r[1]).ljust(200) + "\r")
-        except ValueError:
-            break
-        balance = int(int(r[1].rstrip()) / remove_zeros)
-        balances[address] = balance
-        i += 1
-
-    f.close()
-
+    accuracy = 10 ** 6
+    count = 0
+    with open(f'{args.import_dir}/balances.csv', 'r') as balances_file:
+        while True:
+            line = balances_file.readline()
+            if line is None:
+                break
+            balance_data = line.split(',')
+            try:
+                blockchain_address = to_checksum_address(balance_data[0])
+                logg.info(
+                    'loading balance: {} {} {}'.format(count, blockchain_address, balance_data[1].ljust(200) + "\r"))
+            except ValueError:
+                break
+            balance = int(int(balance_data[1].rstrip()) / accuracy)
+            balances[blockchain_address] = balance
+            count += 1
     ImportTask.balances = balances
-    ImportTask.count = i
-    ImportTask.import_dir = user_dir
-
-    s = celery.signature(
-        'import_task.send_txs',
-        [
-            MetadataTask.balance_processor.nonce_offset,
-        ],
-        queue=queue,
-    )
-    s.apply_async()
+    ImportTask.count = count
+    ImportTask.include_balances = args.include_balances is True
+    ImportTask.import_dir = args.import_dir
+    s_send_txs = celery.signature(
+        'import_task.send_txs', [ImportTask.balance_processor.nonce_offset], queue=args.q)
+    s_send_txs.apply_async()
 
     argv = ['worker']
     if args.vv:
@@ -165,6 +150,7 @@ def main():
     argv.append(args.q)
     argv.append('-n')
     argv.append(args.q)
+    argv.append(f'--pidfile={args.q}.pid')
     celery_app.worker_main(argv)
 
 

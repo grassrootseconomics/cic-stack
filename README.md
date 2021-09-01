@@ -2,25 +2,21 @@
 
 ## Getting started 
 
-## Make some keys
+This repo uses docker-compose and docker buildkit. Set the following environment variables to get started:
 
 ```
-docker build -t bloxie . && docker run -v "$(pwd)/keys:/root/keys" --rm -it -t bloxie account new --chain /root/bloxberg.json --keys-path /root/keys
+export COMPOSE_DOCKER_CLI_BUILD=1
+export DOCKER_BUILDKIT=1
 ```
 
-
-### Prepare the repo
-
-This is stuff we need to put in  makefile but for now...
-
-File mounts and permisssions need to be set
+start services, database, redis and local ethereum node
 ```
-chmod -R 755 scripts/initdb apps/cic-meta/scripts/initdb
-````
-
-start cluster
+docker-compose up -d
 ```
-docker-compose up
+
+Run app/contract-migration to deploy contracts
+```
+RUN_MASK=3 docker-compose up contract-migration
 ```
 
 stop cluster
@@ -28,7 +24,7 @@ stop cluster
 docker-compose down
 ```
 
-delete data
+stop cluster and delete data
 ```
 docker-compose down -v
 ```
@@ -38,5 +34,4 @@ rebuild an images
 docker-compose up --build <service_name>
 ```
 
-Deployment variables are writtend to service-configs/.env after everthing is up.
 

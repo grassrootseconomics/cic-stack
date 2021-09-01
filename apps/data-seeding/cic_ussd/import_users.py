@@ -3,56 +3,61 @@ import argparse
 import json
 import logging
 import os
+import redis
 import sys
 import time
-import urllib.request
 import uuid
+from urllib import request
 from urllib.parse import urlencode
 
 # external imports
 import celery
-import confini
 import phonenumbers
-import redis
-from chainlib.chain import ChainSpec
 from cic_types.models.person import Person
+from confini import Config
 
 # local imports
 from import_util import get_celery_worker_status
 
+default_config_dir = './config'
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
-default_config_dir = '/usr/local/etc/cic'
+arg_parser = argparse.ArgumentParser(description='Daemon worker that handles data seeding tasks.')
+# batch size should be slightly below cumulative gas limit worth, eg 80000 gas txs with 8000000 limit is a bit less than 100 batch size
+arg_parser.add_argument('--batch-size',
+                        dest='batch_size',
+                        default=100,
+                        type=int,
+                        help='burst size of sending transactions to node')
+arg_parser.add_argument('--batch-delay', dest='batch_delay', default=3, type=int, help='seconds delay between batches')
+arg_parser.add_argument('-c', type=str, default=default_config_dir, help='config root to use.')
+arg_parser.add_argument('--env-prefix',
+                        default=os.environ.get('CONFINI_ENV_PREFIX'),
+                        dest='env_prefix',
+                        type=str,
+                        help='environment prefix for variables to overwrite configuration.')
+arg_parser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
+arg_parser.add_argument('-q', type=str, default='cic-import-ussd', help='celery queue to submit data seeding tasks to.')
+arg_parser.add_argument('--redis-db', dest='redis_db', type=int, help='redis db to use for task submission and callback')
+arg_parser.add_argument('--redis-host', dest='redis_host', type=str, help='redis host to use for task submission')
+arg_parser.add_argument('--redis-port', dest='redis_port', type=int, help='redis host to use for task submission')
+arg_parser.add_argument('--ussd-host', dest='ussd_host', type=str,
+                        help="host to ussd app responsible for processing ussd requests.")
+arg_parser.add_argument('--ussd-no-ssl', dest='ussd_no_ssl', help='do not use ssl (careful)', action='store_true')
+arg_parser.add_argument('--ussd-port', dest='ussd_port', type=str,
+                        help="port to ussd app responsible for processing ussd requests.")
+arg_parser.add_argument('-v', help='be verbose', action='store_true')
+arg_parser.add_argument('-vv', help='be more verbose', action='store_true')
+arg_parser.add_argument('import_dir', default='out', type=str, help='user export directory')
+args = arg_parser.parse_args()
 
-argparser = argparse.ArgumentParser()
-argparser.add_argument('-c', type=str, default=default_config_dir, help='config file')
-argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='Chain specification string')
-argparser.add_argument('--redis-host', dest='redis_host', type=str, help='redis host to use for task submission')
-argparser.add_argument('--redis-port', dest='redis_port', type=int, help='redis host to use for task submission')
-argparser.add_argument('--redis-db', dest='redis_db', type=int, help='redis db to use for task submission and callback')
-argparser.add_argument('--batch-size', dest='batch_size', default=100, type=int,
-                       help='burst size of sending transactions to node')  # batch size should be slightly below cumulative gas limit worth, eg 80000 gas txs with 8000000 limit is a bit less than 100 batch size
-argparser.add_argument('--batch-delay', dest='batch_delay', default=3, type=int, help='seconds delay between batches')
-argparser.add_argument('--timeout', default=60.0, type=float, help='Callback timeout')
-argparser.add_argument('--ussd-host', dest='ussd_host', type=str,
-                       help="host to ussd app responsible for processing ussd requests.")
-argparser.add_argument('--ussd-port', dest='ussd_port', type=str,
-                       help="port to ussd app responsible for processing ussd requests.")
-argparser.add_argument('--ussd-no-ssl', dest='ussd_no_ssl', help='do not use ssl (careful)', action='store_true')
-argparser.add_argument('-q', type=str, default='cic-eth', help='Task queue')
-argparser.add_argument('-v', action='store_true', help='Be verbose')
-argparser.add_argument('-vv', action='store_true', help='Be more verbose')
-argparser.add_argument('user_dir', type=str, help='path to users export dir tree')
-args = argparser.parse_args()
+if args.vv:
+    logging.getLogger().setLevel(logging.DEBUG)
+elif args.v:
+    logging.getLogger().setLevel(logging.INFO)
 
-if args.v:
-    logg.setLevel(logging.INFO)
-elif args.vv:
-    logg.setLevel(logging.DEBUG)
-
-config_dir = args.c
-config = confini.Config(config_dir, os.environ.get('CONFINI_ENV_PREFIX'))
+config = Config(args.c, args.env_prefix)
 config.process()
 args_override = {
     'CIC_CHAIN_SPEC': getattr(args, 'i'),
@@ -60,44 +65,29 @@ args_override = {
     'REDIS_PORT': getattr(args, 'redis_port'),
     'REDIS_DB': getattr(args, 'redis_db'),
 }
-config.dict_override(args_override, 'cli')
-logg.debug('config loaded from {}:\n{}'.format(args.c, config))
+config.dict_override(args_override, 'cli flag')
+config.censor('PASSWORD', 'DATABASE')
+config.censor('PASSWORD', 'SSL')
+logg.debug(f'config loaded from {args.c}:\n{config}')
 
-celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
-get_celery_worker_status(celery_app=celery_app)
+old_account_dir = os.path.join(args.import_dir, 'old')
+os.stat(old_account_dir)
+logg.debug(f'created old system data dir: {old_account_dir}')
 
-redis_host = config.get('REDIS_HOST')
-redis_port = config.get('REDIS_PORT')
-redis_db = config.get('REDIS_DB')
-r = redis.Redis(redis_host, redis_port, redis_db)
+new_account_dir = os.path.join(args.import_dir, 'new')
+os.makedirs(new_account_dir, exist_ok=True)
+logg.debug(f'created new system data dir: {new_account_dir}')
 
-ps = r.pubsub()
+person_metadata_dir = os.path.join(args.import_dir, 'meta')
+os.makedirs(person_metadata_dir, exist_ok=True)
+logg.debug(f'created person metadata dir: {person_metadata_dir}')
 
-user_new_dir = os.path.join(args.user_dir, 'new')
-os.makedirs(user_new_dir, exist_ok=True)
-
-ussd_data_dir = os.path.join(args.user_dir, 'ussd')
-os.makedirs(ussd_data_dir, exist_ok=True)
-
-preferences_dir = os.path.join(args.user_dir, 'preferences')
+preferences_dir = os.path.join(args.import_dir, 'preferences')
 os.makedirs(os.path.join(preferences_dir, 'meta'), exist_ok=True)
+logg.debug(f'created preferences metadata dir: {preferences_dir}')
 
-meta_dir = os.path.join(args.user_dir, 'meta')
-os.makedirs(meta_dir, exist_ok=True)
+valid_service_codes = config.get('USSD_SERVICE_CODE').split(",")
 
-user_old_dir = os.path.join(args.user_dir, 'old')
-os.stat(user_old_dir)
-
-txs_dir = os.path.join(args.user_dir, 'txs')
-os.makedirs(txs_dir, exist_ok=True)
-
-chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
-chain_str = str(chain_spec)
-
-batch_size = args.batch_size
-batch_delay = args.batch_delay
-ussd_port = args.ussd_port
-ussd_host = args.ussd_host
 ussd_no_ssl = args.ussd_no_ssl
 if ussd_no_ssl is True:
     ussd_ssl = False
@@ -105,7 +95,17 @@ else:
     ussd_ssl = True
 
 
-def build_ussd_request(phone, host, port, service_code, username, password, ssl=False):
+celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
+get_celery_worker_status(celery_app)
+
+
+def build_ussd_request(host: str,
+                       password: str,
+                       phone_number: str,
+                       port: str,
+                       service_code: str,
+                       username: str,
+                       ssl: bool = False):
     url = 'http'
     if ssl:
         url += 's'
@@ -115,16 +115,16 @@ def build_ussd_request(phone, host, port, service_code, username, password, ssl=
     url += '/?username={}&password={}'.format(username, password)
 
     logg.info('ussd service url {}'.format(url))
-    logg.info('ussd phone {}'.format(phone))
+    logg.info('ussd phone {}'.format(phone_number))
 
     session = uuid.uuid4().hex
     data = {
         'sessionId': session,
         'serviceCode': service_code,
-        'phoneNumber': phone,
+        'phoneNumber': phone_number,
         'text': service_code,
     }
-    req = urllib.request.Request(url)
+    req = request.Request(url)
     req.method = 'POST'
     data_str = urlencode(data)
     data_bytes = data_str.encode('utf-8')
@@ -134,85 +134,77 @@ def build_ussd_request(phone, host, port, service_code, username, password, ssl=
     return req
 
 
-def register_ussd(i, u):
-    phone_object = phonenumbers.parse(u.tel)
-    phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
-    logg.debug('tel {} {}'.format(u.tel, phone))
-    req = build_ussd_request(
-        phone,
-        ussd_host,
-        ussd_port,
-        config.get('APP_SERVICE_CODE'),
-        '',
-        '',
-        ussd_ssl
-    )
-    response = urllib.request.urlopen(req)
+def e164_phone_number(phone_number: str):
+    phone_object = phonenumbers.parse(phone_number)
+    return phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
+
+
+def register_account(person: Person):
+    phone_number = e164_phone_number(person.tel)
+    logg.debug(f'tel: {phone_number}')
+    req = build_ussd_request(args.ussd_host,
+                             '',
+                             phone_number,
+                             args.ussd_port,
+                             valid_service_codes[0],
+                             '',
+                             ussd_ssl)
+    response = request.urlopen(req)
     response_data = response.read().decode('utf-8')
-    state = response_data[:3]
-    out = response_data[4:]
-    logg.debug('ussd reponse: {}'.format(out))
+    logg.debug(f'ussd response: {response_data[4:]}')
 
 
 if __name__ == '__main__':
-
     i = 0
     j = 0
-    for x in os.walk(user_old_dir):
+    for x in os.walk(old_account_dir):
         for y in x[2]:
             if y[len(y) - 5:] != '.json':
                 continue
-            # handle json containing person object
-            filepath = os.path.join(x[0], y)
-            f = open(filepath, 'r')
-            try:
-                o = json.load(f)
-            except json.decoder.JSONDecodeError as e:
-                f.close()
-                logg.error('load error for {}: {}'.format(y, e))
-                continue
-            f.close()
-            u = Person.deserialize(o)
 
-            register_ussd(i, u)
-
-            phone_object = phonenumbers.parse(u.tel)
-            phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
-
-            s_phone = celery.signature(
-                'import_task.resolve_phone',
-                [
-                    phone,
-                ],
-                queue='cic-import-ussd',
+            file_path = os.path.join(x[0], y)
+            with open(file_path, 'r') as account_file:
+                try:
+                    account_data = json.load(account_file)
+                except json.decoder.JSONDecodeError as e:
+                    logg.error('load error for {}: {}'.format(y, e))
+                    continue
+            person = Person.deserialize(account_data)
+            register_account(person)
+            phone_number = e164_phone_number(person.tel)
+            s_resolve_phone = celery.signature(
+                'import_task.resolve_phone', [phone_number], queue=args.q
             )
 
-            s_meta = celery.signature(
-                'import_task.generate_metadata',
-                [
-                    phone,
-                ],
-                queue='cic-import-ussd',
+            s_person_metadata = celery.signature(
+                'import_task.generate_person_metadata', [phone_number], queue=args.q
             )
 
-            s_balance = celery.signature(
-                'import_task.opening_balance_tx',
-                [
-                    phone,
-                    i,
-                ],
-                queue='cic-import-ussd',
+            s_ussd_data = celery.signature(
+                'import_task.generate_ussd_data', [phone_number], queue=args.q
             )
 
-            s_meta.link(s_balance)
-            s_phone.link(s_meta)
-            # block time plus a bit of time for ussd processing
-            s_phone.apply_async(countdown=7)
+            s_preferences_metadata = celery.signature(
+                'import_task.generate_preferences_data', [], queue=args.q
+            )
+
+            s_pins_data = celery.signature(
+                'import_task.generate_pins_data', [phone_number], queue=args.q
+            )
+
+            s_opening_balance = celery.signature(
+                'import_task.opening_balance_tx', [phone_number, i], queue=args.q
+            )
+            celery.chain(s_resolve_phone,
+                         s_person_metadata,
+                         s_ussd_data,
+                         s_preferences_metadata,
+                         s_pins_data,
+                         s_opening_balance).apply_async(countdown=7)
 
             i += 1
-            sys.stdout.write('imported {} {}'.format(i, u).ljust(200) + "\r")
-
+            sys.stdout.write('imported: {} {}'.format(i, person).ljust(200) + "\r\n")
             j += 1
-            if j == batch_size:
-                time.sleep(batch_delay)
+            if j == args.batch_size:
+                time.sleep(args.batch_delay)
                 j = 0

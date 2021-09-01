@@ -1,5 +1,6 @@
 # standard import
 import decimal
+import json
 import logging
 from typing import Dict, Tuple
 
@@ -8,6 +9,8 @@ from cic_eth.api import Api
 from sqlalchemy.orm.session import Session
 
 # local import
+from cic_ussd.account.chain import Chain
+from cic_ussd.account.tokens import get_cached_default_token
 from cic_ussd.db.models.account import Account
 from cic_ussd.db.models.base import SessionBase
 from cic_ussd.error import UnknownUssdRecipient
@@ -59,7 +62,9 @@ def from_wei(value: int) -> float:
     :return: SRF equivalent of value in Wei
     :rtype: float
     """
-    value = float(value) / 1e+6
+    cached_token_data = json.loads(get_cached_default_token(Chain.spec.__str__()))
+    token_decimals: int = cached_token_data.get('decimals')
+    value = float(value) / (10**token_decimals)
     return truncate(value=value, decimals=2)
 
 
@@ -70,7 +75,9 @@ def to_wei(value: int) -> int:
     :return: Wei equivalent of value in SRF
     :rtype: int
     """
-    return int(value * 1e+6)
+    cached_token_data = json.loads(get_cached_default_token(Chain.spec.__str__()))
+    token_decimals: int = cached_token_data.get('decimals')
+    return int(value * (10**token_decimals))
 
 
 def truncate(value: float, decimals: int):

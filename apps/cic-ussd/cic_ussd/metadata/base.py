@@ -44,7 +44,7 @@ class MetadataRequestsHandler(Metadata):
 
     def create(self, data: Union[Dict, str]):
         """"""
-        data = json.dumps(data)
+        data = json.dumps(data).encode('utf-8')
         result = make_request(method='POST', url=self.url, data=data, headers=self.headers)
 
         error_handler(result=result)

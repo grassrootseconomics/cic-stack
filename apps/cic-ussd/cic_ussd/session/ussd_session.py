@@ -146,7 +146,7 @@ def create_ussd_session(
                        )
 
 
-def update_ussd_session(ussd_session: UssdSession,
+def update_ussd_session(ussd_session: DbUssdSession,
                         user_input: str,
                         state: str,
                         data: Optional[dict] = None) -> UssdSession:

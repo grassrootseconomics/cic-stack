@@ -11,12 +11,13 @@ local_logg = logging.getLogger(__name__)
 
 
 @celery_app.task
-def log(recipient, message):
+def log(message, recipient):
     """
-    :param recipient:
-    :type recipient:
+
     :param message:
     :type message:
+    :param recipient:
+    :type recipient:
     :return:
     :rtype:
     """

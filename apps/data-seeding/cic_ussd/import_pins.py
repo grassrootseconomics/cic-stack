@@ -1,71 +1,63 @@
-# standard import
+# standard imports
 import argparse
 import csv
 import logging
 import os
+import psycopg2
 
-# third-party imports
-import celery
-import confini
+# external imports
+from confini import Config
 
 # local imports
-from import_util import get_celery_worker_status
 
+
+default_config_dir = './config'
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
-default_config_dir = './config'
-
-arg_parser = argparse.ArgumentParser()
-arg_parser.add_argument('-c', type=str, default=default_config_dir, help='config root to use')
+arg_parser = argparse.ArgumentParser(description='Pins import script.')
+arg_parser.add_argument('-c', type=str, default=default_config_dir, help='config root to use.')
 arg_parser.add_argument('--env-prefix',
                         default=os.environ.get('CONFINI_ENV_PREFIX'),
                         dest='env_prefix',
                         type=str,
-                        help='environment prefix for variables to overwrite configuration')
-arg_parser.add_argument('-q', type=str, default='cic-import-ussd', help='celery queue to submit transaction tasks to')
+                        help='environment prefix for variables to overwrite configuration.')
+arg_parser.add_argument('import_dir', default='out', type=str, help='user export directory')
 arg_parser.add_argument('-v', help='be verbose', action='store_true')
 arg_parser.add_argument('-vv', help='be more verbose', action='store_true')
-arg_parser.add_argument('pins_dir', default='out', type=str, help='user export directory')
+
 args = arg_parser.parse_args()
 
-# set log levels
-if args.v:
-    logg.setLevel(logging.INFO)
-elif args.vv:
-    logg.setLevel(logging.DEBUG)
+if args.vv:
+    logging.getLogger().setLevel(logging.DEBUG)
+elif args.v:
+    logging.getLogger().setLevel(logging.INFO)
 
-# process configs
-config_dir = args.c
-config = confini.Config(config_dir, os.environ.get('CONFINI_ENV_PREFIX'))
+config = Config(args.c, args.env_prefix)
 config.process()
 config.censor('PASSWORD', 'DATABASE')
-logg.debug('config loaded from {}:\n{}'.format(args.c, config))
-
-celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
-status = get_celery_worker_status(celery_app=celery_app)
-
-
-db_configs = {
-    'database': config.get('DATABASE_NAME'),
-    'host': config.get('DATABASE_HOST'),
-    'port': config.get('DATABASE_PORT'),
-    'user': config.get('DATABASE_USER'),
-    'password': config.get('DATABASE_PASSWORD')
-}
+logg.debug(f'config loaded from {args.c}:\n{config}')
 
 
 def main():
-    with open(f'{args.pins_dir}/pins.csv') as pins_file:
+    with open(f'{args.import_dir}/pins.csv') as pins_file:
         phone_to_pins = [tuple(row) for row in csv.reader(pins_file)]
 
-    s_import_pins = celery.signature(
-        'import_task.set_pins',
-        (db_configs, phone_to_pins),
-        queue=args.q
+    db_conn = psycopg2.connect(
+        database=config.get('DATABASE_NAME'),
+        host=config.get('DATABASE_HOST'),
+        port=config.get('DATABASE_PORT'),
+        user=config.get('DATABASE_USER'),
+        password=config.get('DATABASE_PASSWORD')
     )
-    result = s_import_pins.apply_async()
-    logg.debug(f'TASK: {result.id}, STATUS: {result.status}')
+    db_cursor = db_conn.cursor()
+    sql = 'UPDATE account SET password_hash = %s WHERE phone_number = %s'
+    for element in phone_to_pins:
+        db_cursor.execute(sql, (element[1], element[0]))
+        logg.debug(f'Updating account: {element[0]} with: {element[1]}')
+    db_conn.commit()
+    db_cursor.close()
+    db_conn.close()
 
 
 if __name__ == '__main__':

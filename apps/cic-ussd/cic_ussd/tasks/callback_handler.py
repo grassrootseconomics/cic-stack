@@ -138,26 +138,14 @@ def transaction_balances_callback(self, result: list, param: dict, status_code: 
     balances_data = result[0]
     available_balance = calculate_available_balance(balances_data)
     transaction = param
-    blockchain_address = transaction.get('blockchain_address')
     transaction['available_balance'] = available_balance
     queue = self.request.delivery_info.get('routing_key')
 
-    s_preferences_metadata = celery.signature(
-        'cic_ussd.tasks.metadata.query_preferences_metadata', [blockchain_address], queue=queue
-    )
     s_process_account_metadata = celery.signature(
         'cic_ussd.tasks.processor.parse_transaction', [transaction], queue=queue
     )
     s_notify_account = celery.signature('cic_ussd.tasks.notifications.transaction', queue=queue)
-
-    if transaction.get('transaction_type') == 'transfer':
-        celery.chain(s_preferences_metadata, s_process_account_metadata, s_notify_account).apply_async()
-
-    if transaction.get('transaction_type') == 'tokengift':
-        s_process_account_metadata = celery.signature(
-            'cic_ussd.tasks.processor.parse_transaction', [{}, transaction], queue=queue
-        )
-        celery.chain(s_process_account_metadata, s_notify_account).apply_async()
+    celery.chain(s_process_account_metadata, s_notify_account).apply_async()
 
 
 @celery_app.task

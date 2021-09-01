@@ -1,43 +1,16 @@
-
-.cic_meta_variables:
-    variables:
-        APP_NAME: cic-meta
-        DOCKERFILE_PATH: docker/Dockerfile_ci
-        CONTEXT: apps/$APP_NAME
-
-build-mr-cic-meta:
-    extends:
-        - .py_build_merge_request
-        - .cic_meta_variables
-    rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-          - apps/cic-meta/**/*
-      when: always
-
-test-mr-cic-meta:
-    extends:
-        - .cic_meta_variables
-    stage: test
-    image: $MR_IMAGE_TAG 
-    script:
-        - cd /root
-        - npm install --dev 
-        - npm run test
-        - npm run test:coverage
-    needs: ["build-mr-cic-meta"]
-    rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-          - apps/cic-meta/**/*
-      when: always
-
-build-push-cic-meta:
-    extends:
-        - .py_build_push
-        - .cic_meta_variables
-    rules:
-    - if:  $CI_COMMIT_BRANCH == "master"
-      changes:
-          - apps/cic-meta/**/*
-      when: always
+build-test-cic-meta:
+  stage: test
+  tags:
+   - integration
+  variables:
+    APP_NAME: cic-meta
+    MR_IMAGE_TAG: mr-$APP_NAME-$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
+  script:
+    - cd apps/cic-meta
+    - docker build -t $MR_IMAGE_TAG -f docker/Dockerfile . 
+    - docker run --entrypoint=sh $MR_IMAGE_TAG docker/run_tests.sh
+     #rules:
+     #- if: $CI_PIPELINE_SOURCE == "merge_request_event"
+     #  changes:
+     #      - apps/$APP_NAME/**/*
+     #  when: always
