@@ -8,10 +8,10 @@ else
 	mkdir -p $DEV_DATA_DIR
 fi
 
-if [ ! -z $DEV_CONFIG_RESET ]; then
+if [ -z $DEV_CONFIG_RESET ]; then
 	if [ -f ${DEV_DATA_DIR}/env_reset ]; then
-		>&2 echo "using existing config file ${DEV_DATA_DIR}/env_reset"	
-		exit 0
+		>&2 echo "importing existing configuration values from ${DEV_DATA_DIR}/env_reset"
+		. ${DEV_DATA_DIR}/env_reset
 	fi
 fi
 
