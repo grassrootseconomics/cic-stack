@@ -44,7 +44,6 @@ cic-eth-tag -i $CHAIN_SPEC TRANSFER_AUTHORIZATION_OWNER $DEV_ETH_ACCOUNT_TRANSFE
 
 >&2 echo "create account for accounts index writer"
 DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER=`CONFINI_DIR=$empty_config_dir cic-eth-create $debug --redis-host $REDIS_HOST --redis-host-callback=$REDIS_HOST --redis-port-callback=$REDIS_PORT --no-register`
-#echo DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER=$DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER >> $env_out_file
 cic-eth-tag -i $CHAIN_SPEC ACCOUNT_REGISTRY_WRITER $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER
 >&2 echo "add acccounts index writer account as writer on contract"
 eth-accounts-index-writer -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $ETH_PROVIDER -e $account_index_address -ww $debug $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER
@@ -77,8 +76,6 @@ export DEV_ETH_SARAFU_TOKEN_ADDRESS=$DEV_ETH_RESERVE_ADDRESS
 # Transfer tokens to gifter address
 >&2 echo "transfer tokens to token gifter address"
 >&2 erc20-transfer -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $ETH_PROVIDER --fee-limit 100000 -e $reserve_address -w $debug -a $DEV_ETH_ACCOUNT_SARAFU_GIFTER ${DEV_TOKEN_AMOUNT:0:-1}
-
-#echo -n 0 > $init_level_file
 
 #CONFINI_DIR=$_CONFINI_DIR
 # Remove the SEND (8), QUEUE (16) and INIT (2) locks (or'ed), set by default at migration

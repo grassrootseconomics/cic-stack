@@ -9,7 +9,6 @@ set -e
 if [ ! -z $DEV_ETH_GAS_PRICE ]; then
 	gas_price_arg="--gas-price $DEV_ETH_GAS_PRICE"
 	fee_price_arg="--fee-price $DEV_ETH_GAS_PRICE"
-	#>&2 echo using static gas price $DEV_ETH_GAS_PRICE
 fi
 
 # Wait for the backend to be up, if we know where it is.
@@ -109,19 +108,6 @@ fi
 mkdir -p $DEV_DATA_DIR
 >&2 echo using data dir $DEV_DATA_DIR for environment variable dump
 
-# this is consumed in downstream services to set environment variables
-#cat << EOF > $DEV_DATA_DIR/.env
-#export CIC_REGISTRY_ADDRESS=$CIC_REGISTRY_ADDRESS
-#export CIC_TRUST_ADDRESS=$DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER
-#export CIC_DECLARATOR_ADDRESS=$CIC_DECLARATOR_ADDRESS
-#EOF
-
-#cat ./envlist | bash from_env.sh > $DEV_DATA_DIR/.env_all
-#cat ./envlist
-# popd
-
-#CIC_REGISTRY_ADDRESS=$CIC_REGISTRY_ADDRESS
-#CIC_DECLARATOR_ADDRESS=$CIC_DECLARATOR_ADDRESS
 confini-dump --schema-module chainlib.eth.data.config --schema-module cic_eth.data.config --schema-dir ./config --prefix export > ${DEV_DATA_DIR}/env_reset
 
 cat ${DEV_DATA_DIR}/env_reset
