@@ -81,7 +81,8 @@ services:
       ETH_PROVIDER_PORT: 8545
       CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
-      CIC_DATA_DIR: ${CIC_DATA_DIR:-/tmp/cic/config}
+      DEV_DATA_DIR: ${DEV_DATA_DIR:-/tmp/cic/config}
+      DEV_CONFIG_RESET: $DEV_CONFIG_RESET
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
       DATABASE_NAME: ${DEV_DATABASE_NAME_CIC_ETH:-cic_eth}
