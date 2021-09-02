@@ -2,8 +2,10 @@ services:
 
   cic-frontend-auth:
     networks:
-      - web
+      - traefik 
     image:  localhost:5000/cic-auth-proxy:latest
+    ports:
+      - 8080
     environment:
       GPG_TRUSTED_PUBLICKEY_FINGERPRINT: CCE2E1D2D0E36ADE0405E2D0995BB21816313BD5
       GPG_IMPORT_DIR: /usr/src/cic-auth-proxy/meta/tests/testdata/dev/
@@ -19,33 +21,31 @@ services:
 
   cic-meta-server:
     networks:
-      - web
-    ports:
-      - 8000
+      - traefik 
+      - default
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.cic-meta-server.rule=Host(`meta.localhost`)"
-      - "traefik.http.routers.entrypoints=web"
-      #- "traefik.http.middlewares.${STACK_NAME?Variable not set}-meta.forwardauth.authResponseHeaders=WWW-Authenticate, Token"
-      #- "traefik.http.middlewares.cic-meta-server.forwardauth.address=http://cic-frontend-auth"
-
-
+      - "traefik.http.routers.cic-meta-server.rule=Path(`/protected`)"
+      - "traefik.http.routers.cic-meta-server.middlewares=cic-auth"
+      - "traefik.http.middlewares.cic-auth.forwardauth.address=http://cic-frontend-auth/" 
+      - "traefik.http.middlewares.cic-auth.forwardauth.authRequestHeaders=Authorization"     
 
   proxy:
     networks:
-      - web
-    image: traefik:v2.2
+      - traefik 
+    image: traefik:v2.5
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
           - "80:80"
-          - "8090:8080"
+          - "8080:8080"
     command:
       # Enable Docker in Traefik, so that it reads labels from Docker services
       - --providers.docker
       # Add a constraint to only use services with the label for this stack
       # Do not expose all Docker services, only the ones explicitly exposed
       - --providers.docker.exposedbydefault=false
+      - "--providers.docker.network=traefik"
       # Disable Docker Swarm mode for local development
       # - --providers.docker.swarmmode
       # Enable the access log, with HTTP requests
@@ -53,16 +53,14 @@ services:
         # - log.level=DEBUG
       # Enable the Traefik log, for configurations and errors
       - --log
+      - --log.level=DEBUG
       # Enable the Dashboard and API
       - --api
       # Enable the Dashboard and API in insecure mode for local development
       - --api.insecure=true
-      - "--entrypoints.web.address=:80"
     labels:
       - traefik.enable=true
-        #- traefik.http.routers.traefik-public-http.rule=Host(`localhost`)
-        #- traefik.http.services.traefik-public.loadbalancer.server.port=80
 
 networks:
-  web:
-    external: false
+  traefik:
+    name: "traefik" 

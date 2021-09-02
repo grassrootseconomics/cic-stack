@@ -29,4 +29,7 @@ RUN chmod 755 ./db.sh
 RUN alias tsc=node_modules/typescript/bin/tsc 
 COPY docker/start_server.sh ./start_server.sh
 RUN chmod 755 ./start_server.sh
+
+EXPOSE 8000
+
 ENTRYPOINT ["sh", "./start_server.sh"]
