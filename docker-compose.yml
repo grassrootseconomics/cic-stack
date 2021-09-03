@@ -73,12 +73,11 @@ services:
     # image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:latest
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
-      ETH_PROVIDER: ${CIC_HTTP_PROVIDER:-http://eth:8545}
-      RPC_HTTP_PROVIDER: ${CIC_HTTP_PROVIDER:-http://eth:8545}
+      RPC_HTTP_PROVIDER: ${RPC_HTTP_PROVIDER:-http://eth:8545}
       # And these two are for wait-for-it (could parse this)
       DEV_USE_DOCKER_WAIT_SCRIPT: 1
-      ETH_PROVIDER_HOST: eth 
-      ETH_PROVIDER_PORT: 8545
+      DEV_ETH_PROVIDER_HOST: eth 
+      DEV_ETH_PROVIDER_PORT: 8545
       CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
       DEV_DATA_DIR: ${DEV_DATA_DIR:-/tmp/cic/config}
@@ -97,17 +96,15 @@ services:
       DEV_PIP_EXTRA_INDEX_URL: ${DEV_PIP_EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
       RUN_MASK: ${RUN_MASK:-0} # bit flags; 1: contract migrations 2: seed data
       DEV_FAUCET_AMOUNT: ${DEV_FAUCET_AMOUNT:-0}
-      #DEV_SARAFU_DEMURRAGE_LEVEL: ${DEV_SARAFU_DEMURRAGE_LEVEL:-196454828847045000000000000000000}
-      DEV_ETH_GAS_PRICE: ${DEV_ETH_GAS_PRICE:-1}
-      CIC_DEFAULT_TOKEN_SYMBOL: $CIC_DEFAULT_TOKEN_SYMBOL
-      TOKEN_NAME: $TOKEN_NAME
+      DEV_ETH_GAS_PRICE: $DEV_ETH_GAS_PRICE
+      CIC_DEFAULT_TOKEN_SYMBOL: ${CIC_DEFAULT_TOKEN_SYMBOL:-SARAFU}
+      TOKEN_NAME: ${TOKEN_NAME:-Sarafu Token}
       TOKEN_DECIMALS: $TOKEN_DECIMALS
-      TOKEN_REDISTRIBUTION_PERIOD: $TOKEN_REDISTRIBUTION_PERIOD
+      TOKEN_REDISTRIBUTION_PERIOD: $TOKEN_DEMURRAGE_REDISTRIBUTION_PERIOD
       TOKEN_SUPPLY_LIMIT: $TOKEN_SUPPLY_LIMIT
-      TOKEN_DEMURRAGE_LEVEL: ${TOKEN_DEMURRAGE_LEVEL:-196454828847045000000000000000000}
+      TOKEN_DEMURRAGE_LEVEL: $TOKEN_DEMURRAGE_LEVEL
       TOKEN_SINK_ADDRESS: $TOKEN_SINK_ADDRESS
       TOKEN_TYPE: $TOKEN_TYPE
-        #CONFINI_DIR: ${CONFINI_DIR:-/tmp/cic/config}
     command: ["./run_job.sh"]
         #command: ["./reset.sh"]
     depends_on:

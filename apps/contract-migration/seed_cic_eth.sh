@@ -2,6 +2,7 @@
 
 # defaults
 source ${DEV_DATA_DIR}/env_reset
+cat ${DEV_DATA_DIR}/env_reset
 
 # Debug flag
 debug='-vv'
@@ -10,13 +11,12 @@ empty_config_dir=$CONFINI_DIR/empty
 set -e
 set -a
 
-export CONFINI_DIR=$_CONFINI_DIR
 unset CONFINI_DIR
 
 # get required addresses from registries
-token_index_address=`eth-contract-registry-list -u -i $CHAIN_SPEC -p $ETH_PROVIDER -e $CIC_REGISTRY_ADDRESS -vv --raw TokenRegistry`
-account_index_address=`eth-contract-registry-list -u -i $CHAIN_SPEC -p $ETH_PROVIDER -e $CIC_REGISTRY_ADDRESS -vv --raw AccountRegistry`
-reserve_address=`eth-token-index-list -i $CHAIN_SPEC -u -p $ETH_PROVIDER -e $token_index_address -vv --raw $CIC_DEFAULT_TOKEN_SYMBOL`
+token_index_address=`eth-contract-registry-list -u -i $CHAIN_SPEC -p $RPC_PROVIDER -e $CIC_REGISTRY_ADDRESS -vv --raw TokenRegistry`
+account_index_address=`eth-contract-registry-list -u -i $CHAIN_SPEC -p $RPC_PROVIDER -e $CIC_REGISTRY_ADDRESS -vv --raw AccountRegistry`
+reserve_address=`eth-token-index-list -i $CHAIN_SPEC -u -p $RPC_PROVIDER -e $token_index_address -vv --raw $CIC_DEFAULT_TOKEN_SYMBOL`
 
 >&2 echo "Token registry: $token_index_address"
 >&2 echo "Account registry: $account_index_address"
@@ -46,44 +46,41 @@ cic-eth-tag -i $CHAIN_SPEC TRANSFER_AUTHORIZATION_OWNER $DEV_ETH_ACCOUNT_TRANSFE
 DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER=`CONFINI_DIR=$empty_config_dir cic-eth-create $debug --redis-host $REDIS_HOST --redis-host-callback=$REDIS_HOST --redis-port-callback=$REDIS_PORT --no-register`
 cic-eth-tag -i $CHAIN_SPEC ACCOUNT_REGISTRY_WRITER $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER
 >&2 echo "add acccounts index writer account as writer on contract"
-eth-accounts-index-writer -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $ETH_PROVIDER -e $account_index_address -ww $debug $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER
+eth-accounts-index-writer -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER -e $account_index_address -ww $debug $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER
 
 # Transfer gas to custodial gas provider adddress
 _CONFINI_DIR=$CONFINI_DIR
 unset CONFINI_DIR
 >&2 echo gift gas to gas gifter
->&2 eth-gas -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $ETH_PROVIDER -w $debug -a $DEV_ETH_ACCOUNT_GAS_GIFTER $DEV_GAS_AMOUNT
+>&2 eth-gas -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER -w $debug -a $DEV_ETH_ACCOUNT_GAS_GIFTER $DEV_GAS_AMOUNT
 
 >&2 echo gift gas to sarafu token owner
->&2 eth-gas -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $ETH_PROVIDER -w $debug -a $DEV_ETH_ACCOUNT_SARAFU_GIFTER $DEV_GAS_AMOUNT
+>&2 eth-gas -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER -w $debug -a $DEV_ETH_ACCOUNT_SARAFU_GIFTER $DEV_GAS_AMOUNT
 
 >&2 echo gift gas to account index owner
->&2 eth-gas -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $ETH_PROVIDER -w $debug -a $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER $DEV_GAS_AMOUNT
+>&2 eth-gas -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER -w $debug -a $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER $DEV_GAS_AMOUNT
 
 
 # Send token to token creator
 >&2 echo "gift tokens to sarafu owner"
-echo "giftable-token-gift -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $ETH_PROVIDER -e $reserve_address -a $DEV_ETH_ACCOUNT_SARAFU_GIFTER -w $debug $DEV_TOKEN_AMOUNT"
->&2 giftable-token-gift -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $ETH_PROVIDER -e $reserve_address -a $DEV_ETH_ACCOUNT_SARAFU_GIFTER -w $debug $DEV_TOKEN_AMOUNT
+echo "giftable-token-gift -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER -e $reserve_address -a $DEV_ETH_ACCOUNT_SARAFU_GIFTER -w $debug $DEV_TOKEN_AMOUNT"
+>&2 giftable-token-gift -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER -e $reserve_address -a $DEV_ETH_ACCOUNT_SARAFU_GIFTER -w $debug $DEV_TOKEN_AMOUNT
 
 # Send token to token gifter
 >&2 echo "gift tokens to keystore address"
->&2 giftable-token-gift -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $ETH_PROVIDER -e $reserve_address -a $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER -w $debug $DEV_TOKEN_AMOUNT
+>&2 giftable-token-gift -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER -e $reserve_address -a $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER -w $debug $DEV_TOKEN_AMOUNT
 
 >&2 echo "set sarafu token to reserve token (temporarily while bancor contracts are not connected)"
 export DEV_ETH_SARAFU_TOKEN_ADDRESS=$DEV_ETH_RESERVE_ADDRESS
 
 # Transfer tokens to gifter address
 >&2 echo "transfer tokens to token gifter address"
->&2 erc20-transfer -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $ETH_PROVIDER --fee-limit 100000 -e $reserve_address -w $debug -a $DEV_ETH_ACCOUNT_SARAFU_GIFTER ${DEV_TOKEN_AMOUNT:0:-1}
+>&2 erc20-transfer -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER --fee-limit 100000 -e $reserve_address -w $debug -a $DEV_ETH_ACCOUNT_SARAFU_GIFTER ${DEV_TOKEN_AMOUNT:0:-1}
 
-#CONFINI_DIR=$_CONFINI_DIR
 # Remove the SEND (8), QUEUE (16) and INIT (2) locks (or'ed), set by default at migration
 cic-eth-ctl -i $CHAIN_SPEC unlock INIT
 cic-eth-ctl -i $CHAIN_SPEC unlock SEND
 cic-eth-ctl -i $CHAIN_SPEC unlock QUEUE
-
-export CONFINI_DIR=$_CONFINI_DIR
 
 set +a
 set +e
