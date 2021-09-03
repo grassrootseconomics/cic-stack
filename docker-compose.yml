@@ -72,12 +72,8 @@ services:
         EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     # image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:latest
     environment:
-      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
-      RPC_HTTP_PROVIDER: ${RPC_HTTP_PROVIDER:-http://eth:8545}
-      # And these two are for wait-for-it (could parse this)
+      RPC_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
       DEV_USE_DOCKER_WAIT_SCRIPT: 1
-      DEV_ETH_PROVIDER_HOST: eth 
-      DEV_ETH_PROVIDER_PORT: 8545
       CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
       DEV_DATA_DIR: ${DEV_DATA_DIR:-/tmp/cic/config}
