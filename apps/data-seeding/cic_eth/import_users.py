@@ -216,7 +216,10 @@ if __name__ == '__main__':
             f.write(to_checksum_address(new_address_clean))
             f.close()
 
-            os.symlink(os.path.realpath(filepath), meta_phone_filepath)
+            try:
+                os.symlink(os.path.realpath(filepath), meta_phone_filepath)
+            except FileExistsError as e:
+                logg.warning('phone pointer for {} already exists: {}'.format(new_address_clean, e))
 
 
             # custom data
@@ -239,8 +242,10 @@ if __name__ == '__main__':
             f.write(json.dumps(tag_data))
             f.close()
 
-            os.symlink(os.path.realpath(filepath), custom_filepath)
-
+            try:
+                os.symlink(os.path.realpath(filepath), custom_filepath)
+            except FileExistsError as e:
+                logg.warning('custom data pointer for {} already exists: {}'.format(new_address_clean, e))
 
             i += 1
             sys.stdout.write('imported {} {}'.format(i, u).ljust(200) + "\r")
