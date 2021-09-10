@@ -105,6 +105,8 @@ eth-contract-registry-set -s -u $fee_price_arg -w -y $WALLET_KEY_FILE -e $CIC_RE
 giftable-token-minter -s -u $fee_price_arg -w -y $WALLET_KEY_FILE -e $DEV_RESERVE_ADDRESS -i $CIC_CHAIN_SPEC -p $RPC_PROVIDER -vv $DEV_FAUCET_ADDRESS
 
 
+#echo "export CIC_DEFAULT_TOKEN_SYMBOL=$TOKEN_SYMBOL" >> ${DEV_DATA_DIR}/env_reset
+export CIC_DEFAULT_TOKEN_SYMBOL=$TOKEN_SYMBOL
 confini-dump --schema-module chainlib.eth.data.config --schema-module cic_eth.data.config --schema-dir ./config --prefix export > ${DEV_DATA_DIR}/env_reset
 confini-dump --schema-module chainlib.eth.data.config --schema-module cic_eth.data.config --schema-dir ./config 
 
