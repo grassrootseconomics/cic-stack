@@ -9,4 +9,4 @@ erc20-transfer-authorization>=0.3.5a2,<0.4.0
 erc20-faucet>=0.3.2a2,<0.4.0
 sarafu-faucet>=0.0.7a2,<0.1.0
 confini>=0.4.2rc3,<1.0.0
-crypto-dev-signer>=0.4.15a4,<=0.4.15
+crypto-dev-signer>=0.4.15a7,<=0.4.15
