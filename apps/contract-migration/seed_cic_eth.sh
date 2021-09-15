@@ -82,5 +82,7 @@ cic-eth-ctl -i $CHAIN_SPEC unlock INIT
 cic-eth-ctl -i $CHAIN_SPEC unlock SEND
 cic-eth-ctl -i $CHAIN_SPEC unlock QUEUE
 
+confini-dump --schema-module chainlib.eth.data.config --schema-module cic_eth.data.config --schema-dir ./config 
+
 set +a
 set +e

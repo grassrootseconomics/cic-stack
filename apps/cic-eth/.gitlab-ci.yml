@@ -9,8 +9,8 @@ build-test-cic-eth:
     - cd apps/cic-eth
     - docker build -t $MR_IMAGE_TAG -f docker/Dockerfile . 
     - docker run $MR_IMAGE_TAG sh docker/run_tests.sh
-      #rules:
-      #- if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      #  changes:
-      #      - apps/$APP_NAME/**/*
-      #  when: always
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+          - apps/$APP_NAME/**/*
+      when: always

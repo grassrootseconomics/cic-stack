@@ -1,4 +1,4 @@
-crypto-dev-signer>=0.4.15a1,<=0.4.15
+crypto-dev-signer>=0.4.15a4,<=0.4.15
 chainqueue>=0.0.5a1,<0.1.0
 cic-eth-registry>=0.6.1a2,<0.7.0
 redis==3.5.3

@@ -36,3 +36,8 @@ build-push:
   rules:
   - if: $CI_COMMIT_REF_PROTECTED == "true"
     when: always
+
+deploy-dev:
+  stage: deploy
+  trigger: grassrootseconomics/devops
+  when: manual

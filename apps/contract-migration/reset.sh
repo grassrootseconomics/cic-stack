@@ -3,6 +3,8 @@
 set -a
 
 . ${DEV_DATA_DIR}/env_reset
+WAIT_FOR_TIMEOUT=${WAIT_FOR_TIMEOUT:-60}
+
 
 set -e
 
@@ -24,7 +26,7 @@ if [ ! -z "$DEV_USE_DOCKER_WAIT_SCRIPT" ]; then
 	read -i "/" rpc_provider_port <<< "${p[2]}"
 	rpc_provider_host=${p[1]:2}
 	echo "waiting for provider host $rpc_provider_host port $rpc_provider_port..."
-	./wait-for-it.sh "$rpc_provider_host:$rpc_provider_port"
+	./wait-for-it.sh "$rpc_provider_host:$rpc_provider_port" -t $WAIT_FOR_TIMEOUT
 fi
 
 if [ "$TOKEN_TYPE" == "giftable_erc20_token" ]; then
@@ -96,7 +98,7 @@ eth-token-index-add $fee_price_arg -s -u -w -y $WALLET_KEY_FILE  -i $CIC_CHAIN_S
 DEV_FAUCET_ADDRESS=`sarafu-faucet-deploy $fee_price_arg -y $WALLET_KEY_FILE -i $CIC_CHAIN_SPEC -p $RPC_PROVIDER -w -vv --account-index-address $DEV_ACCOUNT_INDEX_ADDRESS $DEV_RESERVE_ADDRESS -s`
 
 >&2 echo "set token faucet amount"
-sarafu-faucet-set $fee_price_arg -y $WALLET_KEY_FILE -i $CIC_CHAIN_SPEC -p $RPC_PROVIDER -e $DEV_FAUCET_ADDRESS -vv -s --fee-limit 100000 $DEV_FAUCET_AMOUNT
+sarafu-faucet-set $fee_price_arg -w -y $WALLET_KEY_FILE -i $CIC_CHAIN_SPEC -p $RPC_PROVIDER -e $DEV_FAUCET_ADDRESS -vv -s --fee-limit 100000 $DEV_FAUCET_AMOUNT
 
 >&2 echo "register faucet in registry"
 eth-contract-registry-set -s -u $fee_price_arg -w -y $WALLET_KEY_FILE -e $CIC_REGISTRY_ADDRESS -i $CIC_CHAIN_SPEC -p $RPC_PROVIDER -vv --identifier Faucet $DEV_FAUCET_ADDRESS
@@ -105,7 +107,10 @@ eth-contract-registry-set -s -u $fee_price_arg -w -y $WALLET_KEY_FILE -e $CIC_RE
 giftable-token-minter -s -u $fee_price_arg -w -y $WALLET_KEY_FILE -e $DEV_RESERVE_ADDRESS -i $CIC_CHAIN_SPEC -p $RPC_PROVIDER -vv $DEV_FAUCET_ADDRESS
 
 
+#echo "export CIC_DEFAULT_TOKEN_SYMBOL=$TOKEN_SYMBOL" >> ${DEV_DATA_DIR}/env_reset
+export CIC_DEFAULT_TOKEN_SYMBOL=$TOKEN_SYMBOL
 confini-dump --schema-module chainlib.eth.data.config --schema-module cic_eth.data.config --schema-dir ./config --prefix export > ${DEV_DATA_DIR}/env_reset
+confini-dump --schema-module chainlib.eth.data.config --schema-module cic_eth.data.config --schema-dir ./config 
 
 set +a
 set +e

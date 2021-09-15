@@ -13,7 +13,16 @@ ARG EXTRA_PIP_ARGS=""
 #    pip install --index-url https://pypi.org/simple \
 #    --force-reinstall \
 #	--extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL \
-#    -r requirements.txt 
+#    -r requirements.txt
+
+RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
+    pip install --index-url https://pypi.org/simple  \
+	  --extra-index-url $GITLAB_PYTHON_REGISTRY \
+    --extra-index-url $EXTRA_INDEX_URL \
+    $EXTRA_PIP_ARGS \
+    cic-eth-aux-erc20-demurrage-token~=0.0.2a6
+
+
 COPY *requirements.txt ./
 RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
     pip install --index-url https://pypi.org/simple  \
@@ -22,19 +31,21 @@ RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
     $EXTRA_PIP_ARGS \
     -r requirements.txt \
     -r services_requirements.txt \
-    -r admin_requirements.txt
-    
-COPY . .
-RUN python setup.py install
-
-ENV PYTHONPATH .
-
+    -r admin_requirements.txt 
+   
+# always install the latest signer 
 RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
     pip install --index-url https://pypi.org/simple  \
 	  --extra-index-url $GITLAB_PYTHON_REGISTRY \
     --extra-index-url $EXTRA_INDEX_URL \
     $EXTRA_PIP_ARGS \
-    cic-eth-aux-erc20-demurrage-token~=0.0.2a6
+    crypto-dev-signer
+
+COPY . .
+RUN python setup.py install
+
+ENV PYTHONPATH .
+
 
 COPY docker/entrypoints/* ./ 
 RUN chmod 755 *.sh
