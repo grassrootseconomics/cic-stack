@@ -78,7 +78,6 @@ export DEV_ETH_SARAFU_TOKEN_ADDRESS=$DEV_ETH_RESERVE_ADDRESS
 >&2 erc20-transfer -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER --fee-limit 100000 -e $reserve_address -w $debug -a $DEV_ETH_ACCOUNT_SARAFU_GIFTER ${DEV_TOKEN_AMOUNT:0:-1}
 
 # Remove the SEND (8), QUEUE (16) and INIT (2) locks (or'ed), set by default at migration
-echo "cic-eth-ctl -i $CHAIN_SPEC unlock INIT"
 cic-eth-ctl -i $CHAIN_SPEC unlock INIT
 cic-eth-ctl -i $CHAIN_SPEC unlock SEND
 cic-eth-ctl -i $CHAIN_SPEC unlock QUEUE
