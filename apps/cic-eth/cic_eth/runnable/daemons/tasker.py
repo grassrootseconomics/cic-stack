@@ -69,9 +69,14 @@ from cic_eth.registry import (
         )
 from cic_eth.task import BaseTask
 
-
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
+
+env = list(os.environ.keys())
+env.sort()
+for k in env:
+    logg.debug("env {} {}".format(k, os.environ[k]))
+
 
 arg_flags = cic_eth.cli.argflag_std_read
 local_arg_flags = cic_eth.cli.argflag_local_task

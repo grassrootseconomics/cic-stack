@@ -3,8 +3,8 @@
 set -a
 
 . ${DEV_DATA_DIR}/env_reset
-WAIT_FOR_TIMEOUT=${WAIT_FOR_TIMEOUT:-60}
 
+WAIT_FOR_TIMEOUT=${WAIT_FOR_TIMEOUT:-60}
 
 set -e
 
@@ -109,7 +109,8 @@ giftable-token-minter -s -u $fee_price_arg -w -y $WALLET_KEY_FILE -e $DEV_RESERV
 
 #echo "export CIC_DEFAULT_TOKEN_SYMBOL=$TOKEN_SYMBOL" >> ${DEV_DATA_DIR}/env_reset
 export CIC_DEFAULT_TOKEN_SYMBOL=$TOKEN_SYMBOL
-confini-dump --schema-module chainlib.eth.data.config --schema-module cic_eth.data.config --schema-dir ./config --prefix export > ${DEV_DATA_DIR}/env_reset
+
+confini-dump -vv --schema-module chainlib.eth.data.config --schema-module cic_eth.data.config --schema-dir ./config --prefix export > ${DEV_DATA_DIR}/env_reset
 confini-dump --schema-module chainlib.eth.data.config --schema-module cic_eth.data.config --schema-dir ./config 
 
 set +a
