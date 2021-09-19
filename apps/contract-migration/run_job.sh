@@ -29,3 +29,6 @@ then
 	fi
 	>&2 echo -e "\033[;32mSUCCEEDED\033[;39m RUN_MASK 2 - custodial service initialization"
 fi
+
+./docker/init_readyz.sh
+

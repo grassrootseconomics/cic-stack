@@ -62,6 +62,8 @@ services:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:${TAG:-latest}
     profiles:
       - migrations 
+    ports:
+      - 8012:8000
     build:
       context: apps/contract-migration
       dockerfile: docker/Dockerfile
@@ -113,6 +115,7 @@ services:
       - cic-eth-tasker
     volumes:
       - contract-config:/tmp/cic/config
+      - ./apps/contract-migration:/root
 
   cic-cache-tracker:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-cache:${TAG:-latest}
