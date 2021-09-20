@@ -82,7 +82,7 @@ argparser.add_argument('--skip-ussd', dest='skip_ussd', action='store_true', hel
 argparser.add_argument('--skip-metadata', dest='skip_metadata', action='store_true', help='skip all metadata verifications')
 argparser.add_argument('--exclude', action='append', type=str, default=[], help='skip specified verification')
 argparser.add_argument('--include', action='append', type=str, help='include specified verification')
-argparser.add_argument('--token-symbol', default='GFT', type=str, dest='token_symbol', help='Token symbol to use for trnsactions')
+argparser.add_argument('--token-symbol', default='GFT', type=str, dest='token_symbol', help='Token symbol to use for transactions')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-x', '--exit-on-error', dest='x', action='store_true', help='Halt exection on error')
@@ -471,7 +471,11 @@ def main():
     except ValueError as e:
         logg.critical('lookup failed for token {}: {}'.format(token_symbol, e))
         sys.exit(1)
-    logg.info('found token address {}'.format(token_address))
+
+    if token_address == ZERO_ADDRESS:
+        logg.warning('unknown token. token tests will not work.')
+    else:
+        logg.info('found token address {}'.format(token_address))
  
     balances = {}
     f = open('{}/balances.csv'.format(user_dir, 'r'))
