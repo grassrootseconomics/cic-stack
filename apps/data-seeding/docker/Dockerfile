@@ -13,7 +13,8 @@ COPY package.json \
 RUN npm ci --production 
 #RUN --mount=type=cache,mode=0755,target=/root/node_modules npm install
 
-COPY requirements.txt . 
+COPY requirements.txt .
+COPY config/ /usr/local/etc/data-seeding
 
 ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
 ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple"

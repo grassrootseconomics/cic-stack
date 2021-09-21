@@ -110,8 +110,12 @@ giftable-token-minter -s -u $fee_price_arg -w -y $WALLET_KEY_FILE -e $DEV_RESERV
 #echo "export CIC_DEFAULT_TOKEN_SYMBOL=$TOKEN_SYMBOL" >> ${DEV_DATA_DIR}/env_reset
 export CIC_DEFAULT_TOKEN_SYMBOL=$TOKEN_SYMBOL
 
-confini-dump -vv --schema-module chainlib.eth.data.config --schema-module cic_eth.data.config --schema-dir ./config --prefix export > ${DEV_DATA_DIR}/env_reset
-confini-dump --schema-module chainlib.eth.data.config --schema-module cic_eth.data.config --schema-dir ./config 
+echo "Writing env_reset file ..."
+
+echo "export CIC_REGISTRY_ADDRESS=$CIC_REGISTRY_ADDRESS
+export CIC_DEFAULT_TOKEN_SYMBOL=$CIC_DEFAULT_TOKEN_SYMBOL
+export TOKEN_NAME=$TOKEN_NAME
+" >> "${DEV_DATA_DIR}"/env_reset
 
 set +a
 set +e

@@ -12,13 +12,13 @@ include:
 stages:
   - build
   - test
-  - deploy 
+  - deploy
 
-image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/docker-with-compose:latest  
+image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/docker-with-compose:latest
 
 variables:
   DOCKER_BUILDKIT: "1"
-  COMPOSE_DOCKER_CLI_BUILD: "1" 
+  COMPOSE_DOCKER_CLI_BUILD: "1"
   CI_DEBUG_TRACE: "true"
 
 before_script:

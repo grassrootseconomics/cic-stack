@@ -6,7 +6,7 @@ celery==4.4.7
 cffi==1.14.6
 cic-eth[services]~=0.12.4a7
 cic-notify~=0.4.0a10
-cic-types~=0.1.0a14
+cic-types~=0.1.0a15
 confini>=0.4.1a1,<0.5.0
 phonenumbers==8.12.12
 psycopg2==2.8.6

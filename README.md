@@ -34,4 +34,7 @@ rebuild an images
 docker-compose up --build <service_name>
 ```
 
-
+to delete the buildkit cache
+```
+docker builder prune --filter type=exec.cachemount
+```

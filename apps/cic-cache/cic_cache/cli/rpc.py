@@ -27,11 +27,11 @@ class RPC:
     @staticmethod
     def from_config(config):
         chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
-        RPCConnection.register_location(config.get('RPC_HTTP_PROVIDER'), chain_spec, 'default')
+        RPCConnection.register_location(config.get('RPC_PROVIDER'), chain_spec, 'default')
         if config.get('SIGNER_PROVIDER'):
             RPCConnection.register_constructor(ConnType.UNIX, EthUnixSignerConnection, tag='signer')
             RPCConnection.register_location(config.get('SIGNER_PROVIDER'), chain_spec, 'signer')
-        rpc = RPC(chain_spec, config.get('RPC_HTTP_PROVIDER'), signer_provider=config.get('SIGNER_PROVIDER'))
+        rpc = RPC(chain_spec, config.get('RPC_PROVIDER'), signer_provider=config.get('SIGNER_PROVIDER'))
         logg.info('set up rpc: {}'.format(rpc))
         return rpc
 
