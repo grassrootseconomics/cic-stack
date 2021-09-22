@@ -92,7 +92,7 @@ services:
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis:6379}
       DEV_PIP_EXTRA_INDEX_URL: ${DEV_PIP_EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
       RUN_MASK: ${RUN_MASK:-0} # bit flags; 1: contract migrations 2: seed data
-      DEV_FAUCET_AMOUNT: ${DEV_FAUCET_AMOUNT:-0}
+      DEV_FAUCET_AMOUNT: ${DEV_FAUCET_AMOUNT:-50000000}
       DEV_ETH_GAS_PRICE: $DEV_ETH_GAS_PRICE
       #DEV_GAS_AMOUNT: "100000000000000000000000" # removed from env_reset
       #WALLET_KEY_FILE: ./keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c #removed from env_reset 
@@ -110,8 +110,8 @@ services:
       TOKEN_SINK_ADDRESS: $TOKEN_SINK_ADDRESS
       SIGNER_PROVIDER: ${SIGNER_SOCKET_PATH:-http://cic-eth-signer:8000}
     restart: on-failure 
-    #command: ["./run_job.sh"]
-    command: bash -c "while true; do sleep 1; done"  # Infinite loop to keep container live doing nothing
+    command: ["./run_job.sh"]
+    #command: bash -c "while true; do sleep 1; done"  # Infinite loop to keep container live doing nothing
     depends_on:
       - eth
       - postgres
@@ -190,17 +190,13 @@ services:
       CIC_CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
       CELERY_BROKER_URL: redis://redis:6379
       CELERY_RESULT_URL: redis://redis:6379
+      CONTRACT_MIGRATION_URL: contract-migration:8000
     restart: on-failure 
     depends_on:
       - redis
       - postgres
       - eth
-    command:
-      - /bin/bash
-      - -c
-      - |
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
-        ./start_tracker.sh -c /usr/local/etc/cic-cache -vv
+    command: ./start_tracker.sh -c /usr/local/etc/cic-cache -vv
     volumes:
       - contract-config:/tmp/cic/config/:ro
 
@@ -227,17 +223,13 @@ services:
       CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       CELERY_BROKER_URL: redis://redis:6379
       CELERY_RESULT_URL: redis://redis:6379
+      CONTRACT_MIGRATION_URL: contract-migration:8000
     restart: unless-stopped 
     depends_on:
       - redis
       - postgres
       - eth
-    command:
-      - /bin/bash
-      - -c
-      - |
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
-        /usr/local/bin/cic-cache-taskerd -vv
+    command: bash docker/start_tasker.sh
     volumes:
       - contract-config:/tmp/cic/config/:ro
 
@@ -252,10 +244,10 @@ services:
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
-        #DATABASE_PASSWORD: ${DATABASE_PASSWORD:-
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
       DATABASE_NAME: ${DATABASE_NAME_CIC_CACHE:-cic_cache}
       DATABASE_DEBUG: 1
-        #PGPASSWORD: $DATABASE_PASSWORD
+      CONTRACT_MIGRATION_URL: contract-migration:8000
       SERVER_PORT: 8000
     restart: on-failure 
     ports:
@@ -264,16 +256,7 @@ services:
       - postgres
       - cic-cache-tasker
       - cic-cache-tracker
-    command:
-      - /bin/bash
-      - -c
-      - |
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
-        "/usr/local/bin/uwsgi" \
-        --wsgi-file /root/cic_cache/runnable/daemons/server.py \
-        --http :8000 \
-        --pyargv "-vv"
-
+    command: bash docker/start_server.sh
 
   cic-eth-tasker:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth:${TAG:-latest}
@@ -311,6 +294,7 @@ services:
       ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER: ${DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER:-0xACB0BC74E1686D62dE7DC6414C999EA60C09F0eA}
       TASKS_TRACE_QUEUE_STATUS: ${TASKS_TRACE_QUEUE_STATUS:-1}
       CIC_DEFAULT_TOKEN_SYMBOL: ${CIC_DEFAULT_TOKEN_SYMBOL:-GFT}
+      CONTRACT_MIGRATION_URL: contract-migration:8000
     restart: unless-stopped 
     depends_on:
       - eth
@@ -322,12 +306,7 @@ services:
       - contract-config:/tmp/cic/config/:ro
         #command: ["/usr/local/bin/cic-eth-taskerd"]
         #command: ["sleep", "3600"]
-    command:
-      - /bin/bash
-      - -c
-      - |
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
-        ./start_tasker.sh --aux-all -q cic-eth  -vv
+    command: ./start_tasker.sh --aux-all -q cic-eth  -vv
     
   cic-eth-signer:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth:${TAG:-latest}
@@ -374,13 +353,6 @@ services:
       - signer-data:/run/crypto-dev-signer
       - contract-config:/tmp/cic/config/:ro
     command: ["python", "/usr/local/bin/crypto-dev-daemon", "-c", "/usr/local/etc/crypto-dev-signer", "-vv"]
-        #command:
-        #  - /bin/bash
-        #  - -c
-        #  - |
-        #    if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
-        #    ./start_tasker.sh --aux-all -q cic-eth  -vv
-    # command: [/bin/sh, "./start_tasker.sh", -q, cic-eth, -vv ]
 
   cic-eth-tracker:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth:${TAG:-latest}
@@ -407,6 +379,7 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
       TASKS_TRANSFER_CALLBACKS: ${TASKS_TRANSFER_CALLBACKS:-"cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback"}
+      CONTRACT_MIGRATION_URL: contract-migration:8000
     restart: on-failure 
     depends_on:
       - eth
@@ -414,15 +387,7 @@ services:
       - redis
     volumes:
       - contract-config:/tmp/cic/config/:ro
-    command:
-      - /bin/bash
-      - -c
-      - |
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
-        #./start_tracker.sh -vv -c /usr/local/etc/cic-eth
-        ./start_tracker.sh -vv
-    # command: "/root/start_manager.sh head -vv"
-
+    command: bash ./start_tracker.sh -vv
 
   cic-eth-dispatcher:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth:${TAG:-latest}
@@ -445,12 +410,12 @@ services:
       CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
-        #BANCOR_DIR: $BANCOR_DIR
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
       TASKS_TRANSFER_CALLBACKS: $TASKS_TRANSFER_CALLBACKS
       DATABASE_DEBUG: ${DATABASE_DEBUG:-false}
         #DATABASE_DEBUG: 1
+      CONTRACT_MIGRATION_URL: contract-migration:8000
     restart: on-failure 
     depends_on:
       - eth
@@ -458,13 +423,7 @@ services:
       - redis
     volumes:
         - contract-config:/tmp/cic/config/:ro
-    command:
-      - /bin/bash
-      - -c
-      - |
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
-        ./start_dispatcher.sh -q cic-eth -vv
-    # command: "/root/start_dispatcher.sh -q cic-eth -vv"
+    command: bash start_dispatcher.sh -q cic-eth -vv
     
 
 
@@ -504,15 +463,7 @@ services:
       - redis
     volumes:
         - contract-config:/tmp/cic/config/:ro
-    command:
-      - /bin/bash
-      - -c
-      - |
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
-        ./start_retry.sh -vv 
-    # command: "/root/start_retry.sh -q cic-eth -vv"
-
-
+    command: bash start_retry.sh -vv 
 
   cic-notify-tasker:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-notify:${TAG:-latest}
