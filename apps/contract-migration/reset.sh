@@ -112,10 +112,13 @@ export CIC_DEFAULT_TOKEN_SYMBOL=$TOKEN_SYMBOL
 
 echo "Writing env_reset file ..."
 
-echo "export CIC_REGISTRY_ADDRESS=$CIC_REGISTRY_ADDRESS
+# note these are also written in init_readyz.sh
+cat <<EOF > $DEV_DATA_DIR/env_reset 
+export CIC_REGISTRY_ADDRESS=$CIC_REGISTRY_ADDRESS
+export CIC_TRUST_ADDRESS=$CIC_TRUST_ADDRESS
 export CIC_DEFAULT_TOKEN_SYMBOL=$CIC_DEFAULT_TOKEN_SYMBOL
 export TOKEN_NAME=$TOKEN_NAME
-" >> "${DEV_DATA_DIR}"/env_reset
+EOF
 
 set +a
 set +e

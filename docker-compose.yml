@@ -60,8 +60,6 @@ services:
 
   contract-migration:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:${TAG:-latest}
-    profiles:
-      - migrations 
     ports:
       - 8012:8000
     build:
@@ -72,10 +70,10 @@ services:
         pip_extra_args: $PIP_EXTRA_ARGS
         EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
         EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
-    # image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:latest
     environment:
       RPC_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
       ETH_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
+      RPC_HTTP_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
       DEV_USE_DOCKER_WAIT_SCRIPT: 1
       CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
@@ -98,13 +96,16 @@ services:
       DEV_ETH_GAS_PRICE: $DEV_ETH_GAS_PRICE
       TOKEN_NAME: ${TOKEN_NAME:-Giftable Token}
       TOKEN_SYMBOL: ${TOKEN_SYMBOL:-GFT}
+      TOKEN_TYPE: ${TOKEN_TYPE:-giftable_erc20_token}
+      #TOKEN_NAME: ${TOKEN_NAME:-Demurrage Token}
+      #TOKEN_SYMBOL: ${TOKEN_SYMBOL:-DET}
+      #TOKEN_TYPE: ${TOKEN_TYPE:-erc20_demurrage_token }
       TOKEN_DECIMALS: $TOKEN_DECIMALS
       TOKEN_REDISTRIBUTION_PERIOD: $TOKEN_DEMURRAGE_REDISTRIBUTION_PERIOD
       TASKS_TRANSFER_CALLBACKS: ${TASKS_TRANSFER_CALLBACKS:-"cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback"}
       TOKEN_SUPPLY_LIMIT: $TOKEN_SUPPLY_LIMIT
       TOKEN_DEMURRAGE_LEVEL: $TOKEN_DEMURRAGE_LEVEL
       TOKEN_SINK_ADDRESS: $TOKEN_SINK_ADDRESS
-      TOKEN_TYPE: $TOKEN_TYPE
       SIGNER_PROVIDER: ${SIGNER_SOCKET_PATH:-http://cic-eth-signer:8000}
     restart: on-failure 
     command: ["./run_job.sh"]
@@ -157,14 +158,14 @@ services:
       USSD_PROVIDER: http://cic-user-ussd-server:9000
       CELERY_QUEUE: cic-import-ussd
       EXCLUSIONS: ussd
-    command: bash import_ussd.sh
+      CONTRACT_MIGRATION_URL: contract-migration:8000
+    command: bash ./scripts/run_job.sh 
     volumes:
       - contract-config:/tmp/cic/config/:ro
+        #- ./apps/data-seeding:/root
 
   cic-cache-tracker:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-cache:${TAG:-latest}
-    profiles:
-      - cache 
     build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
@@ -203,8 +204,6 @@ services:
 
   cic-cache-tasker:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-cache:${TAG:-latest}
-    profiles:
-      - cache 
     build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
@@ -242,8 +241,6 @@ services:
 
   cic-cache-server:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-cache:${TAG:-latest}
-    profiles:
-      - cache 
     build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
@@ -544,8 +541,6 @@ services:
 
   cic-meta-server:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-meta:${TAG:-latest}
-    profiles:
-      - custodial-meta
     hostname: meta
     build:
       context: apps/cic-meta
@@ -578,8 +573,6 @@ services:
 
   cic-user-ussd-server:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-ussd:${TAG:-latest}
-    profiles:
-      - custodial-ussd
     build:
       context: apps/cic-ussd
       dockerfile: docker/Dockerfile
@@ -609,8 +602,6 @@ services:
 
   cic-user-server:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-ussd:${TAG:-latest}
-    profiles:
-      - custodial-ussd
     build:
       context: apps/cic-ussd
       dockerfile: docker/Dockerfile
@@ -633,8 +624,6 @@ services:
 
   cic-user-tasker:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-ussd:${TAG:-latest}
-    profiles:
-      - custodial-ussd
     build:
       context: apps/cic-ussd/
       dockerfile: docker/Dockerfile
