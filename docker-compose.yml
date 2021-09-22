@@ -94,7 +94,8 @@ services:
       RUN_MASK: ${RUN_MASK:-0} # bit flags; 1: contract migrations 2: seed data
       DEV_FAUCET_AMOUNT: ${DEV_FAUCET_AMOUNT:-0}
       DEV_ETH_GAS_PRICE: $DEV_ETH_GAS_PRICE
-      WALLET_KEY_FILE: ./keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c 
+      #DEV_GAS_AMOUNT: "100000000000000000000000" # removed from env_reset
+      #WALLET_KEY_FILE: ./keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c #removed from env_reset 
       TOKEN_NAME: ${TOKEN_NAME:-Giftable Token}
       TOKEN_SYMBOL: ${TOKEN_SYMBOL:-GFT}
       TOKEN_TYPE: ${TOKEN_TYPE:-giftable_erc20_token}
@@ -109,8 +110,8 @@ services:
       TOKEN_SINK_ADDRESS: $TOKEN_SINK_ADDRESS
       SIGNER_PROVIDER: ${SIGNER_SOCKET_PATH:-http://cic-eth-signer:8000}
     restart: on-failure 
-    command: ["./run_job.sh"]
-        #command: ["./reset.sh"]
+    #command: ["./run_job.sh"]
+    command: bash -c "while true; do sleep 1; done"  # Infinite loop to keep container live doing nothing
     depends_on:
       - eth
       - postgres

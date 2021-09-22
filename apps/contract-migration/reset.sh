@@ -120,6 +120,9 @@ export CIC_DEFAULT_TOKEN_SYMBOL=$CIC_DEFAULT_TOKEN_SYMBOL
 export TOKEN_NAME=$TOKEN_NAME
 EOF
 
+confini-dump -vv --schema-module chainlib.eth.data.config --schema-module cic_eth.data.config --schema-dir ./config --prefix export > ${DEV_DATA_DIR}/env_reset
+confini-dump --schema-module chainlib.eth.data.config --schema-module cic_eth.data.config --schema-dir ./config 
+
 set +a
 set +e
 
