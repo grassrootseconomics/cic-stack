@@ -363,6 +363,7 @@ services:
     environment:
       RPC_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
       ETH_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
+      RPC_HTTP_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
@@ -454,6 +455,7 @@ services:
       CIC_TX_RETRY_DELAY: 60
       BATCH_SIZE: ${RETRIER_BATCH_SIZE:-50}
         #DATABASE_DEBUG: 1
+      CONTRACT_MIGRATION_URL: contract-migration:8000
     restart: on-failure 
     depends_on:
       - eth

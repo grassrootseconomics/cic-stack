@@ -12,7 +12,10 @@ if [[ $((RUN_MASK & 1)) -eq 1 ]]
 then
 	>&2 echo -e "\033[;96mRUNNING\033[;39m RUN_MASK 1 - contract deployment"
 	./reset.sh
-  ./docker/init_readyz.sh 2>&1 &
+  # cic-eth-xxx services rely on
+  export RUN_MASK_PHASE=1
+  ./docker/init_readyz.sh &
+  echo 0
 	if [ $? -ne "0" ]; then
 		>&2 echo -e "\033[;31mFAILED\033[;39m RUN_MASK 1 - contract deployment"
 		exit 1;
@@ -24,12 +27,11 @@ if [[ $((RUN_MASK & 2)) -eq 2 ]]
 then
 	>&2 echo -e "\033[;96mRUNNING\033[;39m RUN_MASK 2 - custodial service initialization"
 	./seed_cic_eth.sh
-  ./docker/init_readyz.sh
 	if [ $? -ne "0" ]; then
 		>&2 echo -e "\033[;31mFAILED\033[;39m RUN_MASK 2 - custodial service initialization"
 		exit 1;
 	fi
 	>&2 echo -e "\033[;32mSUCCEEDED\033[;39m RUN_MASK 2 - custodial service initialization"
 fi
-
-
+# this will leave the container up and serving the results of the migration
+wait

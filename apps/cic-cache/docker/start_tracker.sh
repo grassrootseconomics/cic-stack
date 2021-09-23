@@ -14,8 +14,8 @@ fi
 
 if [[ "$CONTRACT_MIGRATION_URL" ]]; then
   echo "waiting for $CONTRACT_MIGRATION_URL/readyz"
-  ./wait-for-it.sh $CONTRACT_MIGRATION_URL  -t $WAIT_FOR_TIMEOUT 
-  source ./get_readyz.sh # set env vars form endpoint
+  docker/wait-for-it.sh $CONTRACT_MIGRATION_URL  -t $WAIT_FOR_TIMEOUT 
+  source docker/get_readyz.sh # set env vars form endpoint
   /usr/local/bin/cic-cache-trackerd $@
 else
   /usr/local/bin/cic-cache-trackerd $@
