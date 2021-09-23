@@ -19,6 +19,11 @@ Run app/contract-migration to deploy contracts
 RUN_MASK=3 docker-compose up contract-migration
 ```
 
+View container status
+```
+docker ps --filter network=cic-network --format "table {{.ID}}\t{{.Names}}\t{{.Status}}" --all
+```
+
 stop cluster
 ```
 docker-compose down

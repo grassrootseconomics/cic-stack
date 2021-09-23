@@ -109,7 +109,6 @@ services:
       TOKEN_DEMURRAGE_LEVEL: $TOKEN_DEMURRAGE_LEVEL
       TOKEN_SINK_ADDRESS: $TOKEN_SINK_ADDRESS
       SIGNER_PROVIDER: ${SIGNER_SOCKET_PATH:-http://cic-eth-signer:8000}
-    restart: on-failure 
     command: ["./run_job.sh"]
     #command: bash -c "while true; do sleep 1; done"  # Infinite loop to keep container live doing nothing
     depends_on:
@@ -120,7 +119,6 @@ services:
     volumes:
       - contract-config:/tmp/cic/config
       - ./apps/contract-migration:/root
-
 
   data-seeding:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/data-seeding:${TAG:-latest}
