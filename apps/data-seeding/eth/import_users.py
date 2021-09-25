@@ -58,7 +58,7 @@ config = confini.Config(config_dir, os.environ.get('CONFINI_ENV_PREFIX'))
 config.process()
 args_override = {
         'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
-        'CIC_CHAIN_SPEC': getattr(args, 'i'),
+        'CHAIN_SPEC': getattr(args, 'i'),
         'KEYSTORE_FILE_PATH': getattr(args, 'y')
         }
 config.dict_override(args_override, 'cli')
@@ -86,7 +86,7 @@ os.makedirs(txs_dir)
 
 user_dir = args.user_dir
 
-chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
+chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
 chain_str = str(chain_spec)
 
 old_chain_spec = ChainSpec.from_chain_str(args.old_chain_spec)

@@ -58,6 +58,7 @@ class SessionBase(Model):
     def connect(dsn, pool_size=16, debug=False):
         """Create new database connection engine and connect to database backend.
 
+        
         :param dsn: DSN string defining connection.
         :type dsn: str
         """
