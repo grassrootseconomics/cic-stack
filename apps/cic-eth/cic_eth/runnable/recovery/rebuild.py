@@ -96,7 +96,14 @@ class QueueRecoveryFilter:
 
     
     def filter(self, conn, block, tx, db_session=None):
-        pass
+        logg.debug('tx {}'.format(tx))
+        for output in tx.outputs:
+            recipient_bytes = bytes.fromhex(strip_0x(output))
+            if self.bloom.check(recipient_bytes):
+                o = self.account_registry.have(self.account_registry_address, output)
+                r = self.rpc.do(o)
+                if self.parse_have(r):
+                    self.add_recipient_tx(tx)
 
 
 def main():
@@ -114,8 +121,6 @@ def main():
 
     syncers = []
 
-    #if SQLBackend.first(chain_spec):
-    #    backend = SQLBackend.initial(chain_spec, block_offset)
     syncer_backends = SQLBackend.resume(chain_spec, block_offset)
 
     if len(syncer_backends) == 0:
@@ -147,6 +152,7 @@ def main():
     for syncer in syncers:
         syncer.add_filter(account_filter)
 
+        r = syncer.loop(int(loop_interval), conn)
 
 
 if __name__ == '__main__':
