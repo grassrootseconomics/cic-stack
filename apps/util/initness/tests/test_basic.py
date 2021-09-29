@@ -19,7 +19,7 @@ class TestInitness(unittest.TestCase):
 
     def test_state(self):
         o = get_state(self.dir)
-        self.assertEqual(o['init'], '42')
+        self.assertEqual(o['runlevel'], '42')
         self.assertEqual(o['registry'], '0xdeadbeef')
 
 

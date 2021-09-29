@@ -68,7 +68,7 @@ def get_state(state_store_dir):
             pass
 
         o = {
-            'init': init_level,
+            'runlevel': init_level,
             'registry': registry_address,
                 }
 
