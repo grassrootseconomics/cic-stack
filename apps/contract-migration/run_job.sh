@@ -16,6 +16,7 @@ then
 		>&2 echo -e "\033[;31mFAILED\033[;39m RUN_MASK 1 - contract deployment"
 		exit 1;
 	fi
+	echo -n 1 > $STATE_DIR/init
 	>&2 echo -e "\033[;32mSUCCEEDED\033[;39m RUN_MASK 1 - contract deployment"
 fi
 
@@ -27,5 +28,6 @@ then
 		>&2 echo -e "\033[;31mFAILED\033[;39m RUN_MASK 2 - custodial service initialization"
 		exit 1;
 	fi
+	echo -n 2 > $STATE_DIR/init
 	>&2 echo -e "\033[;32mSUCCEEDED\033[;39m RUN_MASK 2 - custodial service initialization"
 fi

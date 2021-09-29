@@ -117,6 +117,8 @@ export CIC_DEFAULT_TOKEN_SYMBOL=$CIC_DEFAULT_TOKEN_SYMBOL
 export TOKEN_NAME=$TOKEN_NAME
 " >> "${DEV_DATA_DIR}"/env_reset
 
+echo -n $CIC_REGISTRY_ADDRESS > $STATE_DIR/registry
+
 set +a
 set +e
 

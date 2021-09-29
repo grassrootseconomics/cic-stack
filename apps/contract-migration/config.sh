@@ -5,7 +5,13 @@ set -a
 if [ -z $DEV_DATA_DIR ]; then
 	export DEV_DATA_DIR=`mktemp -d`
 else
-	mkdir -p $DEV_DATA_DIR
+	mkdir -vp $DEV_DATA_DIR
+fi
+
+if [ -z $STATE_DIR ]; then
+	export STATE_DIR=/run/cic_init
+	mkdir -vp $STATE_DIR
+	echo 0 > $STATE_DIR/init
 fi
 
 if [ -z $DEV_CONFIG_RESET ]; then
