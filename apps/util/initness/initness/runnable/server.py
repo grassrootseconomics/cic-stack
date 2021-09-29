@@ -22,9 +22,10 @@ logg = logging.getLogger()
 script_dir = os.path.dirname(os.path.realpath(__file__))
 data_dir = os.path.join(script_dir, '..', 'data')
 default_config_dir = os.path.join(data_dir, 'config')
+config_dir = os.environ.get('CONFINI_DIR', default_config_dir)
 
 argparser = argparse.ArgumentParser()
-argparser.add_argument('-c', '--config', dest='c',  default=default_config_dir, type=str, help='rpc provider')
+argparser.add_argument('-c', '--config', dest='c', type=str, help='configuration override directory')
 argparser.add_argument('--host', type=str, help='httpd host')
 argparser.add_argument('--port', type=str, help='httpd port')
 argparser.add_argument('--state-dir', dest='state_dir', type=str, help='directory to read state from')
@@ -38,7 +39,10 @@ if args.vv:
 elif args.v:
     logging.getLogger().setLevel(logging.INFO)
 
-config = confini.Config(args.c, args.env_prefix)
+override_dirs = []
+if args.c:
+    override_dirs = [args.c]
+config = confini.Config(config_dir, args.env_prefix, override_dirs=override_dirs)
 config.process()
 # override args
 args_override = {
