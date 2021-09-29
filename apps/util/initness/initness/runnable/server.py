@@ -45,14 +45,11 @@ config.dict_override(args_override, 'cli flag')
 logg.debug('loaded config: {}\n'.format(config))
 
 
-class StateRequestHandler(BaseHTTPRequestHandler):
-
-    state_store_dir = None
-
-    def do_GET(self):
-        init_path = os.path.join(self.state_store_dir, 'init')
+def get_state(state_store_dir):
+        init_path = os.path.join(state_store_dir, 'init')
         init_level = 0
         registry_address = None
+
         try:
             f = open(init_path, 'r')
             init_level = f.read()
@@ -61,7 +58,7 @@ class StateRequestHandler(BaseHTTPRequestHandler):
         except FileNotFoundError:
             pass
 
-        registry_path = os.path.join(self.state_store_dir, 'registry')
+        registry_path = os.path.join(state_store_dir, 'registry')
         try:
             f = open(registry_path, 'r')
             registry_address = f.read()
@@ -70,17 +67,24 @@ class StateRequestHandler(BaseHTTPRequestHandler):
         except FileNotFoundError:
             pass
 
-
         o = {
             'init': init_level,
             'registry': registry_address,
                 }
 
-        logg.debug('headers {}'.format(self.headers))
-        logg.debug('i {}'.format(o))
+        return o
 
+
+class StateRequestHandler(BaseHTTPRequestHandler):
+
+    state_store_dir = None
+
+    def do_GET(self):
+       
+        o = get_state(self.state_store_dir)
         self.send_response(200, 'yarr')
         self.end_headers()
+
         self.wfile.write(json.dumps(o).encode('utf-8'))
 
 
@@ -91,10 +95,14 @@ def run(store, host=None, port=None):
     httpd.serve_forever()
 
 
-if __name__ == '__main__':
+def main():
     try:
         os.stat(config.get('STATE_BASE_DIR'))
     except FileNotFoundError:
         os.makedirs(config.get('STATE_BASE_DIR'))
     store = StateRequestHandler.state_store_dir=config.get('STATE_BASE_DIR')
     run(store, host=config.get('HTTPD_HOST'), port=config.get('HTTPD_PORT'))
+
+
+if __name__ == '__main__':
+    main()
