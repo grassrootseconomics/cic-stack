@@ -16,7 +16,9 @@ import confini
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
-default_config_dir = os.environ.get('CONFINI_DIR', './config')
+script_dir = os.path.dirname(os.path.realpath(__file__))
+data_dir = os.path.join(script_dir, '..', 'data')
+default_config_dir = os.path.join(data_dir, 'config')
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument('-c', '--config', dest='c',  default=default_config_dir, type=str, help='rpc provider')
