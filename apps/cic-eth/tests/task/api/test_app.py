@@ -10,6 +10,7 @@ from cic_eth_registry.erc20 import ERC20Token
 from chainlib.chain import ChainSpec
 from eth_accounts_index import AccountsIndex
 from chainlib.eth.tx import (
+        receipt,
         transaction,
         )
 from chainqueue.sql.state import (
@@ -29,6 +30,7 @@ def test_account_api(
         init_database,
         init_eth_rpc,
         account_registry,
+        cic_registry,
         custodial_roles,
         celery_session_worker,
         ):
@@ -49,6 +51,7 @@ def test_account_api_register(
         eth_rpc,
         celery_session_worker,
         ):
+
     api = Api(str(default_chain_spec), callback_param='accounts', callback_task='cic_eth.callbacks.noop.noop', queue=None)
     t = api.create_account('')
     register_tx_hash = t.get_leaf()
@@ -69,12 +72,18 @@ def test_account_api_register(
     r = t.get_leaf()
     assert t.successful()
 
+    o = receipt(register_tx_hash)
+    r = eth_rpc.do(o)
+    assert r['status'] == 1
+
     o = transaction(register_tx_hash)
     tx_src = eth_rpc.do(o)
 
     c = AccountsIndex(default_chain_spec)
     address = c.parse_add_request(tx_src['data'])
+    logg.debug('address {} '.format(address))
     o = c.have(account_registry, address[0], sender_address=custodial_roles['CONTRACT_DEPLOYER'])
+    logg.debug('o {}'.format(o))
     r = eth_rpc.do(o)
     assert c.parse_have(r)
 

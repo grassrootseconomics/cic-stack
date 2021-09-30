@@ -32,6 +32,7 @@ from potaahto.symbols import snake_and_camel
 from cic_eth.queue.time import tx_times
 from cic_eth.task import BaseTask
 from cic_eth.db.models.base import SessionBase
+from cic_eth.encode import tx_normalize
 
 celery_app = celery.current_app
 logg = logging.getLogger()
@@ -134,7 +135,7 @@ def list_tx_by_bloom(self, bloomspec, address, chain_spec_dict):
                     tx_address = transfer_data[0]
                     tx_token_value = transfer_data[1]
                     
-                    if address == tx_address:
+                    if tx_normalize.wallet_address(address) == tx_normalize.wallet_address(tx_address):
                         status = StatusEnum.SENT
                         try:
                             o = receipt(tx['hash'])
@@ -164,10 +165,10 @@ def list_tx_by_bloom(self, bloomspec, address, chain_spec_dict):
                             tx_r['date_created'] = times['queue']
                         else:
                             tx_r['date_created'] = times['network']
-                        txs[tx['hash']] = tx_r
+                        txs[strip_0x(tx['hash'])] = tx_r
                         break
-    return txs
 
+    return txs
 
 
 # TODO: Surely it must be possible to optimize this

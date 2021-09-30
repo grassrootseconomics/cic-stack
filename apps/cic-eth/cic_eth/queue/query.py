@@ -58,6 +58,7 @@ def get_tx_local(chain_spec, tx_hash, session=None):
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
 def get_account_tx(chain_spec_dict, address, as_sender=True, as_recipient=True, counterpart=None):
+    address = tx_normalize.wallet_address(address)
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
     return get_account_tx_local(chain_spec, address, as_sender=as_sender, as_recipient=as_recipient, counterpart=counterpart)
 

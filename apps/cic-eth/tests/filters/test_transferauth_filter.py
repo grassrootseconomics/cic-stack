@@ -19,6 +19,7 @@ from chainqueue.sql.query import get_account_tx
 
 # local imports
 from cic_eth.runnable.daemons.filters.transferauth import TransferAuthFilter
+from cic_eth.encode import tx_normalize
 
 
 def test_filter_transferauth(
@@ -66,7 +67,8 @@ def test_filter_transferauth(
     t.get_leaf()
     assert t.successful()
 
-    approve_txs = get_account_tx(default_chain_spec.asdict(), agent_roles['ALICE'], as_sender=True, session=init_database)
+    #approve_txs = get_account_tx(default_chain_spec.asdict(), agent_roles['ALICE'], as_sender=True, session=init_database)
+    approve_txs = get_account_tx(default_chain_spec.asdict(), tx_normalize.wallet_address(agent_roles['ALICE']), as_sender=True, session=init_database)
     ks = list(approve_txs.keys())
     assert len(ks) == 1
 
@@ -76,4 +78,4 @@ def test_filter_transferauth(
 
     c = ERC20(default_chain_spec)
     approve = c.parse_approve_request(approve_tx['data']) 
-    assert approve[0] == agent_roles['BOB']
+    assert approve[0] == strip_0x(agent_roles['BOB'])

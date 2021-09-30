@@ -18,7 +18,10 @@ from eth_erc20 import ERC20
 from sarafu_faucet import MinterFaucet
 from eth_accounts_index.registry import AccountRegistry
 from potaahto.symbols import snake_and_camel
-from hexathon import add_0x
+from hexathon import (
+        add_0x,
+        strip_0x,
+        )
 
 # local imports
 from cic_eth.runnable.daemons.filters.callback import CallbackFilter
@@ -160,7 +163,7 @@ def test_faucet_gift_to_tx(
     assert transfer_data['token_address'] == foo_token
 
 
-def test_callback_filter(
+def test_callback_filter_filter(
         default_chain_spec,
         init_database,
         eth_rpc,
@@ -213,6 +216,7 @@ def test_callback_filter(
 
         def call_back(self, transfer_type, result):
             self.results[transfer_type] = result
+            logg.debug('result {}'.format(result))
             return self
 
     mock = CallbackMock()
@@ -221,4 +225,4 @@ def test_callback_filter(
     fltr.filter(eth_rpc, mockblock, tx, init_database)
 
     assert mock.results.get('transfer') != None
-    assert mock.results['transfer']['destination_token'] == foo_token
+    assert mock.results['transfer']['destination_token'] == strip_0x(foo_token)

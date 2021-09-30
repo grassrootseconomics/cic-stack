@@ -49,6 +49,7 @@ from cic_eth.queue.tx import (
 from cic_eth.encode import (
         unpack_normal,
         ZERO_ADDRESS_NORMAL,
+        tx_normalize,
         )
 
 logg = logging.getLogger()
@@ -298,13 +299,15 @@ def cache_gift_data(
     tx_signed_raw_bytes = bytes.fromhex(strip_0x(tx_signed_raw_hex))
     tx = unpack_normal(tx_signed_raw_bytes, chain_spec)
     tx_data = Faucet.parse_give_to_request(tx['data'])
+    sender_address = tx_normalize.wallet_address(tx['from'])
+    recipient_address = tx_normalize.wallet_address(tx['to'])
 
     session = self.create_session()
 
     tx_dict = {
             'hash': tx['hash'],
-            'from': tx['from'],
-            'to': tx['to'],
+            'from': sender_address,
+            'to': recipient_address,
             'source_token': ZERO_ADDRESS_NORMAL,
             'destination_token': ZERO_ADDRESS_NORMAL,
             'from_value': 0,
@@ -338,12 +341,14 @@ def cache_account_data(
     tx_signed_raw_bytes = bytes.fromhex(strip_0x(tx_signed_raw_hex))
     tx = unpack_normal(tx_signed_raw_bytes, chain_spec)
     tx_data = AccountsIndex.parse_add_request(tx['data'])
+    sender_address = tx_normalize.wallet_address(tx['from'])
+    recipient_address = tx_normalize.wallet_address(tx['to'])
 
     session = SessionBase.create_session()
     tx_dict = {
             'hash': tx['hash'],
-            'from': tx['from'],
-            'to': tx['to'],
+            'from': sender_address,
+            'to': recipient_address,
             'source_token': ZERO_ADDRESS_NORMAL,
             'destination_token': ZERO_ADDRESS_NORMAL,
             'from_value': 0,
