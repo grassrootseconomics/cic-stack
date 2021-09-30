@@ -225,4 +225,4 @@ def test_callback_filter_filter(
     fltr.filter(eth_rpc, mockblock, tx, init_database)
 
     assert mock.results.get('transfer') != None
-    assert mock.results['transfer']['destination_token'] == strip_0x(foo_token)
+    assert mock.results['transfer']['destination_token'] == foo_token
