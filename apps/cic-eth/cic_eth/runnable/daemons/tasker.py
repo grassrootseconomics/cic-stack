@@ -203,6 +203,9 @@ def main():
     argv.append(config.get('CELERY_QUEUE'))
     argv.append('-n')
     argv.append(config.get('CELERY_QUEUE'))
+    argv.append('--config')
+    argv.append('celeryconfig')
+
 
     BaseTask.default_token_symbol = config.get('CIC_DEFAULT_TOKEN_SYMBOL')
     BaseTask.default_token_address = registry.by_name(BaseTask.default_token_symbol)

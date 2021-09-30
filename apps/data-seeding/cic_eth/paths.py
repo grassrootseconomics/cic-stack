@@ -7,6 +7,7 @@ import json
 # external imports
 import celery
 import confini
+import celery.utils.graph
 
 # local imports
 from cic_eth.api import Api
@@ -35,7 +36,7 @@ class Fmtr(celery.utils.graph.GraphFormatter):
 
 def main():
     api = Api(
-        config.get('CIC_CHAIN_SPEC'),
+        config.get('CHAIN_SPEC'),
         queue='cic-eth',
         #callback_param='{}:{}:{}:{}'.format(args.redis_host_callback, args.redis_port_callback, redis_db, redis_channel),
         #callback_task='cic_eth.callbacks.redis.redis',
