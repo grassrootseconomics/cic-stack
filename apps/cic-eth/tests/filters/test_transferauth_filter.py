@@ -78,4 +78,4 @@ def test_filter_transferauth(
 
     c = ERC20(default_chain_spec)
     approve = c.parse_approve_request(approve_tx['data']) 
-    assert approve[0] == agent_roles['BOB']
+    assert approve[0] == strip_0x(agent_roles['BOB'])
