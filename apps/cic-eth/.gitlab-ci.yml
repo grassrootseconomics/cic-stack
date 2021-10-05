@@ -1,16 +1,33 @@
-build-test-cic-eth:
-  stage: test
-  tags:
-    - integration
-  variables:
-    APP_NAME: cic-eth
-    MR_IMAGE_TAG: mr-$APP_NAME-$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
+stages:
+  - build-push
+  - test
+
+variables:
+  APP_NAME: cic-eth
+
+workflow:
+  rules:
+    - changes:
+      - apps/$APP_NAME/**/*
+
+cic-eth:build-push:
+  stage: build-push
   script:
-    - cd apps/cic-eth
-    - docker build -t $MR_IMAGE_TAG -f docker/Dockerfile . 
-    - docker run $MR_IMAGE_TAG sh docker/run_tests.sh
+    - cd apps/$APP_NAME
+    - docker pull $REGISTRY/$APP_NAME:latest || true
+    - docker build --cache-from $REGISTRY/$APP_NAME:latest -t $REGISTRY/$APP_NAME:$CI_COMMIT_SHORT_SHA -f docker/Dockerfile .
+    - docker push $REGISTRY/$APP_NAME --all-tags
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" || $CI_COMMIT_REF_PROTECTED == "true"
+
+cic-eth:test:
+  variables:
+    GIT_STRATEGY: none
+  stage: test
+  needs: ["cic-eth:build-push"]
+  variables:
+  allow_failure: true
+  script:
+    - docker run $REGISTRY/$APP_NAME:$CI_COMMIT_SHORT_SHA sh docker/run_tests.sh
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      changes:
-          - apps/$APP_NAME/**/*
-      when: always
