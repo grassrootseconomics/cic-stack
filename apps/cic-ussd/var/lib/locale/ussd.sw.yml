@@ -13,22 +13,22 @@ sw:
       CON Weka jina lako la kwanza
     enter_family_name: |-
       CON Weka jina lako la mwisho
-      0. Nyuma
+      0. Rudi
     enter_date_of_birth: |-
       CON Weka mwaka wa kuzaliwa
-      0. Nyuma
+      0. Rudi
     enter_gender: |-
       CON Weka jinsia yako
       1. Mwanaume
       2. Mwanamke
       3. Nyngine
-      0. Nyuma
+      0. Rudi
     enter_location: |-
       CON Weka eneo lako
-      0. Nyuma
+      0. Rudi
     enter_products: |-
       CON Weka bidhaa ama huduma unauza
-      0. Nyuma
+      0. Rudi
     start: |-
       CON Salio %{account_balance} %{account_token_name}
       1. Tuma
@@ -36,10 +36,10 @@ sw:
       3. Usaidizi
     enter_transaction_recipient: |-
       CON Weka nambari ya simu
-      0. Nyuma
+      0. Rudi
     enter_transaction_amount: |-
       CON Weka kiwango
-      0. Nyuma
+      0. Rudi
     account_management: |-
       CON Akaunti yangu
       1. Wasifu wangu
@@ -47,7 +47,7 @@ sw:
       3. Angalia salio
       4. Angalia taarifa ya matumizi
       5. Badilisha nambari ya siri
-      0. Nyuma
+      0. Rudi
     metadata_management: |-
       CON Wasifu wangu
       1. Weka jina
@@ -56,7 +56,7 @@ sw:
       4. Weka eneo
       5. Weka bidhaa
       6. Angalia wasifu wako
-      0. Nyuma
+      0. Rudi
     display_user_metadata: |-
       CON Wasifu wako una maelezo yafuatayo:
         Jina: %{full_name}
@@ -64,98 +64,98 @@ sw:
         Umri: %{age}
         Eneo: %{location}
         Unauza: %{products}
-      0. Nyuma
+      0. Rudi
     select_preferred_language: |-
       CON Chagua lugha
       1. Kingereza
       2. Kiswahili
-      0. Nyuma
+      0. Rudi
     retry_pin_entry: |-
       CON Nambari uliyoweka si sahihi, jaribu tena. Una majaribio %{remaining_attempts} yaliyobaki.
       0. Back
     enter_current_pin:
       first: |-
         CON Weka nambari ya siri.
-        0. Nyuma
+        0. Rudi
       retry: |-
         %{retry_pin_entry}
     enter_new_pin: |-
       CON Weka nambari ya siri mpya
-      0. Nyuma
+      0. Rudi
     new_pin_confirmation: |-
       CON Weka nambari yako ya siri tena
-      0. Nyuma
+      0. Rudi
     transaction_pin_authorization:
       first: |-
         CON %{recipient_information} atapokea %{transaction_amount} %{token_symbol} kutoka kwa %{sender_information}.
         Tafadhali weka nambari yako ya siri kudhibitisha.
-        0. Nyuma
+        0. Rudi
       retry: |-
         %{retry_pin_entry}
     display_metadata_pin_authorization:
       first: |-
         CON Tafadhali weka PIN yako
-        0. Nyuma
+        0. Rudi
       retry: |-
         %{retry_pin_entry}
     account_balances_pin_authorization:
       first: |-
         CON Tafadhali weka PIN yako kuona salio.
-        0. Nyuma
+        0. Rudi
       retry: |-
         %{retry_pin_entry}
     account_statement_pin_authorization:
       first: |-
         CON Tafadhali weka PIN yako kuona taarifa ya matumizi.
-        0. Nyuma
+        0. Rudi
       retry: |-
         %{retry_pin_entry}
     name_edit_pin_authorization:
       first: |-
         CON Tafadhali weka PIN yako
-        0. Nyuma
+        0. Rudi
       retry: |-
         %{retry_pin_entry}
     dob_edit_pin_authorization:
       first: |-
         CON Tafadhali weka PIN yako
-        0. Nyuma
+        0. Rudi
       retry: |-
         %{retry_pin_entry}
     gender_edit_pin_authorization:
       first: |-
         CON Tafadhali weka PIN yako
-        0. Nyuma
+        0. Rudi
       retry: |-
         %{retry_pin_entry}
     location_edit_pin_authorization:
       first: |-
         CON Tafadhali weka PIN yako
-        0. Nyuma
+        0. Rudi
       retry: |-
         %{retry_pin_entry}
     products_edit_pin_authorization:
       first: |-
         CON Tafadhali weka PIN yako
-        0. Nyuma
+        0. Rudi
       retry: |-
         %{retry_pin_entry}
     account_balances:
       available_balance: |-
         CON Salio zako ni zifuatazo:
           salio: %{available_balance} %{token_symbol}
-        0. Nyuma
+        0. Rudi
       with_fees: |-
         CON Salio zako ni zifuatazo:
           salio: %{available_balance} %{token_symbol}
           ushuru: %{tax} %{token_symbol}
-        0. Nyuma
+        0. Rudi
       with_rewards: |-
         CON Salio zako ni zifuatazo:
           salio: %{available_balance} %{token_symbol}
           ushuru: %{tax} %{token_symbol}
           tuzo: %{bonus} %{token_symbol}
-        0. Nyuma
+        0. Rudi
     first_transaction_set: |-
       CON %{first_transaction_set}
       1. Mbele
@@ -163,54 +163,54 @@ sw:
     middle_transaction_set: |-
       CON %{middle_transaction_set}
       1. Mbele
-      2. Nyuma
+      2. Rudi
       00. Ondoka
     last_transaction_set: |-
       CON %{last_transaction_set}
-      2. Nyuma
+      2. Rudi
       00. Ondoka
     exit: |-
-      END Asante kwa kutumia huduma.
+      END Asante kwa kutumia huduma
     exit_invalid_request: |-
       END Chaguo si sahihi.
     exit_invalid_menu_option: |-
       CON Chaguo lako sio sahihi. Kwa usaidizi piga simu %{support_phone}
-      00. Nyuma
+      00. Rudi
       99. Ondoka
     exit_invalid_input: |-
-      CON Chaguo lako halipatikani. Hakuna kilichochaguliwa.
-      00. Nyuma
+      CON Chaguo lako halipatikani. Hakuna kilichochaguliwa
+      00. Rudi
       99. Ondoka
     exit_pin_blocked: |-
-      END PIN yako imefungwa. Kwa usaidizi tafadhali piga simu %{support_phone}.
+      END PIN yako imefungwa. Kwa usaidizi tafadhali piga simu %{support_phone}
     exit_invalid_pin: |-
-      END PIN uliyobonyeza sio sahihi. PIN lazima iwe na nambari nne. Kwa usaidizi piga simu %{support_phone}.
+      END PIN uliyobonyeza sio sahihi. PIN lazima iwe na nambari nne. Kwa usaidizi piga simu %{support_phone}
     exit_invalid_new_pin: |-
-      END PIN uliyobonyeza sio sahihi. PIN lazima iwe tofauti na pin yako ya sasa. Kwa usaidizi piga simu %{support_phone}.
+      END PIN uliyobonyeza sio sahihi. PIN lazima iwe tofauti na pin yako ya sasa. Kwa usaidizi piga simu %{support_phone}
     exit_pin_mismatch: |-
-      END PIN mpya na udhibitisho wa pin mpya hazilingani. Tafadhali jaribu tena. Kwa usaidizi piga simu %{support_phone}.
+      END PIN mpya na udhibitisho wa pin mpya hazilingani. Tafadhali jaribu tena. Kwa usaidizi piga simu %{support_phone}
     exit_invalid_recipient: |-
       CON Mpokeaji wa nambari hapatikani au sio sahihi.
       00. Jaribu tena
       99. Ondoka
     exit_successful_transaction: |-
-      CON Ombi lako limetumwa. %{recipient_information} atapokea %{transaction_amount} %{token_symbol} kutoka kwa %{sender_information}.
-      00. Nyuma
+      CON Ombi lako limetumwa. %{recipient_information} atapokea %{transaction_amount} %{token_symbol} kutoka kwa %{sender_information}
+      00. Rudi
       99. Ondoka
     exit_insufficient_balance: |-
-      CON Malipo ya %{amount} %{token_symbol} kwa %{recipient_information} halijakamilika kwa sababu salio lako haitoshi.
+      CON Malipo ya %{amount} %{token_symbol} kwa %{recipient_information} halijakamilika kwa sababu salio lako haitoshi
       Akaunti yako ya Sarafu ina salio ifuatayo: %{token_balance}
-      00. Nyuma
+      00. Rudi
       99. Ondoka
     invalid_service_code: |-
       Bonyeza %{valid_service_code} kutumia mtandao wa Sarafu
     help: |-
       CON Kwa usaidizi piga simu %{support_phone}
-      0. Nyuma
+      0. Rudi
       9. Ondoka
     complete: |-
       CON Ombi lako limetumwa. Utapokea uthibitishaji wa SMS kwa muda mfupi.
-      00. Nyuma
+      00. Rudi
       99. Ondoka
     account_creation_prompt: |-
       END Akaunti yako ya Sarafu inatayarishwa. Utapokea ujumbe wa SMS akaunti yako ikiwa tayari.
