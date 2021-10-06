@@ -85,7 +85,7 @@ def create(self, password, chain_spec_dict):
     # TODO: It seems infeasible that a can be None in any case, verify
     if a == None:
         raise SignerError('create account')
-        
+    a = tx_normalize.wallet_address(a)
     logg.debug('created account {}'.format(a))
 
     # Initialize nonce provider record for account
