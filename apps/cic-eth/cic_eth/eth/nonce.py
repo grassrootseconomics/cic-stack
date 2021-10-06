@@ -3,7 +3,7 @@ import logging
 
 # external imports
 import celery
-from chainlib.eth.address import is_checksum_address
+from chainlib.eth.address import is_checksum_address, is_address
 
 # local imports
 from cic_eth.db.models.role import AccountRole
@@ -65,7 +65,7 @@ def reserve_nonce(self, chained_input, chain_spec_dict, signer_address=None):
             address = AccountRole.get_address(signer_address, session=session)
             logg.debug('role for reserve nonce {} -> {}'.format(signer_address, address))
 
-    if not is_checksum_address(address):
+    if not is_address(address):
         raise ValueError('invalid result when resolving address for nonce {}'.format(address))
 
     root_id = self.request.root_id
