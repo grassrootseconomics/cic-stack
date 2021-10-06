@@ -5,7 +5,6 @@ import logging
 # third-party imports
 import celery
 import i18n
-from chainlib.hash import strip_0x
 
 # local imports
 from cic_ussd.account.metadata import get_cached_preferred_language
@@ -53,7 +52,7 @@ def cache_statement(parsed_transaction: dict, querying_party: str):
         statement_transactions = json.loads(cached_statement)
     statement_transactions.append(parsed_transaction)
     data = json.dumps(statement_transactions)
-    identifier = bytes.fromhex(strip_0x(querying_party))
+    identifier = bytes.fromhex(querying_party)
     key = cache_data_key(identifier, ':cic.statement')
     cache_data(key, data)
 
