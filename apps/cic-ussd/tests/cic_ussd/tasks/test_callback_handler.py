@@ -114,6 +114,7 @@ def test_statement_callback(activated_account, mocker, transactions_list):
     s_statement_callback.apply_async().get()
     statement_transactions = filter_statement_transactions(transactions_list)
     recipient_transaction, sender_transaction = transaction_actors(statement_transactions[0])
+    sender_transaction['alt_blockchain_address'] = recipient_transaction.get('blockchain_address')
     mock_statement_generate.assert_called_with(
         (activated_account.blockchain_address, sender_transaction), {}, queue='cic-ussd')
 
