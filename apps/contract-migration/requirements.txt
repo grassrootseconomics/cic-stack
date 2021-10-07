@@ -1,6 +1,6 @@
 cic-eth[tools]==0.12.4a8
-chainlib-eth>=0.0.9a16,<0.1.0
-chainlib==0.0.9a11
+chainlib-eth>=0.0.9rc1,<0.1.0
+chainlib==0.0.9rc1,<0.1.0
 eth-erc20>=0.1.2a3,<0.2.0
 erc20-demurrage-token>=0.0.5a2,<0.1.0
 #eth-accounts-index>=0.1.2a2,<0.2.0
@@ -12,4 +12,4 @@ sarafu-faucet>=0.0.7a2,<0.1.0
 confini>=0.4.2rc3,<1.0.0
 crypto-dev-signer>=0.4.15rc2,<=0.4.15
 eth-token-index>=0.2.4a1,<=0.3.0
-okota>=0.2.4a3,<0.3.0
+okota>=0.2.4a5,<0.3.0

@@ -65,14 +65,16 @@ fi
 echo "giftable-token-gift $fee_price_arg -p $RPC_PROVIDER -y $WALLET_KEY_FILE -i $CIC_CHAIN_SPEC -vv -w -e $DEV_RESERVE_ADDRESS $DEV_RESERVE_AMOUNT"
 giftable-token-gift $fee_price_arg -p $RPC_PROVIDER -y $WALLET_KEY_FILE -i $CIC_CHAIN_SPEC -u -vv -s -w -e $DEV_RESERVE_ADDRESS $DEV_RESERVE_AMOUNT
 
->&2 echo "deploy contract registry contract"
-CIC_REGISTRY_ADDRESS=`eth-contract-registry-deploy $fee_price_arg -i $CIC_CHAIN_SPEC -y $WALLET_KEY_FILE --identifier AccountRegistry --identifier TokenRegistry --identifier AddressDeclarator --identifier Faucet --identifier TransferAuthorization --identifier ContractRegistry -p $RPC_PROVIDER -vv -s -u -w`
-eth-contract-registry-set $fee_price_arg -s -u -w -y $WALLET_KEY_FILE -e $CIC_REGISTRY_ADDRESS -i $CIC_CHAIN_SPEC  -p $RPC_PROVIDER -vv --identifier ContractRegistry $CIC_REGISTRY_ADDRESS
-
 # Deploy address declarator registry
 >&2 echo "deploy address declarator contract"
 declarator_description=0x546869732069732074686520434943206e6574776f726b000000000000000000
 DEV_DECLARATOR_ADDRESS=`eth-address-declarator-deploy -s -u -y $WALLET_KEY_FILE -i $CIC_CHAIN_SPEC -p $RPC_PROVIDER -w -vv $declarator_description`
+
+>&2 echo "deploy contract registry contract"
+#CIC_REGISTRY_ADDRESS=`eth-contract-registry-deploy $fee_price_arg -i $CIC_CHAIN_SPEC -y $WALLET_KEY_FILE --identifier AccountRegistry --identifier TokenRegistry --identifier AddressDeclarator --identifier Faucet --identifier TransferAuthorization --identifier ContractRegistry -p $RPC_PROVIDER -vv -s -u -w`
+CIC_REGISTRY_ADDRESS=`okota-contract-registry-deploy $fee_price_arg -i $CIC_CHAIN_SPEC -y $WALLET_KEY_FILE --identifier AccountRegistry --identifier TokenRegistry --identifier AddressDeclarator --identifier Faucet --identifier TransferAuthorization --identifier ContractRegistry --address-declarator $DEV_DECLARATOR_ADDRESS -p $RPC_PROVIDER -vv -s -u -w`
+eth-contract-registry-set $fee_price_arg -s -u -w -y $WALLET_KEY_FILE -e $CIC_REGISTRY_ADDRESS -i $CIC_CHAIN_SPEC  -p $RPC_PROVIDER -vv --identifier ContractRegistry $CIC_REGISTRY_ADDRESS
+
 eth-contract-registry-set $fee_price_arg -s -u -w -y $WALLET_KEY_FILE -e $CIC_REGISTRY_ADDRESS -i $CIC_CHAIN_SPEC -p $RPC_PROVIDER -vv --identifier AddressDeclarator $DEV_DECLARATOR_ADDRESS
 
 >&2 echo "deploy account index contract"
