@@ -86,7 +86,7 @@ def query_statement(blockchain_address: str, limit: int = 9):
     :param limit: Number of transactions to be returned.
     :type limit: int
     """
-    logg.debug(f'retrieving balance for address: {blockchain_address}')
+    logg.debug(f'retrieving statement for address: {blockchain_address}')
     chain_str = Chain.spec.__str__()
     cic_eth_api = Api(
         chain_str=chain_str,

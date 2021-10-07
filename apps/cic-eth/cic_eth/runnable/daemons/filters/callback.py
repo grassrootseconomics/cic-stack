@@ -21,6 +21,7 @@ from erc20_faucet import Faucet
 # local imports
 from .base import SyncFilter
 from cic_eth.eth.meta import ExtendedTx
+from cic_eth.encode import tx_normalize
 
 logg = logging.getLogger().getChild(__name__)
 
@@ -42,9 +43,9 @@ class CallbackFilter(SyncFilter):
             return (None, None)
         r = ERC20.parse_transfer_request(tx.payload)
         transfer_data = {}
-        transfer_data['to'] = r[0]
+        transfer_data['to'] = tx_normalize.wallet_address(r[0])
         transfer_data['value'] = r[1]
-        transfer_data['from'] = tx.outputs[0]
+        transfer_data['from'] = tx_normalize.wallet_address(tx.outputs[0])
         transfer_data['token_address'] = tx.inputs[0]
         return ('transfer', transfer_data)
 
@@ -54,8 +55,8 @@ class CallbackFilter(SyncFilter):
             return (None, None)
         r = ERC20.parse_transfer_from_request(tx.payload)
         transfer_data = {}
-        transfer_data['from'] = r[0]
-        transfer_data['to'] = r[1]
+        transfer_data['from'] = tx_normalize.wallet_address(r[0])
+        transfer_data['to'] = tx_normalize.wallet_address(r[1])
         transfer_data['value'] = r[2]
         transfer_data['token_address'] = tx.inputs[0]
         return ('transferfrom', transfer_data)
@@ -66,9 +67,9 @@ class CallbackFilter(SyncFilter):
             return (None, None)
         r = Faucet.parse_give_to_request(tx.payload)
         transfer_data = {}
-        transfer_data['to'] = r[0]
+        transfer_data['to'] = tx_normalize.wallet_address(r[0])
         transfer_data['value'] = tx.value
-        transfer_data['from'] = tx.outputs[0]
+        transfer_data['from'] = tx_normalize.wallet_address(tx.outputs[0])
         #transfer_data['token_address'] = tx.inputs[0]
         faucet_contract = tx.inputs[0]
 

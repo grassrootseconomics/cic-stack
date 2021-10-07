@@ -7,6 +7,7 @@ import pytest
 # local import
 from cic_ussd.account.balance import get_cached_available_balance
 
+
 # tests imports
 
 
@@ -103,8 +104,8 @@ def transactions_list(activated_account, valid_recipient):
             'destination_token': '0x0000000000000000000000000000000000000000',
             'block_number': 80,
             'tx_index': 0,
-            'sender': '0x367cB0F65137b0A845c1DB4B7Ca47D3DEF32dDe8',
-            'recipient': '0x103d1ed6e370dBa6267045c70d4999384c18a04A',
+            'sender': '367cB0F65137b0A845c1DB4B7Ca47D3DEF32dDe8',
+            'recipient': '103d1ed6e370dBa6267045c70d4999384c18a04A',
             'from_value': 0,
             'to_value': 0,
             'date_created': '2021-07-14T14:13:46.036198',
@@ -122,8 +123,8 @@ def transactions_list(activated_account, valid_recipient):
             'destination_token': '0x0000000000000000000000000000000000000000',
             'block_number': 78,
             'tx_index': 0,
-            'sender': '0xb41BfEE260693A473254D62b81aE1ADCC9E51AFb',
-            'recipient': '0x367cB0F65137b0A845c1DB4B7Ca47D3DEF32dDe8',
+            'sender': 'b41BfEE260693A473254D62b81aE1ADCC9E51AFb',
+            'recipient': '367cB0F65137b0A845c1DB4B7Ca47D3DEF32dDe8',
             'from_value': 1800000000000000,
             'to_value': 1800000000000000,
             'date_created': '2021-07-14T14:13:35.839638',
@@ -142,8 +143,8 @@ def transactions_list(activated_account, valid_recipient):
             'destination_token': '0x0000000000000000000000000000000000000000',
             'block_number': 79,
             'tx_index': 0,
-            'sender': '0x367cB0F65137b0A845c1DB4B7Ca47D3DEF32dDe8',
-            'recipient': '0x103d1ed6e370dBa6267045c70d4999384c18a04A',
+            'sender': '367cB0F65137b0A845c1DB4B7Ca47D3DEF32dDe8',
+            'recipient': '103d1ed6e370dBa6267045c70d4999384c18a04A',
             'from_value': 0,
             'to_value': 0,
             'date_created': '2021-07-14T14:13:35.638355',
@@ -152,4 +153,3 @@ def transactions_list(activated_account, valid_recipient):
             'timestamp': 1626272015,
             'hash': '0x32ca3dd3bef06463b452f4d32f5f563d083cb4759219eed90f3d2a9c1791c5fc'}
     ]
-

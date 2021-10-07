@@ -153,8 +153,8 @@ def list_tx_by_bloom(self, bloomspec, address, chain_spec_dict):
                         times = tx_times(tx['hash'], chain_spec)
                         tx_r = {
                             'hash': tx['hash'],
-                            'sender': tx['from'],
-                            'recipient': tx_address,
+                            'sender': tx_normalize.wallet_address(tx['from']),
+                            'recipient': tx_normalize.wallet_address(tx_address),
                             'source_value': tx_token_value,
                             'destination_value': tx_token_value,
                             'source_token': tx['to'],
@@ -231,6 +231,8 @@ def tx_collate(self, tx_batches, chain_spec_dict, offset, limit, newest_first=Tr
             except UnknownContractError:
                 logg.error('verify failed on tx {}, skipping'.format(tx['hash']))
                 continue
+        tx['recipient'] = tx_normalize.wallet_address(tx['recipient'])
+        tx['sender'] = tx_normalize.wallet_address(tx['sender'])
         txs.append(tx)
 
     return txs

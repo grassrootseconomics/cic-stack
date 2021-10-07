@@ -110,8 +110,8 @@ def test_tag_account(
     t = api.tag_account('bar', agent_roles['CAROL'], default_chain_spec)
     t.get()
 
-    assert AccountRole.get_address('foo', init_database) == agent_roles['ALICE']
-    assert AccountRole.get_address('bar', init_database) == agent_roles['CAROL']
+    assert AccountRole.get_address('foo', init_database) == tx_normalize.wallet_address(agent_roles['ALICE'])
+    assert AccountRole.get_address('bar', init_database) == tx_normalize.wallet_address(agent_roles['CAROL'])
 
 
 def test_tx(

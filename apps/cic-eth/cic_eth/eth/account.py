@@ -13,7 +13,7 @@ from chainlib.eth.sign import (
         new_account,
         sign_message,
         )
-from chainlib.eth.address import to_checksum_address
+from chainlib.eth.address import to_checksum_address, is_address
 from chainlib.eth.tx import TxFormat
 from chainlib.chain import ChainSpec
 from chainlib.error import JSONRPCException
@@ -31,6 +31,7 @@ from cic_eth.eth.gas import (
 from cic_eth.db.models.nonce import Nonce
 from cic_eth.db.models.base import SessionBase
 from cic_eth.db.models.role import AccountRole
+from cic_eth.encode import tx_normalize
 from cic_eth.error import (
         RoleMissingError,
         SignerError,
@@ -85,7 +86,7 @@ def create(self, password, chain_spec_dict):
     # TODO: It seems infeasible that a can be None in any case, verify
     if a == None:
         raise SignerError('create account')
-        
+    a = tx_normalize.wallet_address(a)
     logg.debug('created account {}'.format(a))
 
     # Initialize nonce provider record for account
@@ -176,6 +177,9 @@ def gift(self, account_address, chain_spec_dict):
     """
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
 
+    if is_address(account_address):
+        account_address = tx_normalize.wallet_address(account_address)
+
     logg.debug('gift account address {} to index'.format(account_address))
     queue = self.request.delivery_info.get('routing_key')
 
@@ -249,8 +253,9 @@ def have(self, account, chain_spec_dict):
 
 @celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
 def set_role(self, tag, address, chain_spec_dict):
-    if not to_checksum_address(address):
-        raise ValueError('invalid checksum address {}'.format(address))
+    if not is_address(address):
+        raise ValueError('invalid address {}'.format(address))
+    address = tx_normalize.wallet_address(address)
     session = SessionBase.create_session()
     role = AccountRole.set(tag, address, session=session) 
     session.add(role)

@@ -54,7 +54,7 @@ def cache_account_creation_data(init_cache, account_creation_data):
 
 @pytest.fixture(scope='function')
 def cache_balances(activated_account, balances, init_cache):
-    identifier = bytes.fromhex(strip_0x(activated_account.blockchain_address))
+    identifier = bytes.fromhex(activated_account.blockchain_address)
     balances = json.dumps(balances[0])
     key = cache_data_key(identifier, ':cic.balances')
     cache_data(key, balances)
@@ -70,7 +70,7 @@ def cache_default_token_data(default_token_data, init_cache, load_chain_spec):
 
 @pytest.fixture(scope='function')
 def cache_person_metadata(activated_account, init_cache, person_metadata):
-    identifier = bytes.fromhex(strip_0x(activated_account.blockchain_address))
+    identifier = bytes.fromhex(activated_account.blockchain_address)
     person = json.dumps(person_metadata)
     key = cache_data_key(identifier, ':cic.person')
     cache_data(key, person)
@@ -78,7 +78,7 @@ def cache_person_metadata(activated_account, init_cache, person_metadata):
 
 @pytest.fixture(scope='function')
 def cache_preferences(activated_account, init_cache, preferences):
-    identifier = bytes.fromhex(strip_0x(activated_account.blockchain_address))
+    identifier = bytes.fromhex(activated_account.blockchain_address)
     preferences = json.dumps(preferences)
     key = cache_data_key(identifier, ':cic.preferences')
     cache_data(key, preferences)
@@ -86,10 +86,10 @@ def cache_preferences(activated_account, init_cache, preferences):
 
 @pytest.fixture(scope='function')
 def cache_statement(activated_account, init_cache, statement):
-    identifier = bytes.fromhex(strip_0x(activated_account.blockchain_address))
-    preferences = json.dumps(statement)
+    identifier = bytes.fromhex(activated_account.blockchain_address)
+    statement = json.dumps(statement)
     key = cache_data_key(identifier, ':cic.statement')
-    cache_data(key, preferences)
+    cache_data(key, statement)
 
 
 @pytest.fixture(scope='function')

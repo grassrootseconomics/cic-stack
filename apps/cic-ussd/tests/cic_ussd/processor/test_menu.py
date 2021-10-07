@@ -57,7 +57,7 @@ def test_menu_processor(activated_account,
                                    available_balance=available_balance,
                                    token_symbol=token_symbol)
 
-    identifier = bytes.fromhex(strip_0x(activated_account.blockchain_address))
+    identifier = bytes.fromhex(activated_account.blockchain_address)
     key = cache_data_key(identifier, ':cic.adjusted_balance')
     adjusted_balance = 45931650.64654012
     cache_data(key, json.dumps(adjusted_balance))
@@ -108,7 +108,7 @@ def test_menu_processor(activated_account,
     display_key = 'ussd.kenya.display_user_metadata'
     ussd_menu = UssdMenu.find_by_name('display_user_metadata')
     name = ussd_menu.get('name')
-    identifier = bytes.fromhex(strip_0x(activated_account.blockchain_address))
+    identifier = bytes.fromhex(activated_account.blockchain_address)
     person_metadata = PersonMetadata(identifier)
     cached_person_metadata = person_metadata.get_cached_metadata()
     resp = response(activated_account, display_key, name, init_database, generic_ussd_session)

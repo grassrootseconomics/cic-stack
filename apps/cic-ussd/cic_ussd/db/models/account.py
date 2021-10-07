@@ -2,7 +2,6 @@
 import json
 
 # external imports
-from chainlib.hash import strip_0x
 from cic_eth.api import Api
 
 # local imports
@@ -101,7 +100,7 @@ class Account(SessionBase):
         session.add(self)
         session.flush()
         SessionBase.release_session(session=session)
-        return f'Pin reset successful.'
+        return 'Pin reset successful.'
 
     def standard_metadata_id(self) -> str:
         """This function creates an account's standard metadata identification information that contains an account owner's
@@ -109,7 +108,7 @@ class Account(SessionBase):
         :return: Standard metadata identification information | e164 formatted phone number.
         :rtype: str
         """
-        identifier = bytes.fromhex(strip_0x(self.blockchain_address))
+        identifier = bytes.fromhex(self.blockchain_address)
         key = cache_data_key(identifier, ':cic.person')
         account_metadata = get_cached_data(key)
         if not account_metadata:
