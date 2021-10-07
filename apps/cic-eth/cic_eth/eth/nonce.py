@@ -43,7 +43,8 @@ class CustodialTaskNonceOracle():
         :returns: Nonce
         :rtype: number
         """
-        r = NonceReservation.release(self.address, self.uuid, session=self.session)
+        address = tx_normalize.wallet_address(self.address)
+        r = NonceReservation.release(address, self.uuid, session=self.session)
         return r[1]
 
 
@@ -70,7 +71,8 @@ def reserve_nonce(self, chained_input, chain_spec_dict, signer_address=None):
         raise ValueError('invalid result when resolving address for nonce {}'.format(address))
 
     root_id = self.request.root_id
-    r = NonceReservation.next(tx_normalize.wallet_address(address), root_id, session=session)
+    address = tx_normalize.wallet_address(address)
+    r = NonceReservation.next(address, root_id, session=session)
     logg.debug('nonce {} reserved for address {} task {}'.format(r[1], address, r[0]))
 
     session.commit()

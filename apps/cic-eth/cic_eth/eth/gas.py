@@ -78,7 +78,6 @@ class MaxGasOracle:
         return MAXIMUM_FEE_UNITS
 
 
-#def create_check_gas_task(tx_signed_raws_hex, chain_spec, holder_address, gas=None, tx_hashes_hex=None, queue=None):
 def create_check_gas_task(tx_signed_raws_hex, chain_spec, holder_address, gas=None, tx_hashes_hex=None, queue=None):
     """Creates a celery task signature for a check_gas task that adds the task to the outgoing queue to be processed by the dispatcher.
 
