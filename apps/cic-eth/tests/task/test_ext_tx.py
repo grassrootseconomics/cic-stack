@@ -10,6 +10,7 @@ from chainlib.eth.tx import (
         )
 from eth_erc20 import ERC20
 from chainlib.eth.nonce import RPCNonceOracle
+from hexathon import add_0x 
 
 # local imports
 from cic_eth.db.models.nonce import (
@@ -91,5 +92,5 @@ def test_filter_process(
 
     assert len(r) == 2
     for tx_hash in r.keys():
-        tx_hashes.remove(tx_hash)
+        tx_hashes.remove(add_0x(tx_hash))
     assert len(tx_hashes) == 0

@@ -5,7 +5,6 @@ from datetime import timedelta
 
 # third-party imports
 import celery
-from chainlib.hash import strip_0x
 
 # local imports
 from cic_ussd.account.balance import get_balances, calculate_available_balance
@@ -55,6 +54,7 @@ def account_creation_callback(self, result: str, url: str, status_code: int):
     session.add(account)
     session.commit()
     session.close()
+    logg.debug(f'recorded account with identifier: {result}')
 
     queue = self.request.delivery_info.get('routing_key')
     s_phone_pointer = celery.signature(
@@ -86,7 +86,7 @@ def balances_callback(result: list, param: str, status_code: int):
         raise ValueError(f'Unexpected status code: {status_code}.')
 
     balances = result[0]
-    identifier = bytes.fromhex(strip_0x(param))
+    identifier = bytes.fromhex(param)
     key = cache_data_key(identifier, ':cic.balances')
     cache_data(key, json.dumps(balances))
 
@@ -113,8 +113,10 @@ def statement_callback(self, result, param: str, status_code: int):
     for transaction in statement_transactions:
         recipient_transaction, sender_transaction = transaction_actors(transaction)
         if recipient_transaction.get('blockchain_address') == param:
+            recipient_transaction['alt_blockchain_address'] = sender_transaction.get('blockchain_address')
             generate(param, queue, recipient_transaction)
         if sender_transaction.get('blockchain_address') == param:
+            sender_transaction['alt_blockchain_address'] = recipient_transaction.get('blockchain_address')
             generate(param, queue, sender_transaction)
 
 

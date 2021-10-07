@@ -17,6 +17,9 @@ from chainlib.eth.block import (
         block_by_number,
         Block,
         )
+from chainlib.eth.address import (
+        to_checksum_address,
+        )
 from erc20_faucet import Faucet
 from hexathon import (
         strip_0x,
@@ -25,7 +28,6 @@ from hexathon import (
 
 # local imports
 from cic_eth.runnable.daemons.filters.register import RegistrationFilter
-from cic_eth.encode import tx_normalize
 from cic_eth.queue.query import get_account_tx_local
 
 logg = logging.getLogger()
@@ -70,12 +72,13 @@ def test_register_filter(
     tx = Tx(tx_src, block=block, rcpt=rcpt)
     tx.apply_receipt(rcpt)
 
-    fltr = RegistrationFilter(default_chain_spec, add_0x(os.urandom(20).hex()), queue=None)
+    fltr = RegistrationFilter(default_chain_spec, to_checksum_address(os.urandom(20).hex()), queue=None)
     t = fltr.filter(eth_rpc, block, tx, db_session=init_database)
     assert t == None
 
-    fltr = RegistrationFilter(default_chain_spec, account_registry, queue=None)
+    fltr = RegistrationFilter(default_chain_spec, to_checksum_address(account_registry), queue=None)
     t = fltr.filter(eth_rpc, block, tx, db_session=init_database)
+    logg.debug('t {}'.format(t))
 
     t.get_leaf()
     assert t.successful()
@@ -89,4 +92,4 @@ def test_register_filter(
     gift_tx = unpack(tx_raw_signed_bytes, default_chain_spec)
 
     gift = Faucet.parse_give_to_request(gift_tx['data'])
-    assert gift[0] == agent_roles['ALICE']
+    assert add_0x(gift[0]) == agent_roles['ALICE']
