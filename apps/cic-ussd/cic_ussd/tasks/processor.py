@@ -23,17 +23,13 @@ logg = logging.getLogger(__file__)
 def generate_statement(self, querying_party: str, transaction: dict):
     """"""
     queue = self.request.delivery_info.get('routing_key')
-
-    s_preferences = celery.signature(
-        'cic_ussd.tasks.metadata.query_preferences_metadata', [querying_party], queue=queue
-    )
     s_parse_transaction = celery.signature(
         'cic_ussd.tasks.processor.parse_transaction', [transaction], queue=queue
     )
     s_cache_statement = celery.signature(
         'cic_ussd.tasks.processor.cache_statement', [querying_party], queue=queue
     )
-    celery.chain(s_preferences, s_parse_transaction, s_cache_statement).apply_async()
+    celery.chain(s_parse_transaction, s_cache_statement).apply_async()
 
 
 @celery_app.task

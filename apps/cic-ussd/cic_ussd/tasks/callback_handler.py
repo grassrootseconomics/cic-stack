@@ -113,8 +113,10 @@ def statement_callback(self, result, param: str, status_code: int):
     for transaction in statement_transactions:
         recipient_transaction, sender_transaction = transaction_actors(transaction)
         if recipient_transaction.get('blockchain_address') == param:
+            recipient_transaction['alt_blockchain_address'] = sender_transaction.get('blockchain_address')
             generate(param, queue, recipient_transaction)
         if sender_transaction.get('blockchain_address') == param:
+            sender_transaction['alt_blockchain_address'] = recipient_transaction.get('blockchain_address')
             generate(param, queue, sender_transaction)
 
 

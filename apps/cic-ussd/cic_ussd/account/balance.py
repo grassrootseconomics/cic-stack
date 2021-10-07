@@ -101,7 +101,7 @@ def get_cached_available_balance(blockchain_address: str) -> float:
     :return: Operational balance of an account.
     :rtype: float
     """
-    identifier = bytes.fromhex(blockchain_address[2:])
+    identifier = bytes.fromhex(blockchain_address)
     key = cache_data_key(identifier, salt=':cic.balances')
     cached_balances = get_cached_data(key=key)
     if cached_balances:

@@ -37,7 +37,7 @@ class MenuProcessor:
     def __init__(self, account: Account, display_key: str, menu_name: str, session: Session, ussd_session: dict):
         self.account = account
         self.display_key = display_key
-        self.identifier = bytes.fromhex(self.account.blockchain_address[2:])
+        self.identifier = bytes.fromhex(self.account.blockchain_address)
         self.menu_name = menu_name
         self.session = session
         self.ussd_session = ussd_session
