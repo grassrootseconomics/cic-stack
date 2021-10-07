@@ -12,6 +12,7 @@ from chainlib.chain import ChainSpec
 from chainlib.eth.address import (
         is_checksum_address,
         to_checksum_address,
+        is_address
         )
 from chainlib.connection import RPCConnection
 from chainqueue.db.enum import StatusBits
@@ -184,7 +185,7 @@ def check_gas(self, tx_hashes_hex, chain_spec_dict, txs_hex=[], address=None, ga
     """
     rpc_format_address = None
     if address != None:
-        if not is_checksum_address(address):
+        if not is_address(address):
             raise ValueError('invalid address {}'.format(address))
         address = tx_normalize.wallet_address(address)
         address = add_0x(address)

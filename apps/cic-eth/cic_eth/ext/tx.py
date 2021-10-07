@@ -231,6 +231,8 @@ def tx_collate(self, tx_batches, chain_spec_dict, offset, limit, newest_first=Tr
             except UnknownContractError:
                 logg.error('verify failed on tx {}, skipping'.format(tx['hash']))
                 continue
+        tx['recipient'] = tx_normalize.wallet_address(tx['recipient'])
+        tx['sender'] = tx_normalize.wallet_address(tx['sender'])
         txs.append(tx)
 
     return txs
