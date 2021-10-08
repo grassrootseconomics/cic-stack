@@ -16,6 +16,10 @@ def init_celery_tasks(
     contract_roles, 
         ):
     BaseTask.call_address = contract_roles['DEFAULT']
+    BaseTask.trusted_addresses = [
+            contract_roles['TRUSTED_DECLARATOR'],
+            contract_roles['CONTRACT_DEPLOYER'],
+            ]
 
 
 # celery fixtures

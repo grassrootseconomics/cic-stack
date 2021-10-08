@@ -1,6 +1,12 @@
+# standard imports
+import logging
+
 # local imports
 from cic_eth.api.api_task import Api
 from cic_eth.task import BaseTask
+
+logg = logging.getLogger()
+
 
 def test_default_token(
         default_chain_spec,

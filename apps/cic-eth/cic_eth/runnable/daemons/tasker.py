@@ -210,6 +210,7 @@ def main():
     default_token.load(conn)
     BaseTask.default_token_decimals = default_token.decimals
     BaseTask.default_token_name = default_token.name
+    BaseTask.trusted_addresses = trusted_addresses
 
     BaseTask.run_dir = config.get('CIC_RUN_DIR')
     logg.info('default token set to {} {}'.format(BaseTask.default_token_symbol, BaseTask.default_token_address))
