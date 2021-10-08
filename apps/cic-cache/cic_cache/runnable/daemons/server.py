@@ -12,36 +12,24 @@ from cic_cache.db import dsn_from_config
 from cic_cache.db.models.base import SessionBase
 from cic_cache.runnable.daemons.query import (
         process_transactions_account_bloom,
+        process_transactions_account_data,
         process_transactions_all_bloom,
         process_transactions_all_data,
         )
+import cic_cache.cli
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
-rootdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-dbdir = os.path.join(rootdir, 'cic_cache', 'db')
-migrationsdir = os.path.join(dbdir, 'migrations')
 
-config_dir = os.path.join('/usr/local/etc/cic-cache')
-
-argparser = argparse.ArgumentParser()
-argparser.add_argument('-c', type=str, default=config_dir, help='config file')
-argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
-argparser.add_argument('-v', action='store_true', help='be verbose')
-argparser.add_argument('-vv', action='store_true', help='be more verbose')
+arg_flags = cic_cache.cli.argflag_std_read
+local_arg_flags = cic_cache.cli.argflag_local_sync
+argparser = cic_cache.cli.ArgumentParser(arg_flags)
+argparser.process_local_flags(local_arg_flags)
 args = argparser.parse_args()
 
-if args.vv:
-    logging.getLogger().setLevel(logging.DEBUG)
-elif args.v:
-    logging.getLogger().setLevel(logging.INFO)
-
-config = confini.Config(args.c, args.env_prefix)
-config.process()
-config.censor('PASSWORD', 'DATABASE')
-config.censor('PASSWORD', 'SSL')
-logg.debug('config:\n{}'.format(config))
+# process config
+config = cic_cache.cli.Config.from_args(args, arg_flags, local_arg_flags)
 
 dsn = dsn_from_config(config)
 SessionBase.connect(dsn, config.true('DATABASE_DEBUG'))
@@ -58,6 +46,7 @@ def application(env, start_response):
             process_transactions_all_data,
             process_transactions_all_bloom,
             process_transactions_account_bloom,
+            process_transactions_account_data,
             ]:
         r = None
         try:

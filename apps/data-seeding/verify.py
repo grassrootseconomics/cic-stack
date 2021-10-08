@@ -68,7 +68,11 @@ admin_tests = [
         'local_key',
         ]
 
-all_tests = eth_tests + custodial_tests + metadata_tests + phone_tests
+cache_tests = [
+        'cache_tx_user',
+        ]
+
+all_tests = eth_tests + custodial_tests + metadata_tests + phone_tests + cache_tests
 
 argparser = argparse.ArgumentParser(description='daemon that monitors transactions in new blocks')
 argparser.add_argument('-p', '--provider', dest='p', type=str, help='chain rpc provider address')
@@ -77,11 +81,14 @@ argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', defa
 argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
 argparser.add_argument('--meta-provider', type=str, dest='meta_provider', default='http://localhost:63380', help='cic-meta url')
 argparser.add_argument('--ussd-provider', type=str, dest='ussd_provider', default='http://localhost:63315', help='cic-ussd url')
+argparser.add_argument('--cache-provider', type=str, dest='cache_provider', default='http://localhost:63313', help='cic-cache url')
 argparser.add_argument('--skip-custodial', dest='skip_custodial', action='store_true', help='skip all custodial verifications')
 argparser.add_argument('--skip-ussd', dest='skip_ussd', action='store_true', help='skip all ussd verifications')
 argparser.add_argument('--skip-metadata', dest='skip_metadata', action='store_true', help='skip all metadata verifications')
+argparser.add_argument('--skip-cache', dest='skip_cache', action='store_true', help='skip all cache verifications')
 argparser.add_argument('--exclude', action='append', type=str, default=[], help='skip specified verification')
 argparser.add_argument('--include', action='append', type=str, help='include specified verification')
+argparser.add_argument('--list-verifications', action='store_true', help='print a list of verification check identifiers')
 argparser.add_argument('--token-symbol', default='GFT', type=str, dest='token_symbol', help='Token symbol to use for trnsactions')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
@@ -111,6 +118,7 @@ config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
 config.add(args.meta_provider, '_META_PROVIDER', True)
 config.add(args.ussd_provider, '_USSD_PROVIDER', True)
+config.add(args.cache_provider, '_CACHE_PROVIDER', True)
 
 token_symbol = args.token_symbol
 
@@ -349,6 +357,22 @@ class Verifier:
             raise VerifierError(o_retrieved, 'metadata (person)')
 
 
+    def verify_cache_tx_user(self, address, balance=None):
+        url = os.path.join(config.get('_CACHE_PROVIDER'), 'txa', 'user', address)
+        req = urllib.request.Request(url)
+        req.add_header('X_CIC_CACHE_MODE', 'all')
+        try:
+            res = urllib.request.urlopen(req)
+        except urllib.error.HTTPError as e:
+            raise VerifierError(
+                    '({}) {}'.format(url, e),
+                    'cache',
+                    )
+        r = json.load(res)
+        for tx in r['data']:
+            logg.warning('found tx {} for {} but not checking validity'.format(tx['tx_hash'], address))
+
+
     def verify_metadata_phone(self, address, balance=None):
         upper_address = strip_0x(address).upper()
         f = open(os.path.join(
@@ -395,10 +419,12 @@ class Verifier:
         if m != 'CON Welcome':
             raise VerifierError(response_data, 'ussd')
 
+
     def verify_ussd_pins(self, address, balance):
         response_data = send_ussd_request(address, self.data_dir)
         if response_data[:11] != 'CON Balance' and response_data[:9] != 'CON Salio':
             raise VerifierError(response_data, 'pins')
+
 
     def verify(self, address, balance, debug_stem=None):
   
