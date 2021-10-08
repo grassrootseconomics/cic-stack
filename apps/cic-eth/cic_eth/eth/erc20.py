@@ -20,7 +20,6 @@ from chainqueue.error import NotLocalTxError
 from eth_erc20 import ERC20
 from chainqueue.sql.tx import cache_tx_dict
 from okota.token_index import to_identifier
-from eth_address_declarator import Declarator
 
 # local imports
 from cic_eth.db.models.base import SessionBase
@@ -29,7 +28,6 @@ from cic_eth.error import (
         TokenCountError,
         PermanentTxError,
         OutOfGasError,
-        TrustError,
         YouAreBrokeError,
         )
 from cic_eth.queue.tx import register_tx
@@ -46,6 +44,7 @@ from cic_eth.task import (
     )
 from cic_eth.eth.nonce import CustodialTaskNonceOracle
 from cic_eth.encode import tx_normalize
+from cic_eth.eth.trust import verify_proofs
 
 celery_app = celery.current_app
 logg = logging.getLogger()
@@ -479,52 +478,58 @@ def cache_approve_data(
 
 
 @celery_app.task(bind=True, base=BaseTask)
-def token_info(self, tokens, chain_spec_dict):
+def token_info(self, tokens, chain_spec_dict, proofs=[]):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
     rpc = RPCConnection.connect(chain_spec, 'default')
-    declarator = Declarator(chain_spec)
-
-    session = self.create_session()
-    sender_address = AccountRole.get_address('DEFAULT', session)
-    sender_address = AccountRole.get_address('DEFAULT', session)
-
-    registry = CICRegistry(chain_spec, rpc)
-    declarator_address = registry.by_name('AddressDeclarator', sender_address=sender_address)
-
-    have_proof = False
 
     result_data = []
+    i = 0
     for token in tokens:
         token_chain_object = ERC20Token(chain_spec, rpc, add_0x(token['address']))
         token_chain_object.load(rpc)
+
+        token_symbol_proof_hex = to_identifier(token_chain_object.symbol)
+        token_proofs = [token_symbol_proof_hex]
+        if len(proofs) > 0:
+            token_proofs += proofs[i]
+ 
         token_data = {
             'decimals': token_chain_object.decimals,
             'name': token_chain_object.name,
             'symbol': token_chain_object.symbol,
             'address': token_chain_object.address,
-            'declaration': {},
-                }
-
-        token_proof_hex = to_identifier(token_chain_object.symbol)
-        logg.debug('token proof to match is {}'.format(token_proof_hex))
-
-        for trusted_address in self.trusted_addresses:
-            o = declarator.declaration(declarator_address, trusted_address, token_chain_object.address, sender_address=sender_address)
-            r = rpc.do(o)
-            declarations = declarator.parse_declaration(r)
-            token_data['declaration'][trusted_address] = declarations
-            logg.debug('declarations for {} by {}: {}'.format(token_chain_object.address, trusted_address, declarations))
-            for declaration in declarations:
-                if declaration == token_proof_hex:
-                    logg.debug('have token proof {} match for trusted address {}'.format(declaration, trusted_address))
-                    have_proof = True
-
-        if not have_proof:
-            raise TrustError('no proof found for token {}'.format(token_chain_object.symbol))
-
+            'proofs': token_proofs,
+                }   
         result_data.append(token_data)
 
+        i += 1
+
     return result_data
+
+
+@celery_app.task(bind=True, base=BaseTask)
+def verify_token_info(self, tokens, chain_spec_dict):
+    subjects = []
+    proofs = []
+    for token in tokens:
+        subjects.append(token['address'])
+        proofs.append(token['proofs'])
+
+    queue = self.request.delivery_info.get('routing_key')
+
+    s = celery.signature(
+            'cic_eth.eth.trust.verify_proofs',
+            [
+                tokens,
+                chain_spec_dict,
+                subjects,
+                proofs,
+                ],
+            queue=queue,
+            )
+    s.apply_async()
+
+    return tokens
 
 
 @celery_app.task(bind=True, base=BaseTask)

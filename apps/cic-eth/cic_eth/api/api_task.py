@@ -35,11 +35,13 @@ class Api(ApiBase):
         return s_token.apply_async()
 
 
-    def token(self, token_symbol):
-        return self.tokens([token_symbol])
+    def token(self, token_symbol, proof=None):
+        return self.tokens([token_symbol], proof=proof)
 
 
-    def tokens(self, token_symbols):
+    def tokens(self, token_symbols, proof=None):
+        if isinstance(proof, str):
+            proof = [[proof]]
         chain_spec_dict = self.chain_spec.asdict()
         s_token_resolve = celery.signature(
                 'cic_eth.eth.erc20.resolve_tokens_by_symbol',
@@ -54,13 +56,22 @@ class Api(ApiBase):
                 'cic_eth.eth.erc20.token_info',
                 [
                     chain_spec_dict,
+                    proof,
                     ],
                 queue=self.queue,
                 )
 
+        s_token_verify = celery.signature(
+                'cic_eth.eth.erc20.verify_token_info',
+                [
+                    chain_spec_dict,
+                    ],
+                queue=self.queue,
+                )
         s_token_resolve.link(s_token)
+        s_token.link(s_token_verify)
         if self.callback_param != None:
-            s_token.link(self.callback_success)
+            s_token_verify.link(self.callback_success)
 
         return s_token_resolve.apply_async()
 
