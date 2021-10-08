@@ -25,7 +25,7 @@ class Api(ApiBase):
 
     def default_token(self):
         s_token = celery.signature(
-                'cic_eth.admin.token.default_token',
+                'cic_eth.eth.erc20.default_token',
                 [],
                 queue=self.queue,
                 )
@@ -51,7 +51,7 @@ class Api(ApiBase):
                 )
 
         s_token = celery.signature(
-                'cic_eth.admin.token.token',
+                'cic_eth.eth.erc20.token_info',
                 [
                     chain_spec_dict,
                     ],
