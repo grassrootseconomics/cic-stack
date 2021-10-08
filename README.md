@@ -2,6 +2,10 @@
 
 ## Getting started 
 
+### Preperation
+
+Copy the .env_sample file to .env and populate with appropriate env vars
+
 This repo uses docker-compose and docker buildkit. Set the following environment variables to get started:
 
 ```

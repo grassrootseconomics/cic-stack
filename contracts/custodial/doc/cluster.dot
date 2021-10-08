@@ -1,0 +1,110 @@
+digraph {
+	overlap="false";
+	blockchain [ label="bloxberg", shape="doublecircle" ];
+	db [ label="postgres", shape="cylinder" ];
+	kv [ label="redis", shape="cylinder" ];
+
+	subgraph client {
+		cic_staff_gui [ label="cic-staff-gui", shape="box" ];
+		AT [ shape="box" ];
+	}
+
+	subgraph cic_eth {
+		{
+			cic_eth_mq [ label="celery cic-eth queue", shape="ellipse" ];
+
+			cic_eth_server [ label="cic-eth-server", shape="box" ];
+			cic_eth_tasker [ label="cic-eth-tasker", shape="box" ];
+			cic_eth_manager_head [ label="cic-eth-manager-head", shape="box" ];
+			cic_eth_manager_history [ label="cic-eth-manager-history", shape="box" ];
+			cic_eth_dispatcher [ label="cic-eth-dispatcher", shape="box" ];
+			cic_eth_retrier [ label="cic-eth-retrier", shape="box" ];
+
+			cic_eth_server_api_transferrequest [ label="/transferrequest", shape="ellipse" ];
+
+			cic_eth_celery_api_transfer [ label="transfer", shape="ellipse" ];
+			cic_eth_celery_api_convert [ label="convert", shape="ellipse" ];
+			cic_eth_celery_api_createaccount [ label="createaccount", shape="ellipse" ];
+			cic_eth_celery_api_balance [ label="balance", shape="ellipse" ];
+		}
+	}
+
+	subgraph cic_ussd {
+		{
+			cic_ussd_mq [ label="celery cic-ussd queue", shape="ellipse" ];
+			cic_ussd_tasker [ label="cic-ussd-tasker", shape="box" ];
+			cic_ussd_server [ label="cic-ussd-server", shape="box" ];
+			cic_ussd_server_api_ussd [ label="/ussd", shape="ellipse" ];
+			cic_ussd_server_api_pin [ label="/pin", shape="ellipse" ];
+		}
+	}
+
+	subgraph files {
+		{ 
+			api_files [ label="/", shape="ellipse" ];
+			cic_meta_server [ label="cic-meta-server", shape="box" ];
+			swarm [ label="swarm", shape="box" ];
+			ipfs [ label="ipfs", shape="box" ];
+		}
+	}
+
+	subgraph cic_notify {
+		cic_notify_mq [ label="celery cic-notify queue", shape="ellipse" ];
+	}	
+
+	subgraph cic_cache {
+		{
+			cic_cache_tracker [ label="cic-cache-tracker", shape="box" ];
+			cic_cache_server [ label="cic-cache-server", shape="box" ];
+			cic_cache_server_api_tx [ label="/tx", shape="ellipse" ];
+		}
+	}
+
+
+	kv -> cic_eth_mq;
+	cic_eth_mq -> kv;
+
+	kv -> cic_ussd_mq;
+	cic_ussd_mq -> kv;
+	
+	cic_staff_gui -> cic_eth_server_api_transferrequest -> cic_eth_server -> cic_eth_mq;
+
+	cic_eth_mq -> cic_eth_tasker -> db;
+
+	db -> cic_eth_dispatcher -> blockchain;
+	db -> cic_eth_retrier -> blockchain;
+
+	blockchain -> cic_eth_manager_head -> db;
+	cic_eth_manager_head -> cic_eth_mq;
+	cic_eth_manager_head -> cic_ussd_mq;
+
+	blockchain -> cic_eth_manager_history -> db;
+	cic_eth_manager_history -> cic_eth_mq;
+	cic_eth_manager_history -> cic_ussd_mq;
+
+	cic_ussd_server -> cic_eth_celery_api_transfer -> cic_eth_mq;
+	cic_ussd_server -> cic_eth_celery_api_balance -> cic_eth_mq;
+	cic_ussd_server -> cic_eth_celery_api_convert -> cic_eth_mq;
+	cic_ussd_server -> cic_eth_celery_api_createaccount -> cic_eth_mq;
+	cic_ussd_server -> db;
+	cic_ussd_server -> kv;
+	cic_ussd_server -> api_files;
+	cic_ussd_tasker -> db;
+
+	cic_ussd_mq -> cic_ussd_tasker -> cic_notify_mq;
+
+	cic_staff_gui -> cic_ussd_server_api_pin -> cic_ussd_server;
+	AT -> cic_ussd_server_api_ussd -> cic_ussd_server;
+
+// comment
+	blockchain -> cic_cache_tracker -> db;
+	cic_staff_gui -> cic_cache_server_api_tx -> cic_cache_server -> db;
+
+	cic_ussd_tasker -> cic_notify_mq;
+
+	cic_staff_gui -> api_files;
+	api_files -> swarm; 
+	api_files -> ipfs;
+	api_files -> cic_meta_server -> db;
+
+}
