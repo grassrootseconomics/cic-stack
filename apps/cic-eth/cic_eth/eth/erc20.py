@@ -483,7 +483,11 @@ def token_info(self, tokens, chain_spec_dict, proofs=[]):
     rpc = RPCConnection.connect(chain_spec, 'default')
 
     result_data = []
+
+    queue = self.request.delivery_info.get('routing_key')
+
     i = 0
+    s_group = []
     for token in tokens:
         token_chain_object = ERC20Token(chain_spec, rpc, add_0x(token['address']))
         token_chain_object.load(rpc)
@@ -497,39 +501,26 @@ def token_info(self, tokens, chain_spec_dict, proofs=[]):
             'decimals': token_chain_object.decimals,
             'name': token_chain_object.name,
             'symbol': token_chain_object.symbol,
-            'address': token_chain_object.address,
-            'proofs': token_proofs,
+            'address': tx_normalize.executable_address(token_chain_object.address),
                 }   
         result_data.append(token_data)
 
+        s = celery.signature(
+                'cic_eth.eth.trust.verify_proofs',
+                [
+                    token,
+                    token_chain_object.address,
+                    token_proofs,
+                    chain_spec_dict,
+                    ],
+                queue=queue,
+                )
+        s_group.append(s)
         i += 1
 
-    return result_data
+    celery.group(s_group)()
 
-
-@celery_app.task(bind=True, base=BaseTask)
-def verify_token_info(self, tokens, chain_spec_dict):
-    subjects = []
-    proofs = []
-    for token in tokens:
-        subjects.append(token['address'])
-        proofs.append(token['proofs'])
-
-    queue = self.request.delivery_info.get('routing_key')
-
-    s = celery.signature(
-            'cic_eth.eth.trust.verify_proofs',
-            [
-                tokens,
-                chain_spec_dict,
-                subjects,
-                proofs,
-                ],
-            queue=queue,
-            )
-    s.apply_async()
-
-    return tokens
+    #return result_data
 
 
 @celery_app.task(bind=True, base=BaseTask)

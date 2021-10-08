@@ -1,9 +1,19 @@
 # standard imports
 import logging
+import os
+
+# external imports
+import pytest
+from hexathon import (
+        strip_0x,
+        uniform as hex_uniform,
+        )
 
 # local imports
 from cic_eth.api.api_task import Api
 from cic_eth.task import BaseTask
+from cic_eth.error import TrustError
+from cic_eth.encode import tx_normalize
 
 logg = logging.getLogger()
 
@@ -38,18 +48,25 @@ def test_tokens(
         custodial_roles,
         foo_token_declaration,
         bar_token_declaration,
-        celery_worker,
+        celery_session_worker,
         ):
 
     api = Api(str(default_chain_spec), queue=None)     
 
     t = api.token('FOO', proof=foo_token_declaration)
-    r = t.get_leaf()
+    r = t.get()
+    logg.debug('r {}'.format(r))
     assert len(r) == 1
-    assert r[0]['address'] == foo_token
 
-    t = api.tokens(['BAR', 'FOO'], proof=[[foo_token_declaration], [bar_token_declaration]])
-    r = t.get_leaf()
+    t = api.tokens(['BAR', 'FOO'], proof=[[bar_token_declaration], [foo_token_declaration]])
+    r = t.get()
+    logg.debug('results {}'.format(r))
     assert len(r) == 2
-    assert r[1]['address'] == foo_token
-    assert r[0]['address'] == bar_token
+    assert r[1]['address'] == strip_0x(foo_token)
+    assert r[0]['address'] == strip_0x(bar_token)
+
+    bogus_proof = os.urandom(32).hex()
+    with pytest.raises(TrustError):
+        t = api.token('FOO', proof=bogus_proof)
+        r = t.get_leaf()
+        logg.debug('should raise {}'.format(r))

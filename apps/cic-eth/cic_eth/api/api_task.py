@@ -61,17 +61,17 @@ class Api(ApiBase):
                 queue=self.queue,
                 )
 
-        s_token_verify = celery.signature(
-                'cic_eth.eth.erc20.verify_token_info',
-                [
-                    chain_spec_dict,
-                    ],
-                queue=self.queue,
-                )
+#        s_token_verify = celery.signature(
+#                'cic_eth.eth.erc20.verify_token_info',
+#                [
+#                    chain_spec_dict,
+#                    ],
+#                queue=self.queue,
+#                )
+        #s_token.link(s_token_verify)
         s_token_resolve.link(s_token)
-        s_token.link(s_token_verify)
         if self.callback_param != None:
-            s_token_verify.link(self.callback_success)
+            s_token.link(self.callback_success)
 
         return s_token_resolve.apply_async()
 
