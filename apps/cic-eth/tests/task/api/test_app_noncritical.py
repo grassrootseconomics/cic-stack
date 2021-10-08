@@ -17,3 +17,31 @@ def test_default_token(
     t = api.default_token()
     r = t.get_leaf()
     assert r['address'] == foo_token
+
+
+def test_tokens(
+        default_chain_spec,
+        foo_token,
+        bar_token,
+        token_registry,
+        register_tokens,
+        register_lookups,
+        cic_registry,
+        init_database,
+        init_celery_tasks,
+        custodial_roles,
+        celery_worker,
+        ):
+
+    api = Api(str(default_chain_spec), queue=None)     
+
+    t = api.token('FOO')
+    r = t.get_leaf()
+    assert len(r) == 1
+    assert r[0]['address'] == foo_token
+
+    t = api.tokens(['BAR', 'FOO'])
+    r = t.get_leaf()
+    assert len(r) == 2
+    assert r[1]['address'] == foo_token
+    assert r[0]['address'] == bar_token

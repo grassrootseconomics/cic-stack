@@ -35,6 +35,36 @@ class Api(ApiBase):
         return s_token.apply_async()
 
 
+    def token(self, token_symbol):
+        return self.tokens([token_symbol])
+
+
+    def tokens(self, token_symbols):
+        chain_spec_dict = self.chain_spec.asdict()
+        s_token_resolve = celery.signature(
+                'cic_eth.eth.erc20.resolve_tokens_by_symbol',
+                [
+                    token_symbols,
+                    chain_spec_dict,
+                    ],
+                queue=self.queue,
+                )
+
+        s_token = celery.signature(
+                'cic_eth.admin.token.token',
+                [
+                    chain_spec_dict,
+                    ],
+                queue=self.queue,
+                )
+
+        s_token_resolve.link(s_token)
+        if self.callback_param != None:
+            s_token.link(self.callback_success)
+
+        return s_token_resolve.apply_async()
+
+
 #    def convert_transfer(self, from_address, to_address, target_return, minimum_return, from_token_symbol, to_token_symbol):
 #        """Executes a chain of celery tasks that performs conversion between two ERC20 tokens, and transfers to a specified receipient after convert has completed.
 #
