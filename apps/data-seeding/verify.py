@@ -366,9 +366,11 @@ class Verifier:
         except urllib.error.HTTPError as e:
             raise VerifierError(
                     '({}) {}'.format(url, e),
-                    'cache',
+                    'cache (tx user)',
                     )
         r = json.load(res)
+        if len(r['data']) == 0:
+            raise VerifierError('empty tx list for address {}'.format(address), 'cache (tx user)')
         for tx in r['data']:
             logg.warning('found tx {} for {} but not checking validity'.format(tx['tx_hash'], address))
 
