@@ -329,26 +329,6 @@ def approve(self, tokens, holder_address, spender_address, value, chain_spec_dic
 
 
 @celery_app.task(bind=True, base=CriticalWeb3Task)
-def resolve_token_by_symbol(self, token_symbol, chain_spec_dict):
-    chain_spec = ChainSpec.from_dict(chain_spec_dict)
-    rpc = RPCConnection.connect(chain_spec, 'default')
-    registry = CICRegistry(chain_spec, rpc)
-
-    session = self.create_session()
-    sender_address = AccountRole.get_address('DEFAULT', session)
-    session.close()
-
-    token_address = registry.by_name(token_symbol, sender_address=sender_address)
-    logg.debug('token {}'.format(token_address))
-    token = {
-        'address': token_address,
-        'symbol': token_symbol,
-        'converters': [],
-        }
-    return token
-
-
-@celery_app.task(bind=True, base=CriticalWeb3Task)
 def resolve_tokens_by_symbol(self, token_symbols, chain_spec_dict):
     """Returns contract addresses of an array of ERC20 token symbols
 
@@ -498,52 +478,59 @@ def cache_approve_data(
 
 
 @celery_app.task(bind=True, base=BaseTask)
-def token_info(self, token, chain_spec_dict, proofs=[]):
+def token_info(self, tokens, chain_spec_dict, proofs=[]):
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
     rpc = RPCConnection.connect(chain_spec, 'default')
 
-    result_data = []
-    token_chain_object = ERC20Token(chain_spec, rpc, add_0x(token['address']))
-    token_chain_object.load(rpc)
+    i = 0
 
-    token_symbol_proof_hex = to_identifier(token_chain_object.symbol)
-    token_proofs = [token_symbol_proof_hex]
-    token_proofs += proofs
+    for token in tokens:
+        result_data = []
+        token_chain_object = ERC20Token(chain_spec, rpc, add_0x(token['address']))
+        token_chain_object.load(rpc)
 
-    token_data = {
-        'decimals': token_chain_object.decimals,
-        'name': token_chain_object.name,
-        'symbol': token_chain_object.symbol,
-        'address': tx_normalize.executable_address(token_chain_object.address),
-        'proofs': token_proofs,
-            }   
+        token_symbol_proof_hex = to_identifier(token_chain_object.symbol)
+        token_proofs = [token_symbol_proof_hex]
+        token_proofs += proofs[i]
 
-    return token_data
+        tokens[i] = {
+            'decimals': token_chain_object.decimals,
+            'name': token_chain_object.name,
+            'symbol': token_chain_object.symbol,
+            'address': tx_normalize.executable_address(token_chain_object.address),
+            'proofs': token_proofs,
+            'converters': tokens[i]['converters'],
+                }   
+        i += 1
+
+    return tokens
 
 
 @celery_app.task(bind=True, base=BaseTask)
-def verify_token_info(self, token, chain_spec_dict, success_callback, error_callback):
+def verify_token_info(self, tokens, chain_spec_dict, success_callback, error_callback):
     queue = self.request.delivery_info.get('routing_key')
-    s = celery.signature(
-            'cic_eth.eth.trust.verify_proofs',
-            [
-                token,
-                token['address'],
-                token['proofs'],
-                chain_spec_dict,
-                success_callback,
-                error_callback,
-                ],
-            queue=queue,
-            )
-    s.link(success_callback)
-    s.on_error(error_callback)
-    s.apply_async()
+
+    for token in tokens:
+        s = celery.signature(
+                'cic_eth.eth.trust.verify_proofs',
+                [
+                    token,
+                    token['address'],
+                    token['proofs'],
+                    chain_spec_dict,
+                    success_callback,
+                    error_callback,
+                    ],
+                queue=queue,
+                )
+        s.link(success_callback)
+        s.on_error(error_callback)
+        s.apply_async()
     #s_group.append(s)
 
     #celery.group(s_group)()
 
-    return token
+    return tokens
 
 
 @celery_app.task(bind=True, base=BaseTask)

@@ -78,6 +78,7 @@ def test_tokens(
     t = api.tokens(['FOO'], proof=[[bogus_proof]])
     r = t.get()
     logg.debug('r {}'.format(r))
+    time.sleep(0.1)
     assert len(CallbackTask.errs[api_param]) == 1
     assert CallbackTask.oks.get(api_param) == None
 

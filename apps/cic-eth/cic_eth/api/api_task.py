@@ -45,28 +45,25 @@ class Api(ApiBase):
             proof = [proof]
         chain_spec_dict = self.chain_spec.asdict()
 
-        i = 0
-        s_group = []
-        for token_symbol in token_symbols:
-            s_token_resolve = celery.signature(
-                    'cic_eth.eth.erc20.resolve_token_by_symbol',
-                    [
-                        token_symbol,
-                        chain_spec_dict,
-                        ],
-                    queue=self.queue,
-                    )
+        s_token_resolve = celery.signature(
+                'cic_eth.eth.erc20.resolve_tokens_by_symbol',
+                [
+                    token_symbols,
+                    chain_spec_dict,
+                    ],
+                queue=self.queue,
+                )
 
-            s_token_info = celery.signature(
-                    'cic_eth.eth.erc20.token_info',
-                    [
-                        chain_spec_dict,
-                        proof[i],
-                        ],
-                    queue=self.queue,
-                    )
+        s_token_info = celery.signature(
+                'cic_eth.eth.erc20.token_info',
+                [
+                    chain_spec_dict,
+                    proof,
+                    ],
+                queue=self.queue,
+                )
 
-            s_token_verify = celery.signature(
+        s_token_verify = celery.signature(
                     'cic_eth.eth.erc20.verify_token_info',
                     [
                         chain_spec_dict,
@@ -75,18 +72,10 @@ class Api(ApiBase):
                         ],
                     queue=self.queue,
                     )
-            i += 1
-        
-            s_token_info.link(s_token_verify)
-            s_token_resolve.link(s_token_info)
-            #if self.callback_param != None:
-            #    s_token_verify.link(self.callback_success)
-            #    s_token_verify.on_error(self.callback_error)
-            
-            s_group.append(s_token_resolve)
 
-       # return s_token_resolve.apply_async()
-        return celery.group(s_group)()
+        s_token_info.link(s_token_verify)
+        s_token_resolve.link(s_token_info)
+        return s_token_resolve.apply_async()
 
 
 #    def convert_transfer(self, from_address, to_address, target_return, minimum_return, from_token_symbol, to_token_symbol):
