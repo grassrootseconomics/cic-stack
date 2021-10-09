@@ -12,3 +12,4 @@ chainsyncer[sql]>=0.0.6a3,<0.1.0
 erc20-faucet>=0.3.2a2, <0.4.0
 chainlib-eth>=0.0.9a14,<0.1.0
 eth-address-index>=0.2.3a4,<0.3.0
+okota>=0.2.4a6,<0.3.0
