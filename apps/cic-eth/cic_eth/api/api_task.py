@@ -17,14 +17,22 @@ from cic_eth.enum import LockEnum
 
 app = celery.current_app
 
-#logg = logging.getLogger(__name__)
-logg = logging.getLogger()
+logg = logging.getLogger(__name__)
 
 
 class Api(ApiBase):
 
     @staticmethod
     def to_v_list(v, n):
+        """Translate an arbitrary number of string and/or list arguments to a list of list of string arguments
+
+        :param v: Arguments
+        :type v: str or list
+        :param n: Number of elements to generate arguments for
+        :type n: int
+        :rtype: list
+        :returns: list of assembled arguments
+        """
         if isinstance(v, str):
             vv = v
             v = []
@@ -45,6 +53,11 @@ class Api(ApiBase):
    
 
     def default_token(self):
+        """Retrieves the default fallback token of the custodial network.
+
+        :returns: uuid of root task
+        :rtype: celery.Task
+        """
         s_token = celery.signature(
                 'cic_eth.eth.erc20.default_token',
                 [],
@@ -57,6 +70,17 @@ class Api(ApiBase):
 
 
     def token(self, token_symbol, proof=None):
+        """Single-token alias for tokens method.
+
+        See tokens method for details.
+
+        :param token_symbol: Token symbol to look up
+        :type token_symbol: str
+        :param proof: Proofs to add to signature verification for the token
+        :type proof: str or list
+        :returns: uuid of root task
+        :rtype: celery.Task
+        """
         if not isinstance(token_symbol, str):
             raise ValueError('token symbol must be string')
 
@@ -64,6 +88,30 @@ class Api(ApiBase):
 
 
     def tokens(self, token_symbols, proof=None):
+        """Perform a token data lookup from the token index. The token index will enforce unique associations between token symbol and contract address.
+
+        Token symbols are always strings, and should be specified using uppercase letters.
+
+        If the proof argument is included, the network will be queried for trusted signatures on the given proof(s). There must exist at least one trusted signature for every given proof for every token. Trusted signatures for the custodial system are provided at service startup.
+
+        The proof argument may be specified in a number of ways:
+
+        - as None, in which case proof checks are skipped (although there may still be builtin proof checks being performed)
+        - as a single string, where the same proof is used for each token lookup
+        - as an array of strings, where the respective proof is used for the respective token. number of proofs must match the number of tokens.
+        - as an array of lists, where the respective proofs in each list is used for the respective token. number of lists of proofs must match the number of tokens.
+
+        The success callback provided at the Api object instantiation will receive individual calls for each token that passes the proof checks. Each token that does not pass is passed to the Api error callback.
+
+        This method is not intended to be used synchronously. Do so at your peril.
+
+        :param token_symbols: Token symbol strings to look up
+        :type token_symbol: list
+        :param proof: Proof(s) to verify tokens against
+        :type proof: None, str or list
+        :returns: uuid of root task
+        :rtype: celery.Task
+        """
         if not isinstance(token_symbols, list):
             raise ValueError('token symbols argument must be list')
 
