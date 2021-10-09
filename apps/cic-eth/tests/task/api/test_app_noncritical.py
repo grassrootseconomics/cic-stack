@@ -1,8 +1,11 @@
 # standard imports
 import logging
 import os
+import uuid
+import time
 
 # external imports
+import celery
 import pytest
 from hexathon import (
         strip_0x,
@@ -14,6 +17,7 @@ from cic_eth.api.api_task import Api
 from cic_eth.task import BaseTask
 from cic_eth.error import TrustError
 from cic_eth.encode import tx_normalize
+from cic_eth.pytest.mock.callback import CallbackTask
 
 logg = logging.getLogger()
 
@@ -48,16 +52,17 @@ def test_tokens(
         custodial_roles,
         foo_token_declaration,
         bar_token_declaration,
-        celery_session_worker,
+        celery_worker,
         ):
 
-    api = Api(str(default_chain_spec), queue=None)     
+    api = Api(str(default_chain_spec), queue=None, callback_param='foo')     
 
-    t = api.token('FOO', proof=foo_token_declaration)
+    t = api.tokens(['FOO'], proof=[[foo_token_declaration]])
     r = t.get()
-    logg.debug('r {}'.format(r))
+    logg.debug('rr {}'.format(r))
     assert len(r) == 1
-
+    assert r[0]['address'] == strip_0x(foo_token)
+    
     t = api.tokens(['BAR', 'FOO'], proof=[[bar_token_declaration], [foo_token_declaration]])
     r = t.get()
     logg.debug('results {}'.format(r))
@@ -65,8 +70,21 @@ def test_tokens(
     assert r[1]['address'] == strip_0x(foo_token)
     assert r[0]['address'] == strip_0x(bar_token)
 
+    celery_app = celery.current_app
+
+    api_param = str(uuid.uuid4())
+    api = Api(str(default_chain_spec), queue=None, callback_param=api_param, callback_task='cic_eth.pytest.mock.callback.test_error_callback')
     bogus_proof = os.urandom(32).hex()
-    with pytest.raises(TrustError):
-        t = api.token('FOO', proof=bogus_proof)
-        r = t.get_leaf()
-        logg.debug('should raise {}'.format(r))
+    t = api.tokens(['FOO'], proof=[[bogus_proof]])
+    r = t.get()
+    logg.debug('r {}'.format(r))
+    assert len(CallbackTask.errs[api_param]) == 1
+    assert CallbackTask.oks.get(api_param) == None
+
+    api_param = str(uuid.uuid4())
+    api = Api(str(default_chain_spec), queue=None, callback_param=api_param, callback_task='cic_eth.pytest.mock.callback.test_error_callback')
+    t = api.tokens(['BAR'], proof=[[bar_token_declaration]])
+    r = t.get()
+    logg.debug('rr  {} {}'.format(r, t.children))
+    time.sleep(0.1)
+    assert len(CallbackTask.oks[api_param]) == 1

@@ -17,7 +17,8 @@ from cic_eth.enum import LockEnum
 
 app = celery.current_app
 
-logg = logging.getLogger(__name__)
+#logg = logging.getLogger(__name__)
+logg = logging.getLogger()
 
 
 class Api(ApiBase):
@@ -41,39 +42,51 @@ class Api(ApiBase):
 
     def tokens(self, token_symbols, proof=None):
         if isinstance(proof, str):
-            proof = [[proof]]
+            proof = [proof]
         chain_spec_dict = self.chain_spec.asdict()
-        s_token_resolve = celery.signature(
-                'cic_eth.eth.erc20.resolve_tokens_by_symbol',
-                [
-                    token_symbols,
-                    chain_spec_dict,
-                    ],
-                queue=self.queue,
-                )
 
-        s_token = celery.signature(
-                'cic_eth.eth.erc20.token_info',
-                [
-                    chain_spec_dict,
-                    proof,
-                    ],
-                queue=self.queue,
-                )
+        i = 0
+        s_group = []
+        for token_symbol in token_symbols:
+            s_token_resolve = celery.signature(
+                    'cic_eth.eth.erc20.resolve_token_by_symbol',
+                    [
+                        token_symbol,
+                        chain_spec_dict,
+                        ],
+                    queue=self.queue,
+                    )
 
-#        s_token_verify = celery.signature(
-#                'cic_eth.eth.erc20.verify_token_info',
-#                [
-#                    chain_spec_dict,
-#                    ],
-#                queue=self.queue,
-#                )
-        #s_token.link(s_token_verify)
-        s_token_resolve.link(s_token)
-        if self.callback_param != None:
-            s_token.link(self.callback_success)
+            s_token_info = celery.signature(
+                    'cic_eth.eth.erc20.token_info',
+                    [
+                        chain_spec_dict,
+                        proof[i],
+                        ],
+                    queue=self.queue,
+                    )
 
-        return s_token_resolve.apply_async()
+            s_token_verify = celery.signature(
+                    'cic_eth.eth.erc20.verify_token_info',
+                    [
+                        chain_spec_dict,
+                        self.callback_success,
+                        self.callback_error,
+                        ],
+                    queue=self.queue,
+                    )
+            i += 1
+        
+            s_token_info.link(s_token_verify)
+            s_token_resolve.link(s_token_info)
+            #if self.callback_param != None:
+            #    s_token_verify.link(self.callback_success)
+            #    s_token_verify.on_error(self.callback_error)
+            
+            s_group.append(s_token_resolve)
+
+       # return s_token_resolve.apply_async()
+        return celery.group(s_group)()
 
 
 #    def convert_transfer(self, from_address, to_address, target_return, minimum_return, from_token_symbol, to_token_symbol):
