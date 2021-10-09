@@ -23,7 +23,8 @@ RUN python setup.py install
 # ini files in config directory defines the configurable parameters for the application
 # they can all be overridden by environment variables
 # to generate a list of environment variables from configuration, use: confini-dump -z <dir> (executable provided by confini package)
-COPY config/ /usr/local/etc/cic-cache/
+#COPY config/ /usr/local/etc/cic-cache/
+COPY config/ .
 
 # for db migrations
 RUN git clone https://github.com/vishnubob/wait-for-it.git /usr/local/bin/wait-for-it/
