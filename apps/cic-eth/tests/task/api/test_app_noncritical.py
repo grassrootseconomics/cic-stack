@@ -3,6 +3,7 @@ import logging
 import os
 import uuid
 import time
+import mmap
 
 # external imports
 import celery
@@ -72,20 +73,48 @@ def test_tokens(
 
     celery_app = celery.current_app
 
+    results = []
+    targets = []
+
     api_param = str(uuid.uuid4())
-    api = Api(str(default_chain_spec), queue=None, callback_param=api_param, callback_task='cic_eth.pytest.mock.callback.test_error_callback')
+    api = Api(str(default_chain_spec), queue=None, callback_param=api_param, callback_task='cic_eth.pytest.mock.callback.test_callback')
     bogus_proof = os.urandom(32).hex()
     t = api.tokens(['FOO'], proof=[[bogus_proof]])
     r = t.get()
     logg.debug('r {}'.format(r))
-    time.sleep(0.1)
-    assert len(CallbackTask.errs[api_param]) == 1
-    assert CallbackTask.oks.get(api_param) == None
+
+    while True:
+        fp = os.path.join(CallbackTask.mmap_path, api_param)
+        try:
+            f = open(fp, 'rb')
+        except FileNotFoundError:
+            time.sleep(0.1)
+            logg.debug('look for {}'.format(fp))
+            continue
+        f = open(fp, 'rb')
+        m = mmap.mmap(f.fileno(), access=mmap.ACCESS_READ, length=1)
+        v = m.read(1)
+        m.close()
+        f.close()
+        assert v == b'\x01'
+        break
 
     api_param = str(uuid.uuid4())
-    api = Api(str(default_chain_spec), queue=None, callback_param=api_param, callback_task='cic_eth.pytest.mock.callback.test_error_callback')
+    api = Api(str(default_chain_spec), queue=None, callback_param=api_param, callback_task='cic_eth.pytest.mock.callback.test_callback')
     t = api.tokens(['BAR'], proof=[[bar_token_declaration]])
     r = t.get()
     logg.debug('rr  {} {}'.format(r, t.children))
-    time.sleep(0.1)
-    assert len(CallbackTask.oks[api_param]) == 1
+
+    while True:
+        fp = os.path.join(CallbackTask.mmap_path, api_param)
+        try:
+            f = open(fp, 'rb')
+        except FileNotFoundError:
+            time.sleep(0.1)
+            continue
+        m = mmap.mmap(f.fileno(), access=mmap.ACCESS_READ, length=1)
+        v = m.read(1)
+        m.close()
+        f.close()
+        assert v == b'\x00'
+        break

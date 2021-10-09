@@ -526,9 +526,6 @@ def verify_token_info(self, tokens, chain_spec_dict, success_callback, error_cal
         s.link(success_callback)
         s.on_error(error_callback)
         s.apply_async()
-    #s_group.append(s)
-
-    #celery.group(s_group)()
 
     return tokens
 
