@@ -40,6 +40,61 @@ def test_default_token(
     assert r['address'] == foo_token
 
 
+def test_to_v_list():
+    assert Api.to_v_list('foo', 1) == [['foo']]
+    assert Api.to_v_list(['foo'], 1) == [['foo']]
+    assert Api.to_v_list(['foo', 'bar'], 2) == [['foo'], ['bar']]
+    assert Api.to_v_list('foo', 3) == [['foo'], ['foo'], ['foo']]
+    assert Api.to_v_list([['foo'], ['bar']], 2) == [['foo'], ['bar']]
+    with pytest.raises(ValueError):
+        Api.to_v_list([['foo'], ['bar']], 3)
+    with pytest.raises(ValueError):
+        Api.to_v_list(['foo', 'bar'], 3)
+    with pytest.raises(ValueError):
+        Api.to_v_list([['foo'], ['bar'], ['baz']], 2)
+
+    assert Api.to_v_list([
+            ['foo'],
+            'bar',
+            ['inky', 'pinky', 'blinky', 'clyde'],
+        ], 3) == [
+            ['foo'],
+            ['bar'],
+            ['inky', 'pinky', 'blinky', 'clyde'],
+            ]
+
+
+def test_token_single(
+        default_chain_spec,
+        foo_token,
+        bar_token,
+        token_registry,
+        register_tokens,
+        register_lookups,
+        cic_registry,
+        init_database,
+        init_celery_tasks,
+        custodial_roles,
+        foo_token_declaration,
+        bar_token_declaration,
+        celery_session_worker,
+        ):
+
+    api = Api(str(default_chain_spec), queue=None, callback_param='foo')     
+
+    t = api.token('FOO', proof=None)
+    r = t.get()
+    logg.debug('rr {}'.format(r))
+    assert len(r) == 1
+    assert r[0]['address'] == strip_0x(foo_token)
+
+
+    t = api.token('FOO', proof=foo_token_declaration)
+    r = t.get()
+    assert len(r) == 1
+    assert r[0]['address'] == strip_0x(foo_token)
+
+
 def test_tokens(
         default_chain_spec,
         foo_token,
@@ -118,3 +173,4 @@ def test_tokens(
         f.close()
         assert v == b'\x00'
         break
+

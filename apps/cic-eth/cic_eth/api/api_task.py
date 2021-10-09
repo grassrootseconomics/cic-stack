@@ -22,7 +22,27 @@ logg = logging.getLogger()
 
 
 class Api(ApiBase):
-    
+
+    @staticmethod
+    def to_v_list(v, n):
+        if isinstance(v, str):
+            vv = v
+            v = []
+            for i in range(n):
+                v.append([vv])
+        elif not isinstance(v, list):
+            raise ValueError('argument must be single string, or list or strings or lists')
+        else:
+            if len(v) != n:
+                raise ValueError('v argument count must match integer n')
+            for i in range(n):
+                if isinstance(v[i], str):
+                    v[i] = [v[i]]
+                elif not isinstance(v, list):
+                    raise ValueError('proof argument must be single string, or list or strings or lists')
+
+        return v
+   
 
     def default_token(self):
         s_token = celery.signature(
@@ -37,12 +57,21 @@ class Api(ApiBase):
 
 
     def token(self, token_symbol, proof=None):
+        if not isinstance(token_symbol, str):
+            raise ValueError('token symbol must be string')
+
         return self.tokens([token_symbol], proof=proof)
 
 
     def tokens(self, token_symbols, proof=None):
-        if isinstance(proof, str):
-            proof = [proof]
+        if not isinstance(token_symbols, list):
+            raise ValueError('token symbols argument must be list')
+
+        if proof == None:
+            logg.debug('looking up tokens without external proof check: {}'.format(','.join(token_symbols)))
+            proof = ''
+        proof = Api.to_v_list(proof, len(token_symbols)) 
+
         chain_spec_dict = self.chain_spec.asdict()
 
         s_token_resolve = celery.signature(
