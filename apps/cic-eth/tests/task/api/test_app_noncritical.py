@@ -41,6 +41,8 @@ def test_default_token(
 
 
 def test_to_v_list():
+    assert Api.to_v_list('', 0) == []
+    assert Api.to_v_list([], 0) == []
     assert Api.to_v_list('foo', 1) == [['foo']]
     assert Api.to_v_list(['foo'], 1) == [['foo']]
     assert Api.to_v_list(['foo', 'bar'], 2) == [['foo'], ['bar']]
@@ -90,6 +92,40 @@ def test_token_single(
 
 
     t = api.token('FOO', proof=foo_token_declaration)
+    r = t.get()
+    assert len(r) == 1
+    assert r[0]['address'] == strip_0x(foo_token)
+
+
+def test_tokens_noproof(
+        default_chain_spec,
+        foo_token,
+        bar_token,
+        token_registry,
+        register_tokens,
+        register_lookups,
+        cic_registry,
+        init_database,
+        init_celery_tasks,
+        custodial_roles,
+        foo_token_declaration,
+        bar_token_declaration,
+        celery_session_worker,
+        ):
+
+    api = Api(str(default_chain_spec), queue=None, callback_param='foo')     
+
+    t = api.tokens(['FOO'], proof=[])
+    r = t.get()
+    assert len(r) == 1
+    assert r[0]['address'] == strip_0x(foo_token)
+
+    t = api.tokens(['FOO'], proof='')
+    r = t.get()
+    assert len(r) == 1
+    assert r[0]['address'] == strip_0x(foo_token)
+
+    t = api.tokens(['FOO'], proof=None)
     r = t.get()
     assert len(r) == 1
     assert r[0]['address'] == strip_0x(foo_token)

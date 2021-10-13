@@ -118,7 +118,11 @@ class Api(ApiBase):
         if proof == None:
             logg.debug('looking up tokens without external proof check: {}'.format(','.join(token_symbols)))
             proof = ''
-        proof = Api.to_v_list(proof, len(token_symbols)) 
+
+        l = len(token_symbols)
+        if len(proof) == 0:
+            l = 0 
+        proof = Api.to_v_list(proof, l)
 
         chain_spec_dict = self.chain_spec.asdict()
 
