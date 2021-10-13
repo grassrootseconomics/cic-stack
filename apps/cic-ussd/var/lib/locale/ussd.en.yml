@@ -55,6 +55,7 @@
     token_selection_pin_authorization:
       attempt: |-
         %{token_info}
+        Enter pin to select:
         0. Back
       retry: |-
         %{retry_pin_entry}
