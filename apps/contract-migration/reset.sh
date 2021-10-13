@@ -121,6 +121,9 @@ export CIC_DEFAULT_TOKEN_SYMBOL=$CIC_DEFAULT_TOKEN_SYMBOL
 export TOKEN_NAME=$TOKEN_NAME
 " >> "${DEV_DATA_DIR}"/env_reset
 
+confini-dump --schema-dir ./config
+eth-contract-registry-list -i $CIC_CHAIN_SPEC -p $RPC_PROVIDER -e $CIC_REGISTRY_ADDRESS -u
+
 set +a
 set +e
 
