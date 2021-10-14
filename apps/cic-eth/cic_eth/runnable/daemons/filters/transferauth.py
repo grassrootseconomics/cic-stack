@@ -17,6 +17,7 @@ from cic_eth_registry import CICRegistry
 from erc20_transfer_authorization import TransferAuthorization
 
 # local imports
+from cic_eth.encode import tx_normalize
 from .base import SyncFilter
 
 
@@ -52,9 +53,9 @@ class TransferAuthFilter(SyncFilter):
 
         r = TransferAuthorization.parse_create_request_request(tx.payload) 
           
-        sender = r[0]
-        recipient = r[1]
-        token = r[2]
+        sender = tx_normalize.wallet_address(r[0])
+        recipient = tx_normalize.wallet_address(r[1])
+        token = tx_normalize.executable_address(r[2])
         value = r[3]
 
         token_data = {

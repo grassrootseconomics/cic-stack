@@ -24,7 +24,8 @@ def transaction(notification_data: dict):
     :rtype:
     """
     role = notification_data.get('role')
-    amount = from_wei(notification_data.get('token_value'))
+    token_value = notification_data.get('token_value')
+    amount = token_value if token_value == 0 else from_wei(token_value)
     balance = notification_data.get('available_balance')
     phone_number = notification_data.get('phone_number')
     preferred_language = notification_data.get('preferred_language')

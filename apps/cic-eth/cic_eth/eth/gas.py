@@ -9,7 +9,11 @@ from hexathon import (
         )
 #from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.chain import ChainSpec
-from chainlib.eth.address import is_checksum_address
+from chainlib.eth.address import (
+        is_checksum_address,
+        to_checksum_address,
+        is_address
+        )
 from chainlib.connection import RPCConnection
 from chainqueue.db.enum import StatusBits
 from chainqueue.sql.tx import cache_tx_dict
@@ -74,7 +78,6 @@ class MaxGasOracle:
         return MAXIMUM_FEE_UNITS
 
 
-#def create_check_gas_task(tx_signed_raws_hex, chain_spec, holder_address, gas=None, tx_hashes_hex=None, queue=None):
 def create_check_gas_task(tx_signed_raws_hex, chain_spec, holder_address, gas=None, tx_hashes_hex=None, queue=None):
     """Creates a celery task signature for a check_gas task that adds the task to the outgoing queue to be processed by the dispatcher.
 
@@ -179,8 +182,9 @@ def check_gas(self, tx_hashes_hex, chain_spec_dict, txs_hex=[], address=None, ga
     :return: Signed raw transaction data list
     :rtype: param txs, unchanged
     """
+    rpc_format_address = None
     if address != None:
-        if not is_checksum_address(address):
+        if not is_address(address):
             raise ValueError('invalid address {}'.format(address))
         address = tx_normalize.wallet_address(address)
         address = add_0x(address)
@@ -195,7 +199,6 @@ def check_gas(self, tx_hashes_hex, chain_spec_dict, txs_hex=[], address=None, ga
         txs.append(tx)
 
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
-    logg.debug('txs {} tx_hashes {}'.format(txs, tx_hashes))
 
     addresspass = None
     if len(txs) == 0:
@@ -211,13 +214,15 @@ def check_gas(self, tx_hashes_hex, chain_spec_dict, txs_hex=[], address=None, ga
                 raise ValueError('txs passed to check gas must all have same sender; had {} got {}'.format(address, tx['from']))
             addresspass.append(address)
 
+    rpc_format_address = add_0x(to_checksum_address(address))
+
     queue = self.request.delivery_info.get('routing_key')
 
     conn = RPCConnection.connect(chain_spec)
 
     gas_balance = 0
     try:
-        o = balance(address)
+        o = balance(rpc_format_address)
         r = conn.do(o)
         conn.disconnect()
         gas_balance = abi_decode_single(ABIContractType.UINT256, r)

@@ -1,7 +1,7 @@
 #! /bin/bash
 
 >&2 echo -e "\033[;96mRUNNING\033[;39m configurations"
-. ./config.sh
+./config.sh
 if [ $? -ne "0" ]; then
 	>&2 echo -e "\033[;31mFAILED\033[;39m configurations"
 	exit 1;

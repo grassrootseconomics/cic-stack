@@ -35,14 +35,14 @@ class RPC:
     def from_config(config, use_signer=False, default_label='default', signer_label='signer'):
         chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
 
-        RPCConnection.register_location(config.get('RPC_HTTP_PROVIDER'), chain_spec, default_label)
+        RPCConnection.register_location(config.get('RPC_PROVIDER'), chain_spec, default_label)
         if use_signer:
 
             RPCConnection.register_constructor(ConnType.UNIX, EthUnixSignerConnection, signer_label)
             RPCConnection.register_constructor(ConnType.HTTP, EthHTTPSignerConnection, signer_label)
             RPCConnection.register_constructor(ConnType.HTTP_SSL, EthHTTPSignerConnection, signer_label)
             RPCConnection.register_location(config.get('SIGNER_PROVIDER'), chain_spec, signer_label) 
-        rpc = RPC(chain_spec, config.get('RPC_HTTP_PROVIDER'), signer_provider=config.get('SIGNER_PROVIDER'))
+        rpc = RPC(chain_spec, config.get('RPC_PROVIDER'), signer_provider=config.get('SIGNER_PROVIDER'))
         logg.info('set up rpc: {}'.format(rpc))
         return rpc
 

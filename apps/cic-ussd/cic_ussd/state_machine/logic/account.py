@@ -154,15 +154,14 @@ def parse_person_metadata(account: Account, metadata: dict):
     phone_number = account.phone_number
     date_registered = int(account.created.replace().timestamp())
     blockchain_address = account.blockchain_address
-    chain_spec = f'{Chain.spec.common_name()}:{Chain.spec.engine()}: {Chain.spec.chain_id()}'
+    chain_str = Chain.spec.__str__()
 
     if isinstance(metadata.get('identities'), dict):
         identities = metadata.get('identities')
     else:
         identities = manage_identity_data(
             blockchain_address=blockchain_address,
-            blockchain_type=Chain.spec.engine(),
-            chain_spec=chain_spec
+            chain_str=chain_str
         )
 
     return {

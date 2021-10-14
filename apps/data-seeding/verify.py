@@ -164,20 +164,8 @@ for t in custodial_tests:
         logg.info('activating custodial module'.format(t))
         break
 
-cols = os.get_terminal_size().columns
 
-
-def to_terminalwidth(s):
-    ss = s.ljust(int(cols)-1)
-    ss += "\r"
-    return ss
-
-def default_outfunc(s):
-    ss = to_terminalwidth(s)
-    sys.stdout.write(ss)
-outfunc = default_outfunc
-if logg.isEnabledFor(logging.DEBUG):
-    outfunc = logg.debug
+outfunc = logg.debug
 
 
 def send_ussd_request(address, data_dir):

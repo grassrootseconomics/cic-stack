@@ -9,7 +9,6 @@ psycopg2==2.8.6
 celery==4.4.7
 redis==3.5.3
 chainsyncer[sql]>=0.0.6a3,<0.1.0
-erc20-faucet>=0.3.2a1, <0.4.0
-chainlib-eth>=0.0.9a7,<0.1.0
-chainlib>=0.0.9a3,<0.1.0
-eth-address-index>=0.2.3a1,<0.3.0
+erc20-faucet>=0.3.2a2, <0.4.0
+chainlib-eth>=0.0.9a14,<0.1.0
+eth-address-index>=0.2.3a4,<0.3.0

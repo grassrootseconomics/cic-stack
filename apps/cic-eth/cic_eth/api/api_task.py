@@ -9,6 +9,7 @@ import logging
 # external imports 
 import celery
 from chainlib.chain import ChainSpec
+from hexathon import strip_0x
 
 # local imports
 from cic_eth.api.base import ApiBase
@@ -254,6 +255,8 @@ class Api(ApiBase):
         :returns: uuid of root task
         :rtype: celery.Task
         """
+        #from_address = strip_0x(from_address)
+        #to_address = strip_0x(to_address)
         s_check = celery.signature(
                 'cic_eth.admin.ctrl.check_lock',
                 [

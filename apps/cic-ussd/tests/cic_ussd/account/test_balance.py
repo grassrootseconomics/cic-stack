@@ -43,10 +43,13 @@ def test_sync_get_balances(activated_account,
     (5000000, 89000000, 67000000, 27.00)
 ])
 def test_calculate_available_balance(activated_account,
+                                     available_balance,
                                      balance_incoming,
                                      balance_network,
                                      balance_outgoing,
-                                     available_balance):
+                                     cache_balances,
+                                     cache_default_token_data,
+                                     load_chain_spec):
     balances = {
         'address': activated_account.blockchain_address,
         'converters': [],
@@ -57,7 +60,11 @@ def test_calculate_available_balance(activated_account,
     assert calculate_available_balance(balances) == available_balance
 
 
-def test_get_cached_available_balance(activated_account, cache_balances, balances):
+def test_get_cached_available_balance(activated_account,
+                                      balances,
+                                      cache_balances,
+                                      cache_default_token_data,
+                                      load_chain_spec):
     cached_available_balance = get_cached_available_balance(activated_account.blockchain_address)
     available_balance = calculate_available_balance(balances[0])
     assert cached_available_balance == available_balance

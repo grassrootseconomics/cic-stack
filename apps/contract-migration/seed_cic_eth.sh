@@ -46,7 +46,7 @@ cic-eth-tag -i $CHAIN_SPEC TRANSFER_AUTHORIZATION_OWNER $DEV_ETH_ACCOUNT_TRANSFE
 DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER=`CONFINI_DIR=$empty_config_dir cic-eth-create $debug --redis-host $REDIS_HOST --redis-host-callback=$REDIS_HOST --redis-port-callback=$REDIS_PORT --no-register`
 cic-eth-tag -i $CHAIN_SPEC ACCOUNT_REGISTRY_WRITER $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER
 >&2 echo "add acccounts index writer account as writer on contract"
-eth-accounts-index-writer -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER -e $account_index_address -ww $debug $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER
+#eth-accounts-index-writer -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER -e $account_index_address -ww $debug $DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER
 
 # Transfer gas to custodial gas provider adddress
 _CONFINI_DIR=$CONFINI_DIR
@@ -78,11 +78,11 @@ export DEV_ETH_SARAFU_TOKEN_ADDRESS=$DEV_ETH_RESERVE_ADDRESS
 >&2 erc20-transfer -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER --fee-limit 100000 -e $reserve_address -w $debug -a $DEV_ETH_ACCOUNT_SARAFU_GIFTER ${DEV_TOKEN_AMOUNT:0:-1}
 
 # Remove the SEND (8), QUEUE (16) and INIT (2) locks (or'ed), set by default at migration
-cic-eth-ctl -i $CHAIN_SPEC unlock INIT
-cic-eth-ctl -i $CHAIN_SPEC unlock SEND
-cic-eth-ctl -i $CHAIN_SPEC unlock QUEUE
+cic-eth-ctl -vv -i $CHAIN_SPEC unlock INIT
+cic-eth-ctl -vv -i $CHAIN_SPEC unlock SEND
+cic-eth-ctl -vv -i $CHAIN_SPEC unlock QUEUE
 
-confini-dump --schema-module chainlib.eth.data.config --schema-module cic_eth.data.config --schema-dir ./config 
+#confini-dump --schema-module chainlib.eth.data.config --schema-module cic_eth.data.config --schema-dir ./config
 
 set +a
 set +e

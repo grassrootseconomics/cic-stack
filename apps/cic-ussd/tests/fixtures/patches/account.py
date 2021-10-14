@@ -42,6 +42,22 @@ def mock_async_balance_api_query(mocker):
 
 
 @pytest.fixture(scope='function')
+def mock_get_adjusted_balance(mocker, task_uuid):
+    query_args = {}
+
+    def get_adjusted_balance(self, token_symbol, balance, timestamp):
+        sync_res = mocker.patch('celery.result.AsyncResult')
+        sync_res.id = task_uuid
+        sync_res.result = 45931650.64654012
+        query_args['balance'] = balance
+        query_args['timestamp'] = timestamp
+        query_args['token_symbol'] = token_symbol
+        return sync_res
+    mocker.patch('cic_eth_aux.erc20_demurrage_token.api.Api.get_adjusted_balance', get_adjusted_balance)
+    return query_args
+
+
+@pytest.fixture(scope='function')
 def mock_notifier_api(mocker):
     sms = {}
 

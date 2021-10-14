@@ -1,13 +1,17 @@
 # standard imports
 import json
 import logging
+from datetime import datetime, timedelta
 
 # external imports
 import i18n.config
-from sqlalchemy.orm.session import Session
 
 # local imports
-from cic_ussd.account.balance import calculate_available_balance, get_balances, get_cached_available_balance
+from cic_ussd.account.balance import (calculate_available_balance,
+                                      get_adjusted_balance,
+                                      get_balances,
+                                      get_cached_adjusted_balance,
+                                      get_cached_available_balance)
 from cic_ussd.account.chain import Chain
 from cic_ussd.account.metadata import get_cached_preferred_language
 from cic_ussd.account.statement import (
@@ -16,14 +20,15 @@ from cic_ussd.account.statement import (
     query_statement,
     statement_transaction_set
 )
-from cic_ussd.account.transaction import from_wei, to_wei
 from cic_ussd.account.tokens import get_default_token_symbol
+from cic_ussd.account.transaction import from_wei, to_wei
 from cic_ussd.cache import cache_data_key, cache_data
 from cic_ussd.db.models.account import Account
 from cic_ussd.metadata import PersonMetadata
 from cic_ussd.phone_number import Support
-from cic_ussd.processor.util import latest_input, parse_person_metadata
+from cic_ussd.processor.util import parse_person_metadata
 from cic_ussd.translation import translation_for
+from sqlalchemy.orm.session import Session
 
 logg = logging.getLogger(__name__)
 
@@ -32,7 +37,7 @@ class MenuProcessor:
     def __init__(self, account: Account, display_key: str, menu_name: str, session: Session, ussd_session: dict):
         self.account = account
         self.display_key = display_key
-        self.identifier = bytes.fromhex(self.account.blockchain_address[2:])
+        self.identifier = bytes.fromhex(self.account.blockchain_address)
         self.menu_name = menu_name
         self.session = session
         self.ussd_session = ussd_session
@@ -43,21 +48,26 @@ class MenuProcessor:
         :rtype:
         """
         available_balance = get_cached_available_balance(self.account.blockchain_address)
-        logg.debug('Requires call to retrieve tax and bonus amounts')
-        tax = ''
-        bonus = ''
+        adjusted_balance = get_cached_adjusted_balance(self.identifier)
         token_symbol = get_default_token_symbol()
         preferred_language = get_cached_preferred_language(self.account.blockchain_address)
         if not preferred_language:
             preferred_language = i18n.config.get('fallback')
-        return translation_for(
-            key=self.display_key,
-            preferred_language=preferred_language,
-            available_balance=available_balance,
-            tax=tax,
-            bonus=bonus,
-            token_symbol=token_symbol
-        )
+        with_available_balance = f'{self.display_key}.available_balance'
+        with_fees = f'{self.display_key}.with_fees'
+        if not adjusted_balance:
+            return translation_for(key=with_available_balance,
+                                   preferred_language=preferred_language,
+                                   available_balance=available_balance,
+                                   token_symbol=token_symbol)
+        adjusted_balance = json.loads(adjusted_balance)
+        tax_wei = to_wei(int(available_balance)) - int(adjusted_balance)
+        tax = from_wei(int(tax_wei))
+        return translation_for(key=with_fees,
+                               preferred_language=preferred_language,
+                               available_balance=available_balance,
+                               tax=tax,
+                               token_symbol=token_symbol)
 
     def account_statement(self) -> str:
         """
@@ -67,7 +77,7 @@ class MenuProcessor:
         cached_statement = get_cached_statement(self.account.blockchain_address)
         statement = json.loads(cached_statement)
         statement_transactions = parse_statement_transactions(statement)
-        transaction_sets = [statement_transactions[tx:tx+3] for tx in range(0, len(statement_transactions), 3)]
+        transaction_sets = [statement_transactions[tx:tx + 3] for tx in range(0, len(statement_transactions), 3)]
         preferred_language = get_cached_preferred_language(self.account.blockchain_address)
         if not preferred_language:
             preferred_language = i18n.config.get('fallback')
@@ -149,12 +159,22 @@ class MenuProcessor:
         :return:
         :rtype:
         """
+        chain_str = Chain.spec.__str__()
         token_symbol = get_default_token_symbol()
         blockchain_address = self.account.blockchain_address
-        balances = get_balances(blockchain_address, Chain.spec.__str__(), token_symbol, False)[0]
+        balances = get_balances(blockchain_address, chain_str, token_symbol, False)[0]
         key = cache_data_key(self.identifier, ':cic.balances')
         cache_data(key, json.dumps(balances))
         available_balance = calculate_available_balance(balances)
+        now = datetime.now()
+        if (now - self.account.created).days >= 30:
+            if available_balance <= 0:
+                logg.info(f'Not retrieving adjusted balance, available balance: {available_balance} is insufficient.')
+            else:
+                timestamp = int((now - timedelta(30)).timestamp())
+                adjusted_balance = get_adjusted_balance(to_wei(int(available_balance)), chain_str, timestamp, token_symbol)
+                key = cache_data_key(self.identifier, ':cic.adjusted_balance')
+                cache_data(key, json.dumps(adjusted_balance))
 
         query_statement(blockchain_address)
 

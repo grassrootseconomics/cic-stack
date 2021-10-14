@@ -63,7 +63,7 @@ elif ssl == 0:
 else:
     ssl = True
 
-
+valid_service_codes = config.get('USSD_SERVICE_CODE').split(",")
 def main():
 
     # TODO: improve url building 
@@ -79,9 +79,9 @@ def main():
     session = uuid.uuid4().hex
     data = {
             'sessionId': session,
-            'serviceCode': config.get('APP_SERVICE_CODE'),
+            'serviceCode': valid_service_codes[0],
             'phoneNumber': args.phone,
-            'text': config.get('APP_SERVICE_CODE'),
+            'text': "",
         }
 
     state = "_BEGIN"

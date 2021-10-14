@@ -28,12 +28,11 @@ logg = logging.getLogger()
 
 fake = Faker(['sl', 'en_US', 'no', 'de', 'ro'])
 
-script_dir = os.path.realpath(os.path.dirname(__file__))
-# config_dir = os.environ.get('CONFINI_DIR', '/usr/local/etc/cic')
-config_dir = os.environ.get('CONFINI_DIR', os.path.join(script_dir, 'config'))
+default_config_dir = './config'
+
 
 argparser = argparse.ArgumentParser()
-argparser.add_argument('-c', type=str, default=config_dir, help='Config dir')
+argparser.add_argument('-c', type=str, default=default_config_dir, help='Config dir')
 argparser.add_argument('--tag', type=str, action='append',
                        help='Tags to add to record')
 argparser.add_argument('--gift-threshold', type=int,
@@ -53,7 +52,7 @@ elif args.vv:
 
 config = confini.Config(args.c, os.environ.get('CONFINI_ENV_PREFIX'))
 config.process()
-logg.info('loaded config\n{}'.format(config))
+logg.debug('loaded config\n{}'.format(config))
 
 
 dt_now = datetime.datetime.utcnow()

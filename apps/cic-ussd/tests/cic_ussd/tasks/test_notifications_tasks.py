@@ -13,7 +13,8 @@ from cic_ussd.translation import translation_for
 # tests imports
 
 
-def test_transaction(celery_session_worker,
+def test_transaction(cache_default_token_data,
+                     celery_session_worker,
                      load_support_phone,
                      mock_notifier_api,
                      notification_data,

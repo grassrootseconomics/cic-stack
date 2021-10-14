@@ -140,12 +140,22 @@ sw:
         0. Nyuma
       retry: |-
         %{retry_pin_entry}
-    account_balances: |-
-      CON Salio zako ni zifuatazo:
-        salio: %{available_balance} %{token_symbol}
-        ushuru: %{tax} %{token_symbol}
-        tuzo: %{bonus} %{token_symbol}
-      0. Nyuma
+    account_balances:
+      available_balance: |-
+        CON Salio zako ni zifuatazo:
+          salio: %{available_balance} %{token_symbol}
+        0. Nyuma
+      with_fees: |-
+        CON Salio zako ni zifuatazo:
+          salio: %{available_balance} %{token_symbol}
+          ushuru: %{tax} %{token_symbol}
+        0. Nyuma
+      with_rewards: |-
+        CON Salio zako ni zifuatazo:
+          salio: %{available_balance} %{token_symbol}
+          ushuru: %{tax} %{token_symbol}
+          tuzo: %{bonus} %{token_symbol}
+        0. Nyuma
     first_transaction_set: |-
       CON %{first_transaction_set}
       1. Mbele

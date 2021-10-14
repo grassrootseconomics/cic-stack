@@ -12,7 +12,10 @@ from chainlib.eth.tx import (
         )
 from cic_eth_registry import CICRegistry
 from cic_eth_registry.erc20 import ERC20Token
-from hexathon import strip_0x
+from hexathon import (
+        strip_0x,
+        add_0x,
+        )
 from chainqueue.error import NotLocalTxError
 from eth_erc20 import ERC20
 from chainqueue.sql.tx import cache_tx_dict
@@ -38,6 +41,7 @@ from cic_eth.task import (
         CriticalSQLAlchemyAndSignerTask,
     )
 from cic_eth.eth.nonce import CustodialTaskNonceOracle
+from cic_eth.encode import tx_normalize
 
 celery_app = celery.current_app
 logg = logging.getLogger()
@@ -62,7 +66,8 @@ def balance(tokens, holder_address, chain_spec_dict):
 
     for t in tokens:
         address = t['address']
-        token = ERC20Token(chain_spec, rpc, address)
+        logg.debug('address {} {}'.format(address, holder_address))
+        token = ERC20Token(chain_spec, rpc, add_0x(address))
         c = ERC20(chain_spec)
         o = c.balance_of(address, holder_address, sender_address=caller_address)
         r = rpc.do(o)
@@ -371,13 +376,15 @@ def cache_transfer_data(
     tx = unpack(tx_signed_raw_bytes, chain_spec)
 
     tx_data = ERC20.parse_transfer_request(tx['data'])
-    recipient_address = tx_data[0]
+    sender_address = tx_normalize.wallet_address(tx['from'])
+    recipient_address = tx_normalize.wallet_address(tx_data[0])
     token_value = tx_data[1]
+
 
     session = SessionBase.create_session()
     tx_dict = {
             'hash': tx_hash_hex,
-            'from': tx['from'],
+            'from': sender_address,
             'to': recipient_address,
             'source_token': tx['to'],
             'destination_token': tx['to'],
@@ -448,13 +455,14 @@ def cache_approve_data(
     tx = unpack(tx_signed_raw_bytes, chain_spec)
 
     tx_data = ERC20.parse_approve_request(tx['data'])
-    recipient_address = tx_data[0]
+    sender_address = tx_normalize.wallet_address(tx['from'])
+    recipient_address = tx_normalize.wallet_address(tx_data[0])
     token_value = tx_data[1]
 
     session = SessionBase.create_session()
     tx_dict = {
             'hash': tx_hash_hex,
-            'from': tx['from'],
+            'from': sender_address,
             'to': recipient_address,
             'source_token': tx['to'],
             'destination_token': tx['to'],

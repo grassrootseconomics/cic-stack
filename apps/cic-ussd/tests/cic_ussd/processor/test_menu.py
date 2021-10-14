@@ -1,5 +1,6 @@
 # standard imports
 import json
+import datetime
 
 # external imports
 from chainlib.hash import strip_0x
@@ -14,6 +15,7 @@ from cic_ussd.account.statement import (
 )
 from cic_ussd.account.tokens import get_default_token_symbol
 from cic_ussd.account.transaction import from_wei, to_wei
+from cic_ussd.cache import cache_data, cache_data_key
 from cic_ussd.menu.ussd_menu import UssdMenu
 from cic_ussd.metadata import PersonMetadata
 from cic_ussd.phone_number import Support
@@ -38,24 +40,34 @@ def test_menu_processor(activated_account,
                         load_chain_spec,
                         load_support_phone,
                         load_ussd_menu,
+                        mock_get_adjusted_balance,
                         mock_sync_balance_api_query,
                         mock_transaction_list_query,
                         valid_recipient):
     preferred_language = get_cached_preferred_language(activated_account.blockchain_address)
     available_balance = get_cached_available_balance(activated_account.blockchain_address)
     token_symbol = get_default_token_symbol()
-
-    tax = ''
-    bonus = ''
-    display_key = 'ussd.kenya.account_balances'
+    with_available_balance = 'ussd.kenya.account_balances.available_balance'
+    with_fees = 'ussd.kenya.account_balances.with_fees'
     ussd_menu = UssdMenu.find_by_name('account_balances')
     name = ussd_menu.get('name')
-    resp = response(activated_account, display_key, name, init_database, generic_ussd_session)
-    assert resp == translation_for(display_key,
+    resp = response(activated_account, 'ussd.kenya.account_balances', name, init_database, generic_ussd_session)
+    assert resp == translation_for(with_available_balance,
                                    preferred_language,
                                    available_balance=available_balance,
+                                   token_symbol=token_symbol)
+
+    identifier = bytes.fromhex(activated_account.blockchain_address)
+    key = cache_data_key(identifier, ':cic.adjusted_balance')
+    adjusted_balance = 45931650.64654012
+    cache_data(key, json.dumps(adjusted_balance))
+    resp = response(activated_account, 'ussd.kenya.account_balances', name, init_database, generic_ussd_session)
+    tax_wei = to_wei(int(available_balance)) - int(adjusted_balance)
+    tax = from_wei(int(tax_wei))
+    assert resp == translation_for(key=with_fees,
+                                   preferred_language=preferred_language,
+                                   available_balance=available_balance,
                                    tax=tax,
-                                   bonus=bonus,
                                    token_symbol=token_symbol)
 
     cached_statement = get_cached_statement(activated_account.blockchain_address)
@@ -96,7 +108,7 @@ def test_menu_processor(activated_account,
     display_key = 'ussd.kenya.display_user_metadata'
     ussd_menu = UssdMenu.find_by_name('display_user_metadata')
     name = ussd_menu.get('name')
-    identifier = bytes.fromhex(strip_0x(activated_account.blockchain_address))
+    identifier = bytes.fromhex(activated_account.blockchain_address)
     person_metadata = PersonMetadata(identifier)
     cached_person_metadata = person_metadata.get_cached_metadata()
     resp = response(activated_account, display_key, name, init_database, generic_ussd_session)
@@ -122,6 +134,15 @@ def test_menu_processor(activated_account,
                                    preferred_language,
                                    account_balance=available_balance,
                                    account_token_name=token_symbol)
+
+    display_key = 'ussd.kenya.start'
+    ussd_menu = UssdMenu.find_by_name('start')
+    name = ussd_menu.get('name')
+    older_timestamp = (activated_account.created - datetime.timedelta(days=35))
+    activated_account.created = older_timestamp
+    init_database.flush()
+    response(activated_account, display_key, name, init_database, generic_ussd_session)
+    assert mock_get_adjusted_balance['timestamp'] == int((datetime.datetime.now() - datetime.timedelta(days=30)).timestamp())
 
     display_key = 'ussd.kenya.transaction_pin_authorization'
     ussd_menu = UssdMenu.find_by_name('transaction_pin_authorization')

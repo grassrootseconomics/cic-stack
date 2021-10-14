@@ -49,6 +49,7 @@ def test_is_valid_transaction_amount(activated_account, amount, expected_result,
 ])
 def test_has_sufficient_balance(activated_account,
                                 cache_balances,
+                                cache_default_token_data,
                                 expected_result,
                                 generic_ussd_session,
                                 init_database,

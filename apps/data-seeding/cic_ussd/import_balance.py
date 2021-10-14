@@ -16,7 +16,7 @@ from crypto_dev_signer.keystore.dict import DictKeystore
 from import_util import BalanceProcessor, get_celery_worker_status
 from import_task import ImportTask, MetadataTask
 
-default_config_dir = './config'
+default_config_dir = '/usr/local/etc/data-seeding/'
 logg = logging.getLogger()
 
 arg_parser = argparse.ArgumentParser(description='Daemon worker that handles data seeding tasks.')

@@ -60,8 +60,6 @@ services:
 
   contract-migration:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:${TAG:-latest}
-    profiles:
-      - migrations 
     build:
       context: apps/contract-migration
       dockerfile: docker/Dockerfile
@@ -74,6 +72,7 @@ services:
     environment:
       RPC_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
       ETH_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
+      RPC_HTTP_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
       DEV_USE_DOCKER_WAIT_SCRIPT: 1
       CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
@@ -92,17 +91,19 @@ services:
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis:6379}
       DEV_PIP_EXTRA_INDEX_URL: ${DEV_PIP_EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
       RUN_MASK: ${RUN_MASK:-0} # bit flags; 1: contract migrations 2: seed data
-      DEV_FAUCET_AMOUNT: ${DEV_FAUCET_AMOUNT:-0}
+      DEV_FAUCET_AMOUNT: ${DEV_FAUCET_AMOUNT:-50000000}
       DEV_ETH_GAS_PRICE: $DEV_ETH_GAS_PRICE
-      CIC_DEFAULT_TOKEN_SYMBOL: ${CIC_DEFAULT_TOKEN_SYMBOL:-SARAFU}
-      TOKEN_NAME: ${TOKEN_NAME:-Sarafu Token}
+      TOKEN_NAME: ${TOKEN_NAME:-Giftable Token}
+      TOKEN_SYMBOL: ${TOKEN_SYMBOL:-GFT}
+      TOKEN_TYPE: ${TOKEN_TYPE:-giftable_erc20_token}
       TOKEN_DECIMALS: $TOKEN_DECIMALS
       TOKEN_REDISTRIBUTION_PERIOD: $TOKEN_DEMURRAGE_REDISTRIBUTION_PERIOD
+      TASKS_TRANSFER_CALLBACKS: ${TASKS_TRANSFER_CALLBACKS:-"cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback"}
       TOKEN_SUPPLY_LIMIT: $TOKEN_SUPPLY_LIMIT
       TOKEN_DEMURRAGE_LEVEL: $TOKEN_DEMURRAGE_LEVEL
       TOKEN_SINK_ADDRESS: $TOKEN_SINK_ADDRESS
-      TOKEN_TYPE: $TOKEN_TYPE
       SIGNER_PROVIDER: ${SIGNER_SOCKET_PATH:-http://cic-eth-signer:8000}
+    restart: on-failure 
     command: ["./run_job.sh"]
         #command: ["./reset.sh"]
     depends_on:
@@ -113,10 +114,51 @@ services:
     volumes:
       - contract-config:/tmp/cic/config
 
+
+  data-seeding:
+    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/data-seeding:${TAG:-latest}
+    build:
+      context: apps/data-seeding
+      dockerfile: docker/Dockerfile
+      args:
+        pip_index_url: ${PIP_DEFAULT_INDEX_URL:-https://pypi.org/simple}
+        pip_extra_args: $PIP_EXTRA_ARGS
+    environment:
+      CIC_REGISTRY_ADDRESS: ${CIC_REGISTRY_ADDRESS:-0xea6225212005e86a4490018ded4bf37f3e772161}
+      OUT_DIR: out
+      NUMBER_OF_USERS: 10
+      CONFIG: /usr/local/etc/data-seeding
+      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
+      ETH_PROVIDER: ${CIC_HTTP_PROVIDER:-http://eth:8545}
+      TOKEN_SYMBOL: GFT 
+      KEYSTORE_PATH: keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c
+      USSD_HOST: cic-user-ussd-server 
+      USSD_PORT: 9000
+      INCLUDE_BALANCES: y
+      USSD_SSL: n
+      DATABASE_NAME: ${DATABASE_NAME:-cic_ussd}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala} # this is is set at initdb see: postgres/initdb/create_db.sql
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379}
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis:6379}
+      NOTIFY_DATABASE_NAME: cic_notify
+      REDIS_HOST: redis 
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      META_HOST: meta
+      META_PORT: 8000
+      META_URL: http://meta:8000
+      USSD_PROVIDER: http://cic-user-ussd-server:9000
+      CELERY_QUEUE: cic-import-ussd
+      EXCLUSIONS: ussd
+    command: bash import_ussd.sh
+    volumes:
+      - contract-config:/tmp/cic/config/:ro
+
   cic-cache-tracker:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-cache:${TAG:-latest}
-    profiles:
-      - cache 
     build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
@@ -124,8 +166,8 @@ services:
         EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS # supplied at contract-config after contract provisioning
-      ETH_PROVIDER: ${RPC_HTTP_PROVIDER:-http://eth:8545}
-      RPC_HTTP_PROVIDER: ${RPC_HTTP_PROVIDER:-http://eth:8545}
+      ETH_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
+      RPC_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala} # this is is set at initdb see: postgres/initdb/create_db.sql
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
@@ -139,9 +181,7 @@ services:
       CIC_CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
       CELERY_BROKER_URL: redis://redis:6379
       CELERY_RESULT_URL: redis://redis:6379
-    deploy: 
-      restart_policy:
-        condition: on-failure
+    restart: on-failure 
     depends_on:
       - redis
       - postgres
@@ -157,8 +197,6 @@ services:
 
   cic-cache-tasker:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-cache:${TAG:-latest}
-    profiles:
-      - cache 
     build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
@@ -180,9 +218,7 @@ services:
       CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
       CELERY_BROKER_URL: redis://redis:6379
       CELERY_RESULT_URL: redis://redis:6379
-    deploy: 
-      restart_policy:
-        condition: on-failure
+    restart: unless-stopped 
     depends_on:
       - redis
       - postgres
@@ -198,8 +234,6 @@ services:
 
   cic-cache-server:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-cache:${TAG:-latest}
-    profiles:
-      - cache 
     build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
@@ -214,13 +248,13 @@ services:
       DATABASE_DEBUG: 1
         #PGPASSWORD: $DATABASE_PASSWORD
       SERVER_PORT: 8000
+    restart: on-failure 
     ports:
       - ${HTTP_PORT_CIC_CACHE:-63313}:8000
     depends_on:
       - postgres
-    deploy:
-      restart_policy:
-        condition: on-failure
+      - cic-cache-tasker
+      - cic-cache-tracker
     command:
       - /bin/bash
       - -c
@@ -244,7 +278,7 @@ services:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
       ETH_GAS_PROVIDER_ADDRESS: $DEV_ETH_ACCOUNT_GAS_PROVIDER
       ETH_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
-      RPC_HTTP_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
+      RPC_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
@@ -262,20 +296,18 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
       CELERY_DEBUG: ${CELERY_DEBUG:-1}
-      SIGNER_SOCKET_PATH: ${SIGNER_SOCKET_PATH:-http://cic-eth-signer:8000}
-      SIGNER_PROVIDER: ${SIGNER_SOCKET_PATH:-http://cic-eth-signer:8000}
+      #SIGNER_SOCKET_PATH: ${SIGNER_SOCKET_PATH:-http://cic-eth-signer:8000}
+      SIGNER_PROVIDER: ${SIGNER_PROVIDER:-http://cic-eth-signer:8000}
       SIGNER_SECRET: ${SIGNER_SECRET:-deadbeef}
       ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER: ${DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER:-0xACB0BC74E1686D62dE7DC6414C999EA60C09F0eA}
       TASKS_TRACE_QUEUE_STATUS: ${TASKS_TRACE_QUEUE_STATUS:-1}
       CIC_DEFAULT_TOKEN_SYMBOL: ${CIC_DEFAULT_TOKEN_SYMBOL:-GFT}
+    restart: unless-stopped 
     depends_on:
       - eth
       - postgres
       - redis
       - cic-eth-signer
-    deploy:
-      restart_policy:
-        condition: on-failure
     volumes:
       - signer-data:/run/crypto-dev-signer
       - contract-config:/tmp/cic/config/:ro
@@ -300,7 +332,7 @@ services:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
       ETH_GAS_PROVIDER_ADDRESS: $DEV_ETH_ACCOUNT_GAS_PROVIDER
       ETH_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
-      RPC_HTTP_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
+      RPC_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
@@ -324,13 +356,11 @@ services:
       ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER: ${DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER:-0xACB0BC74E1686D62dE7DC6414C999EA60C09F0eA}
       TASKS_TRACE_QUEUE_STATUS: ${TASKS_TRACE_QUEUE_STATUS:-1}
       CIC_DEFAULT_TOKEN_SYMBOL: ${CIC_DEFAULT_TOKEN_SYMBOL:-GFT}
+    restart: on-failure 
     depends_on:
       - eth
       - postgres
       - redis
-    deploy:
-      restart_policy:
-        condition: on-failure
     volumes:
       - signer-data:/run/crypto-dev-signer
       - contract-config:/tmp/cic/config/:ro
@@ -352,8 +382,8 @@ services:
         args:
           EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
-      RPC_HTTP_PROVIDER: ${RPC_HTTP_PROVIDER:-http://eth:8545}
-      ETH_PROVIDER: ${RPC_HTTP_PROVIDER:-http://eth:8545}
+      RPC_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
+      ETH_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
@@ -365,17 +395,14 @@ services:
       CIC_CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
       CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
-        #BANCOR_DIR: $BANCOR_DIR
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
-      TASKS_TRANSFER_CALLBACKS: $TASKS_TRANSFER_CALLBACKS
+      TASKS_TRANSFER_CALLBACKS: ${TASKS_TRANSFER_CALLBACKS:-"cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback"}
+    restart: on-failure 
     depends_on:
       - eth
       - postgres
       - redis
-    deploy:
-      restart_policy:
-        condition: on-failure
     volumes:
       - contract-config:/tmp/cic/config/:ro
     command:
@@ -398,7 +425,7 @@ services:
           EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
       ETH_PROVIDER: http://eth:8545
-      RPC_HTTP_PROVIDER: http://eth:8545
+      RPC_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
@@ -415,13 +442,11 @@ services:
       TASKS_TRANSFER_CALLBACKS: $TASKS_TRANSFER_CALLBACKS
       DATABASE_DEBUG: ${DATABASE_DEBUG:-false}
         #DATABASE_DEBUG: 1
+    restart: on-failure 
     depends_on:
       - eth
       - postgres
       - redis
-    deploy:
-      restart_policy:
-        condition: on-failure
     volumes:
         - contract-config:/tmp/cic/config/:ro
     command:
@@ -444,7 +469,7 @@ services:
           EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
       ETH_PROVIDER: http://eth:8545
-      RPC_HTTP_PROVIDER: http://eth:8545
+      RPC_PROVIDER: http://eth:8545
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
@@ -463,13 +488,11 @@ services:
       CIC_TX_RETRY_DELAY: 60
       BATCH_SIZE: ${RETRIER_BATCH_SIZE:-50}
         #DATABASE_DEBUG: 1
+    restart: on-failure 
     depends_on:
       - eth
       - postgres
       - redis
-    deploy:
-      restart_policy:
-        condition: on-failure
     volumes:
         - contract-config:/tmp/cic/config/:ro
     command:
@@ -502,19 +525,15 @@ services:
       AFRICASTALKING_API_USERNAME: $AFRICASTALKING_API_USERNAME
       AFRICASTALKING_API_KEY: $AFRICASTALKING_API_KEY
       AFRICASTALKING_API_SENDER_ID: $AFRICASTALKING_API_SENDER_ID
+    restart: unless-stopped 
     depends_on:
       - postgres
       - redis
-    deploy:
-      restart_policy:
-        condition: on-failure
     command: "/root/start_tasker.sh -q cic-notify -vv"
 
 
   cic-meta-server:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-meta:${TAG:-latest}
-    profiles:
-      - custodial-meta
     hostname: meta
     build:
       context: apps/cic-meta
@@ -536,21 +555,17 @@ services:
       PGP_PUBLICKEY_ACTIVE_FILE: publickeys.asc
       PGP_PUBLICKEY_ENCRYPT_FILE: publickeys.asc
       SCHEMA_SQL_PATH: scripts/initdb/server.postgres.sql
+    restart: on-failure 
     ports:
       - ${HTTP_PORT_CIC_META:-63380}:8000
     depends_on:
       - postgres
-    deploy:
-      restart_policy:
-        condition: on-failure
     volumes:
       - ./apps/contract-migration/testdata/pgp/:/tmp/cic/pgp
     # command: "/root/start_server.sh -vv"
 
   cic-user-ussd-server:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-ussd:${TAG:-latest}
-    profiles:
-      - custodial-ussd
     build:
       context: apps/cic-ussd
       dockerfile: docker/Dockerfile
@@ -568,6 +583,7 @@ services:
       PGP_PASSPHRASE: merman
       SERVER_PORT: 9000
       CIC_META_URL: ${CIC_META_URL:-http://meta:8000}
+    restart: on-failure 
     ports:
       - ${HTTP_PORT_CIC_USER_USSD_SERVER:-63315}:9000
     depends_on:
@@ -575,15 +591,10 @@ services:
       - redis
     volumes:
       - ./apps/contract-migration/testdata/pgp/:/usr/src/secrets/
-    deploy:
-      restart_policy:
-        condition: on-failure
     command: "/root/start_cic_user_ussd_server.sh -vv"
 
   cic-user-server:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-ussd:${TAG:-latest}
-    profiles:
-      - custodial-ussd
     build:
       context: apps/cic-ussd
       dockerfile: docker/Dockerfile
@@ -597,19 +608,15 @@ services:
       DATABASE_ENGINE: postgresql
       DATABASE_DRIVER: psycopg2
       DATABASE_POOL_SIZE: 0
+    restart: on-failure 
     ports:
       - ${HTTP_PORT_CIC_USER_SERVER:-63415}:9500
     depends_on:
       - postgres
-    deploy:
-      restart_policy:
-        condition: on-failure
     command: "/root/start_cic_user_server.sh -vv"
 
   cic-user-tasker:
     image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-ussd:${TAG:-latest}
-    profiles:
-      - custodial-ussd
     build:
       context: apps/cic-ussd/
       dockerfile: docker/Dockerfile
@@ -627,12 +634,10 @@ services:
       CELERY_RESULT_URL: ${CELERY_BROKER_URL:-redis://redis}
       PGP_PASSPHRASE: merman
       CIC_META_URL: ${CIC_META_URL:-http://meta:8000}
+    restart: unless-stopped 
     depends_on:
       - postgres
       - redis
     volumes:
       - ./apps/contract-migration/testdata/pgp/:/usr/src/secrets/
-    deploy:
-      restart_policy:
-        condition: on-failure
     command: "/root/start_cic_user_tasker.sh -q cic-ussd -vv"

@@ -36,19 +36,19 @@ def test_aux_transaction_data(preferences, set_locale_files, transactions_list):
     check_aux_data('helpers.sent', 'helpers.to', preferred_language, sender_tx_aux_data)
 
 
-@pytest.mark.parametrize("wei, expected_result", [
+@pytest.mark.parametrize("value, expected_result", [
     (50000000, Decimal('50.00')),
     (100000, Decimal('0.10'))
 ])
-def test_from_wei(wei, expected_result):
-    assert from_wei(wei) == expected_result
+def test_from_wei(cache_default_token_data, expected_result, value):
+    assert from_wei(value) == expected_result
 
 
 @pytest.mark.parametrize("value, expected_result", [
     (50, 50000000),
     (0.10, 100000)
 ])
-def test_to_wei(value, expected_result):
+def test_to_wei(cache_default_token_data, expected_result, value):
     assert to_wei(value) == expected_result
 
 
@@ -96,6 +96,7 @@ def test_validate_transaction_account(activated_account, init_database, transact
 @pytest.mark.parametrize("amount", [50, 0.10])
 def test_outgoing_transaction_processor(activated_account,
                                         amount,
+                                        cache_default_token_data,
                                         celery_session_worker,
                                         load_config,
                                         load_chain_spec,

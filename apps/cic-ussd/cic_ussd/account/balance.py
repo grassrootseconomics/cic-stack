@@ -1,10 +1,12 @@
 # standard imports
+
 import json
 import logging
 from typing import Optional
 
 # third-party imports
 from cic_eth.api import Api
+from cic_eth_aux.erc20_demurrage_token.api import Api as DemurrageApi
 
 # local imports
 from cic_ussd.account.transaction import from_wei
@@ -73,6 +75,24 @@ def calculate_available_balance(balances: dict) -> float:
     return from_wei(value=available_balance)
 
 
+def get_adjusted_balance(balance: int, chain_str: str, timestamp: int, token_symbol: str):
+    """
+    :param balance:
+    :type balance:
+    :param chain_str:
+    :type chain_str:
+    :param timestamp:
+    :type timestamp:
+    :param token_symbol:
+    :type token_symbol:
+    :return:
+    :rtype:
+    """
+    logg.debug(f'retrieving adjusted balance on chain: {chain_str}')
+    demurrage_api = DemurrageApi(chain_str=chain_str)
+    return demurrage_api.get_adjusted_balance(token_symbol, balance, timestamp).result
+
+
 def get_cached_available_balance(blockchain_address: str) -> float:
     """This function attempts to retrieve balance data from the redis cache.
     :param blockchain_address: Ethereum address of an account.
@@ -81,10 +101,21 @@ def get_cached_available_balance(blockchain_address: str) -> float:
     :return: Operational balance of an account.
     :rtype: float
     """
-    identifier = bytes.fromhex(blockchain_address[2:])
+    identifier = bytes.fromhex(blockchain_address)
     key = cache_data_key(identifier, salt=':cic.balances')
     cached_balances = get_cached_data(key=key)
     if cached_balances:
         return calculate_available_balance(json.loads(cached_balances))
     else:
         raise CachedDataNotFoundError(f'No cached available balance for address: {blockchain_address}')
+
+
+def get_cached_adjusted_balance(identifier: bytes):
+    """
+    :param identifier:
+    :type identifier:
+    :return:
+    :rtype:
+    """
+    key = cache_data_key(identifier, ':cic.adjusted_balance')
+    return get_cached_data(key)

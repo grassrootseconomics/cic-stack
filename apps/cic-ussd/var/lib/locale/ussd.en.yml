@@ -141,12 +141,22 @@ en:
         0. Back
       retry: |-
         %{retry_pin_entry}
-    account_balances: |-
-      CON Your balances are as follows:
-        balance: %{available_balance} %{token_symbol}
-        fees: %{tax} %{token_symbol}
-        rewards: %{bonus} %{token_symbol}
-      0. Back
+    account_balances:
+      available_balance: |-
+        CON Your balances are as follows:
+          balance: %{available_balance} %{token_symbol}
+        0. Back
+      with_fees: |-
+        CON Your balances are as follows:
+          balances: %{available_balance} %{token_symbol}
+          fees: %{tax} %{token_symbol}
+        0. Back
+      with_rewards: |-
+        CON Your balances are as follows:
+          balance: %{available_balance} %{token_symbol}
+          fees: %{tax} %{token_symbol}
+          rewards: %{bonus} %{token_symbol}
+        0. Back
     first_transaction_set: |-
       CON %{first_transaction_set}
       1. Next

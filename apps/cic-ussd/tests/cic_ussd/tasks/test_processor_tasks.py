@@ -30,10 +30,11 @@ def test_generate_statement(activated_account,
 
 
 def test_cache_statement(activated_account,
+                         cache_default_token_data,
                          cache_person_metadata,
+                         cache_preferences,
                          celery_session_worker,
                          init_database,
-                         preferences,
                          transaction_result):
     recipient_transaction, sender_transaction = transaction_actors(transaction_result)
     identifier = bytes.fromhex(strip_0x(activated_account.blockchain_address))
@@ -41,7 +42,7 @@ def test_cache_statement(activated_account,
     cached_statement = get_cached_data(key)
     assert cached_statement is None
     s_parse_transaction = celery.signature(
-        'cic_ussd.tasks.processor.parse_transaction', [preferences, sender_transaction])
+        'cic_ussd.tasks.processor.parse_transaction', [sender_transaction])
     result = s_parse_transaction.apply_async().get()
     s_cache_statement = celery.signature(
         'cic_ussd.tasks.processor.cache_statement', [result, activated_account.blockchain_address]
@@ -61,15 +62,15 @@ def test_cache_statement(activated_account,
 
 def test_parse_transaction(activated_account,
                            cache_person_metadata,
+                           cache_preferences,
                            celery_session_worker,
                            init_database,
-                           preferences,
                            transaction_result):
     recipient_transaction, sender_transaction = transaction_actors(transaction_result)
     assert sender_transaction.get('metadata_id') is None
     assert sender_transaction.get('phone_number') is None
     s_parse_transaction = celery.signature(
-        'cic_ussd.tasks.processor.parse_transaction', [preferences, sender_transaction])
+        'cic_ussd.tasks.processor.parse_transaction', [sender_transaction])
     result = s_parse_transaction.apply_async().get()
     assert result.get('metadata_id') == activated_account.standard_metadata_id()
     assert result.get('phone_number') == activated_account.phone_number
