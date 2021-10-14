@@ -524,8 +524,11 @@ def verify_token_info(self, tokens, chain_spec_dict, success_callback, error_cal
                     ],
                 queue=queue,
                 )
-        s.link(success_callback)
-        s.on_error(error_callback)
+
+        if success_callback != None:
+            s.link(success_callback)
+        if error_callback != None:
+            s.on_error(error_callback)
         s.apply_async()
 
     return tokens
