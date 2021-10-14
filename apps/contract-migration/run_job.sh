@@ -47,7 +47,7 @@ for ((i=0; i<$LAST_BIT_POS; i++)); do
 			exit 1;
 		fi
 		>&2 echo -e "\033[;32mSUCCEEDED $s\033[;39m"
-		echo -e "\033[;96mConfiguration state after $runlevel execution\033[;39m"
+		>&2 echo -e "\033[;96mConfiguration state after $runlevel execution\033[;39m"
 		confini-dump --schema-dir ./config
 	fi
 	bit=$((bit*2))
