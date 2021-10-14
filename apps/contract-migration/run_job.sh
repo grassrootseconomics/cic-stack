@@ -7,7 +7,7 @@ DEV_DEBUG_FLAG=""
 DEV_DEBUG_LEVEL=${DEV_DEBUG_LEVEL=0}
 if [ $DEV_DEBUG_LEVEL -eq 1 ]; then
 	DEV_DEBUG_FLAG="-v"
-elif [ $DEV_DEBUG_LEVEL -gt 1 ]; then
+elif [ $DEV_DEBUG_LEVEL -gt 1 ]; then
 	DEV_DEBUG_FLAG="-vv"
 fi
 
@@ -17,8 +17,8 @@ unset CONFINI_DIR
 set +a
 
 LAST_BIT_POS=4
-files=(deploy_contract_root deploy_contract_instance deploy_token)
-description=("global contracts" "instance specific contracts" "token deployment")
+files=(deploy_contract_root deploy_contract_instance deploy_token init_custodial)
+description=("global contracts" "instance specific contracts" "token deployment" "initialize custodial engine")
 
 >&2 echo -e "\033[;96mRUNNING configurations\033[;39m"
 source ./config.sh

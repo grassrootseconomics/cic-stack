@@ -15,13 +15,12 @@ if [ ! -z $DEV_ETH_GAS_PRICE ]; then
 	fee_price_arg="--fee-price $DEV_ETH_GAS_PRICE"
 fi
 
+have_default_token=1
+token_feedback_display_string='token'
+
 must_address "$DEV_ADDRESS_DECLARATOR" "address declarator"
 must_address "$CIC_REGISTRY_ADDRESS" "registry"
 must_eth_rpc
-
-
-have_default_token=1
-token_feedback_display_string='token'
 
 
 function _deploy_token_defaults {
@@ -69,7 +68,7 @@ function deploy_minter_faucet() {
 	accounts_index_address=`eth-contract-registry-list -u -i $CHAIN_SPEC -p $RPC_PROVIDER -e $CIC_REGISTRY_ADDRESS $DEV_DEBUG_FLAG --raw AccountRegistry`
 	faucet_address=`sarafu-faucet-deploy $fee_price_arg -s -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER -w $DEV_DEBUG_FLAG --account-index-address $accounts_index_address $1`
 
-	>&2 echo -e "\033[;96mSet token faucet amount\033[;39m"
+	>&2 echo -e "\033[;96mSet token faucet amount to $FAUCET_AMOUNT\033[;39m"
 	r=`sarafu-faucet-set $fee_price_arg -s -w -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER -e $faucet_address $DEV_DEBUG_FLAG -s --fee-limit 100000 $FAUCET_AMOUNT`
 	add_pending_tx_hash $r
 
