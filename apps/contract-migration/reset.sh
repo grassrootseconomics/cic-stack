@@ -19,8 +19,6 @@ if [ -z "${RPC_PROVIDER}" ]; then
 	exit 1
 fi
 
-unset CONFINI_DIR
-
 if [ ! -z "$DEV_USE_DOCKER_WAIT_SCRIPT" ]; then
 	IFS=: read -a p <<< "$RPC_PROVIDER"
 	read -i "/" rpc_provider_port <<< "${p[2]}"

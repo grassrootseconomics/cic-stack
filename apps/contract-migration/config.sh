@@ -8,11 +8,16 @@ else
 	mkdir -p $DEV_DATA_DIR
 fi
 
+# By default configuration values generated from previous runs will be used in subsequent invocations
+# Setting the config reset 
 if [ -z $DEV_CONFIG_RESET ]; then
-	if [ -f ${DEV_DATA_DIR}/env_reset ]; then
-		>&2 echo "importing existing configuration values from ${DEV_DATA_DIR}/env_reset"
+	if [ -f $DEV_DATA_DIR/env_reset ]; then
+		>&2 echo -e "\033[;96mimporting existing configuration values from ${DEV_DATA_DIR}/env_reset\033[;39m"
 		. ${DEV_DATA_DIR}/env_reset
 	fi
+else
+	>&2 echo -e "\033[;33mGenerating scratch configuration\033[;39m"
+	confini-dump --schema-dir ./config --prefix export > ${DEV_DATA_DIR}/env_reset
 fi
 
 # Handle wallet
@@ -31,16 +36,11 @@ export CIC_DEFAULT_TOKEN_SYMBOL=$TOKEN_SYMBOL
 export TOKEN_SINK_ADDRESS=${TOKEN_SINK_ADDRESS:-$DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER}
 
 
-# Legacy variable defaults
-
-
 # Migration variable processing
 confini-dump --schema-dir ./config --prefix export > ${DEV_DATA_DIR}/env_reset
 echo "export CIC_TRUST_ADDRESS=$CIC_TRUST_ADDRESS
 export CIC_DEFAULT_TOKEN_SYMBOL=$CIC_DEFAULT_TOKEN_SYMBOL
 export WALLET_KEY_FILE=$WALLET_KEY_FILE
 " >> ${DEV_DATA_DIR}/env_reset
-
-cat ${DEV_DATA_DIR}/env_reset
 
 set +a
