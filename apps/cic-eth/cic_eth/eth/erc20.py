@@ -491,7 +491,8 @@ def token_info(self, tokens, chain_spec_dict, proofs=[]):
 
         token_symbol_proof_hex = to_identifier(token_chain_object.symbol)
         token_proofs = [token_symbol_proof_hex]
-        token_proofs += proofs[i]
+        if len(proofs) > 0:
+            token_proofs += proofs[i]
 
         tokens[i] = {
             'decimals': token_chain_object.decimals,

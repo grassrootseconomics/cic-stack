@@ -110,7 +110,7 @@ def test_tokens_noproof(
         custodial_roles,
         foo_token_declaration,
         bar_token_declaration,
-        celery_session_worker,
+        celery_worker,
         ):
 
     api = Api(str(default_chain_spec), queue=None, callback_param='foo')     
@@ -120,10 +120,10 @@ def test_tokens_noproof(
     assert len(r) == 1
     assert r[0]['address'] == strip_0x(foo_token)
 
-    t = api.tokens(['FOO'], proof='')
+    t = api.tokens(['BAR'], proof='')
     r = t.get()
     assert len(r) == 1
-    assert r[0]['address'] == strip_0x(foo_token)
+    assert r[0]['address'] == strip_0x(bar_token)
 
     t = api.tokens(['FOO'], proof=None)
     r = t.get()

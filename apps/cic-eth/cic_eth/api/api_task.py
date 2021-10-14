@@ -17,7 +17,8 @@ from cic_eth.enum import LockEnum
 
 app = celery.current_app
 
-logg = logging.getLogger(__name__)
+#logg = logging.getLogger(__name__)
+logg = logging.getLogger()
 
 
 class Api(ApiBase):
@@ -119,6 +120,7 @@ class Api(ApiBase):
             logg.debug('looking up tokens without external proof check: {}'.format(','.join(token_symbols)))
             proof = ''
 
+        logg.debug('proof is {}'.format(proof))
         l = len(token_symbols)
         if len(proof) == 0:
             l = 0 
