@@ -85,6 +85,7 @@ function deploy_minter_faucet() {
 }
 
 
+TOKEN_TYPE=${TOKEN_TYPE:-giftable_erc20_token}
 deploy_token_${TOKEN_TYPE}
 
 if [ -z "$have_default_token" ]; then
