@@ -53,7 +53,7 @@ RUN chmod 755 *.sh
 # # ini files in config directory defines the configurable parameters for the application
 # # they can all be overridden by environment variables
 # # to generate a list of environment variables from configuration, use: confini-dump -z <dir> (executable provided by confini package)
-COPY config/ /usr/local/etc/cic-eth/
+#COPY config/ /usr/local/etc/cic-eth/
 COPY cic_eth/db/migrations/ /usr/local/share/cic-eth/alembic/
 COPY crypto_dev_signer_config/ /usr/local/etc/crypto-dev-signer/
 

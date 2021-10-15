@@ -71,11 +71,8 @@ services:
     # image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:latest
     environment:
       RPC_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
-      ETH_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
-      RPC_HTTP_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
       DEV_USE_DOCKER_WAIT_SCRIPT: 1
       CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
-      CIC_CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
       DEV_DATA_DIR: ${DEV_DATA_DIR:-/tmp/cic/config}
       DEV_CONFIG_RESET: $DEV_CONFIG_RESET
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
@@ -124,12 +121,11 @@ services:
         pip_index_url: ${PIP_DEFAULT_INDEX_URL:-https://pypi.org/simple}
         pip_extra_args: $PIP_EXTRA_ARGS
     environment:
-      CIC_REGISTRY_ADDRESS: ${CIC_REGISTRY_ADDRESS:-0xea6225212005e86a4490018ded4bf37f3e772161}
+      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
       OUT_DIR: out
       NUMBER_OF_USERS: 10
       CONFIG: /usr/local/etc/data-seeding
       CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
-      ETH_PROVIDER: ${CIC_HTTP_PROVIDER:-http://eth:8545}
       TOKEN_SYMBOL: GFT 
       KEYSTORE_PATH: keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c
       USSD_HOST: cic-user-ussd-server 
@@ -166,7 +162,6 @@ services:
         EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS # supplied at contract-config after contract provisioning
-      ETH_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
       RPC_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala} # this is is set at initdb see: postgres/initdb/create_db.sql
@@ -190,7 +185,7 @@ services:
       - /bin/bash
       - -c
       - |
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
+        #if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
         ./start_tracker.sh -c /usr/local/etc/cic-cache -vv
     volumes:
       - contract-config:/tmp/cic/config/:ro
@@ -277,8 +272,7 @@ services:
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
       ETH_GAS_PROVIDER_ADDRESS: $DEV_ETH_ACCOUNT_GAS_PROVIDER
-      ETH_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
-      RPC_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
+      RPC_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
@@ -291,8 +285,7 @@ services:
       REDIS_PORT: 6379
       REDIS_HOST: redis
       PGPASSWORD: ${DATABASE_PASSWORD:-tralala}
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
-      CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
       CELERY_DEBUG: ${CELERY_DEBUG:-1}
@@ -317,7 +310,9 @@ services:
       - /bin/bash
       - -c
       - |
+        set -a
         if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
+        set +a
         ./start_tasker.sh --aux-all -q cic-eth  -vv
     
   cic-eth-signer:
