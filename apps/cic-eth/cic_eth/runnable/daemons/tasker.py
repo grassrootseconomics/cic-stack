@@ -187,6 +187,17 @@ elif len(args.aux) > 0:
         logg.info('aux module {} found in path {}'.format(v, aux_dir))
         aux.append(v)
 
+default_token_symbol = config.get('CIC_DEFAULT_TOKEN_SYMBOL')
+defaullt_token_address = None
+if default_token_symbol:
+    default_token_address = registry.by_name(default_token_symbol)
+else:
+    default_token_address = registry.by_name('DefaultToken')
+    c = ERC20Token(chain_spec, conn, default_token_address)
+    default_token_symbol = c.symbol
+    logg.info('found default token {} address {}'.format(default_token_symbol, default_token_address))
+    config.add(default_token_symbol, 'CIC_DEFAULT_TOKEN_SYMBOL', exists_ok=True)
+
 for v in aux:
     mname = 'cic_eth_aux.' + v
     mod = importlib.import_module(mname)
@@ -204,12 +215,8 @@ def main():
     argv.append('-n')
     argv.append(config.get('CELERY_QUEUE'))
 
-    default_token_address = registry.by_name('DefaultToken')
-    c = ERC20Token(chain_spec, conn, default_token_address)
-    logg.info('found default token {} address {}'.format(c.symbol, default_token_address))
-
-    BaseTask.default_token_symbol = c.symbol
-    BaseTask.default_token_address = registry.by_name(BaseTask.default_token_symbol)
+    BaseTask.default_token_symbol = default_token_symbol
+    BaseTask.default_token_address = default_token_address
     default_token = ERC20Token(chain_spec, conn, add_0x(BaseTask.default_token_address))
     default_token.load(conn)
     BaseTask.default_token_decimals = default_token.decimals
