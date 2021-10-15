@@ -1,0 +1,85 @@
+version: "3"
+
+volumes:
+  postgres-db: {}
+  signer-data: {}
+  bloxberg-data: {}
+  contract-config: {} 
+
+
+services:
+  evm:
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/bloxberg-node:${TAG:-latest}
+    build:
+      context: apps/bloxbergValidatorSetup
+    restart: unless-stopped
+    ports:
+      - ${DEV_ETH_PORT_HTTP:-63545}:8545
+      - ${DEV_ETH_PORT_WS:-63546}:8546
+      - 30303
+    volumes:
+      - ./apps/bloxbergValidatorSetup/keys:/root/keys # stores the signing key locally
+      - bloxberg-data:/root/.local/share/io.parity.ethereum/
+
+  postgres:
+    image: postgres:12.5-alpine
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust # for postgres user access w/o password. Obvioulsy not safe but allows easy elevated debugging.  
+      # PGDATA: /tmp/cic/postgres
+    ports:
+      - ${DEV_POSTGRES_PORT:-63432}:5432
+    command: [ "-c", "max_connections=200" ]
+    volumes:
+      - ./scripts/initdb/create_db.sql:/docker-entrypoint-initdb.d/1-create_all_db.sql 
+      - postgres-db:/var/lib/postgresql/data
+
+  redis:
+    image: ${DEV_DOCKER_REGISTRY:-docker.io}/redis:6.0.9-alpine
+    ports:
+      - ${DEV_REDIS_PORT:-63379}:6379
+    command: "--loglevel verbose"
+
+    
+  bootstrap:
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/contract-migration:${TAG:-latest}
+    build:
+      context: apps/contract-migration
+      dockerfile: docker/Dockerfile
+      args:
+          PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+          EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
+          EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+    environment:
+      DEV_DATA_DIR: ${DEV_DATA_DIR:-/tmp/cic/config}
+      DEV_CONFIG_RESET: $DEV_CONFIG_RESET
+      RPC_PROVIDER: $RPC_PROVIDER
+      CHAIN_SPEC: $CHAIN_SPEC
+      DEV_USE_DOCKER_WAIT_SCRIPT: 1
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DEV_DATABASE_NAME_CIC_ETH:-cic_eth}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgresql}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_USER: ${DATABASE_USER:-postgres}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_DB: ${REDIS_DB:-0}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379}
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis:6379}
+      RUN_MASK: ${RUN_MASK:-0}
+      TOKEN_NAME: $TOKEN_NAME
+      TOKEN_SYMBOL: $TOKEN_SYMBOL
+      TOKEN_TYPE: $TOKEN_TYPE
+      TOKEN_DECIMALS: $TOKEN_DECIMALS
+      TOKEN_REDISTRIBUTION_PERIOD: $TOKEN_REDISTRIBUTION_PERIOD
+      TOKEN_SUPPLY_LIMIT: $TOKEN_SUPPLY_LIMIT
+      TOKEN_DEMURRAGE_LEVEL: $TOKEN_DEMURRAGE_LEVEL
+      TOKEN_SINK_ADDRESS: $TOKEN_SINK_ADDRESS
+    command: ["./run_job.sh"]
+    depends_on:
+      - evm
+        #- postgres
+        #- redis
+        #- cic-eth-tasker
+    volumes:
+      - contract-config:/tmp/cic/config
