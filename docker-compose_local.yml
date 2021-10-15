@@ -112,7 +112,7 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
       CELERY_DEBUG: ${CELERY_DEBUG:-1}
-      SIGNER_PROVIDER: ${SIGNER_PROVIDER:-http://cic-eth-signer:8000}
+      SIGNER_PROVIDER: ${SIGNER_PROVIDER:-http://cic-signer:8000}
       SIGNER_SECRET: ${SIGNER_SECRET:-deadbeef}
       TASKS_TRACE_QUEUE_STATUS: ${TASKS_TRACE_QUEUE_STATUS:-1}
     restart: unless-stopped 
@@ -120,7 +120,7 @@ services:
       - evm
       - postgres
       - redis
-        #   - cic-eth-signer
+      - cic-signer
     volumes:
       - signer-data:/run/crypto-dev-signer
       - contract-config:/tmp/cic/config/:ro
@@ -135,3 +135,34 @@ services:
         set +a
         ./start_tasker.sh --aux-all -q cic-eth  -vv
 
+
+  cic-signer:
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/funga-eth:${TAG:-latest}
+    build: 
+      context: apps/cic-signer
+      dockerfile: Dockerfile
+      target: dev
+      args:
+          DOCKER_REGISTRY: $DEV_DOCKER_REGISTRY
+          PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+          EXTRA_PIP_INDEX_URL: $EXTRA_PIP_INDEX_URL
+          EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+    environment:
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+        #DATABASE_NAME: ${DATABASE_NAME:-cic_signer}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_eth}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
+      SIGNER_SOCKET_PATH: ${SIGNER_SOCKET_PATH:-http://0.0.0.0:8000}
+      SIGNER_SECRET: ${SIGNER_SECRET:-deadbeef}
+    depends_on:
+      - postgres
+    volumes:
+      - signer-data:/run/crypto-dev-signer
+      - contract-config:/tmp/cic/config/:ro
+    command: ["python", "/usr/local/bin/funga-ethd", "-vv"]

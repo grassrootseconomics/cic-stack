@@ -27,7 +27,7 @@ RUN    pip install --index-url $PIP_INDEX_URL \
     --force-reinstall \
     --no-cache \
     --extra-index-url $EXTRA_PIP_INDEX_URL $EXTRA_PIP_ARGS \
-        cic-eth-aux-erc20-demurrage-token~=0.0.2a6
+        cic-eth-aux-erc20-demurrage-token~=0.0.2a7
 
 
 COPY *requirements.txt ./
