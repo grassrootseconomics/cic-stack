@@ -4,18 +4,21 @@ import tempfile
 import logging
 import shutil
 
-# local impors
+# local imports
 from cic_eth.task import BaseTask
 
 #logg = logging.getLogger(__name__)
 logg = logging.getLogger()
-
 
 @pytest.fixture(scope='function')
 def init_celery_tasks(
     contract_roles, 
         ):
     BaseTask.call_address = contract_roles['DEFAULT']
+    BaseTask.trusted_addresses = [
+            contract_roles['TRUSTED_DECLARATOR'],
+            contract_roles['CONTRACT_DEPLOYER'],
+            ]
 
 
 # celery fixtures
@@ -38,6 +41,7 @@ def celery_includes():
         'cic_eth.callbacks.noop',
         'cic_eth.callbacks.http',
         'cic_eth.pytest.mock.filter',
+        'cic_eth.pytest.mock.callback',
     ]
 
 

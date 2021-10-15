@@ -19,6 +19,7 @@ from hexathon import (
 from chainqueue.error import NotLocalTxError
 from eth_erc20 import ERC20
 from chainqueue.sql.tx import cache_tx_dict
+from okota.token_index import to_identifier
 
 # local imports
 from cic_eth.db.models.base import SessionBase
@@ -39,9 +40,11 @@ from cic_eth.task import (
         CriticalSQLAlchemyTask,
         CriticalWeb3Task,
         CriticalSQLAlchemyAndSignerTask,
+        BaseTask,
     )
 from cic_eth.eth.nonce import CustodialTaskNonceOracle
 from cic_eth.encode import tx_normalize
+from cic_eth.eth.trust import verify_proofs
 
 celery_app = celery.current_app
 logg = logging.getLogger()
@@ -473,3 +476,69 @@ def cache_approve_data(
     session.close()
     return (tx_hash_hex, cache_id)
 
+
+@celery_app.task(bind=True, base=BaseTask)
+def token_info(self, tokens, chain_spec_dict, proofs=[]):
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
+    rpc = RPCConnection.connect(chain_spec, 'default')
+
+    i = 0
+
+    for token in tokens:
+        result_data = []
+        token_chain_object = ERC20Token(chain_spec, rpc, add_0x(token['address']))
+        token_chain_object.load(rpc)
+
+        token_symbol_proof_hex = to_identifier(token_chain_object.symbol)
+        token_proofs = [token_symbol_proof_hex]
+        if len(proofs) > 0:
+            token_proofs += proofs[i]
+
+        tokens[i] = {
+            'decimals': token_chain_object.decimals,
+            'name': token_chain_object.name,
+            'symbol': token_chain_object.symbol,
+            'address': tx_normalize.executable_address(token_chain_object.address),
+            'proofs': token_proofs,
+            'converters': tokens[i]['converters'],
+                }   
+        i += 1
+
+    return tokens
+
+
+@celery_app.task(bind=True, base=BaseTask)
+def verify_token_info(self, tokens, chain_spec_dict, success_callback, error_callback):
+    queue = self.request.delivery_info.get('routing_key')
+
+    for token in tokens:
+        s = celery.signature(
+                'cic_eth.eth.trust.verify_proofs',
+                [
+                    token,
+                    token['address'],
+                    token['proofs'],
+                    chain_spec_dict,
+                    success_callback,
+                    error_callback,
+                    ],
+                queue=queue,
+                )
+
+        if success_callback != None:
+            s.link(success_callback)
+        if error_callback != None:
+            s.on_error(error_callback)
+        s.apply_async()
+
+    return tokens
+
+
+@celery_app.task(bind=True, base=BaseTask)
+def default_token(self):
+    return {
+        'symbol': self.default_token_symbol,
+        'address': self.default_token_address,
+        'name': self.default_token_name,
+        'decimals': self.default_token_decimals,
+        }

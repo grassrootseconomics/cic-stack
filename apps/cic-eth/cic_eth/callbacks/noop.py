@@ -1,7 +1,10 @@
+import logging
+
 import celery
 
 celery_app = celery.current_app
-logg = celery_app.log.get_default_logger()
+#logg = celery_app.log.get_default_logger()
+logg = logging.getLogger()
 
 
 @celery_app.task(bind=True)
