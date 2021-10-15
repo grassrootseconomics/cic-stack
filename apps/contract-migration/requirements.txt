@@ -3,9 +3,8 @@ chainlib-eth>=0.0.9rc4,<0.0.10
 chainlib==0.0.9rc1,<0.0.10
 eth-erc20>=0.1.2a3,<0.2.0
 erc20-demurrage-token>=0.0.5a2,<0.1.0
-#eth-accounts-index>=0.1.2a2,<0.2.0
 eth-address-index>=0.2.4a1,<0.3.0
-cic-eth-registry>=0.6.1a2,<0.7.0
+cic-eth-registry>=0.6.1a6,<0.7.0
 erc20-transfer-authorization>=0.3.5a2,<0.4.0
 erc20-faucet>=0.3.2a2,<0.4.0
 sarafu-faucet>=0.0.7a2,<0.1.0

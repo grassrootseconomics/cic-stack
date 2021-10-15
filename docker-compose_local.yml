@@ -46,21 +46,16 @@ services:
       context: apps/contract-migration
       dockerfile: docker/Dockerfile
       args:
+          DOCKER_REGISTRY: $DEV_DOCKER_REGISTRY
           PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
-          EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
+          EXTRA_PIP_INDEX_URL: $EXTRA_PIP_INDEX_URL
           EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     environment:
       DEV_DATA_DIR: ${DEV_DATA_DIR:-/tmp/cic/config}
       DEV_CONFIG_RESET: $DEV_CONFIG_RESET
-      RPC_PROVIDER: $RPC_PROVIDER
-      CHAIN_SPEC: $CHAIN_SPEC
+      RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
+      CHAIN_SPEC: ${CHAIN_SPEC:-"evm:byzantium:8996:bloxberg"}
       DEV_USE_DOCKER_WAIT_SCRIPT: 1
-      DATABASE_HOST: ${DATABASE_HOST:-postgres}
-      DATABASE_PORT: ${DATABASE_PORT:-5432}
-      DATABASE_NAME: ${DEV_DATABASE_NAME_CIC_ETH:-cic_eth}
-      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgresql}
-      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
-      DATABASE_USER: ${DATABASE_USER:-postgres}
       REDIS_HOST: ${REDIS_HOST:-redis}
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_DB: ${REDIS_DB:-0}
@@ -78,8 +73,65 @@ services:
     command: ["./run_job.sh"]
     depends_on:
       - evm
-        #- postgres
-        #- redis
+      - postgres
+      - redis
         #- cic-eth-tasker
     volumes:
       - contract-config:/tmp/cic/config
+
+
+  cic-eth-tasker:
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:${TAG:-latest}
+    build: 
+      context: apps/cic-eth
+      dockerfile: docker/Dockerfile
+      target: dev
+      args:
+          DOCKER_REGISTRY: $DEV_DOCKER_REGISTRY
+          PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+          EXTRA_PIP_INDEX_URL: $EXTRA_PIP_INDEX_URL
+          EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+    environment:
+      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
+      DEV_DATA_DIR: ${DEV_DATA_DIR:-/tmp/cic/config}
+      DEV_CONFIG_RESET: $DEV_CONFIG_RESET
+      RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
+      CHAIN_SPEC: ${CHAIN_SPEC:-"evm:byzantium:8996:bloxberg"}
+      DEV_USE_DOCKER_WAIT_SCRIPT: 1
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_eth}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
+      REDIS_PORT: 6379
+      REDIS_HOST: redis
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
+      CELERY_DEBUG: ${CELERY_DEBUG:-1}
+      SIGNER_PROVIDER: ${SIGNER_PROVIDER:-http://cic-eth-signer:8000}
+      SIGNER_SECRET: ${SIGNER_SECRET:-deadbeef}
+      TASKS_TRACE_QUEUE_STATUS: ${TASKS_TRACE_QUEUE_STATUS:-1}
+    restart: unless-stopped 
+    depends_on:
+      - evm
+      - postgres
+      - redis
+        #   - cic-eth-signer
+    volumes:
+      - signer-data:/run/crypto-dev-signer
+      - contract-config:/tmp/cic/config/:ro
+        #command: ["/usr/local/bin/cic-eth-taskerd"]
+        #command: ["sleep", "3600"]
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -a
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
+        set +a
+        ./start_tasker.sh --aux-all -q cic-eth  -vv
+
