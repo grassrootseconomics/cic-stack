@@ -38,7 +38,7 @@ export TOKEN_SINK_ADDRESS=${TOKEN_SINK_ADDRESS:-$DEV_ETH_ACCOUNT_CONTRACT_DEPLOY
 
 
 # Migration variable processing
-confini-dump --schema-dir ./config --prefix export > ${DEV_DATA_DIR}/env_reset
+confini-dump --schema-dir ./config > ${DEV_DATA_DIR}/env_reset
 
 #echo "export CIC_TRUST_ADDRESS=$CIC_TRUST_ADDRESS
 #export CIC_DEFAULT_TOKEN_SYMBOL=$CIC_DEFAULT_TOKEN_SYMBOL

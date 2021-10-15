@@ -21,7 +21,7 @@ echo "DEV_ADDRESS_DECLARATOR=eth-address-declarator-deploy -s -u -y $WALLET_KEY_
 DEV_ADDRESS_DECLARATOR=`eth-address-declarator-deploy -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER -w $DEV_DEBUG_FLAG $DEV_DECLARATOR_DESCRIPTION`
 
 echo -e "\033[;96mWriting env_reset file\033[;39m"
-confini-dump --schema-dir ./config --prefix export > ${DEV_DATA_DIR}/env_reset
+confini-dump --schema-dir ./config > ${DEV_DATA_DIR}/env_reset
 
 set +a
 set +e

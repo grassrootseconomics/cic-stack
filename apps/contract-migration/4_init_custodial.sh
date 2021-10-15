@@ -55,7 +55,7 @@ cic-eth-ctl -vv -i $CHAIN_SPEC unlock QUEUE
 
 
 >&2 echo -e "\033[;96mWriting env_reset file\033[;39m"
-confini-dump --schema-dir ./config --prefix export > ${DEV_DATA_DIR}/env_reset
+confini-dump --schema-dir ./config > ${DEV_DATA_DIR}/env_reset
 
 set +e
 set +a
