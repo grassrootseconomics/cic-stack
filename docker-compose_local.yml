@@ -55,7 +55,6 @@ services:
       DEV_CONFIG_RESET: $DEV_CONFIG_RESET
       RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
       CHAIN_SPEC: ${CHAIN_SPEC:-"evm:byzantium:8996:bloxberg"}
-      DEV_USE_DOCKER_WAIT_SCRIPT: 1
       REDIS_HOST: ${REDIS_HOST:-redis}
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_DB: ${REDIS_DB:-0}
@@ -80,6 +79,38 @@ services:
       - contract-config:/tmp/cic/config
 
 
+
+  cic-signer:
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/funga-eth:${TAG:-latest}
+    build: 
+      context: apps/cic-signer
+      dockerfile: Dockerfile
+      target: dev
+      args:
+          DOCKER_REGISTRY: $DEV_DOCKER_REGISTRY
+          PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+          EXTRA_PIP_INDEX_URL: $EXTRA_PIP_INDEX_URL
+          EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+    environment:
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_signer}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
+      SIGNER_SOCKET_PATH: ${SIGNER_SOCKET_PATH:-http://0.0.0.0:8000}
+      SIGNER_SECRET: ${SIGNER_SECRET:-deadbeef}
+    depends_on:
+      - postgres
+    volumes:
+      - signer-data:/run/crypto-dev-signer
+      - contract-config:/tmp/cic/config/:ro
+    command: ["python", "/usr/local/bin/funga-ethd", "-vv"]
+
+
   cic-eth-tasker:
     image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:${TAG:-latest}
     build: 
@@ -93,11 +124,8 @@ services:
           EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
-      DEV_DATA_DIR: ${DEV_DATA_DIR:-/tmp/cic/config}
-      DEV_CONFIG_RESET: $DEV_CONFIG_RESET
       RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
       CHAIN_SPEC: ${CHAIN_SPEC:-"evm:byzantium:8996:bloxberg"}
-      DEV_USE_DOCKER_WAIT_SCRIPT: 1
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
       DATABASE_NAME: ${DATABASE_NAME:-cic_eth}
@@ -124,8 +152,6 @@ services:
     volumes:
       - signer-data:/run/crypto-dev-signer
       - contract-config:/tmp/cic/config/:ro
-        #command: ["/usr/local/bin/cic-eth-taskerd"]
-        #command: ["sleep", "3600"]
     command:
       - /bin/bash
       - -c
@@ -136,11 +162,11 @@ services:
         ./start_tasker.sh --aux-all -q cic-eth  -vv
 
 
-  cic-signer:
-    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/funga-eth:${TAG:-latest}
+  cic-eth-tracker:
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:${TAG:-latest}
     build: 
-      context: apps/cic-signer
-      dockerfile: Dockerfile
+      context: apps/cic-eth
+      dockerfile: docker/Dockerfile
       target: dev
       args:
           DOCKER_REGISTRY: $DEV_DOCKER_REGISTRY
@@ -148,9 +174,11 @@ services:
           EXTRA_PIP_INDEX_URL: $EXTRA_PIP_INDEX_URL
           EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     environment:
+      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
+      RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
+      CHAIN_SPEC: ${CHAIN_SPEC:-"evm:byzantium:8996:bloxberg"}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
-        #DATABASE_NAME: ${DATABASE_NAME:-cic_signer}
       DATABASE_NAME: ${DATABASE_NAME:-cic_eth}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
       DATABASE_USER: ${DATABASE_USER:-grassroots}
@@ -158,11 +186,70 @@ services:
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
       DATABASE_POOL_SIZE: 0
-      SIGNER_SOCKET_PATH: ${SIGNER_SOCKET_PATH:-http://0.0.0.0:8000}
-      SIGNER_SECRET: ${SIGNER_SECRET:-deadbeef}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
+      CELERY_DEBUG: ${CELERY_DEBUG:-1}
+      CELERY_QUEUE: ${CELERY_QUEUE:-cic-eth}
+      SYNCER_LOOP_INTERVAL: ${SYNCER_LOOP_INTERVAL:-5}
+      SYNCER_NO_HISTORY: ${SYNCER_NO_HISTORY:-1}
+      TASKS_TRANSFER_CALLBACKS: ${TASKS_TRANSFER_CALLBACKS:-"cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback"}
+    restart: unless-stopped 
     depends_on:
+      - evm
       - postgres
+      - redis
     volumes:
-      - signer-data:/run/crypto-dev-signer
       - contract-config:/tmp/cic/config/:ro
-    command: ["python", "/usr/local/bin/funga-ethd", "-vv"]
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -a
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
+        set +a
+        ./start_tracker.sh -vv
+
+
+  cic-eth-dispatcher:
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:${TAG:-latest}
+    build: 
+      context: apps/cic-eth
+      dockerfile: docker/Dockerfile
+      target: dev
+      args:
+          DOCKER_REGISTRY: $DEV_DOCKER_REGISTRY
+          PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+          EXTRA_PIP_INDEX_URL: $EXTRA_PIP_INDEX_URL
+          EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+    environment:
+      RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
+      CHAIN_SPEC: ${CHAIN_SPEC:-"evm:byzantium:8996:bloxberg"}
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_eth}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
+      CELERY_DEBUG: ${CELERY_DEBUG:-1}
+      CELERY_QUEUE: ${CELERY_QUEUE:-cic-eth}
+      DISPATCHER_LOOP_INTERVAL: ${DISPATCHER_LOOP_INTERVAL:-1}
+    restart: unless-stopped 
+    depends_on:
+      - evm
+      - postgres
+      - redis
+    volumes:
+      - contract-config:/tmp/cic/config/:ro
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -a
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
+        set +a
+        ./start_dispatcher.sh -vv
