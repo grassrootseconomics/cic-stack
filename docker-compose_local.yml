@@ -85,12 +85,11 @@ services:
     build: 
       context: apps/cic-signer
       dockerfile: Dockerfile
-      target: dev
       args:
-          DOCKER_REGISTRY: $DEV_DOCKER_REGISTRY
-          PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
-          EXTRA_PIP_INDEX_URL: $EXTRA_PIP_INDEX_URL
-          EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     environment:
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
@@ -110,18 +109,17 @@ services:
       - contract-config:/tmp/cic/config/:ro
     command: ["python", "/usr/local/bin/funga-ethd", "-vv"]
 
-
+  # queue handling for outgoing transactions and incoming transactions
   cic-eth-tasker:
     image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:${TAG:-latest}
     build: 
       context: apps/cic-eth
       dockerfile: docker/Dockerfile
-      target: dev
       args:
-          DOCKER_REGISTRY: $DEV_DOCKER_REGISTRY
-          PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
-          EXTRA_PIP_INDEX_URL: $EXTRA_PIP_INDEX_URL
-          EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
       RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
@@ -167,12 +165,11 @@ services:
     build: 
       context: apps/cic-eth
       dockerfile: docker/Dockerfile
-      target: dev
       args:
-          DOCKER_REGISTRY: $DEV_DOCKER_REGISTRY
-          PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
-          EXTRA_PIP_INDEX_URL: $EXTRA_PIP_INDEX_URL
-          EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
       RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
@@ -192,6 +189,7 @@ services:
       CELERY_QUEUE: ${CELERY_QUEUE:-cic-eth}
       SYNCER_LOOP_INTERVAL: ${SYNCER_LOOP_INTERVAL:-5}
       SYNCER_NO_HISTORY: ${SYNCER_NO_HISTORY:-1}
+      SYNCER_OFFSET: ${SYNCER_OFFSET:-0}
       TASKS_TRANSFER_CALLBACKS: ${TASKS_TRANSFER_CALLBACKS:-"cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback"}
     restart: unless-stopped 
     depends_on:
@@ -215,12 +213,11 @@ services:
     build: 
       context: apps/cic-eth
       dockerfile: docker/Dockerfile
-      target: dev
       args:
-          DOCKER_REGISTRY: $DEV_DOCKER_REGISTRY
-          PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
-          EXTRA_PIP_INDEX_URL: $EXTRA_PIP_INDEX_URL
-          EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     environment:
       RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
       CHAIN_SPEC: ${CHAIN_SPEC:-"evm:byzantium:8996:bloxberg"}
@@ -260,12 +257,11 @@ services:
     build: 
       context: apps/cic-eth
       dockerfile: docker/Dockerfile
-      target: dev
       args:
-          DOCKER_REGISTRY: $DEV_DOCKER_REGISTRY
-          PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
-          EXTRA_PIP_INDEX_URL: $EXTRA_PIP_INDEX_URL
-          EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     environment:
       RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
       CHAIN_SPEC: ${CHAIN_SPEC:-"evm:byzantium:8996:bloxberg"}
@@ -300,3 +296,177 @@ services:
         if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
         set +a
         ./start_retry.sh -vv
+
+
+    
+  cic-cache-tracker:
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-cache:${TAG:-latest}
+    build: 
+      context: apps/cic-cache
+      dockerfile: docker/Dockerfile
+      args:
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+    environment:
+      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
+      RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
+      CHAIN_SPEC: ${CHAIN_SPEC:-"evm:byzantium:8996:bloxberg"}
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_cache}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
+      CELERY_DEBUG: ${CELERY_DEBUG:-1}
+      CELERY_QUEUE: ${CELERY_QUEUE:-cic-eth}
+      SYNCER_LOOP_INTERVAL: ${SYNCER_LOOP_INTERVAL:-5}
+      SYNCER_OFFSET: ${SYNCER_OFFSET:-0}
+      SYNCER_NO_HISTORY: ${SYNCER_NO_HISTORY:-1}
+      TASKS_TRANSFER_CALLBACKS: ${TASKS_TRANSFER_CALLBACKS:-"cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback"}
+    restart: unless-stopped 
+    depends_on:
+      - evm
+      - postgres
+      - redis
+    volumes:
+      - contract-config:/tmp/cic/config/:ro
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -a
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
+        set +a
+        ./start_tracker.sh -vv
+
+
+  cic-cache-tasker:
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-cache:${TAG:-latest}
+    build: 
+      context: apps/cic-cache
+      dockerfile: docker/Dockerfile
+      args:
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+    environment:
+      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
+      RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
+      CHAIN_SPEC: ${CHAIN_SPEC:-"evm:byzantium:8996:bloxberg"}
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_cache}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
+      CELERY_DEBUG: ${CELERY_DEBUG:-1}
+      CELERY_QUEUE: ${CELERY_QUEUE:-cic-eth}
+    restart: unless-stopped 
+    depends_on:
+      - evm
+      - postgres
+      - redis
+    volumes:
+      - contract-config:/tmp/cic/config/:ro
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -a
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
+        set +a
+        /usr/local/bin/cic-cache-taskerd -vv
+#        "/usr/local/bin/uwsgi" \
+#        --wsgi-file /root/cic_cache/runnable/daemons/server.py \
+#        --http :8000 \
+#        --pyargv "-vv"
+
+  
+  cic-cache-server:
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-cache:${TAG:-latest}
+    build: 
+      context: apps/cic-cache
+      dockerfile: docker/Dockerfile
+      args:
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+    environment:
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_cache}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
+      SERVER_PORT: 8000
+    restart: on-failure 
+    ports:
+      - ${DEV_CIC_CACHE_SERVER_PORT:-63313}:8000
+    depends_on:
+      - postgres
+      - cic-cache-tracker
+    command:
+      - |
+        set -a
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
+        set +a
+        #/usr/local/bin/uwsgi
+    volumes:
+      - contract-config:/tmp/cic/config/:ro
+        
+
+  # metadata replacement server for swarm
+  cic-meta-server:
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-meta:${TAG:-latest}
+    hostname: meta
+    build:
+      context: apps/cic-meta
+      dockerfile: docker/Dockerfile
+      args:
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+    environment:
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_meta}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
+      DATABASE_SCHEMA_SQL_PATH: ""
+      SERVER_HOST: localhost
+      SERVER_PORT: 8000
+      PGP_EXPORTS_DIR: /root/tests/
+      PGP_PRIVATEKEY_FILE: privatekeys.asc
+      PGP_PASSPHRASE: merman
+      PGP_PUBLICKEY_TRUSTED_FILE: publickeys.asc
+      PGP_PUBLICKEY_ACTIVE_FILE: publickeys.asc
+      PGP_PUBLICKEY_ENCRYPT_FILE: publickeys.asc
+      SCHEMA_SQL_PATH: scripts/initdb/server.postgres.sql
+    restart: on-failure 
+    ports:
+      - ${DEV_CIC_META_SERVER_PORT:-63380}:8000
+    depends_on:
+      - postgres
+    volumes:
+      - ./apps/contract-migration/testdata/pgp/:/tmp/cic/pgp
+
+

@@ -1,27 +1,16 @@
 ARG DOCKER_REGISTRY="registry.gitlab.com/grassrootseconomics"
 
-FROM $DOCKER_REGISTRY/cic-base-images:python-3.8.6-dev-55da5f4e as dev
+FROM $DOCKER_REGISTRY/cic-base-images:python-3.8.6-dev-55da5f4e
 
 # Copy just the requirements and install....this _might_ give docker a hint on caching but we 
 # do load these all into setup.py later
 # TODO can we take all the requirements out of setup.py and just do a pip install -r requirements.txt && python setup.py
 #COPY cic-eth/requirements.txt .
 
-ARG pip_index_url=https://pypi.org/simple
-ARG EXTRA_PIP_INDEX_URL="https://pip.grassrootseconomics.net:8433"
+ARG EXTRA_PIP_INDEX_URL=https://pip.grassrootseconomics.net:8433
 ARG EXTRA_PIP_ARGS=""
-ARG PIP_INDEX_URL="https://pypi.org/simple"
+ARG PIP_INDEX_URL=https://pypi.org/simple
 
-#ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
-#ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple"
-#ARG EXTRA_PIP_ARGS=""
-#RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
-#    pip install --index-url https://pypi.org/simple \
-#    --force-reinstall \
-#	--extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL \
-#    -r requirements.txt
-
-#RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
 RUN    pip install --index-url $PIP_INDEX_URL \
     --pre \
     --force-reinstall \
@@ -31,7 +20,6 @@ RUN    pip install --index-url $PIP_INDEX_URL \
 
 
 COPY *requirements.txt ./
-#RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
 RUN    pip install --index-url $PIP_INDEX_URL \
     --pre \
     --force-reinstall \
@@ -40,15 +28,7 @@ RUN    pip install --index-url $PIP_INDEX_URL \
     -r requirements.txt \
     -r services_requirements.txt \
     -r admin_requirements.txt 
-   
-# always install the latest signer 
-#RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
-#    pip install --index-url https://pypi.org/simple  \
-#	  --extra-index-url $GITLAB_PYTHON_REGISTRY \
-#    --extra-index-url $EXTRA_INDEX_URL \
-#    $EXTRA_PIP_ARGS \
-#    crypto-dev-signer
-
+  
 COPY . .
 RUN python setup.py install
 
