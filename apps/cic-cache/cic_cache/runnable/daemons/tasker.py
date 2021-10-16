@@ -27,33 +27,9 @@ args = argparser.parse_args()
 # process config
 config = cic_cache.cli.Config.from_args(args, arg_flags, local_arg_flags)
 
-## process config
-#config = cic_cache.cli.Config.from_args(args, arg_flags, local_arg_flags)
-#argparser = argparse.ArgumentParser()
-#argparser.add_argument('-c', type=str, default=config_dir, help='config file')
-#argparser.add_argument('-q', type=str, default='cic-cache', help='queue name for worker tasks')
-#argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
-#argparser.add_argument('-v', action='store_true', help='be verbose')
-#argparser.add_argument('-vv', action='store_true', help='be more verbose')
-#
-#args = argparser.parse_args()
-#
-#if args.vv:
-#    logging.getLogger().setLevel(logging.DEBUG)
-#elif args.v:
-#    logging.getLogger().setLevel(logging.INFO)
-#
-#config = confini.Config(args.c, args.env_prefix)
-#config.process()
-
 # connect to database
 dsn = dsn_from_config(config)
 SessionBase.connect(dsn)
-
-# verify database connection with minimal sanity query
-#session = SessionBase.create_session()
-#session.execute('select version_num from alembic_version')
-#session.close()
 
 # set up celery
 current_app = celery.Celery(__name__)
@@ -97,9 +73,9 @@ def main():
     elif args.v:
         argv.append('--loglevel=INFO')
     argv.append('-Q')
-    argv.append(args.q)
+    argv.append(config.get('CELERY_QUEUE'))
     argv.append('-n')
-    argv.append(args.q)
+    argv.append(config.get('CELERY_QUEUE'))
 
     current_app.worker_main(argv)
 

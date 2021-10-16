@@ -423,11 +423,17 @@ services:
       - postgres
       - cic-cache-tracker
     command:
+      - /bin/bash
+      - -c
       - |
         set -a
         if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
         set +a
-        #/usr/local/bin/uwsgi
+        /usr/local/bin/uwsgi \
+        --wsgi-file /root/cic_cache/runnable/daemons/server.py \
+        --http :8000 \
+        --pyargv "-vv"
+
     volumes:
       - contract-config:/tmp/cic/config/:ro
         

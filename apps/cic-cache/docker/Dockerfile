@@ -25,7 +25,7 @@ RUN python setup.py install
 #COPY config/ /usr/local/etc/cic-cache/
 
 # for db migrations
-RUN git clone https://github.com/vishnubob/wait-for-it.git /usr/local/bin/wait-for-it/
+COPY ./aux/wait-for-it/wait-for-it.sh ./
 COPY cic_cache/db/migrations/ /usr/local/share/cic-cache/alembic/
 
 COPY /docker/start_tracker.sh ./start_tracker.sh
