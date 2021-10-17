@@ -481,7 +481,6 @@ services:
 
   cic-user-tasker:
     image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-user:${TAG:-latest}
-    hostname: meta
     build:
       context: apps/cic-ussd
       dockerfile: docker/Dockerfile
@@ -490,7 +489,7 @@ services:
     environment:
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
-      DATABASE_NAME: ${DATABASE_NAME:-cic_user}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_ussd}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
@@ -513,7 +512,7 @@ services:
     command: "/root/start_cic_user_tasker.sh -q cic-ussd -vv"
 
 
-  cic-user-tasker:
+  cic-user-server:
     image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-user:${TAG:-latest}
     build:
       context: apps/cic-ussd
@@ -526,7 +525,7 @@ services:
     environment:
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
-      DATABASE_NAME: ${DATABASE_NAME:-cic_user}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_ussd}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
       DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
@@ -540,3 +539,39 @@ services:
       - postgres
       - redis
     command: "/root/start_cic_user_server.sh -vv"
+
+
+  cic-user-ussd-server:
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-user:${TAG:-latest}
+    build:
+      context: apps/cic-ussd
+      dockerfile: docker/Dockerfile
+      args:
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+    environment:
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_ussd}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
+    restart: on-failure 
+    ports:
+      - ${DEV_CIC_USER_SERVER_PORT:-63415}:9500
+    depends_on:
+      - postgres
+      - redis
+      - cic-eth-tasker
+      - cic-cache-tasker
+    ports:
+      - ${DEV_CIC_USER_USSD_SERVER_PORT:-63315}:9500
+    volumes:
+      - ./apps/contract-migration/testdata/pgp/:/usr/src/secrets/
+    command: "/root/start_cic_user_ussd_server.sh -vv"
+
