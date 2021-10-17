@@ -39,7 +39,8 @@ from eth_token_index import TokenUniqueSymbolIndex
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
-config_dir = '/usr/local/etc/cic-syncer'
+script_dir = os.path.dirname(os.path.realpath(__file__))
+base_config_dir = os.path.join(script_dir, 'config')
 
 custodial_tests = [
         'local_key',
@@ -72,7 +73,7 @@ all_tests = eth_tests + custodial_tests + metadata_tests + phone_tests
 
 argparser = argparse.ArgumentParser(description='daemon that monitors transactions in new blocks')
 argparser.add_argument('-p', '--provider', dest='p', type=str, help='chain rpc provider address')
-argparser.add_argument('-c', type=str, default=config_dir, help='config root to use')
+argparser.add_argument('-c', type=str, help='config override dir')
 argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:oldchain:1', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
 argparser.add_argument('--meta-provider', type=str, dest='meta_provider', default='http://localhost:63380', help='cic-meta url')
@@ -96,13 +97,17 @@ if args.v == True:
 elif args.vv == True:
     logging.getLogger().setLevel(logging.DEBUG)
 
-config_dir = os.path.join(args.c)
-os.makedirs(config_dir, 0o777, True)
-config = confini.Config(config_dir, args.env_prefix)
+config = None
+logg.debug('config dir {}'.format(base_config_dir))
+if args.c != None:
+    config = confini.Config(base_config_dir, env_prefix=os.environ.get('CONFINI_ENV_PREFIX'), override_dirs=args.c)
+else:
+    config = confini.Config(base_config_dir, env_prefix=os.environ.get('CONFINI_ENV_PREFIX'))
 config.process()
+
 # override args
 args_override = {
-        'CIC_CHAIN_SPEC': getattr(args, 'i'),
+        'CHAIN_SPEC': getattr(args, 'i'),
         'ETH_PROVIDER': getattr(args, 'p'),
         'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
         }
@@ -114,11 +119,9 @@ config.add(args.ussd_provider, '_USSD_PROVIDER', True)
 
 token_symbol = args.token_symbol
 
-logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
-
 celery_app = celery.Celery(backend=config.get('CELERY_RESULT_URL'),  broker=config.get('CELERY_BROKER_URL'))
 
-chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
+chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
 chain_str = str(chain_spec)
 old_chain_spec = ChainSpec.from_chain_str(args.old_chain_spec)
 old_chain_str = str(old_chain_spec)

@@ -8,6 +8,7 @@ import uuid
 import datetime
 import time
 import phonenumbers
+import shutil
 from glob import glob
 
 # external imports
@@ -23,6 +24,7 @@ from chainlib.eth.connection import EthHTTPConnection
 from chainlib.eth.gas import RPCGasOracle
 from chainlib.eth.nonce import RPCNonceOracle
 from cic_types.processor import generate_metadata_pointer
+from cic_types import MetadataPointer
 from eth_accounts_index.registry import AccountRegistry
 from eth_contract_registry import Registry
 from crypto_dev_signer.keystore.dict import DictKeystore
@@ -32,12 +34,15 @@ from crypto_dev_signer.keystore.keyfile import to_dict as to_keyfile_dict
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
-default_config_dir = '/usr/local/etc/cic'
+script_dir = os.path.dirname(os.path.realpath(__file__))
+root_dir = os.path.dirname(script_dir)
+base_config_dir = os.path.join(root_dir, 'config')
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument('-p', '--provider', dest='p', default='http://localhost:8545', type=str, help='Web3 provider url (http only)')
 argparser.add_argument('-y', '--key-file', dest='y', type=str, help='Ethereum keystore file to use for signing')
-argparser.add_argument('-c', type=str, default=default_config_dir, help='config file')
+argparser.add_argument('-c', type=str, help='config override directory')
+argparser.add_argument('-f', action='store_true', help='force clear previous state')
 argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:oldchain:1', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='Chain specification string')
 argparser.add_argument('-r', '--registry', dest='r', type=str, help='Contract registry address')
@@ -53,8 +58,11 @@ if args.v:
 elif args.vv:
     logg.setLevel(logging.DEBUG)
 
-config_dir = args.c
-config = confini.Config(config_dir, os.environ.get('CONFINI_ENV_PREFIX'))
+config = None
+if args.c != None:
+    config = confini.Config(base_config_dir, os.environ.get('CONFINI_ENV_PREFIX'), override_config_dir=args.c)
+else:
+    config = confini.Config(base_config_dir, os.environ.get('CONFINI_ENV_PREFIX'))
 config.process()
 args_override = {
         'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
@@ -64,25 +72,26 @@ args_override = {
 config.dict_override(args_override, 'cli')
 config.add(args.user_dir, '_USERDIR', True)
 
-user_new_dir = os.path.join(args.user_dir, 'new')
-os.makedirs(user_new_dir)
-
-meta_dir = os.path.join(args.user_dir, 'meta')
-os.makedirs(meta_dir)
-
-custom_dir = os.path.join(args.user_dir, 'custom')
-os.makedirs(custom_dir)
-os.makedirs(os.path.join(custom_dir, 'new'))
-os.makedirs(os.path.join(custom_dir, 'meta'))
-
-phone_dir = os.path.join(args.user_dir, 'phone')
-os.makedirs(os.path.join(phone_dir, 'meta'))
-
 user_old_dir = os.path.join(args.user_dir, 'old')
-os.stat(user_old_dir)
-
+user_new_dir = os.path.join(args.user_dir, 'new')
+meta_dir = os.path.join(args.user_dir, 'meta')
+custom_dir = os.path.join(args.user_dir, 'custom')
+phone_dir = os.path.join(args.user_dir, 'phone')
 txs_dir = os.path.join(args.user_dir, 'txs')
-os.makedirs(txs_dir)
+
+try:
+    os.stat(user_old_dir)
+except FileNotFoundError:
+    sys.stderr.write('no users to import. please run create_import_users.py first\n')
+    sys.exit(1)
+
+#os.makedirs(user_new_dir)
+#os.makedirs(meta_dir)
+#os.makedirs(custom_dir)
+#os.makedirs(os.path.join(custom_dir, 'new'))
+#os.makedirs(os.path.join(custom_dir, 'meta'))
+#os.makedirs(os.path.join(phone_dir, 'meta'))
+#os.makedirs(txs_dir)
 
 user_dir = args.user_dir
 
@@ -114,7 +123,26 @@ account_registry_address = registry.parse_address_of(r)
 logg.info('using account registry {}'.format(account_registry_address))
 
 keyfile_dir = os.path.join(config.get('_USERDIR'), 'keystore')
-os.makedirs(keyfile_dir)
+
+result_dirs = [
+        user_new_dir,
+        meta_dir,
+        custom_dir,
+        os.path.join(custom_dir, 'new'),
+        os.path.join(custom_dir, 'meta'),
+        os.path.join(phone_dir, 'meta'),
+        txs_dir,
+        keyfile_dir,
+        ]
+if args.f:
+    for d in result_dirs:
+        try:
+            shutil.rmtree(d)
+        except FileNotFoundError:
+            pass
+for d in result_dirs:
+    os.makedirs(d)
+
 
 def register_eth(i, u):
 
@@ -190,14 +218,14 @@ if __name__ == '__main__':
             f.write(json.dumps(o))
             f.close()
 
-            meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), ':cic.person')
+            meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), MetadataPointer.PERSON)
             meta_filepath = os.path.join(meta_dir, '{}.json'.format(new_address_clean.upper()))
             os.symlink(os.path.realpath(filepath), meta_filepath)
 
             phone_object = phonenumbers.parse(u.tel)
             phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
             logg.debug('>>>>> Using phone {}'.format(phone))
-            meta_phone_key = generate_metadata_pointer(phone.encode('utf-8'), ':cic.phone')
+            meta_phone_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.PHONE)
             meta_phone_filepath = os.path.join(phone_dir, 'meta', meta_phone_key)
 
             filepath = os.path.join(
@@ -217,7 +245,7 @@ if __name__ == '__main__':
 
 
             # custom data
-            custom_key = generate_metadata_pointer(phone.encode('utf-8'), ':cic.custom')
+            custom_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.CUSTOM)
             custom_filepath = os.path.join(custom_dir, 'meta', custom_key)
 
             filepath = os.path.join(

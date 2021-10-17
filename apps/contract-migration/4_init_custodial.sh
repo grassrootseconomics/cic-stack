@@ -36,7 +36,7 @@ cic-eth-tag -i $CHAIN_SPEC ACCOUNT_REGISTRY_WRITER $accounts_index_writer
 
 
 # Assign system writer for accounts index
->&2 echo -e "\033[;96mEnable accounts index writer $accounts_index_writer to writer to accounts index contract at $accounts_index_address\033[;39m"
+>&2 echo -e "\033[;96mEnable accounts index writer $accounts_index_writer to write to accounts index contract at $accounts_index_address\033[;39m"
 r=`eth-accounts-index-writer -s -w -u -i $CHAIN_SPEC -p $RPC_PROVIDER -e $accounts_index_address $DEV_DEBUG_FLAG $accounts_index_writer`
 add_pending_tx_hash $r
 

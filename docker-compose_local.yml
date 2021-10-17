@@ -48,7 +48,7 @@ services:
       args:
           DOCKER_REGISTRY: $DEV_DOCKER_REGISTRY
           PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
-          EXTRA_PIP_INDEX_URL: $EXTRA_PIP_INDEX_URL
+          EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
           EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     environment:
       DEV_DATA_DIR: ${DEV_DATA_DIR:-/tmp/cic/config}

@@ -12,3 +12,4 @@ eth-erc20~=0.1.2a3
 erc20-faucet~=0.3.2a2
 psycopg2==2.8.6
 liveness~=0.0.1a7
+confini>=0.4.2rc3,<0.5.0
