@@ -3,6 +3,10 @@ from chainlib.jsonrpc import JSONRPCException
 from eth_erc20 import ERC20
 from eth_accounts_index import AccountsIndex
 from eth_token_index import TokenUniqueSymbolIndex
+import logging
+
+logg = logging.getLogger(__name__)
+
 
 class ERC20Token:
 
@@ -46,7 +50,8 @@ class IndexCache:
             try:
                 r = conn.do(o)
                 entries.append(self.parse(r, conn))
-            except JSONRPCException:
+            except JSONRPCException as e:
+                logg.debug('foo {}'.format(e))
                 return entries
             i += 1
 
