@@ -10,7 +10,7 @@ import time
 import phonenumbers
 from glob import glob
 
-# third-party imports
+# external imports
 import redis
 import confini
 import celery
@@ -23,15 +23,23 @@ from cic_types.models.person import Person
 from cic_eth.api.api_task import Api
 from chainlib.chain import ChainSpec
 from cic_types.processor import generate_metadata_pointer
+from cic_types import MetadataPointer
+
+# local imports
+from common.dirs import initialize_dirs
+
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
-default_config_dir = '/usr/local/etc/cic'
+script_dir = os.path.dirname(os.path.realpath(__file__))
+root_dir = os.path.dirname(script_dir)
+base_config_dir = os.path.join(root_dir, 'config')
 
 argparser = argparse.ArgumentParser()
-argparser.add_argument('-c', type=str, default=default_config_dir, help='config file')
+argparser.add_argument('-c', type=str, help='config override directory')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='Chain specification string')
+argparser.add_argument('-f', action='store_true', help='force clear previous state')
 argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:oldchain:1', help='chain spec')
 argparser.add_argument('--redis-host', dest='redis_host', type=str, help='redis host to use for task submission')
 argparser.add_argument('--redis-port', dest='redis_port', type=int, help='redis host to use for task submission')
@@ -52,16 +60,21 @@ if args.v:
 elif args.vv:
     logg.setLevel(logging.DEBUG)
 
-config_dir = args.c
-config = confini.Config(config_dir, os.environ.get('CONFINI_ENV_PREFIX'))
+config = None
+if args.c != None:
+    config = confini.Config(base_config_dir, os.environ.get('CONFINI_ENV_PREFIX'), override_config_dir=args.c)
+else:
+    config = confini.Config(base_config_dir, os.environ.get('CONFINI_ENV_PREFIX'))
 config.process()
 args_override = {
-        'CIC_CHAIN_SPEC': getattr(args, 'i'),
+        'CHAIN_SPEC': getattr(args, 'i'),
         'REDIS_HOST': getattr(args, 'redis_host'),
         'REDIS_PORT': getattr(args, 'redis_port'),
         'REDIS_DB': getattr(args, 'redis_db'),
         }
 config.dict_override(args_override, 'cli')
+config.add(args.user_dir, '_USERDIR', True)
+
 celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
 redis_host = config.get('REDIS_HOST')
@@ -71,36 +84,17 @@ r = redis.Redis(redis_host, redis_port, redis_db)
 
 ps = r.pubsub()
 
-user_new_dir = os.path.join(args.user_dir, 'new')
-os.makedirs(user_new_dir)
-
-meta_dir = os.path.join(args.user_dir, 'meta')
-os.makedirs(meta_dir)
-
-custom_dir = os.path.join(args.user_dir, 'custom')
-os.makedirs(custom_dir)
-os.makedirs(os.path.join(custom_dir, 'new'))
-os.makedirs(os.path.join(custom_dir, 'meta'))
-
-phone_dir = os.path.join(args.user_dir, 'phone')
-os.makedirs(os.path.join(phone_dir, 'meta'))
-
-user_old_dir = os.path.join(args.user_dir, 'old')
-os.stat(user_old_dir)
-
-txs_dir = os.path.join(args.user_dir, 'txs')
-os.makedirs(txs_dir)
-
-user_dir = args.user_dir
 
 old_chain_spec = ChainSpec.from_chain_str(args.old_chain_spec)
 old_chain_str = str(old_chain_spec)
 
-chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
+chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
 chain_str = str(chain_spec)
 
 batch_size = args.batch_size
 batch_delay = args.batch_delay
+
+dirs = initialize_dirs(config.get('_USERDIR'), force_reset=args.f)
 
 
 def register_eth(i, u):
@@ -108,7 +102,7 @@ def register_eth(i, u):
     ps.subscribe(redis_channel)
     #ps.get_message()
     api = Api(
-        config.get('CIC_CHAIN_SPEC'),
+        config.get('CHAIN_SPEC'),
         queue=args.q,
         callback_param='{}:{}:{}:{}'.format(args.redis_host_callback, args.redis_port_callback, redis_db, redis_channel),
         callback_task='cic_eth.callbacks.redis.redis',
@@ -145,7 +139,7 @@ def register_eth(i, u):
 if __name__ == '__main__':
 
     user_tags = {}
-    f = open(os.path.join(user_dir, 'tags.csv'), 'r')
+    f = open(os.path.join(config.get('_USERDIR'), 'tags.csv'), 'r')
     while True:
         r = f.readline().rstrip()
         if len(r) == 0:
@@ -158,7 +152,8 @@ if __name__ == '__main__':
 
     i = 0
     j = 0
-    for x in os.walk(user_old_dir):
+
+    for x in os.walk(dirs['old']):
         for y in x[2]:
             if y[len(y)-5:] != '.json':
                 continue
@@ -182,7 +177,7 @@ if __name__ == '__main__':
 
             new_address_clean = strip_0x(new_address)
             filepath = os.path.join(
-                    user_new_dir,
+                    dirs['new'],
                     new_address_clean[:2].upper(),
                     new_address_clean[2:4].upper(),
                     new_address_clean.upper() + '.json',
@@ -194,17 +189,17 @@ if __name__ == '__main__':
             f.write(json.dumps(o))
             f.close()
 
-            meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), ':cic.person')
-            meta_filepath = os.path.join(meta_dir, '{}.json'.format(new_address_clean.upper()))
+            meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), MetadataPointer.PERSON)
+            meta_filepath = os.path.join(dirs['meta'], '{}.json'.format(new_address_clean.upper()))
             os.symlink(os.path.realpath(filepath), meta_filepath)
 
             phone_object = phonenumbers.parse(u.tel)
             phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
-            meta_phone_key = generate_metadata_pointer(phone.encode('utf-8'), ':cic.phone')
-            meta_phone_filepath = os.path.join(phone_dir, 'meta', meta_phone_key)
+            meta_phone_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.PHONE)
+            meta_phone_filepath = os.path.join(dirs['phone'], 'meta', meta_phone_key)
 
             filepath = os.path.join(
-                    phone_dir,
+                    dirs['phone'],
                     'new',
                     meta_phone_key[:2].upper(),
                     meta_phone_key[2:4].upper(),
@@ -220,11 +215,11 @@ if __name__ == '__main__':
 
 
             # custom data
-            custom_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), ':cic.custom')
-            custom_filepath = os.path.join(custom_dir, 'meta', custom_key)
+            custom_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), MetadataPointer.CUSTOM)
+            custom_filepath = os.path.join(dirs['custom'], 'meta', custom_key)
 
             filepath = os.path.join(
-                    custom_dir,
+                    dirs['custom'],
                     'new',
                     custom_key[:2].upper(),
                     custom_key[2:4].upper(),

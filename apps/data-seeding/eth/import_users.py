@@ -31,6 +31,10 @@ from crypto_dev_signer.keystore.dict import DictKeystore
 from crypto_dev_signer.eth.signer.defaultsigner import ReferenceSigner as EIP155Signer
 from crypto_dev_signer.keystore.keyfile import to_dict as to_keyfile_dict
 
+# local imports
+from common.dirs import initialize_dirs
+
+
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
@@ -72,28 +76,7 @@ args_override = {
 config.dict_override(args_override, 'cli')
 config.add(args.user_dir, '_USERDIR', True)
 
-user_old_dir = os.path.join(args.user_dir, 'old')
-user_new_dir = os.path.join(args.user_dir, 'new')
-meta_dir = os.path.join(args.user_dir, 'meta')
-custom_dir = os.path.join(args.user_dir, 'custom')
-phone_dir = os.path.join(args.user_dir, 'phone')
-txs_dir = os.path.join(args.user_dir, 'txs')
-
-try:
-    os.stat(user_old_dir)
-except FileNotFoundError:
-    sys.stderr.write('no users to import. please run create_import_users.py first\n')
-    sys.exit(1)
-
-#os.makedirs(user_new_dir)
-#os.makedirs(meta_dir)
-#os.makedirs(custom_dir)
-#os.makedirs(os.path.join(custom_dir, 'new'))
-#os.makedirs(os.path.join(custom_dir, 'meta'))
-#os.makedirs(os.path.join(phone_dir, 'meta'))
-#os.makedirs(txs_dir)
-
-user_dir = args.user_dir
+#user_dir = args.user_dir
 
 chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
 chain_str = str(chain_spec)
@@ -122,26 +105,7 @@ r = rpc.do(o)
 account_registry_address = registry.parse_address_of(r)
 logg.info('using account registry {}'.format(account_registry_address))
 
-keyfile_dir = os.path.join(config.get('_USERDIR'), 'keystore')
-
-result_dirs = [
-        user_new_dir,
-        meta_dir,
-        custom_dir,
-        os.path.join(custom_dir, 'new'),
-        os.path.join(custom_dir, 'meta'),
-        os.path.join(phone_dir, 'meta'),
-        txs_dir,
-        keyfile_dir,
-        ]
-if args.f:
-    for d in result_dirs:
-        try:
-            shutil.rmtree(d)
-        except FileNotFoundError:
-            pass
-for d in result_dirs:
-    os.makedirs(d)
+dirs = initialize_dirs(config.get('_USERDIR'), force_reset=args.f)
 
 
 def register_eth(i, u):
@@ -157,7 +121,7 @@ def register_eth(i, u):
 
     pk = keystore.get(address)
     keyfile_content = to_keyfile_dict(pk, 'foo')
-    keyfile_path = os.path.join(keyfile_dir, '{}.json'.format(address))
+    keyfile_path = os.path.join(dirs['keyfile'], '{}.json'.format(address))
     f = open(keyfile_path, 'w')
     json.dump(keyfile_content, f)
     f.close()
@@ -170,7 +134,7 @@ def register_eth(i, u):
 if __name__ == '__main__':
 
     user_tags = {}
-    f = open(os.path.join(user_dir, 'tags.csv'), 'r')
+    f = open(os.path.join(config.get('_USERDIR'), 'tags.csv'), 'r')
     while True:
         r = f.readline().rstrip()
         if len(r) == 0:
@@ -182,7 +146,7 @@ if __name__ == '__main__':
 
     i = 0
     j = 0
-    for x in os.walk(user_old_dir):
+    for x in os.walk(dirs['old']):
         for y in x[2]:
             if y[len(y)-5:] != '.json':
                 continue
@@ -206,7 +170,7 @@ if __name__ == '__main__':
 
             new_address_clean = strip_0x(new_address)
             filepath = os.path.join(
-                    user_new_dir,
+                    dirs['new'],
                     new_address_clean[:2].upper(),
                     new_address_clean[2:4].upper(),
                     new_address_clean.upper() + '.json',
@@ -219,17 +183,17 @@ if __name__ == '__main__':
             f.close()
 
             meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), MetadataPointer.PERSON)
-            meta_filepath = os.path.join(meta_dir, '{}.json'.format(new_address_clean.upper()))
+            meta_filepath = os.path.join(dirs['meta'], '{}.json'.format(new_address_clean.upper()))
             os.symlink(os.path.realpath(filepath), meta_filepath)
 
             phone_object = phonenumbers.parse(u.tel)
             phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
             logg.debug('>>>>> Using phone {}'.format(phone))
             meta_phone_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.PHONE)
-            meta_phone_filepath = os.path.join(phone_dir, 'meta', meta_phone_key)
+            meta_phone_filepath = os.path.join(dirs['phone'], 'meta', meta_phone_key)
 
             filepath = os.path.join(
-                    phone_dir,
+                    dirs['phone'],
                     'new',
                     meta_phone_key[:2].upper(),
                     meta_phone_key[2:4].upper(),
@@ -246,10 +210,10 @@ if __name__ == '__main__':
 
             # custom data
             custom_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.CUSTOM)
-            custom_filepath = os.path.join(custom_dir, 'meta', custom_key)
+            custom_filepath = os.path.join(dirs['custom'], 'meta', custom_key)
 
             filepath = os.path.join(
-                    custom_dir,
+                    dirs['custom'],
                     'new',
                     custom_key[:2].upper(),
                     custom_key[2:4].upper(),
