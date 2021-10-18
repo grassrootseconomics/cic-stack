@@ -11,6 +11,8 @@ ARG EXTRA_PIP_INDEX_URL=https://pip.grassrootseconomics.net:8433
 ARG EXTRA_PIP_ARGS=""
 ARG PIP_INDEX_URL=https://pypi.org/simple
 
+RUN apt-get update -y && apt-get install libffi-dev
+
 RUN    pip install --index-url $PIP_INDEX_URL \
     --pre \
     --force-reinstall \
