@@ -12,6 +12,7 @@ import i18n
 import redis
 from chainlib.chain import ChainSpec
 from confini import Config
+from cic_types.ext.metadata import Metadata
 from cic_types.ext.metadata.signer import Signer
 
 # local imports
@@ -26,7 +27,6 @@ from cic_ussd.files.local_files import create_local_file_data_stores, json_file_
 from cic_ussd.http.requests import get_request_endpoint, get_request_method
 from cic_ussd.http.responses import with_content_headers
 from cic_ussd.menu.ussd_menu import UssdMenu
-#from cic_ussd.metadata.base import Metadata
 from cic_ussd.phone_number import process_phone_number, Support, E164Format
 from cic_ussd.processor.ussd import handle_menu_operations
 from cic_ussd.runnable.server_base import exportable_parser, logg
