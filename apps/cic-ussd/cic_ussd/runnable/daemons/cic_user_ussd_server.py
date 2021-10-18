@@ -96,11 +96,7 @@ celery.Celery(backend=config.get('CELERY_RESULT_URL'), broker=config.get('CELERY
 states = json_file_parser(filepath=config.get('MACHINE_STATES'))
 transitions = json_file_parser(filepath=config.get('MACHINE_TRANSITIONS'))
 
-chain_spec = ChainSpec(
-    common_name=config.get('CIC_COMMON_NAME'),
-    engine=config.get('CIC_ENGINE'),
-    network_id=config.get('CIC_NETWORK_ID')
-)
+chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
 
 Chain.spec = chain_spec
 UssdStateMachine.states = states
