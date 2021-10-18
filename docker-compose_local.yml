@@ -581,3 +581,35 @@ services:
       - ./apps/contract-migration/testdata/pgp/:/usr/src/secrets/
     command: "/root/start_cic_user_ussd_server.sh -vv"
 
+
+  cic-notify-tasker:
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-notify:${TAG:-latest}
+    build:
+      context: apps/cic-notify
+      dockerfile: docker/Dockerfile
+      args:
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+    environment:
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_notify}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
+      AFRICASTALKING_API_USERNAME: $AFRICASTALKING_API_USERNAME
+      AFRICASTALKING_API_KEY: $AFRICASTALKING_API_KEY
+      AFRICASTALKING_API_SENDER_ID: $AFRICASTALKING_API_SENDER_ID
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+    command: "/root/start_tasker.sh -q cic-notify -vv"
+
