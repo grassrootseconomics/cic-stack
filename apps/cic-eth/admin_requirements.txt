@@ -3,3 +3,4 @@ cic-eth-registry>=0.6.1a5,<0.7.0
 hexathon~=0.0.1a8
 chainqueue>=0.0.4a6,<0.1.0
 eth-erc20>=0.1.2a2,<0.2.0
+chainlib-eth>=0.0.10a2,<0.1.0
