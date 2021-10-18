@@ -87,11 +87,8 @@ Signer.key_file_path = key_file_path
 i18n.load_path.append(config.get('LOCALE_PATH'))
 i18n.set('fallback', config.get('LOCALE_FALLBACK'))
 
-chain_spec = ChainSpec(
-    common_name=config.get('CIC_COMMON_NAME'),
-    engine=config.get('CIC_ENGINE'),
-    network_id=config.get('CIC_NETWORK_ID')
-)
+chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
+
 
 Chain.spec = chain_spec
 Support.phone_number = config.get('OFFICE_SUPPORT_PHONE')
