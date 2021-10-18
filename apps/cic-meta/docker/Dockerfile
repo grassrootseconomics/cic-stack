@@ -7,13 +7,13 @@ WORKDIR /root
 RUN apk add --no-cache postgresql bash
 
 # copy the dependencies
-COPY package.json package-lock.json .
+COPY package.json package-lock.json ./
 RUN --mount=type=cache,mode=0755,target=/root/.npm \
     npm set cache /root/.npm && \
     npm ci
 
-COPY webpack.config.js .
-COPY tsconfig.json . 
+COPY webpack.config.js ./
+COPY tsconfig.json ./
 ## required to build the cic-client-meta module
 COPY . .
 COPY tests/*.asc /root/pgp/

@@ -127,8 +127,10 @@ async function processRequest(req, res) {
 		return;
 	}
 
-	const mergeHeader = req.headers['x-cic-automerge'];
+
 	let mod = req.method.toLowerCase() + ":automerge:";
+
+	const mergeHeader = req.headers['x-cic-automerge'];
 	switch (mergeHeader) {
 		case "client":
 			mod += "client"; // client handles merges
@@ -136,19 +138,33 @@ async function processRequest(req, res) {
 		case "server":
 			mod += "server"; // server handles merges
 			break;
+		case "immutable":
+			mod += "immutable"; // server handles merges
+			break;
 		default:
 			mod += "none"; // merged object only (get only)
 	}
 
-	let data = '';
+	// handle bigger chunks of data
+	let data;
 	req.on('data', (d) => {
-		data += d;
+		if (data === undefined) {
+			data = d;
+		} else {
+			data += d;
+		}
 	});
-	req.on('end', async () => {
-		console.debug('mode', mod);
-		let content = '';
+	req.on('end', async (d) => {
+		console.debug('hedaers ', req.headers);
+		let inputContentType = req.headers['content-type'];
+		let debugString = 'executing mode ' + mod ;
+		if (data !== undefined) {
+			debugString += ' for content type ' + inputContentType + ' length ' + data.length;
+		}
+		console.debug(debugString);
+		let content;
 		let contentType = 'application/json';
-		console.debug('handling data', data);
+		let statusCode = 200;
 		let r:any = undefined;
 		try {
 			switch (mod) {
@@ -183,12 +199,24 @@ async function processRequest(req, res) {
 
 				case 'get:automerge:none':
 					r = await handlers.handleNoMergeGet(db, digest, keystore);	
-					if (r == false) {
+					if (r === false) {
 						res.writeHead(404, {"Content-Type": "text/plain"});
 						res.end();
 						return;
 					}
-					content = r;
+					content = r[0];
+					contentType = r[1];
+					break;
+
+				case 'post:automerge:immutable':
+					if (inputContentType === undefined) {
+						inputContentType = 'application/octet-stream';
+					}
+					r = await handlers.handleImmutablePost(data, db, digest, keystore, inputContentType);
+					if (r) {
+						statusCode = 201;
+					}
+					content = '';
 					break;
 
 				default:
@@ -210,8 +238,12 @@ async function processRequest(req, res) {
 			return;
 		}
 
-		const responseContentLength = (new TextEncoder().encode(content)).length;
-		res.writeHead(200, {
+		//let responseContentLength;
+		//if (typeof(content) == 'string') {
+		//	(new TextEncoder().encode(content)).length;
+		//}
+		const responseContentLength = content.length;
+		res.writeHead(statusCode, {
 			"Access-Control-Allow-Origin": "*",
 			"Content-Type": contentType,
 			"Content-Length": responseContentLength,
