@@ -118,32 +118,51 @@ async function processRequest(req, res) {
 		return;
 	}
 
+	let mod = req.method.toLowerCase() + ":automerge:";
+	let modDetail = undefined;
+	let immutablePost = false;
 	try {
 		digest = parseDigest(req.url);
 	} catch(e) {
-		console.error('digest error: ' + e)
-		res.writeHead(400, {"Content-Type": "text/plain"});
-		res.end();
-		return;
+		if (req.url == '/') {
+			immutablePost = true;
+			modDetail = 'immutable';
+		} else {
+			console.error('url is not empty (' + req.url + ') and not valid digest error: ' + e)
+			res.writeHead(400, {"Content-Type": "text/plain"});
+			res.end();
+			return;
+		}
 	}
 
-
-	let mod = req.method.toLowerCase() + ":automerge:";
-
-	const mergeHeader = req.headers['x-cic-automerge'];
-	switch (mergeHeader) {
-		case "client":
-			mod += "client"; // client handles merges
-			break;
-		case "server":
-			mod += "server"; // server handles merges
-			break;
-		case "immutable":
-			mod += "immutable"; // server handles merges
-			break;
-		default:
-			mod += "none"; // merged object only (get only)
+	if (modDetail === undefined) {
+		const mergeHeader = req.headers['x-cic-automerge'];
+		switch (mergeHeader) {
+			case "client":
+				if (immutablePost) {
+					res.writeHead(400, 'Valid digest missing', {"Content-Type": "text/plain"});
+					res.end();
+					return;
+				}
+				modDetail = "client"; // client handles merges
+				break;
+			case "server":
+				if (immutablePost) {
+					res.writeHead(400, 'Valid digest missing', {"Content-Type": "text/plain"});
+					res.end();
+					return;
+				}
+				modDetail = "server"; // server handles merges
+				break;
+			case "immutable":
+				modDetail = "immutable"; // no merging, literal immutable content with content-addressing
+				break;
+			default:
+				modDetail = "none"; // merged object only (get only)
+		}
 	}
+	mod += modDetail;
+
 
 	// handle bigger chunks of data
 	let data;
@@ -213,10 +232,10 @@ async function processRequest(req, res) {
 						inputContentType = 'application/octet-stream';
 					}
 					r = await handlers.handleImmutablePost(data, db, digest, keystore, inputContentType);
-					if (r) {
+					if (r[0]) {
 						statusCode = 201;
 					}
-					content = '';
+					content = r[1];
 					break;
 
 				default:
