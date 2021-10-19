@@ -18,6 +18,8 @@ ENV CONFINI_DIR /usr/local/etc/cic/
 COPY config_template/ /usr/local/etc/cic/
 COPY requirements.txt . 
 
+RUN apt-get install libffi-dev
+
 ARG pip_index_url=https://pypi.org/simple
 ARG EXTRA_PIP_INDEX_URL="https://pip.grassrootseconomics.net:8433"
 ARG EXTRA_PIP_ARGS=""
