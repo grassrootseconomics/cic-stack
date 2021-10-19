@@ -25,12 +25,17 @@ ARG EXTRA_PIP_INDEX_URL="https://pip.grassrootseconomics.net:8433"
 ARG EXTRA_PIP_ARGS=""
 ARG PIP_INDEX_URL="https://pypi.org/simple"
 ARG pip_trusted_host=pypi.org
-RUN    pip install --index-url $PIP_INDEX_URL \
+RUN pip install --index-url $PIP_INDEX_URL \
     --pre \
-    --force-reinstall \
-    --no-cache \
     --extra-index-url $EXTRA_PIP_INDEX_URL $EXTRA_PIP_ARGS \
     -r requirements.txt 
+
+COPY override_requirements.txt . 
+
+RUN pip install --index-url $PIP_INDEX_URL \
+    --pre \
+    --extra-index-url $EXTRA_PIP_INDEX_URL $EXTRA_PIP_ARGS \
+    -r override_requirements.txt 
 
 COPY . .
 RUN chmod +x *.sh

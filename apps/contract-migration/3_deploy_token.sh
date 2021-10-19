@@ -50,23 +50,27 @@ function _deploy_token_defaults {
 
 function deploy_token_giftable_erc20_token() {
 	_deploy_token_defaults "GFT" "Giftable Token"
-	TOKEN_ADDRESS=`giftable-token-deploy $fee_price_arg -p $RPC_PROVIDER -y $WALLET_KEY_FILE -i $CHAIN_SPEC -s -ww --name "$TOKEN_NAME" --symbol $TOKEN_SYMBOL --decimals $TOKEN_DECIMALS $DEV_DEBUG_FLAG`
+	advance_nonce
+	TOKEN_ADDRESS=`giftable-token-deploy --nonce $nonce $fee_price_arg -p $RPC_PROVIDER -y $WALLET_KEY_FILE -i $CHAIN_SPEC -s -ww --name "$TOKEN_NAME" --symbol $TOKEN_SYMBOL --decimals $TOKEN_DECIMALS $DEV_DEBUG_FLAG`
 }
 
 
 function deploy_token_erc20_demurrage_token() {
 	_deploy_token_defaults "DET" "Demurrage Token"
-	TOKEN_ADDRESS=`erc20-demurrage-token-deploy $fee_price_arg -p $RPC_PROVIDER -y $WALLET_KEY_FILE -i $CHAIN_SPEC --name "$TOKEN_NAME" --symbol $TOKEN_SYMBOL $DEV_DEBUG_FLAG -ww -s` 
+	advance_nonce
+	TOKEN_ADDRESS=`erc20-demurrage-token-deploy --nonce $nonce $fee_price_arg -p $RPC_PROVIDER -y $WALLET_KEY_FILE -i $CHAIN_SPEC --name "$TOKEN_NAME" --symbol $TOKEN_SYMBOL $DEV_DEBUG_FLAG -ww -s` 
 }
 
 function deploy_accounts_index() {
 	# Deploy accounts index contact
 	>&2 echo -e "\033[;96mDeploy accounts index contract for token $TOKEN_SYMBOL\033[;39m"
-	DEV_ACCOUNTS_INDEX_ADDRESS=`okota-accounts-index-deploy $gas_price_arg -u -s -w -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER $DEV_DEBUG_FLAG --address-declarator $DEV_ADDRESS_DECLARATOR --token-address $1`
+	advance_nonce
+	DEV_ACCOUNTS_INDEX_ADDRESS=`okota-accounts-index-deploy --nonce $nonce $gas_price_arg -u -s -w -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER $DEV_DEBUG_FLAG --address-declarator $DEV_ADDRESS_DECLARATOR --token-address $1`
 
 	if [ -z "$have_default_token" ]; then
+		advance_nonce
 		>&2 echo -e "\033[;96mAdd acccounts index record for default token to contract registry\033[;39m"
-		r=`eth-contract-registry-set $fee_price_arg -s -u -w -y $WALLET_KEY_FILE -e $CIC_REGISTRY_ADDRESS -i $CHAIN_SPEC  -p $RPC_PROVIDER $DEV_DEBUG_FLAG --identifier AccountRegistry $DEV_ACCOUNTS_INDEX_ADDRESS`
+		r=`eth-contract-registry-set --nonce $nonce $fee_price_arg -s -u -y $WALLET_KEY_FILE -e $CIC_REGISTRY_ADDRESS -i $CHAIN_SPEC  -p $RPC_PROVIDER $DEV_DEBUG_FLAG --identifier AccountRegistry $DEV_ACCOUNTS_INDEX_ADDRESS`
 		add_pending_tx_hash $r
 	fi
 }
@@ -75,22 +79,28 @@ function deploy_minter_faucet() {
 	FAUCET_AMOUNT=${FAUCET_AMOUNT:-0}
 
 	# Token faucet contract
+	advance_nonce
 	>&2 echo -e "\033[;96mDeploy token faucet contract for token $TOKEN_SYMBOL\033[;39m"
 	accounts_index_address=`eth-contract-registry-list -u -i $CHAIN_SPEC -p $RPC_PROVIDER -e $CIC_REGISTRY_ADDRESS $DEV_DEBUG_FLAG --raw AccountRegistry`
-	faucet_address=`sarafu-faucet-deploy $fee_price_arg -s -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER -w $DEV_DEBUG_FLAG --account-index-address $accounts_index_address $1`
+	faucet_address=`sarafu-faucet-deploy --nonce $nonce $fee_price_arg -s -w -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER $DEV_DEBUG_FLAG --account-index-address $accounts_index_address $1`
 
+	# sarafu-faucet-deploy consumes TWO nonces
+	advance_nonce
+	advance_nonce
 	>&2 echo -e "\033[;96mSet token faucet amount to $FAUCET_AMOUNT\033[;39m"
-	r=`sarafu-faucet-set $fee_price_arg -s -w -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER -e $faucet_address $DEV_DEBUG_FLAG -s --fee-limit 100000 $FAUCET_AMOUNT`
+	r=`sarafu-faucet-set --nonce $nonce $fee_price_arg -s -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER -e $faucet_address $DEV_DEBUG_FLAG --fee-limit 100000 $FAUCET_AMOUNT`
 	add_pending_tx_hash $r
 
 	if [ -z $have_default_token ]; then
+		advance_nonce
 		>&2 echo -e "\033[;96mRegister faucet in registry\033[;39m"
-		r=`eth-contract-registry-set -s -u $fee_price_arg -w -y $WALLET_KEY_FILE -e $CIC_REGISTRY_ADDRESS -i $CHAIN_SPEC -p $RPC_PROVIDER $DEV_DEBUG_FLAG --identifier Faucet $faucet_address`
+		r=`eth-contract-registry-set --nonce $nonce -s -u $fee_price_arg -y $WALLET_KEY_FILE -e $CIC_REGISTRY_ADDRESS -i $CHAIN_SPEC -p $RPC_PROVIDER $DEV_DEBUG_FLAG --identifier Faucet $faucet_address`
 		add_pending_tx_hash $r
 	fi
 
+	advance_nonce
 	>&2 echo -e "\033[;96mSet faucet as token minter\033[;39m"
-	r=`giftable-token-minter -s -u $fee_price_arg -w -y $WALLET_KEY_FILE -e $TOKEN_ADDRESS -i $CHAIN_SPEC -p $RPC_PROVIDER $DEV_DEBUG_FLAG $faucet_address`
+	r=`giftable-token-minter --nonce $nonce -s -u $fee_price_arg -y $WALLET_KEY_FILE -e $TOKEN_ADDRESS -i $CHAIN_SPEC -p $RPC_PROVIDER $DEV_DEBUG_FLAG $faucet_address`
 	add_pending_tx_hash $r
 }
 
@@ -99,21 +109,23 @@ TOKEN_TYPE=${TOKEN_TYPE:-giftable_erc20_token}
 deploy_token_${TOKEN_TYPE}
 
 if [ -z "$have_default_token" ]; then
+	advance_nonce
 	>&2 echo -e "\033[;96mAdd default token to contract registry\033[;39m"
-	r=`eth-contract-registry-set $fee_price_arg -s -u -w -y $WALLET_KEY_FILE -e $CIC_REGISTRY_ADDRESS -i $CHAIN_SPEC -p $RPC_PROVIDER $DEV_DEBUG_FLAG --identifier DefaultToken $TOKEN_ADDRESS`
+	r=`eth-contract-registry-set --nonce $nonce $fee_price_arg -s -u -y $WALLET_KEY_FILE -e $CIC_REGISTRY_ADDRESS -i $CHAIN_SPEC -p $RPC_PROVIDER $DEV_DEBUG_FLAG --identifier DefaultToken $TOKEN_ADDRESS`
 	add_pending_tx_hash $r
 fi
 
-
+advance_nonce
 >&2 echo -e "\033[;96mAdd token symbol $TOKEN_SYMBOL to token address $TOKEN_ADDRESS mapping to token index\033[;39m"
 token_index_address=`eth-contract-registry-list -u -i $CHAIN_SPEC -p $RPC_PROVIDER -e $CIC_REGISTRY_ADDRESS $DEV_DEBUG_FLAG --raw TokenRegistry`
-r=`eth-token-index-add $fee_price_arg -s -u -w -y $WALLET_KEY_FILE  -i $CHAIN_SPEC -p $RPC_PROVIDER $DEV_DEBUG_FLAG -e $token_index_address $TOKEN_ADDRESS`
+r=`eth-token-index-add --nonce $nonce $fee_price_arg -s -u -y $WALLET_KEY_FILE  -i $CHAIN_SPEC -p $RPC_PROVIDER $DEV_DEBUG_FLAG -e $token_index_address $TOKEN_ADDRESS`
 add_pending_tx_hash $r
 
 
 TOKEN_MINT_AMOUNT=${TOKEN_MINT_AMOUNT:-${DEV_TOKEN_MINT_AMOUNT}}
+advance_nonce
 >&2 echo -e "\033[;96mMinting $TOKEN_MINT_AMOUNT tokens\033[;39m"
-r=`giftable-token-gift $fee_price_arg -p $RPC_PROVIDER -y $WALLET_KEY_FILE -i $CHAIN_SPEC -u $DEV_DEBUG_FLAG -s -w -e $TOKEN_ADDRESS "$DEV_TOKEN_MINT_AMOUNT"`
+r=`giftable-token-gift --nonce $nonce $fee_price_arg -p $RPC_PROVIDER -y $WALLET_KEY_FILE -i $CHAIN_SPEC -u $DEV_DEBUG_FLAG -s -e $TOKEN_ADDRESS "$DEV_TOKEN_MINT_AMOUNT"`
 add_pending_tx_hash $r
 
 
@@ -128,6 +140,7 @@ else
 	deploy_minter_${TOKEN_MINTER_MODE} $TOKEN_ADDRESS
 fi
 
+check_wait 3
 
 >&2 echo -e "\033[;96mWriting env_reset file\033[;39m"
 confini-dump --schema-dir ./config > ${DEV_DATA_DIR}/env_reset

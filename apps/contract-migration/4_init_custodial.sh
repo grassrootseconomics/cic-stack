@@ -42,12 +42,13 @@ add_pending_tx_hash $r
 
 
 # Transfer gas to custodial gas provider adddress
+advance_nonce
 >&2 echo -e "\033[;96mGift gas to gas gifter $gas_gifter\033[;39m"
-echo "eth-gas -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER -w $DEV_DEBUG_FLAG -a $gas_gifter $DEV_GAS_AMOUNT"
 r=`eth-gas -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER -w $DEV_DEBUG_FLAG -a $gas_gifter $DEV_GAS_AMOUNT`
 add_pending_tx_hash $r
 
 >&2 echo -e "\033[;96mgift gas to accounts index owner $accounts_index_writer\033[;39m"
+advance_nonce
 # for now we are using the same key for both
 DEV_ETH_ACCOUNT_ACCOUNT_REGISTRY_WRITER=$DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER
 r=`eth-gas -s -u -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER -w $DEV_DEBUG_FLAG -a $accounts_index_writer $DEV_GAS_AMOUNT`
@@ -59,6 +60,7 @@ cic-eth-ctl -vv -i $CHAIN_SPEC unlock INIT
 cic-eth-ctl -vv -i $CHAIN_SPEC unlock SEND
 cic-eth-ctl -vv -i $CHAIN_SPEC unlock QUEUE
 
+check_wait 4
 
 >&2 echo -e "\033[;96mWriting env_reset file\033[;39m"
 confini-dump --schema-dir ./config > ${DEV_DATA_DIR}/env_reset

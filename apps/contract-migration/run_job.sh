@@ -4,10 +4,10 @@
 
 set -a
 DEV_DEBUG_FLAG=""
-DEV_DEBUG_LEVEL=${DEV_DEBUG_LEVEL=0}
-if [ $DEV_DEBUG_LEVEL -eq 1 ]; then
+DEV_DEBUG_LEVEL=${DEV_DEBUG_LEVEL:-0}
+if [ "$DEV_DEBUG_LEVEL" -eq 1 ]; then
 	DEV_DEBUG_FLAG="-v"
-elif [ $DEV_DEBUG_LEVEL -gt 1 ]; then
+elif [ "$DEV_DEBUG_LEVEL" -gt 1 ]; then
 	DEV_DEBUG_FLAG="-vv"
 fi
 
@@ -34,6 +34,14 @@ confini-dump --schema-dir ./config
 
 clear_pending_tx_hashes
 
+RUN_MASK_HIGHEST=0
+for ((i=$LAST_BIT_POS; i>0; i--)); do
+	b=$((2**$((i-1))))
+	if [ $((b & $RUN_MASK)) -gt 0 ]; then
+		RUN_MASK_HIGHEST=$i
+		break
+	fi
+done
 
 bit=1
 for ((i=0; i<$LAST_BIT_POS; i++)); do

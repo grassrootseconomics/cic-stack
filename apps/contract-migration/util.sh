@@ -32,11 +32,28 @@ function must_eth_rpc() {
 
 
 function clear_pending_tx_hashes() {
-	truncate -s 0 $DEV_DATA_DIR/hashes
+	>&2 echo -e "\033[;96mClearing pending hashes\033[;39m"
+	truncate -s 0 ${DEV_DATA_DIR}/hashes
 }
 
 
 function add_pending_tx_hash() {
 	must_hash_256 $1
-	echo $1 >> $DEV_DATA_DIR/hashes
+	echo $1 >> ${DEV_DATA_DIR}/hashes
+}
+
+function advance_nonce() {
+	nonce=`cat $noncefile`
+	next_nonce=$((nonce+1))
+	echo -n $next_nonce > $noncefile
+	if [ "$DEV_DEBUG_LEVEL" -gt 1 ]; then
+		>&2 echo retrieved nonce $nonce
+	fi
+}
+
+function check_wait() {
+	if [ "$1" -eq $RUN_MASK_HIGHEST ]; then
+		eth-wait $DEV_DEBUG_FLAG -p $RPC_PROVIDER ${DEV_DATA_DIR}/hashes
+		clear_pending_tx_hashes
+	fi
 }
