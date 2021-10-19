@@ -53,6 +53,7 @@ services:
     environment:
       DEV_DATA_DIR: ${DEV_DATA_DIR:-/tmp/cic/config}
       DEV_CONFIG_RESET: $DEV_CONFIG_RESET
+      DEV_DEBUG_LEVEL: $DEV_DEBUG_LEVEL
       RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
       CHAIN_SPEC: ${CHAIN_SPEC:-"evm:byzantium:8996:bloxberg"}
       REDIS_HOST: ${REDIS_HOST:-redis}
