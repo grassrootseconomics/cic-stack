@@ -174,7 +174,6 @@ async function processRequest(req, res) {
 		}
 	});
 	req.on('end', async (d) => {
-		console.debug('hedaers ', req.headers);
 		let inputContentType = req.headers['content-type'];
 		let debugString = 'executing mode ' + mod ;
 		if (data !== undefined) {
@@ -211,6 +210,7 @@ async function processRequest(req, res) {
 						res.end();
 						return;
 					}
+					content = '';
 					break;
 				//case 'get:automerge:server':
 				//	content = await handlers.handleServerMergeGet(db, digest, keystore);	
@@ -262,6 +262,9 @@ async function processRequest(req, res) {
 		//	(new TextEncoder().encode(content)).length;
 		//}
 		const responseContentLength = content.length;
+		//if (responseContentLength === undefined) {
+		//	responseContentLength = 0;
+		//}
 		res.writeHead(statusCode, {
 			"Access-Control-Allow-Origin": "*",
 			"Content-Type": contentType,

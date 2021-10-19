@@ -37,7 +37,6 @@ function handleNoMergeGet(db, digest, keystore) {
 					format: 'binary',
 				};
 				pgp.decrypt(opts).then((plainText) => {
-					console.debug('immutable ', rs.rows[0]['owner_fingerprint'], immutable);
 					let r;
 				     	if (immutable) {
 						r = plainText.data;
