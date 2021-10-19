@@ -17,11 +17,12 @@ logg = logging.getLogger()
 rootdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 dbdir = os.path.join(rootdir, 'cic_cache', 'db')
 migrationsdir = os.path.join(dbdir, 'migrations')
+configdir = os.path.join(rootdir, 'cic_cache', 'data', 'config')
 
-config_dir = os.path.join('/usr/local/etc/cic-cache')
+#config_dir = os.path.join('/usr/local/etc/cic-cache')
 
 argparser = argparse.ArgumentParser()
-argparser.add_argument('-c', type=str, default=config_dir, help='config file')
+argparser.add_argument('-c', type=str, help='config file')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('--migrations-dir', dest='migrations_dir', default=migrationsdir, type=str, help='path to alembic migrations directory')
 argparser.add_argument('--reset', action='store_true', help='downgrade before upgrading')
@@ -35,7 +36,7 @@ if args.vv:
 elif args.v:
     logging.getLogger().setLevel(logging.INFO)
 
-config = confini.Config(args.c, args.env_prefix)
+config = confini.Config(configdir, args.env_prefix)
 config.process()
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
