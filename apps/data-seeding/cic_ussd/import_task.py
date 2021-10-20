@@ -14,7 +14,9 @@ from celery import Task
 from chainlib.chain import ChainSpec
 from chainlib.eth.address import to_checksum_address
 from chainlib.eth.tx import raw, unpack
-from cic_types.models.person import Person, generate_metadata_pointer
+from cic_types.models.person import Person, identity_tag
+from cic_types.processor import generate_metadata_pointer
+from cic_types.condiments import MetadataPointer
 from hexathon import add_0x, strip_0x
 
 # local imports
@@ -55,7 +57,7 @@ class MetadataTask(ImportTask):
 
 
 def old_address_from_phone(base_path: str, phone_number: str):
-    pid_x = generate_metadata_pointer(phone_number.encode('utf-8'), ':cic.phone')
+    pid_x = generate_metadata_pointer(phone_number.encode('utf-8'), MetadataPointer.PHONE)
     phone_idx_path = os.path.join(f'{base_path}/phone/{pid_x[:2]}/{pid_x[2:4]}/{pid_x}')
     with open(phone_idx_path, 'r') as f:
         old_address = f.read()
@@ -73,9 +75,13 @@ def generate_person_metadata(self, blockchain_address: str, phone_number: str):
     person = Person.deserialize(person_metadata)
     if not person.identities.get('evm'):
         person.identities['evm'] = {}
-    sub_chain_str = f'{self.chain_spec.common_name()}:{self.chain_spec.network_id()}'
-    person.identities['evm'][sub_chain_str] = [add_0x(blockchain_address)]
-    blockchain_address = strip_0x(blockchain_address)
+    chain_spec = self.chain_spec.asdict()
+    arch = chain_spec.get('arch')
+    fork = chain_spec.get('fork')
+    tag = identity_tag(chain_spec)
+    person.identities[arch][fork] = {
+        tag: [blockchain_address]
+    }
     file_path = os.path.join(
         self.import_dir,
         'new',
@@ -102,7 +108,7 @@ def generate_preferences_data(self, data: tuple):
     blockchain_address: str = data[0]
     preferences = data[1]
     preferences_dir = os.path.join(self.import_dir, 'preferences')
-    preferences_key = generate_metadata_pointer(bytes.fromhex(strip_0x(blockchain_address)), ':cic.preferences')
+    preferences_key = generate_metadata_pointer(bytes.fromhex(strip_0x(blockchain_address)), MetadataPointer.PREFERENCES)
     preferences_filepath = os.path.join(preferences_dir, 'meta', preferences_key)
     filepath = os.path.join(
         preferences_dir,
@@ -137,7 +143,7 @@ def generate_ussd_data(self, blockchain_address: str, phone_number: str):
     preferred_language = random.sample(["en", "sw"], 1)[0]
     preferences = {'preferred_language': preferred_language}
     with open(ussd_data_file, file_op) as ussd_data_file:
-        ussd_data_file.write(f'{phone_number}, { 1}, {preferred_language}, {False}\n')
+        ussd_data_file.write(f'{phone_number}, 1, {preferred_language}, False\n')
         logg.debug(f'written ussd data for address: {blockchain_address}')
     return blockchain_address, preferences
 
@@ -163,7 +169,7 @@ def opening_balance_tx(self, blockchain_address: str, phone_number: str, serial:
 
 @celery_app.task(bind=True, base=MetadataTask)
 def resolve_phone(self, phone_number: str):
-    identifier = generate_metadata_pointer(phone_number.encode('utf-8'), ':cic.phone')
+    identifier = generate_metadata_pointer(phone_number.encode('utf-8'), MetadataPointer.PHONE)
     url = parse.urljoin(self.meta_url(), identifier)
     logg.debug(f'attempt getting phone pointer at: {url} for phone: {phone_number}')
     r = request.urlopen(url)

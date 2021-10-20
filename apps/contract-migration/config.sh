@@ -14,6 +14,7 @@ if [ ! -f $WALLET_KEY_FILE ]; then
 	>&2 echo "wallet path '$WALLET_KEY_FILE' does not point to a file"
 	exit 1
 fi
+
 export DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER=`eth-keyfile -z -d $WALLET_KEY_FILE`
 noncefile=${DEV_DATA_DIR}/nonce_${DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER}
 

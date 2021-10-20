@@ -7,6 +7,7 @@ from typing import Optional
 # third-party imports
 from cic_eth.api import Api
 from cic_eth_aux.erc20_demurrage_token.api import Api as DemurrageApi
+from cic_types.condiments import MetadataPointer
 
 # local imports
 from cic_ussd.account.transaction import from_wei
@@ -102,7 +103,7 @@ def get_cached_available_balance(blockchain_address: str) -> float:
     :rtype: float
     """
     identifier = bytes.fromhex(blockchain_address)
-    key = cache_data_key(identifier, salt=':cic.balances')
+    key = cache_data_key(identifier, salt=MetadataPointer.BALANCES)
     cached_balances = get_cached_data(key=key)
     if cached_balances:
         return calculate_available_balance(json.loads(cached_balances))
@@ -117,5 +118,5 @@ def get_cached_adjusted_balance(identifier: bytes):
     :return:
     :rtype:
     """
-    key = cache_data_key(identifier, ':cic.adjusted_balance')
+    key = cache_data_key(identifier, MetadataPointer.BALANCES_ADJUSTED)
     return get_cached_data(key)

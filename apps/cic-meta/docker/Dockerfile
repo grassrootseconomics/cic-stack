@@ -1,5 +1,4 @@
 FROM node:15.3.0-alpine3.10
-#FROM node:lts-alpine3.14
 
 WORKDIR /root
 
@@ -9,7 +8,7 @@ RUN apk add --no-cache postgresql bash
 COPY package.json package-lock.json ./
 RUN --mount=type=cache,mode=0755,target=/root/.npm \
     npm set cache /root/.npm && \
-	npm cache verify && \
+    npm cache verify && \
     npm ci --verbose
 
 COPY webpack.config.js .

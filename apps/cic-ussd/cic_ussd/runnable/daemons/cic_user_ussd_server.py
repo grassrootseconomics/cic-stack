@@ -12,6 +12,7 @@ import i18n
 import redis
 from chainlib.chain import ChainSpec
 from confini import Config
+from cic_types.condiments import MetadataPointer
 from cic_types.ext.metadata import Metadata
 from cic_types.ext.metadata.signer import Signer
 
@@ -109,7 +110,7 @@ default_token_data = query_default_token(chain_str)
 
 # cache default token for re-usability
 if default_token_data:
-    cache_key = cache_data_key(chain_str.encode('utf-8'), ':cic.default_token_data')
+    cache_key = cache_data_key(chain_str.encode('utf-8'), MetadataPointer.TOKEN_DEFAULT)
     cache_data(key=cache_key, data=json.dumps(default_token_data))
 else:
     raise InitializationError(f'Default token data for: {chain_str} not found.')

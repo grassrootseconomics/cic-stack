@@ -47,7 +47,7 @@ argparser.add_argument('-p', '--provider', dest='p', default='http://localhost:8
 argparser.add_argument('-y', '--key-file', dest='y', type=str, help='Ethereum keystore file to use for signing')
 argparser.add_argument('-c', type=str, help='config override directory')
 argparser.add_argument('-f', action='store_true', help='force clear previous state')
-argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:oldchain:1', help='chain spec')
+argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:foo:1:oldchain', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='Chain specification string')
 argparser.add_argument('-r', '--registry', dest='r', type=str, help='Contract registry address')
 argparser.add_argument('--batch-size', dest='batch_size', default=50, type=int, help='burst size of sending transactions to node')
@@ -70,7 +70,7 @@ else:
 config.process()
 args_override = {
         'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
-        'CIC_CHAIN_SPEC': getattr(args, 'i'),
+        'CHAIN_SPEC': getattr(args, 'i'),
         'KEYSTORE_FILE_PATH': getattr(args, 'y')
         }
 config.dict_override(args_override, 'cli')
@@ -78,7 +78,7 @@ config.add(args.user_dir, '_USERDIR', True)
 
 #user_dir = args.user_dir
 
-chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
+chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
 chain_str = str(chain_spec)
 
 old_chain_spec = ChainSpec.from_chain_str(args.old_chain_spec)
@@ -106,7 +106,7 @@ account_registry_address = registry.parse_address_of(r)
 logg.info('using account registry {}'.format(account_registry_address))
 
 dirs = initialize_dirs(config.get('_USERDIR'), force_reset=args.f)
-
+dirs['phone'] = os.path.join(config.get('_USERDIR'))
 
 def register_eth(i, u):
 
@@ -165,8 +165,8 @@ if __name__ == '__main__':
             new_address = register_eth(i, u)
             if u.identities.get('evm') == None:
                 u.identities['evm'] = {}
-            sub_chain_str = '{}:{}'.format(chain_spec.common_name(), chain_spec.network_id())
-            u.identities['evm'][sub_chain_str] = [new_address]
+            sub_chain_str = '{}:{}'.format(chain_spec.network_id(), chain_spec.common_name())
+            u.identities['evm']['foo'][sub_chain_str] = [new_address]
 
             new_address_clean = strip_0x(new_address)
             filepath = os.path.join(
@@ -188,7 +188,6 @@ if __name__ == '__main__':
 
             phone_object = phonenumbers.parse(u.tel)
             phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
-            logg.debug('>>>>> Using phone {}'.format(phone))
             meta_phone_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.PHONE)
             meta_phone_filepath = os.path.join(dirs['phone'], 'meta', meta_phone_key)
 
@@ -221,9 +220,9 @@ if __name__ == '__main__':
                     )
             os.makedirs(os.path.dirname(filepath), exist_ok=True)
            
-            sub_old_chain_str = '{}:{}'.format(old_chain_spec.common_name(), old_chain_spec.network_id())
+            sub_old_chain_str = '{}:{}'.format(old_chain_spec.network_id(), old_chain_spec.common_name())
             f = open(filepath, 'w')
-            k = u.identities['evm'][sub_old_chain_str][0]
+            k = u.identities['evm']['foo'][sub_old_chain_str][0]
             tag_data = {'tags': user_tags[strip_0x(k)]}
             f.write(json.dumps(tag_data))
             f.close()

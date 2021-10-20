@@ -3,6 +3,7 @@ import hashlib
 import json
 
 # external imports
+from cic_types.condiments import MetadataPointer
 
 # local imports
 from cic_ussd.cache import cache_data, cache_data_key, get_cached_data
@@ -12,7 +13,7 @@ from cic_ussd.cache import cache_data, cache_data_key, get_cached_data
 
 def test_cache_data(init_cache):
     identifier = 'some_key'.encode()
-    key = cache_data_key(identifier, ':testing')
+    key = cache_data_key(identifier, MetadataPointer.PERSON)
     assert get_cached_data(key) is None
     cache_data(key, json.dumps('some_value'))
     assert get_cached_data(key) is not None
@@ -20,10 +21,10 @@ def test_cache_data(init_cache):
 
 def test_cache_data_key():
     identifier = 'some_key'.encode()
-    key = cache_data_key(identifier, ':testing')
+    key = cache_data_key(identifier, MetadataPointer.PERSON)
     hash_object = hashlib.new("sha256")
     hash_object.update(identifier)
-    hash_object.update(':testing'.encode(encoding="utf-8"))
+    hash_object.update(':cic.person'.encode(encoding="utf-8"))
     assert hash_object.digest().hex() == key
 
 

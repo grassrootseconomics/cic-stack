@@ -4,8 +4,7 @@ import time
 
 # external imports
 import pytest
-import requests_mock
-from chainlib.hash import strip_0x
+from cic_types.condiments import MetadataPointer
 
 # local imports
 from cic_ussd.account.statement import (filter_statement_transactions,
@@ -48,7 +47,7 @@ def test_generate(activated_account,
             generate(querying_party, None, sender_transaction)
     time.sleep(2)
     identifier = bytes.fromhex(activated_account.blockchain_address)
-    key = cache_data_key(identifier, ':cic.statement')
+    key = cache_data_key(identifier, MetadataPointer.STATEMENT)
     statement = get_cached_data(key)
     statement = json.loads(statement)
     assert len(statement) == 1

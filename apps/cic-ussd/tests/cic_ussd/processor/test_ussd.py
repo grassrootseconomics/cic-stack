@@ -7,6 +7,7 @@ import time
 import i18n
 import requests_mock
 from chainlib.hash import strip_0x
+from cic_types.condiments import MetadataPointer
 
 # local imports
 from cic_ussd.account.chain import Chain
@@ -45,7 +46,7 @@ def test_handle_menu(activated_account,
     ussd_menu = UssdMenu.find_by_name('initial_language_selection')
     assert menu_resp.get('name') == ussd_menu.get('name')
     identifier = bytes.fromhex(strip_0x(pending_account.blockchain_address))
-    key = cache_data_key(identifier, ':cic.preferences')
+    key = cache_data_key(identifier, MetadataPointer.PREFERENCES)
     cache_data(key, json.dumps(preferences))
     time.sleep(2)
     menu_resp = handle_menu(pending_account, init_database)
