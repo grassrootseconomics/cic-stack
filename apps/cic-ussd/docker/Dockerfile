@@ -1,6 +1,6 @@
 ARG DOCKER_REGISTRY="registry.gitlab.com/grassrootseconomics"
 
-FROM $DOCKER_REGISTRY/cic-base-images:python-3.8.6-dev-55da5f4e
+FROM $DOCKER_REGISTRY/cic-base-images:python-3.8.6-dev-e8eb2ee2
 
 RUN apt-get install -y redis-server
 # create secrets directory
@@ -37,7 +37,7 @@ COPY cic_ussd/db/ussd_menu.json data/
 COPY docker/*.sh ./
 RUN chmod +x /root/*.sh
 
-# copy config and migration files to definitive file so they can be referenced in path definitions for running scripts
+## copy config and migration files to definitive file so they can be referenced in path definitions for running scripts
 COPY config/ /usr/local/etc/cic-ussd/
 COPY cic_ussd/db/migrations/ /usr/local/share/cic-ussd/alembic
 

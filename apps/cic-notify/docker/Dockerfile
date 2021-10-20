@@ -1,5 +1,6 @@
-# syntax = docker/dockerfile:1.2
-FROM registry.gitlab.com/grassrootseconomics/cic-base-images:python-3.8.6-dev-55da5f4e as dev
+ARG DOCKER_REGISTRY="registry.gitlab.com/grassrootseconomics"
+
+FROM $DOCKER_REGISTRY/cic-base-images:python-3.8.6-dev-e8eb2ee2
 
 #RUN pip install $pip_extra_index_url_flag cic-base[full_graph]==0.1.2a62
 

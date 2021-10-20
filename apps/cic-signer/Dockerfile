@@ -1,6 +1,6 @@
 ARG DOCKER_REGISTRY=registry.gitlab.com/grassrootseconomics
 
-FROM $DOCKER_REGISTRY/cic-base-images:python-3.8.6-dev-55da5f4e as dev
+FROM $DOCKER_REGISTRY/cic-base-images:python-3.8.6-dev-e8eb2ee2 as dev
 
 WORKDIR /root
 

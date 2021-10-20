@@ -1,6 +1,6 @@
 ARG DOCKER_REGISTRY="registry.gitlab.com/grassrootseconomics"
 
-FROM $DOCKER_REGISTRY/cic-base-images:python-3.8.6-dev-55da5f4e
+FROM $DOCKER_REGISTRY/cic-base-images:python-3.8.6-dev-e8eb2ee2
 
 # Copy just the requirements and install....this _might_ give docker a hint on caching but we 
 # do load these all into setup.py later
@@ -10,8 +10,6 @@ FROM $DOCKER_REGISTRY/cic-base-images:python-3.8.6-dev-55da5f4e
 ARG EXTRA_PIP_INDEX_URL=https://pip.grassrootseconomics.net:8433
 ARG EXTRA_PIP_ARGS=""
 ARG PIP_INDEX_URL=https://pypi.org/simple
-
-RUN apt-get install libffi-dev
 
 RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
     pip install --index-url $PIP_INDEX_URL \
