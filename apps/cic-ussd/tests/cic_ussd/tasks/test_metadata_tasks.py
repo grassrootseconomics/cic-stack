@@ -1,11 +1,11 @@
 # standard imports
 import json
-import os
 
 # external imports
 import celery
 import requests_mock
 from chainlib.hash import strip_0x
+from cic_types.condiments import MetadataPointer
 
 # local imports
 from cic_ussd.cache import cache_data_key, get_cached_data
@@ -27,7 +27,7 @@ def test_query_person_metadata(activated_account,
         s_query_person_metadata = celery.signature(
             'cic_ussd.tasks.metadata.query_person_metadata', [activated_account.blockchain_address])
         s_query_person_metadata.apply().get()
-        key = cache_data_key(identifier, ':cic.person')
+        key = cache_data_key(identifier, MetadataPointer.PERSON)
         cached_person_metadata = get_cached_data(key)
         cached_person_metadata = json.loads(cached_person_metadata)
         assert cached_person_metadata == person_metadata
@@ -46,7 +46,7 @@ def test_query_preferences_metadata(activated_account,
         query_preferences_metadata = celery.signature(
             'cic_ussd.tasks.metadata.query_preferences_metadata', [activated_account.blockchain_address])
         query_preferences_metadata.apply().get()
-        key = cache_data_key(identifier, ':cic.preferences')
+        key = cache_data_key(identifier, MetadataPointer.PREFERENCES)
         cached_preferences_metadata = get_cached_data(key)
         cached_preferences_metadata = json.loads(cached_preferences_metadata)
         assert cached_preferences_metadata == preferences

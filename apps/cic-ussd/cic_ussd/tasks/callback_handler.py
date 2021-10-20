@@ -3,8 +3,10 @@ import json
 import logging
 from datetime import timedelta
 
-# third-party imports
+# external imports
 import celery
+from cic_types.condiments import MetadataPointer
+
 
 # local imports
 from cic_ussd.account.balance import get_balances, calculate_available_balance
@@ -87,7 +89,7 @@ def balances_callback(result: list, param: str, status_code: int):
 
     balances = result[0]
     identifier = bytes.fromhex(param)
-    key = cache_data_key(identifier, ':cic.balances')
+    key = cache_data_key(identifier, MetadataPointer.BALANCES)
     cache_data(key, json.dumps(balances))
 
 

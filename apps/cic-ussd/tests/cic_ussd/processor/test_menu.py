@@ -3,7 +3,7 @@ import json
 import datetime
 
 # external imports
-from chainlib.hash import strip_0x
+from cic_types.condiments import MetadataPointer
 
 # local imports
 from cic_ussd.account.balance import get_cached_available_balance
@@ -58,7 +58,7 @@ def test_menu_processor(activated_account,
                                    token_symbol=token_symbol)
 
     identifier = bytes.fromhex(activated_account.blockchain_address)
-    key = cache_data_key(identifier, ':cic.adjusted_balance')
+    key = cache_data_key(identifier, MetadataPointer.BALANCES_ADJUSTED)
     adjusted_balance = 45931650.64654012
     cache_data(key, json.dumps(adjusted_balance))
     resp = response(activated_account, 'ussd.kenya.account_balances', name, init_database, generic_ussd_session)
