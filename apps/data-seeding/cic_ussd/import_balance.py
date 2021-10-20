@@ -57,8 +57,8 @@ elif args.v:
 config = Config(args.c, args.env_prefix)
 config.process()
 args_override = {
-    'CIC_CHAIN_SPEC': getattr(args, 'i'),
-    'ETH_PROVIDER': getattr(args, 'p'),
+    'CHAIN_SPEC': getattr(args, 'i'),
+    'RPC_PROVIDER': getattr(args, 'p'),
     'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
     'REDIS_HOST': getattr(args, 'redis_host'),
     'REDIS_PORT': getattr(args, 'redis_port'),
@@ -90,7 +90,7 @@ signer = EIP155Signer(keystore)
 
 block_offset = -1 if args.head else args.offset
 
-chain_str = config.get('CIC_CHAIN_SPEC')
+chain_str = config.get('CHAIN_SPEC')
 chain_spec = ChainSpec.from_chain_str(chain_str)
 ImportTask.chain_spec = chain_spec
 old_chain_spec_str = args.old_chain_spec
@@ -99,16 +99,12 @@ old_chain_spec = ChainSpec.from_chain_str(old_chain_spec_str)
 MetadataTask.meta_host = config.get('META_HOST')
 MetadataTask.meta_port = config.get('META_PORT')
 
-txs_dir = os.path.join(args.import_dir, 'txs')
-os.makedirs(txs_dir, exist_ok=True)
-sys.stdout.write(f'created txs dir: {txs_dir}')
-
 celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 get_celery_worker_status(celery_app)
 
 
 def main():
-    conn = EthHTTPConnection(config.get('ETH_PROVIDER'))
+    conn = EthHTTPConnection(config.get('RPC_PROVIDER'))
     ImportTask.balance_processor = BalanceProcessor(conn,
                                                     chain_spec,
                                                     config.get('CIC_REGISTRY_ADDRESS'),
