@@ -54,7 +54,7 @@ services:
       DEV_DATA_DIR: ${DEV_DATA_DIR:-/tmp/cic/config}
       DEV_CONFIG_RESET: $DEV_CONFIG_RESET
       RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
-      CHAIN_SPEC: ${CHAIN_SPEC:-"evm:byzantium:8996:bloxberg"}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
       REDIS_HOST: ${REDIS_HOST:-redis}
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_DB: ${REDIS_DB:-0}
@@ -126,7 +126,7 @@ services:
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
       RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
-      CHAIN_SPEC: ${CHAIN_SPEC:-"evm:byzantium:8996:bloxberg"}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
       DATABASE_NAME: ${DATABASE_NAME:-cic_eth}
@@ -176,7 +176,7 @@ services:
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
       RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
-      CHAIN_SPEC: ${CHAIN_SPEC:-"evm:byzantium:8996:bloxberg"}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
       DATABASE_NAME: ${DATABASE_NAME:-cic_eth}
@@ -223,7 +223,7 @@ services:
         EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     environment:
       RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
-      CHAIN_SPEC: ${CHAIN_SPEC:-"evm:byzantium:8996:bloxberg"}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
       DATABASE_NAME: ${DATABASE_NAME:-cic_eth}
@@ -267,7 +267,7 @@ services:
         EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     environment:
       RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
-      CHAIN_SPEC: ${CHAIN_SPEC:-"evm:byzantium:8996:bloxberg"}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
       DATABASE_NAME: ${DATABASE_NAME:-cic_eth}
@@ -315,7 +315,7 @@ services:
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
       RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
-      CHAIN_SPEC: ${CHAIN_SPEC:-"evm:byzantium:8996:bloxberg"}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
       DATABASE_NAME: ${DATABASE_NAME:-cic_cache}
@@ -363,7 +363,7 @@ services:
     environment:
       CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
       RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
-      CHAIN_SPEC: ${CHAIN_SPEC:-"evm:byzantium:8996:bloxberg"}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
       DATABASE_NAME: ${DATABASE_NAME:-cic_cache}
@@ -498,7 +498,7 @@ services:
       DATABASE_POOL_SIZE: 0
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_BROKER_URL:-redis://redis}
-      CHAIN_SPEC: ${CHAIN_SPEC:-"evm:byzantium:8996:bloxberg"}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
       REDIS_PORT: 6379
       REDIS_HOST: redis
       PGP_PASSPHRASE: merman
@@ -564,7 +564,7 @@ services:
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
       DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
       DATABASE_POOL_SIZE: 0
-      CHAIN_SPEC: ${CHAIN_SPEC:-"evm:byzantium:8996:bloxberg"}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
       REDIS_PORT: 6379
@@ -613,3 +613,57 @@ services:
       - redis
     command: "/root/start_tasker.sh -q cic-notify -vv"
 
+  data-seeding:
+      image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/data-seeding:${TAG:-latest}
+      build:
+        context: apps/data-seeding
+        dockerfile: docker/Dockerfile
+        args:
+          DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+          PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+          EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
+          EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+      environment:
+        DATABASE_HOST: ${DATABASE_HOST:-postgres}
+        DATABASE_PORT: ${DATABASE_PORT:-5432}
+        DATABASE_NAME: ${DATABASE_NAME:-cic_ussd}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+        DATABASE_USER: ${DATABASE_USER:-grassroots}
+        DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+        DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+        DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+        DATABASE_POOL_SIZE: 0
+        CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379}
+        CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis:6379}
+        CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
+        RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
+        OUT_DIR: out
+        NUMBER_OF_USERS: 10
+        CONFIG: config
+        CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
+        TOKEN_SYMBOL: GFT
+        KEYSTORE_PATH: keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c
+        USSD_HOST: cic-user-ussd-server
+        USSD_PORT: 9000
+        INCLUDE_BALANCES: y
+        USSD_SSL: n
+        NOTIFY_DATABASE_NAME: cic_notify
+        REDIS_HOST: redis
+        REDIS_PORT: 6379
+        REDIS_DB: 0
+        META_HOST: meta
+        META_PORT: 8000
+        META_URL: http://meta:8000
+        USSD_PROVIDER: http://cic-user-ussd-server:9000
+        CELERY_QUEUE: cic-import-ussd
+        EXCLUSIONS: ussd
+      command:
+        - /bin/bash
+        - -c
+        - |
+          set -a
+          if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi
+          set +a
+          ./import_ussd.sh
+      volumes:
+        - contract-config:/tmp/cic/config/:ro
