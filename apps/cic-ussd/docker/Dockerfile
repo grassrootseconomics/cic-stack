@@ -2,7 +2,7 @@ ARG DOCKER_REGISTRY="registry.gitlab.com/grassrootseconomics"
 
 FROM $DOCKER_REGISTRY/cic-base-images:python-3.8.6-dev-55da5f4e
 
-RUN apt-get install -y redis-server
+RUN apt-get install redis-server libffi-dev -y
 # create secrets directory
 RUN mkdir -vp pgp/keys
 
@@ -15,18 +15,12 @@ ARG EXTRA_PIP_ARGS=""
 ARG PIP_INDEX_URL=https://pypi.org/simple
 
 RUN    pip install --index-url $PIP_INDEX_URL \
-    --pre \
-    --force-reinstall \
-    --no-cache \
     --extra-index-url $EXTRA_PIP_INDEX_URL $EXTRA_PIP_ARGS \
         cic-eth-aux-erc20-demurrage-token~=0.0.2a7
 
 
 COPY *requirements.txt ./
 RUN    pip install --index-url $PIP_INDEX_URL \
-    --pre \
-    --force-reinstall \
-    --no-cache \
     --extra-index-url $EXTRA_PIP_INDEX_URL $EXTRA_PIP_ARGS \
     -r requirements.txt 
 

@@ -4,6 +4,8 @@ FROM $DOCKER_REGISTRY/cic-base-images:python-3.8.6-dev-55da5f4e
 
 COPY requirements.txt .
 
+RUN apt-get install libffi-dev -y
+
 ARG EXTRA_PIP_INDEX_URL="https://pip.grassrootseconomics.net:8433"
 ARG EXTRA_PIP_ARGS=""
 ARG PIP_INDEX_URL="https://pypi.org/simple"

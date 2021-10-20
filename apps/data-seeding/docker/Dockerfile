@@ -7,20 +7,23 @@ RUN mkdir -vp /usr/local/etc/cic
 
 COPY package.json \
      package-lock.json \
-     .
+     ./
 
 
 RUN npm ci --production 
 #RUN --mount=type=cache,mode=0755,target=/root/node_modules npm install
 
+COPY common/ cic_ussd/common/
 COPY requirements.txt .
-COPY config/ /usr/local/etc/data-seeding
+COPY config/ config
 
-ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
-ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple"
-RUN --mount=type=cache,mode=0755,target=/root/.cache/pip pip install \
-    --extra-index-url $GITLAB_PYTHON_REGISTRY \
-    --extra-index-url $EXTRA_INDEX_URL -r requirements.txt
+ARG EXTRA_PIP_INDEX_URL=https://pip.grassrootseconomics.net:8433
+ARG EXTRA_PIP_ARGS=""
+ARG PIP_INDEX_URL=https://pypi.org/simple
+
+RUN  pip install --index-url $PIP_INDEX_URL  \
+	  --extra-index-url $EXTRA_PIP_INDEX_URL $EXTRA_PIP_ARGS \
+    -r requirements.txt
 
 COPY . . 
 
