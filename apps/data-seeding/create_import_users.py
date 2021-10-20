@@ -20,7 +20,7 @@ from cic_types.models.person import (
     generate_vcard_from_contact_data,
     get_contact_data_from_vcard,
 )
-from chainlib.eth.address import to_checksum_address
+from chainlib.eth.address import to_checksum_address, strip_0x
 import phonenumbers
 
 logging.basicConfig(level=logging.WARNING)
@@ -29,7 +29,6 @@ logg = logging.getLogger()
 fake = Faker(['sl', 'en_US', 'no', 'de', 'ro'])
 
 default_config_dir = './config'
-
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument('-c', type=str, default=default_config_dir, help='Config dir')
@@ -54,7 +53,6 @@ config = confini.Config(args.c, os.environ.get('CONFINI_ENV_PREFIX'))
 config.process()
 logg.debug('loaded config\n{}'.format(config))
 
-
 dt_now = datetime.datetime.utcnow()
 dt_then = dt_now - datetime.timedelta(weeks=150)
 ts_now = int(dt_now.timestamp())
@@ -64,7 +62,7 @@ celery_app = celery.Celery(broker=config.get(
     'CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
 gift_max = args.gift_threshold or 0
-gift_factor = (10**6)
+gift_factor = (10 ** 6)
 
 categories = [
     "food/water",
@@ -105,7 +103,6 @@ def genId(addr, typ):
 
 
 def genDate():
-
     ts = random.randint(ts_then, ts_now)
     return int(datetime.datetime.fromtimestamp(ts).timestamp())
 
@@ -148,9 +145,7 @@ def genDob():
 
 
 def gen():
-    old_blockchain_address = '0x' + os.urandom(20).hex()
-    old_blockchain_checksum_address = to_checksum_address(
-        old_blockchain_address)
+    old_blockchain_address = os.urandom(20).hex()
     gender = random.choice(['female', 'male', 'other'])
     phone = genPhone()
     v = genPersonal(phone)
@@ -164,9 +159,9 @@ def gen():
     p.gender = gender
     p.identities = {
         'evm': {
-            'oldchain:1': [
-                old_blockchain_checksum_address,
-            ],
+            'foo': {
+                '1:oldchain': [old_blockchain_address],
+            },
         },
     }
     p.products = [fake.random_element(elements=OrderedDict(
@@ -207,7 +202,7 @@ def gen():
         # fake.local_latitude()
         p.location['longitude'] = (random.random() * 360) - 180
 
-    return (old_blockchain_checksum_address, phone, p)
+    return old_blockchain_address, phone, p
 
 
 def prepareLocalFilePath(datadir, address):
@@ -242,7 +237,7 @@ if __name__ == '__main__':
         except Exception as e:
             logg.warning('generate failed, trying anew: {}'.format(e))
             continue
-        uid = eth[2:].upper()
+        uid = strip_0x(eth).upper()
 
         print(o)
 
