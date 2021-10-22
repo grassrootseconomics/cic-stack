@@ -4,6 +4,7 @@ import json
 # external imports
 import celery
 from chainlib.hash import strip_0x
+from cic_types.condiments import MetadataPointer
 
 # local imports
 from cic_ussd.account.transaction import transaction_actors
@@ -38,7 +39,7 @@ def test_cache_statement(activated_account,
                          transaction_result):
     recipient_transaction, sender_transaction = transaction_actors(transaction_result)
     identifier = bytes.fromhex(strip_0x(activated_account.blockchain_address))
-    key = cache_data_key(identifier, ':cic.statement')
+    key = cache_data_key(identifier, MetadataPointer.STATEMENT)
     cached_statement = get_cached_data(key)
     assert cached_statement is None
     s_parse_transaction = celery.signature(

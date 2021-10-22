@@ -110,7 +110,7 @@ def test_tokens_noproof(
         custodial_roles,
         foo_token_declaration,
         bar_token_declaration,
-        celery_worker,
+        celery_session_worker,
         ):
 
     api = Api(str(default_chain_spec), queue=None, callback_param='foo')     

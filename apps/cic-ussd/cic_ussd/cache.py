@@ -2,7 +2,8 @@
 import hashlib
 import logging
 
-# third-party imports
+# external imports
+from cic_types.condiments import MetadataPointer
 from redis import Redis
 
 logg = logging.getLogger()
@@ -38,7 +39,7 @@ def get_cached_data(key: str):
     return cache.get(name=key)
 
 
-def cache_data_key(identifier: bytes, salt: str):
+def cache_data_key(identifier: bytes, salt: MetadataPointer):
     """
     :param identifier:
     :type identifier:
@@ -49,5 +50,5 @@ def cache_data_key(identifier: bytes, salt: str):
     """
     hash_object = hashlib.new("sha256")
     hash_object.update(identifier)
-    hash_object.update(salt.encode(encoding="utf-8"))
+    hash_object.update(salt.value.encode(encoding="utf-8"))
     return hash_object.digest().hex()

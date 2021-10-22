@@ -12,6 +12,9 @@ import i18n
 import redis
 from chainlib.chain import ChainSpec
 from confini import Config
+from cic_types.condiments import MetadataPointer
+from cic_types.ext.metadata import Metadata
+from cic_types.ext.metadata.signer import Signer
 
 # local imports
 from cic_ussd.account.chain import Chain
@@ -25,8 +28,6 @@ from cic_ussd.files.local_files import create_local_file_data_stores, json_file_
 from cic_ussd.http.requests import get_request_endpoint, get_request_method
 from cic_ussd.http.responses import with_content_headers
 from cic_ussd.menu.ussd_menu import UssdMenu
-from cic_ussd.metadata.base import Metadata
-from cic_ussd.metadata.signer import Signer
 from cic_ussd.phone_number import process_phone_number, Support, E164Format
 from cic_ussd.processor.ussd import handle_menu_operations
 from cic_ussd.runnable.server_base import exportable_parser, logg
@@ -96,11 +97,7 @@ celery.Celery(backend=config.get('CELERY_RESULT_URL'), broker=config.get('CELERY
 states = json_file_parser(filepath=config.get('MACHINE_STATES'))
 transitions = json_file_parser(filepath=config.get('MACHINE_TRANSITIONS'))
 
-chain_spec = ChainSpec(
-    common_name=config.get('CIC_COMMON_NAME'),
-    engine=config.get('CIC_ENGINE'),
-    network_id=config.get('CIC_NETWORK_ID')
-)
+chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
 
 Chain.spec = chain_spec
 UssdStateMachine.states = states
@@ -113,7 +110,7 @@ default_token_data = query_default_token(chain_str)
 
 # cache default token for re-usability
 if default_token_data:
-    cache_key = cache_data_key(chain_str.encode('utf-8'), ':cic.default_token_data')
+    cache_key = cache_data_key(chain_str.encode('utf-8'), MetadataPointer.TOKEN_DEFAULT)
     cache_data(key=cache_key, data=json.dumps(default_token_data))
 else:
     raise InitializationError(f'Default token data for: {chain_str} not found.')

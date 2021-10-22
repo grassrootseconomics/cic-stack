@@ -10,7 +10,6 @@ import datetime
 
 # external imports
 import celery
-from cic_eth_registry import CICRegistry
 from chainlib.chain import ChainSpec
 from chainlib.eth.tx import unpack
 from chainlib.connection import RPCConnection

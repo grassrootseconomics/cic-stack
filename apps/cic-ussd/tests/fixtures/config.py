@@ -41,11 +41,7 @@ def init_state_machine(load_config):
 
 @pytest.fixture(scope='function')
 def load_chain_spec(load_config):
-    chain_spec = ChainSpec(
-        common_name=load_config.get('CIC_COMMON_NAME'),
-        engine=load_config.get('CIC_ENGINE'),
-        network_id=load_config.get('CIC_NETWORK_ID')
-    )
+    chain_spec = ChainSpec.from_chain_str(load_config.get('CHAIN_SPEC'))
     Chain.spec = chain_spec
 
 

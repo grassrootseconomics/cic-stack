@@ -76,7 +76,7 @@ arg_flags = cic_eth.cli.argflag_std_read
 local_arg_flags = cic_eth.cli.argflag_local_task
 argparser = cic_eth.cli.ArgumentParser(arg_flags)
 argparser.process_local_flags(local_arg_flags)
-argparser.add_argument('--default-token-symbol', dest='default_token_symbol', type=str, help='Symbol of default token to use')
+#argparser.add_argument('--default-token-symbol', dest='default_token_symbol', type=str, help='Symbol of default token to use')
 argparser.add_argument('--trace-queue-status', default=None, dest='trace_queue_status', action='store_true', help='set to perist all queue entry status changes to storage')
 argparser.add_argument('--aux-all', action='store_true', help='include tasks from all submodules from the aux module path')
 argparser.add_argument('--aux', action='append', type=str, default=[], help='add single submodule from the aux module path')
@@ -84,7 +84,7 @@ args = argparser.parse_args()
 
 # process config
 extra_args = {
-    'default_token_symbol': 'CIC_DEFAULT_TOKEN_SYMBOL',
+#    'default_token_symbol': 'CIC_DEFAULT_TOKEN_SYMBOL',
     'aux_all': None,
     'aux': None,
     'trace_queue_status': 'TASKS_TRACE_QUEUE_STATUS',
@@ -187,6 +187,17 @@ elif len(args.aux) > 0:
         logg.info('aux module {} found in path {}'.format(v, aux_dir))
         aux.append(v)
 
+default_token_symbol = config.get('CIC_DEFAULT_TOKEN_SYMBOL')
+defaullt_token_address = None
+if default_token_symbol:
+    default_token_address = registry.by_name(default_token_symbol)
+else:
+    default_token_address = registry.by_name('DefaultToken')
+    c = ERC20Token(chain_spec, conn, default_token_address)
+    default_token_symbol = c.symbol
+    logg.info('found default token {} address {}'.format(default_token_symbol, default_token_address))
+    config.add(default_token_symbol, 'CIC_DEFAULT_TOKEN_SYMBOL', exists_ok=True)
+
 for v in aux:
     mname = 'cic_eth_aux.' + v
     mod = importlib.import_module(mname)
@@ -204,8 +215,8 @@ def main():
     argv.append('-n')
     argv.append(config.get('CELERY_QUEUE'))
 
-    BaseTask.default_token_symbol = config.get('CIC_DEFAULT_TOKEN_SYMBOL')
-    BaseTask.default_token_address = registry.by_name(BaseTask.default_token_symbol)
+    BaseTask.default_token_symbol = default_token_symbol
+    BaseTask.default_token_address = default_token_address
     default_token = ERC20Token(chain_spec, conn, add_0x(BaseTask.default_token_address))
     default_token.load(conn)
     BaseTask.default_token_decimals = default_token.decimals

@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 # external imports
 import i18n.config
+from cic_types.condiments import MetadataPointer
 
 # local imports
 from cic_ussd.account.balance import (calculate_available_balance,
@@ -163,7 +164,7 @@ class MenuProcessor:
         token_symbol = get_default_token_symbol()
         blockchain_address = self.account.blockchain_address
         balances = get_balances(blockchain_address, chain_str, token_symbol, False)[0]
-        key = cache_data_key(self.identifier, ':cic.balances')
+        key = cache_data_key(self.identifier, MetadataPointer.BALANCES)
         cache_data(key, json.dumps(balances))
         available_balance = calculate_available_balance(balances)
         now = datetime.now()
@@ -173,7 +174,7 @@ class MenuProcessor:
             else:
                 timestamp = int((now - timedelta(30)).timestamp())
                 adjusted_balance = get_adjusted_balance(to_wei(int(available_balance)), chain_str, timestamp, token_symbol)
-                key = cache_data_key(self.identifier, ':cic.adjusted_balance')
+                key = cache_data_key(self.identifier, MetadataPointer.BALANCES_ADJUSTED)
                 cache_data(key, json.dumps(adjusted_balance))
 
         query_statement(blockchain_address)

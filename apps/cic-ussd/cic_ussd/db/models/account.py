@@ -3,6 +3,7 @@ import json
 
 # external imports
 from cic_eth.api import Api
+from cic_types.condiments import MetadataPointer
 
 # local imports
 from cic_ussd.account.metadata import get_cached_preferred_language, parse_account_metadata
@@ -109,7 +110,7 @@ class Account(SessionBase):
         :rtype: str
         """
         identifier = bytes.fromhex(self.blockchain_address)
-        key = cache_data_key(identifier, ':cic.person')
+        key = cache_data_key(identifier, MetadataPointer.PERSON)
         account_metadata = get_cached_data(key)
         if not account_metadata:
             return self.phone_number

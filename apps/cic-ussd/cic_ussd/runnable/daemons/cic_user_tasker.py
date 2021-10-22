@@ -10,14 +10,14 @@ import i18n
 import redis
 from chainlib.chain import ChainSpec
 from confini import Config
+from cic_types.ext.metadata import Metadata
+from cic_types.ext.metadata.signer import Signer
 
 # local imports
 from cic_ussd.account.chain import Chain
 from cic_ussd.cache import Cache
 from cic_ussd.db import dsn_from_config
 from cic_ussd.db.models.base import SessionBase
-from cic_ussd.metadata.signer import Signer
-from cic_ussd.metadata.base import Metadata
 from cic_ussd.phone_number import Support
 from cic_ussd.session.ussd_session import UssdSession as InMemoryUssdSession
 from cic_ussd.validator import validate_presence
@@ -87,11 +87,8 @@ Signer.key_file_path = key_file_path
 i18n.load_path.append(config.get('LOCALE_PATH'))
 i18n.set('fallback', config.get('LOCALE_FALLBACK'))
 
-chain_spec = ChainSpec(
-    common_name=config.get('CIC_COMMON_NAME'),
-    engine=config.get('CIC_ENGINE'),
-    network_id=config.get('CIC_NETWORK_ID')
-)
+chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
+
 
 Chain.spec = chain_spec
 Support.phone_number = config.get('OFFICE_SUPPORT_PHONE')
