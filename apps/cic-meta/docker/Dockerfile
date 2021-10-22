@@ -5,6 +5,11 @@ WORKDIR /root
 
 RUN apk add --no-cache postgresql bash
 
+ARG NPM_REPOSITORY=${NPM_REPOSITORY:-https://registry.npmjs.org}
+RUN npm config set snyk=false
+#RUN npm config set registry={NPM_REPOSITORY}
+RUN npm config set registry=${NPM_REPOSITORY}
+
 # copy the dependencies
 COPY package.json package-lock.json ./
 RUN --mount=type=cache,mode=0755,target=/root/.npm \

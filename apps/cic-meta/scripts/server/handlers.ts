@@ -78,6 +78,7 @@ function handleServerMergePost(data, db, digest, keystore, signer) {
 			} else {
 				e = Envelope.fromJSON(v);
 				s = e.unwrap();
+				console.debug('s', s, o)
 				s.replace(o, 'server merge');
 				e.set(s);
 				s.onwrap = (e) => {
