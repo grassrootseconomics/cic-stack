@@ -51,9 +51,20 @@ function advance_nonce() {
 	fi
 }
 
+function debug_rpc() {
+	if [ "$DEV_DEBUG_LEVEL" -gt 2 ]; then
+		>&2 echo -e "\033[;35mRPC Node state\033[;39m"
+		>&2 eth-info --local -p $RPC_PROVIDER
+	fi
+}
+
 function check_wait() {
-	if [ "$1" -eq $RUN_MASK_HIGHEST ]; then
+	#if [ "$1" -eq "$RUN_MASK_HIGHEST" ]; then
+		>&2 echo -e "\033[;96mCatch up with paralell transactions\033[;39m"
+		if [ "$DEV_DEBUG_LEVEL" -gt "0" ]; then
+			>&2 cat ${DEV_DATA_DIR}/hashes
+		fi
 		eth-wait $DEV_DEBUG_FLAG -p $RPC_PROVIDER ${DEV_DATA_DIR}/hashes
 		clear_pending_tx_hashes
-	fi
+	#fi
 }

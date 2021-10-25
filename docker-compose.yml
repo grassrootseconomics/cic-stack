@@ -46,13 +46,18 @@ services:
       context: apps/contract-migration
       dockerfile: docker/Dockerfile
       args:
-          DOCKER_REGISTRY: $DEV_DOCKER_REGISTRY
+          DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}
           PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
           EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
           EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     environment:
       DEV_DATA_DIR: ${DEV_DATA_DIR:-/tmp/cic/config}
       DEV_CONFIG_RESET: $DEV_CONFIG_RESET
+      DEV_FEE_PRICE: $DEV_FEE_PRICE
+      DEV_FEE_LIMIT_CALL: ${DEV_FEE_LIMIT_CALL:-8000000}
+      DEV_DEBUG_LEVEL: ${DEV_DEBUG_LEVEL:-0}
+      DEV_TX_WAIT: $DEV_TX_WAIT
+      DEV_GAS_AMOUNT: $DEV_GAS_AMOUNT
       RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
       CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
       REDIS_HOST: ${REDIS_HOST:-redis}
@@ -72,6 +77,7 @@ services:
       REDIS_HOST_CALLBACK: ${REDIS_HOST_CALLBACK:-redis}
       REDIS_PORT_CALLBACK: ${REDIS_PORT_CALLBACK:-6379}
       FAUCET_AMOUNT: ${FAUCET_AMOUNT:-0}
+      WALLET_KEY_FILE: ${WALLET_KEY_FILE:-/root/keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c}
     command: ["./run_job.sh"]
     depends_on:
       - evm

@@ -11,6 +11,11 @@ elif [ "$DEV_DEBUG_LEVEL" -gt 1 ]; then
 	DEV_DEBUG_FLAG="-vv"
 fi
 
+DEV_WAIT_FLAG=""
+if [ ! -z "$DEV_TX_WAIT" ]; then
+	DEV_WAIT_FLAG="-w"
+fi
+
 # disable override of config schema directory
 unset CONFINI_DIR
 

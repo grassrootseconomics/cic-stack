@@ -12,13 +12,10 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com  --recv-keys 2A518C819BE37D2C20
 
 RUN mkdir -vp /usr/local/etc/cic
 
-ENV CONFINI_DIR /usr/local/etc/cic/
-
-
 COPY config_template/ /usr/local/etc/cic/
 COPY requirements.txt . 
 
-RUN apt-get install libffi-dev
+#RUN apt-get install libffi-dev
 
 ARG pip_index_url=https://pypi.org/simple
 ARG EXTRA_PIP_INDEX_URL="https://pip.grassrootseconomics.net:8433"
@@ -35,7 +32,11 @@ COPY override_requirements.txt .
 RUN pip install --index-url $PIP_INDEX_URL \
     --pre \
     --extra-index-url $EXTRA_PIP_INDEX_URL $EXTRA_PIP_ARGS \
+    --force-reinstall \
+    --no-cache \
     -r override_requirements.txt 
+
+RUN pip freeze
 
 COPY . .
 RUN chmod +x *.sh
