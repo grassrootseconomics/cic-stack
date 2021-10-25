@@ -7,6 +7,8 @@ import * as handlers from '../scripts/server/handlers';
 import { Envelope, Syncable, ArgPair, PGPKeyStore, PGPSigner, KeyStore, Signer } from '@cicnet/crdt-meta';
 import { SqliteAdapter } from '../src/db';
 
+const hashOfFoo = '2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae';
+
 function createKeystore() {
 	const pksa = fs.readFileSync(__dirname + '/privatekeys.asc', 'utf-8');
 	const pubksa = fs.readFileSync(__dirname + '/publickeys.asc', 'utf-8');
@@ -44,11 +46,13 @@ function createDatabase(sqlite_file:string):Promise<any> {
 //				doh(e);
 //				return;
 //			}
+		// get this from real sql files sources
 			const sql = `CREATE TABLE store (
 id integer primary key autoincrement,
-owner_fingerprint text not null,
+owner_fingerprint text default null,
 hash char(64) not null unique,
-content text not null
+content text not null,
+mime_type text default null
 );
 `
 
@@ -111,15 +115,18 @@ describe('server', async () => {
 		let j = env.toJSON();
 		const content = await handlers.handleClientMergePut(j, db, digest, keystore, signer);
 		assert(content); // true-ish
+		console.debug('content', content);
 
 		let v = await handlers.handleNoMergeGet(db, digest, keystore);
-		if (v === undefined) {
+		if (v === false) {
 			db.close();
 			assert.fail('');
 		}
+		db.close();
+		return;
 
 		v = await handlers.handleClientMergeGet(db, digest, keystore);
-		if (v === undefined) {
+		if (v === false) {
 			db.close();
 			assert.fail('');
 		}
@@ -187,7 +194,7 @@ describe('server', async () => {
 		j = await handlers.handleNoMergeGet(db, digest, keystore);
 		assert(v); // true-ish
 
-		let o = JSON.parse(j);
+		let o = JSON.parse(j[0]);
 		o.bar = 'xyzzy';
 		j = JSON.stringify(o);
 
@@ -212,82 +219,39 @@ describe('server', async () => {
 
 		j = await handlers.handleNoMergeGet(db, digest, keystore);
 		assert(j); // true-ish
-		o = JSON.parse(j);
+		o = JSON.parse(j[0]);
 		console.log(o);
 
 		db.close();
 	});
 
-	await it('server_merge', async () => {
-		const keystore = await createKeystore();
-		const signer = new PGPSigner(keystore);
-
-		const db = await createDatabase(__dirname + '/db.three.sqlite');
-
-		const digest = 'deadbeef';
-		let s = new Syncable(digest, {
-			bar: 'baz',
-		});
-		let env = await wrap(s, signer)
-		let j:any = env.toJSON();
-
-		let v = await handlers.handleClientMergePut(j, db, digest, keystore, signer);
-		assert(v); // true-ish
-
-		j = await handlers.handleNoMergeGet(db, digest, keystore);
-		assert(v); // true-ish
-
-		let o = JSON.parse(j);
-		o.bar = 'xyzzy';
-		j = JSON.stringify(o);
-
-		let signMaterial = await handlers.handleServerMergePost(j, db, digest, keystore, signer);
-		assert(signMaterial)
-
-		env = Envelope.fromJSON(signMaterial);
-
-		console.log('envvvv', env);
-
-		const signedData = await signData(env.o['digest'], keystore);
-		console.log('signed', signedData);
-
-		o = {
-			'm': env,
-			's': signedData,
-		}
-		j = JSON.stringify(o);
-		console.log(j);
-
-		v = await handlers.handleServerMergePut(j, db, digest, keystore, signer);
-		assert(v);
-
-		j = await handlers.handleNoMergeGet(db, digest, keystore);
-		assert(j); // true-ish
-		o = JSON.parse(j);
-		console.log(o);
-
-		db.close();
-	});
-
-
-
-//	await it('server_merge_empty', async () => {
+//	await it('server_merge', async () => {
 //		const keystore = await createKeystore();
 //		const signer = new PGPSigner(keystore);
 //
 //		const db = await createDatabase(__dirname + '/db.three.sqlite');
 //
-//		const digest = '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef';
-//		let o:any = {
-//			foo: 'bar',
-//			xyzzy: 42,
-//		}
-//		let j:any = JSON.stringify(o);
+//		const digest = 'deadbeef';
+//		let s = new Syncable(digest, {
+//			bar: 'baz',
+//		});
+//		let env = await wrap(s, signer)
+//		let j:any = env.toJSON();
+//
+//		let v = await handlers.handleClientMergePut(j, db, digest, keystore, signer);
+//		assert(v); // true-ish
+//
+//		j = await handlers.handleNoMergeGet(db, digest, keystore);
+//		assert(v); // true-ish
+//
+//		let o = JSON.parse(j);
+//		o.bar = 'xyzzy';
+//		j = JSON.stringify(o);
 //
 //		let signMaterial = await handlers.handleServerMergePost(j, db, digest, keystore, signer);
 //		assert(signMaterial)
 //
-//		const env = Envelope.fromJSON(signMaterial);
+//		env = Envelope.fromJSON(signMaterial);
 //
 //		console.log('envvvv', env);
 //
@@ -301,7 +265,7 @@ describe('server', async () => {
 //		j = JSON.stringify(o);
 //		console.log(j);
 //
-//		let v = await handlers.handleServerMergePut(j, db, digest, keystore, signer);
+//		v = await handlers.handleServerMergePut(j, db, digest, keystore, signer);
 //		assert(v);
 //
 //		j = await handlers.handleNoMergeGet(db, digest, keystore);
@@ -311,5 +275,88 @@ describe('server', async () => {
 //
 //		db.close();
 //	});
+//
+
+
+	await it('server_merge_empty', async () => {
+		const keystore = await createKeystore();
+		const signer = new PGPSigner(keystore);
+
+		const db = await createDatabase(__dirname + '/db.three.sqlite');
+
+		const digest = '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef';
+		let o:any = {
+			foo: 'bar',
+			xyzzy: 42,
+		}
+		let j:any = JSON.stringify(o);
+
+		let signMaterial = await handlers.handleServerMergePost(j, db, digest, keystore, signer);
+		assert(signMaterial)
+
+		const env = Envelope.fromJSON(signMaterial);
+
+		console.log('envvvv', env);
+
+		const signedData = await signData(env.o['digest'], keystore);
+		console.log('signed', signedData);
+
+		o = {
+			'm': env,
+			's': signedData,
+		}
+		j = JSON.stringify(o);
+		console.log(j);
+
+		let v = await handlers.handleServerMergePut(j, db, digest, keystore, signer);
+		assert(v);
+
+		j = await handlers.handleNoMergeGet(db, digest, keystore);
+		assert(j); // true-ish
+		o = JSON.parse(j[0]);
+		console.log(o);
+
+		db.close();
+	});
+
+	await it('immutable_nodigest', async() => {
+		const keystore = await createKeystore();
+		const db = await createDatabase(__dirname + '/db.three.sqlite');
+
+		const s:string = 'foo';
+		let r;
+		r = await handlers.handleImmutablePost(s, db, undefined, keystore, 'text/plain');
+		assert(r[0]);
+		assert(hashOfFoo == r[1]);
+
+		r = await handlers.handleImmutablePost(s, db, undefined, keystore, 'text/plain');
+		assert(!r[0]);
+		assert(hashOfFoo == r[1]);
+
+		const b:Uint8Array = new TextEncoder().encode(s);
+		r = await handlers.handleImmutablePost(b, db, undefined, keystore, 'text/plain');
+		assert(!r[0]);
+		assert(hashOfFoo == r[1]);
+	});
+
+	await it('immutable_digest', async() => {
+		const keystore = await createKeystore();
+		const db = await createDatabase(__dirname + '/db.three.sqlite');
+
+		const s:string = 'foo';
+		const b:Uint8Array = new TextEncoder().encode(s);
+		let r;
+		r = await handlers.handleImmutablePost(b, db, hashOfFoo, keystore, 'application/octet-stream');
+		assert(r[0]);
+		assert(hashOfFoo == r[1]);
+
+		r = await handlers.handleImmutablePost(b, db, hashOfFoo, keystore, 'application/octet-stream');
+		assert(!r[0]);
+		assert(hashOfFoo == r[1]);
+
+		r = await handlers.handleImmutablePost(s, db, hashOfFoo, keystore, 'text/plain');
+		assert(!r[0]);
+		assert(hashOfFoo == r[1]);
+	});
 });
 

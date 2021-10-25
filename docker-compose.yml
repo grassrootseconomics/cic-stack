@@ -456,6 +456,7 @@ services:
       dockerfile: docker/Dockerfile
       args:
         DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        NPM_REPOSITORY: ${DEV_NPM_REPOSITORY:-https://registry.npmjs.org}
     environment:
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}

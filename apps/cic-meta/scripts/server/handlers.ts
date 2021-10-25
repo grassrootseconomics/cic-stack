@@ -1,12 +1,13 @@
 import * as Automerge from 'automerge';
 import * as pgp from 'openpgp';
+import * as crypto from 'crypto';
 
-import { Envelope, Syncable } from '@cicnet/crdt-meta';
+import { Envelope, Syncable, bytesToHex } from '@cicnet/crdt-meta';
 
 
 function handleNoMergeGet(db, digest, keystore) {
-	const sql = "SELECT content FROM store WHERE hash = '" + digest + "'";
-	return new Promise<string|boolean>((whohoo, doh) => {
+	const sql = "SELECT owner_fingerprint, content, mime_type FROM store WHERE hash = '" + digest + "'";
+	return new Promise<any>((whohoo, doh) => {
 		db.query(sql, (e, rs) => {
 			if (e !== null && e !== undefined) {
 				doh(e);
@@ -16,16 +17,36 @@ function handleNoMergeGet(db, digest, keystore) {
 				return;
 			}
 
+			const immutable = rs.rows[0]['owner_fingerprint'] == undefined;
+			let mimeType;
+			if (immutable) {
+				if (rs.rows[0]['mime_type'] === undefined) {
+					mimeType = 'application/octet-stream';
+				} else {
+					mimeType = rs.rows[0]['mime_type'];
+				}
+			} else {
+				mimeType = 'application/json';
+			}
+
 			const cipherText = rs.rows[0]['content'];
 			pgp.message.readArmored(cipherText).then((m) => {
 				const opts = {
 					message: m,
 					privateKeys: [keystore.getPrivateKey()],
+					format: 'binary',
 				};
 				pgp.decrypt(opts).then((plainText) => {
-					const o = Syncable.fromJSON(plainText.data);
-					const r = JSON.stringify(o.m['data']);
-					whohoo(r);
+					let r;
+				     	if (immutable) {
+						r = plainText.data;
+					} else {
+						mimeType = 'application/json';
+						const d = new TextDecoder().decode(plainText.data);
+						const o = Syncable.fromJSON(d);
+						r = JSON.stringify(o.m['data']);
+					}
+					whohoo([r, mimeType]);
 				}).catch((e) => {
 					console.error('decrypt', e);
 					doh(e);
@@ -57,6 +78,7 @@ function handleServerMergePost(data, db, digest, keystore, signer) {
 			} else {
 				e = Envelope.fromJSON(v);
 				s = e.unwrap();
+				console.debug('s', s, o)
 				s.replace(o, 'server merge');
 				e.set(s);
 				s.onwrap = (e) => {
@@ -139,7 +161,13 @@ function handleClientMergeGet(db, digest, keystore) {
 					privateKeys: [keystore.getPrivateKey()],
 				};
 				pgp.decrypt(opts).then((plainText) => {
-					const o = Syncable.fromJSON(plainText.data);
+					let d;
+					if (typeof(plainText.data) == 'string') {
+						d = plainText.data;
+					} else {
+						d = new TextDecoder().decode(plainText.data);
+					}
+					const o = Syncable.fromJSON(d);
 					const e = new Envelope(o);
 					whohoo(e.toJSON());
 				}).catch((e) => {
@@ -201,10 +229,65 @@ function handleClientMergePut(data, db, digest, keystore, signer) {
 	});
 }
 
+
+function handleImmutablePost(data, db, digest, keystore, contentType) {
+	return new Promise<Array<string|boolean>>((whohoo, doh) => {
+		let data_binary = data;
+		const h = crypto.createHash('sha256');
+		h.update(data_binary);
+		const z = h.digest();
+		const r = bytesToHex(z);
+
+		if (digest) {
+			if (r != digest) {
+				doh('hash mismatch: ' + r + ' != ' +  digest);
+				return;
+			}
+		} else {
+			digest = r;
+			console.debug('calculated digest ' + digest);
+		}
+
+		handleNoMergeGet(db, digest, keystore).then((haveDigest) => {
+			if (haveDigest !== false) {
+				whohoo([false, digest]);
+				return;
+			}
+			let message;
+			if (typeof(data) == 'string') {
+				data_binary = new TextEncoder().encode(data);
+				message = pgp.message.fromText(data);
+			} else {
+				message = pgp.message.fromBinary(data);
+			}
+
+					const opts = {
+				message: message,
+				publicKeys: keystore.getEncryptKeys(),
+			};
+			pgp.encrypt(opts).then((cipherText) => {
+				const sql = "INSERT INTO store (hash, content, mime_type) VALUES ('" + digest + "', '" + cipherText.data + "', '" + contentType + "') ON CONFLICT (hash) DO UPDATE SET content = EXCLUDED.content;";
+				db.query(sql, (e, rs) => {
+					if (e !== null && e !== undefined) {
+						doh(e);
+						return;
+					}
+					whohoo([true, digest]);
+				});
+			}).catch((e) => {
+				doh(e);	
+			});
+		}).catch((e) => {
+			doh(e);	
+		});
+	});
+}
+
 export {
 	handleClientMergePut,
 	handleClientMergeGet,
 	handleServerMergePost,
 	handleServerMergePut,
 	handleNoMergeGet,
+	handleImmutablePost,
 };
