@@ -8,6 +8,7 @@ import base64
 import confini
 
 # local imports
+import cic_cache.cli
 from cic_cache.db import dsn_from_config
 from cic_cache.db.models.base import SessionBase
 from cic_cache.runnable.daemons.query import (
@@ -23,7 +24,7 @@ logg = logging.getLogger()
 
 
 arg_flags = cic_cache.cli.argflag_std_read
-local_arg_flags = cic_cache.cli.argflag_local_sync
+local_arg_flags = cic_cache.cli.argflag_local_sync | cic_cache.cli.argflag_local_task 
 argparser = cic_cache.cli.ArgumentParser(arg_flags)
 argparser.process_local_flags(local_arg_flags)
 args = argparser.parse_args()
@@ -31,6 +32,7 @@ args = argparser.parse_args()
 # process config
 config = cic_cache.cli.Config.from_args(args, arg_flags, local_arg_flags)
 
+# connect to database
 dsn = dsn_from_config(config)
 SessionBase.connect(dsn, config.true('DATABASE_DEBUG'))
 

@@ -48,8 +48,6 @@ class RoleMissingError(Exception):
     pass
 
 
-
-
 class IntegrityError(Exception):
     """Exception raised to signal irregularities with deduplication and ordering of tasks
 
@@ -84,4 +82,9 @@ class RoleAgencyError(SeppukuError):
 
 class YouAreBrokeError(Exception):
     """Exception raised when a value transfer is attempted without access to sufficient funds
+    """
+
+
+class TrustError(Exception):
+    """Exception raised when required trust proofs are missing for a request
     """

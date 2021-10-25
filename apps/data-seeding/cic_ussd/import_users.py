@@ -17,6 +17,7 @@ from cic_types.models.person import Person
 from confini import Config
 
 # local imports
+from common.dirs import initialize_dirs
 from import_util import get_celery_worker_status
 
 default_config_dir = './config'
@@ -37,6 +38,7 @@ arg_parser.add_argument('--env-prefix',
                         dest='env_prefix',
                         type=str,
                         help='environment prefix for variables to overwrite configuration.')
+arg_parser.add_argument('-f', action='store_true', help='force clear previous state')
 arg_parser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
 arg_parser.add_argument('-q', type=str, default='cic-import-ussd', help='celery queue to submit data seeding tasks to.')
 arg_parser.add_argument('--redis-db', dest='redis_db', type=int, help='redis db to use for task submission and callback')
@@ -70,21 +72,7 @@ config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
 logg.debug(f'config loaded from {args.c}:\n{config}')
 
-old_account_dir = os.path.join(args.import_dir, 'old')
-os.stat(old_account_dir)
-logg.debug(f'created old system data dir: {old_account_dir}')
-
-new_account_dir = os.path.join(args.import_dir, 'new')
-os.makedirs(new_account_dir, exist_ok=True)
-logg.debug(f'created new system data dir: {new_account_dir}')
-
-person_metadata_dir = os.path.join(args.import_dir, 'meta')
-os.makedirs(person_metadata_dir, exist_ok=True)
-logg.debug(f'created person metadata dir: {person_metadata_dir}')
-
-preferences_dir = os.path.join(args.import_dir, 'preferences')
-os.makedirs(os.path.join(preferences_dir, 'meta'), exist_ok=True)
-logg.debug(f'created preferences metadata dir: {preferences_dir}')
+dirs = initialize_dirs(args.import_dir, force_reset=args.f)
 
 valid_service_codes = config.get('USSD_SERVICE_CODE').split(",")
 
@@ -157,7 +145,7 @@ def register_account(person: Person):
 if __name__ == '__main__':
     i = 0
     j = 0
-    for x in os.walk(old_account_dir):
+    for x in os.walk(dirs['old']):
         for y in x[2]:
             if y[len(y) - 5:] != '.json':
                 continue

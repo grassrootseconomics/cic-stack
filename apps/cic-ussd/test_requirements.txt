@@ -1,3 +1,4 @@
+cic-eth[services]~=0.12.4a13
 Faker==8.1.2
 faker-e164==0.1.0
 pytest==6.2.4

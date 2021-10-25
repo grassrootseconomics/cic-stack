@@ -17,15 +17,50 @@ from cic_eth.enum import LockEnum
 
 app = celery.current_app
 
-logg = logging.getLogger(__name__)
+#logg = logging.getLogger(__name__)
+logg = logging.getLogger()
 
 
 class Api(ApiBase):
-    
+
+    @staticmethod
+    def to_v_list(v, n):
+        """Translate an arbitrary number of string and/or list arguments to a list of list of string arguments
+
+        :param v: Arguments
+        :type v: str or list
+        :param n: Number of elements to generate arguments for
+        :type n: int
+        :rtype: list
+        :returns: list of assembled arguments
+        """
+        if isinstance(v, str):
+            vv = v
+            v = []
+            for i in range(n):
+                v.append([vv])
+        elif not isinstance(v, list):
+            raise ValueError('argument must be single string, or list or strings or lists')
+        else:
+            if len(v) != n:
+                raise ValueError('v argument count must match integer n')
+            for i in range(n):
+                if isinstance(v[i], str):
+                    v[i] = [v[i]]
+                elif not isinstance(v, list):
+                    raise ValueError('proof argument must be single string, or list or strings or lists')
+
+        return v
+   
 
     def default_token(self):
+        """Retrieves the default fallback token of the custodial network.
+
+        :returns: uuid of root task
+        :rtype: celery.Task
+        """
         s_token = celery.signature(
-                'cic_eth.admin.token.default_token',
+                'cic_eth.eth.erc20.default_token',
                 [],
                 queue=self.queue,
                 )
@@ -33,6 +68,97 @@ class Api(ApiBase):
             s_token.link(self.callback_success)
 
         return s_token.apply_async()
+
+
+    def token(self, token_symbol, proof=None):
+        """Single-token alias for tokens method.
+
+        See tokens method for details.
+
+        :param token_symbol: Token symbol to look up
+        :type token_symbol: str
+        :param proof: Proofs to add to signature verification for the token
+        :type proof: str or list
+        :returns: uuid of root task
+        :rtype: celery.Task
+        """
+        if not isinstance(token_symbol, str):
+            raise ValueError('token symbol must be string')
+
+        return self.tokens([token_symbol], proof=proof)
+
+
+    def tokens(self, token_symbols, proof=None):
+        """Perform a token data lookup from the token index. The token index will enforce unique associations between token symbol and contract address.
+
+        Token symbols are always strings, and should be specified using uppercase letters.
+
+        If the proof argument is included, the network will be queried for trusted signatures on the given proof(s). There must exist at least one trusted signature for every given proof for every token. Trusted signatures for the custodial system are provided at service startup.
+
+        The proof argument may be specified in a number of ways:
+
+        - as None, in which case proof checks are skipped (although there may still be builtin proof checks being performed)
+        - as a single string, where the same proof is used for each token lookup
+        - as an array of strings, where the respective proof is used for the respective token. number of proofs must match the number of tokens.
+        - as an array of lists, where the respective proofs in each list is used for the respective token. number of lists of proofs must match the number of tokens.
+
+        The success callback provided at the Api object instantiation will receive individual calls for each token that passes the proof checks. Each token that does not pass is passed to the Api error callback.
+
+        This method is not intended to be used synchronously. Do so at your peril.
+
+        :param token_symbols: Token symbol strings to look up
+        :type token_symbol: list
+        :param proof: Proof(s) to verify tokens against
+        :type proof: None, str or list
+        :returns: uuid of root task
+        :rtype: celery.Task
+        """
+        if not isinstance(token_symbols, list):
+            raise ValueError('token symbols argument must be list')
+
+        if proof == None:
+            logg.debug('looking up tokens without external proof check: {}'.format(','.join(token_symbols)))
+            proof = ''
+
+        logg.debug('proof is {}'.format(proof))
+        l = len(token_symbols)
+        if len(proof) == 0:
+            l = 0 
+        proof = Api.to_v_list(proof, l)
+
+        chain_spec_dict = self.chain_spec.asdict()
+
+        s_token_resolve = celery.signature(
+                'cic_eth.eth.erc20.resolve_tokens_by_symbol',
+                [
+                    token_symbols,
+                    chain_spec_dict,
+                    ],
+                queue=self.queue,
+                )
+
+        s_token_info = celery.signature(
+                'cic_eth.eth.erc20.token_info',
+                [
+                    chain_spec_dict,
+                    proof,
+                    ],
+                queue=self.queue,
+                )
+
+        s_token_verify = celery.signature(
+                    'cic_eth.eth.erc20.verify_token_info',
+                    [
+                        chain_spec_dict,
+                        self.callback_success,
+                        self.callback_error,
+                        ],
+                    queue=self.queue,
+                    )
+
+        s_token_info.link(s_token_verify)
+        s_token_resolve.link(s_token_info)
+        return s_token_resolve.apply_async()
 
 
 #    def convert_transfer(self, from_address, to_address, target_return, minimum_return, from_token_symbol, to_token_symbol):

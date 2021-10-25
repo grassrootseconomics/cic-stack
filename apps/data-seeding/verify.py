@@ -25,10 +25,9 @@ from chainlib.eth.gas import (
 from chainlib.eth.tx import TxFactory
 from chainlib.hash import keccak256_string_to_hex
 from chainlib.jsonrpc import JSONRPCRequest
-from cic_types.models.person import (
-    Person,
-    generate_metadata_pointer,
-)
+from cic_types.models.person import Person, identity_tag
+from cic_types.condiments import MetadataPointer
+from cic_types.processor import generate_metadata_pointer
 from erc20_faucet import Faucet
 from eth_erc20 import ERC20
 from hexathon.parse import strip_0x, add_0x
@@ -39,7 +38,8 @@ from eth_token_index import TokenUniqueSymbolIndex
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
-config_dir = '/usr/local/etc/cic-syncer'
+script_dir = os.path.dirname(os.path.realpath(__file__))
+base_config_dir = os.path.join(script_dir, 'config')
 
 custodial_tests = [
         'local_key',
@@ -76,8 +76,8 @@ all_tests = eth_tests + custodial_tests + metadata_tests + phone_tests + cache_t
 
 argparser = argparse.ArgumentParser(description='daemon that monitors transactions in new blocks')
 argparser.add_argument('-p', '--provider', dest='p', type=str, help='chain rpc provider address')
-argparser.add_argument('-c', type=str, default=config_dir, help='config root to use')
-argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:oldchain:1', help='chain spec')
+argparser.add_argument('-c', type=str, help='config override dir')
+argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:foo:1:oldchain', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
 argparser.add_argument('--meta-provider', type=str, dest='meta_provider', default='http://localhost:63380', help='cic-meta url')
 argparser.add_argument('--ussd-provider', type=str, dest='ussd_provider', default='http://localhost:63315', help='cic-ussd url')
@@ -103,14 +103,18 @@ if args.v == True:
 elif args.vv == True:
     logging.getLogger().setLevel(logging.DEBUG)
 
-config_dir = os.path.join(args.c)
-os.makedirs(config_dir, 0o777, True)
-config = confini.Config(config_dir, args.env_prefix)
+config = None
+logg.debug('config dir {}'.format(base_config_dir))
+if args.c != None:
+    config = confini.Config(base_config_dir, env_prefix=os.environ.get('CONFINI_ENV_PREFIX'), override_dirs=args.c)
+else:
+    config = confini.Config(base_config_dir, env_prefix=os.environ.get('CONFINI_ENV_PREFIX'))
 config.process()
+
 # override args
 args_override = {
-        'CIC_CHAIN_SPEC': getattr(args, 'i'),
-        'ETH_PROVIDER': getattr(args, 'p'),
+        'CHAIN_SPEC': getattr(args, 'i'),
+        'RPC_PROVIDER': getattr(args, 'p'),
         'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
         }
 config.dict_override(args_override, 'cli flag')
@@ -122,11 +126,9 @@ config.add(args.cache_provider, '_CACHE_PROVIDER', True)
 
 token_symbol = args.token_symbol
 
-logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
-
 celery_app = celery.Celery(backend=config.get('CELERY_RESULT_URL'),  broker=config.get('CELERY_BROKER_URL'))
 
-chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
+chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
 chain_str = str(chain_spec)
 old_chain_spec = ChainSpec.from_chain_str(args.old_chain_spec)
 old_chain_str = str(old_chain_spec)
@@ -312,7 +314,7 @@ class Verifier:
 
 
     def verify_gas(self, address, balance_token=None):
-        o = balance(address)
+        o = balance(add_0x(address))
         r = self.conn.do(o)
         logg.debug('wtf {}'.format(r))
         actual_balance = int(strip_0x(r), 16)
@@ -328,7 +330,7 @@ class Verifier:
 
 
     def verify_metadata(self, address, balance=None):
-        k = generate_metadata_pointer(bytes.fromhex(strip_0x(address)), ':cic.person')
+        k = generate_metadata_pointer(bytes.fromhex(strip_0x(address)), MetadataPointer.PERSON)
         url = os.path.join(config.get('_META_PROVIDER'), k)
         logg.debug('verify metadata url {}'.format(url))
         try:
@@ -390,7 +392,7 @@ class Verifier:
 
         p = Person.deserialize(o) 
 
-        k = generate_metadata_pointer(p.tel.encode('utf-8'), ':cic.phone')
+        k = generate_metadata_pointer(p.tel.encode('utf-8'), MetadataPointer.PHONE)
         url = os.path.join(config.get('_META_PROVIDER'), k)
         logg.debug('verify metadata phone url {}'.format(url))
         try:
@@ -452,7 +454,7 @@ class Verifier:
 def main():
     global chain_str, block_offset, user_dir
     
-    conn = EthHTTPConnection(config.get('ETH_PROVIDER'))
+    conn = EthHTTPConnection(config.get('RPC_PROVIDER'))
     gas_oracle = OverrideGasOracle(conn=conn, limit=8000000)
 
     # Get Token registry address
@@ -530,10 +532,17 @@ def main():
             u = Person.deserialize(o)
             #logg.debug('data {}'.format(u.identities['evm']))
 
-            subchain_str = '{}:{}'.format(chain_spec.common_name(), chain_spec.network_id())
-            new_address = u.identities['evm'][subchain_str][0]
-            subchain_str = '{}:{}'.format(old_chain_spec.common_name(), old_chain_spec.network_id())
-            old_address = u.identities['evm'][subchain_str][0]
+            new_chain_spec = chain_spec.asdict()
+            arch = new_chain_spec.get('arch')
+            fork = new_chain_spec.get('fork')
+            tag = identity_tag(new_chain_spec)
+            new_address = u.identities[arch][fork][tag][0]
+
+            old_chainspec = old_chain_spec.asdict()
+            arch = old_chainspec.get('arch')
+            fork = old_chainspec.get('fork')
+            tag = identity_tag(old_chainspec)
+            old_address = u.identities[arch][fork][tag][0]
             balance = 0
             try:
                 balance = balances[old_address]

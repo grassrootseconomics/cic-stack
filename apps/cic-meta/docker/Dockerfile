@@ -1,16 +1,16 @@
-# syntax = docker/dockerfile:1.2
-#FROM node:15.3.0-alpine3.10
-FROM node:lts-alpine3.14
+FROM node:15.3.0-alpine3.10
+#FROM node:lts-alpine3.14
 
 WORKDIR /root
 
 RUN apk add --no-cache postgresql bash
 
 # copy the dependencies
-COPY package.json package-lock.json .
-RUN --mount=type=cache,mode=0755,target=/root/.npm \
-    npm set cache /root/.npm && \
-    npm ci
+COPY package.json package-lock.json ./
+#RUN --mount=type=cache,mode=0755,target=/root/.npm \
+RUN    npm set cache /root/.npm && \
+	npm cache verify && \
+    npm ci --verbose
 
 COPY webpack.config.js .
 COPY tsconfig.json . 

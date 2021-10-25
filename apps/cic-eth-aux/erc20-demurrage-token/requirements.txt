@@ -1,4 +1,5 @@
 celery==4.4.7
-erc20-demurrage-token~=0.0.3a1
-cic-eth-registry>=0.6.1a2,<0.7.0
-cic-eth[services]~=0.12.4a8
+erc20-demurrage-token~=0.0.5a3
+cic-eth-registry~=0.6.1a6
+chainlib~=0.0.9rc1
+cic_eth~=0.12.4a11

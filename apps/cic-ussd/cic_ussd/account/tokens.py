@@ -5,6 +5,7 @@ from typing import Dict, Optional
 
 # external imports
 from cic_eth.api import Api
+from cic_types.condiments import MetadataPointer
 
 # local imports
 from cic_ussd.account.chain import Chain
@@ -23,7 +24,7 @@ def get_cached_default_token(chain_str: str) -> Optional[str]:
     :rtype:
     """
     logg.debug(f'Retrieving default token from cache for chain: {chain_str}')
-    key = cache_data_key(identifier=chain_str.encode('utf-8'), salt=':cic.default_token_data')
+    key = cache_data_key(identifier=chain_str.encode('utf-8'), salt=MetadataPointer.TOKEN_DEFAULT)
     return get_cached_data(key=key)
 
 

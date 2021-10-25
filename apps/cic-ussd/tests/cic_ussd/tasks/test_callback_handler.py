@@ -1,20 +1,18 @@
 # standard imports
 import json
-from decimal import Decimal
 
 # external imports
 import celery
 import pytest
-import requests_mock
 from chainlib.hash import strip_0x
+from cic_types.condiments import MetadataPointer
 
 # local imports
-from cic_ussd.account.statement import generate, filter_statement_transactions
+from cic_ussd.account.statement import filter_statement_transactions
 from cic_ussd.account.transaction import transaction_actors
 from cic_ussd.cache import cache_data_key, get_cached_data
 from cic_ussd.db.models.account import Account
 from cic_ussd.error import AccountCreationDataNotFound
-from cic_ussd.metadata import PreferencesMetadata
 
 
 # test imports
@@ -89,7 +87,7 @@ def test_balances_callback(activated_account, balances, celery_session_worker):
         [balances, activated_account.blockchain_address, status_code])
     s_balances_callback.apply_async().get()
     identifier = bytes.fromhex(strip_0x(activated_account.blockchain_address))
-    key = cache_data_key(identifier, ':cic.balances')
+    key = cache_data_key(identifier, MetadataPointer.BALANCES)
     cached_balances = get_cached_data(key)
     cached_balances = json.loads(cached_balances)
     assert cached_balances == balances[0]

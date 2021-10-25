@@ -7,6 +7,7 @@ from typing import Optional
 import celery
 from chainlib.hash import strip_0x
 from cic_eth.api import Api
+from cic_types.condiments import MetadataPointer
 
 # local import
 from cic_ussd.account.chain import Chain
@@ -53,7 +54,7 @@ def get_cached_statement(blockchain_address: str) -> bytes:
     :rtype: str
     """
     identifier = bytes.fromhex(strip_0x(blockchain_address))
-    key = cache_data_key(identifier=identifier, salt=':cic.statement')
+    key = cache_data_key(identifier=identifier, salt=MetadataPointer.STATEMENT)
     return get_cached_data(key=key)
 
 

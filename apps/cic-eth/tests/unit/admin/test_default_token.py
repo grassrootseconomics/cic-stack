@@ -10,7 +10,7 @@ def test_default_token(
         ):
       
     s = celery.signature(
-            'cic_eth.admin.token.default_token',
+            'cic_eth.eth.erc20.default_token',
             [],
             queue=None,
             )

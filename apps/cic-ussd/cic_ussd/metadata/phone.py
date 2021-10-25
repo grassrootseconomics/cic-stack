@@ -2,12 +2,13 @@
 import logging
 
 # external imports
+from cic_types.condiments import MetadataPointer
 
 # local imports
-from .base import MetadataRequestsHandler
+from .base import UssdMetadataHandler
 
 
-class PhonePointerMetadata(MetadataRequestsHandler):
+class PhonePointerMetadata(UssdMetadataHandler):
 
     def __init__(self, identifier: bytes):
-        super().__init__(cic_type=':cic.phone', identifier=identifier)
+        super().__init__(cic_type=MetadataPointer.PHONE, identifier=identifier)

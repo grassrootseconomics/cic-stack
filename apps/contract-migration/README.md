@@ -1,53 +1,44 @@
-# Contract Migration
+# CIC-stack system bootstrap scripts
 
-Common docker artifacts and bootstrap scripts
 
-## How this repo works
 
-This repo builds contracts and deploys them to a chain
+## 1. Deploy global contracts.
 
-First, bring up an eth evm provider
-```
-docker-compose up eth
-```
+Global contracts are contracts that may or may not be used to contribute to a data store intended for consumption across instances.
 
-Now build this repo's image and run it against the 'eth' service (ganache, for example). You will need to bind to the docker-compose network (cic-network) and mount the special contract output folder that dependent services use to get deployed contract addresses. 
+In the current version of the scripts, the only contract deployed is the `AddressDeclarator`. Also, in the current version, the `AddressDeclarator` is required as a storage backend for some of the instance contracts.
 
-Here is how to do that in one shot:
-```
-docker build -t registry.gitlab.com/grassrootseconomics/cic-docker-internal -f docker/ . && docker run --env ETH_PROVIDER=http://eth:8545 --net cic-network -v cic-docker-internal_contract-config:/tmp/cic/config --rm -it registry.gitlab.com/grassrootseconomics/cic-docker-internal reset.sh
-```
 
-Stop the containers and bring down the services with
-```
-docker-compose down
-```
+## 2. Deploy instance contracts.
 
-If you want a fresh start to the dev environment then bring down the services and delete their associated volumes with
+Instance contracts are contracts whose contents are limited to the context of a single custodial engine system.
 
-```
-docker-compose down -v
-```
+This includes a registry of contracts used by the engine, as well as registry contracts for user accounts and tokens.
 
-A goal is to go through all of these containers and create a default non-root user a la:
-https://vsupalov.com/docker-shared-permissions/
 
-## Tips and Tricks
+## 3. Deploy token.
 
-Sometimes you just want to hold a container open in docker compose so you can exec into it and poke around. Replace "command" with
+Deploys a CIC token, adding it to the token registry.
 
-```
-    command:
-      - /bin/sh
-      - -c
-      - |
-        tail -f /dev/null
-```
-then 
+The first token deployed becomes the default token of the instance.
 
-```
-docker exec -it [IMAGE_NANE] sh
-```
+In the current version of the scripts, two token types may be deployed; [`giftable_erc20_token`](https://gitlab.com/cicnet/eth-erc20) and [`erc20_demurrage_token`](https://gitlab.com/cicnet/erc20-demurrage-token).
 
----
+This step may be run multiple times, as long as the token symbol is different from all previously deployed tokens.
 
+
+## 4. Initialize custodial engine.
+
+Adds system accounts to the custodial engine, and unlocks the initialization seal. After this step, the custodial system is ready to use.
+
+
+## Services dependency graph
+
+1. evm
+2. bootstrap runlevel 1
+3. bootstrap runlevel 2
+4. bootstrap runlevel 3
+5. redis
+6. postgres
+7. cic-eth-tasker
+8. boostrap runlevel 4

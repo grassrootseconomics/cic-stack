@@ -21,6 +21,9 @@ import chainlib.eth.cli
 import cic_eth.cli
 from cic_eth.cli.chain import chain_interface
 from chainlib.eth.constant import ZERO_ADDRESS
+from eth_accounts_index import AccountsIndex
+from erc20_faucet import Faucet
+from cic_eth.api import Api
 
 # local imports
 #import common
@@ -108,6 +111,12 @@ def main():
         raise NetworkError('AccountRegistry value missing from contract registry {}'.format(config.get('CIC_REGISTRY_ADDRESS')))
     logg.info('using account registry {}'.format(account_registry))
     account_cache = AccountRegistryCache(chain_spec, account_registry)
+
+    faucet = registry.lookup('Faucet')
+    if faucet == ZERO_ADDRESS:
+        logg.warning('Faucet entry missing from value missing from contract registry {}. New account registrations will need external mechanism for initial token balances.'.format(config.get('CIC_REGISTRY_ADDRESS')))
+    else:
+        logg.info('using faucet {}'.format(faucet))
    
     # Set up provisioner for common task input data
     TrafficProvisioner.oracles['token'] = token_cache
@@ -124,6 +133,27 @@ def main():
 
     syncer = HeadSyncer(syncer_backend, chain_interface, block_callback=handler.refresh)
     syncer.add_filter(handler)
+
+    # bootstrap two accounts if starting from scratch
+    c = AccountsIndex(chain_spec)
+    o = c.entry_count(account_registry)
+    r = conn.do(o)
+
+    logg.debug('entry count {}'.format(c.parse_entry_count(r)))
+
+    if c.parse_entry_count(r) == 0:
+        if faucet == ZERO_ADDRESS:
+            raise ValueError('No accounts exist in network and no faucet exists. It will be impossible for any created accounts to trade.')
+        c = Faucet(chain_spec)
+        o = c.token_amount(faucet)
+        r = conn.do(o)
+        if c.parse_token_amount(r) == 0:
+            raise ValueError('No accounts exist in network and faucet amount is set to 0. It will be impossible for any created accounts to trade.')
+
+        api = Api(str(chain_spec), queue=config.get('CELERY_QUEUE'))
+        api.create_account(register=True)
+        api.create_account(register=True)
+
     syncer.loop(1, conn)
 
 

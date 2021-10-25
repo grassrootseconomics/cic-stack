@@ -136,13 +136,13 @@ First, make a note of the **block height** before running anything:
 
 To import, run to _completion_:
 
-`python eth/import_users.py -v -c config -p <eth_provider> -r <cic_registry_address> -y ../contract-migration/keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c <datadir>`
+`python eth/import_users.py -v -p <eth_provider> -r <cic_registry_address> -y ../contract-migration/keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c <datadir>`
 
 After the script completes, keystore files for all generated accouts will be found in `<datadir>/keystore`, all with `foo` as password (would set it empty, but believe it or not some interfaces out there won't work unless you have one).
 
 Then run:
 
-`python eth/import_balance.py -v -c config -r <cic_registry_address> -p <eth_provider> --token-symbol <token_symbol> --offset <block_height_at_start> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c <datadir>` 
+`python eth/import_balance.py -v -r <cic_registry_address> -p <eth_provider> --token-symbol <token_symbol> --offset <block_height_at_start> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c <datadir>` 
 
 
 
@@ -150,11 +150,11 @@ Then run:
 
 Run in sequence, in first terminal:
 
-`python cic_eth/import_balance.py -v -c config -p <eth_provider> -r <cic_registry_address> --token-symbol <token_symbol> -y ../contract-migration/keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c --head out`
+`python cic_eth/import_balance.py -v -p <eth_provider> -r <cic_registry_address> --token-symbol <token_symbol> -y ../contract-migration/keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c --head out`
 
 In another terminal:
 
-`python cic_eth/import_users.py -v -c config --redis-host-callback <redis_hostname_in_docker> out`
+`python cic_eth/import_users.py -v --redis-host-callback <redis_hostname_in_docker> out`
 
 The `redis_hostname_in_docker` value is the hostname required to reach the redis server from within the docker cluster, and should be `redis` if you left the docker-compose unchanged. The `import_users` script will receive the address of each newly created custodial account on a redis subscription fed by a callback task in the `cic_eth` account creation task chain.
 
