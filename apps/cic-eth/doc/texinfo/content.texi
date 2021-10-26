@@ -1,3 +1,4 @@
+@node cic-eth
 @top cic-eth
 
 @include dependencies.texi
