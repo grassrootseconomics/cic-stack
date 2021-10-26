@@ -3,7 +3,7 @@
 
 The API to the @var{cic-eth} component is a proxy for executing @emph{chains of Celery tasks}. The tasks that compose individual chains are documented in @ref{cic-eth-appendix-task-chains,the Task Chain appendix}, which also describes a CLI tool that can generate graph representationso of them.
 
-There are two API classes, @var{Api} and @var{AdminApi}. The former is described later in this section, the latter described in @ref{cic-eth-system-maintenance,the Admin API appendix}.
+There are two API classes, @var{Api} and @var{AdminApi}. The former is described later in this section, the latter described in @ref{cic-eth-appendix-system-maintenance,the Admin API appendix}.
 
 
 @subsection Interface
