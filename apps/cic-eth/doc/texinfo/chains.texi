@@ -1,4 +1,4 @@
-@node cic-eth Appendix Task chains
+@node cic-eth-appendix-task-chains
 @appendix Task chains
 
 TBC - explain here how to generate these chain diagrams

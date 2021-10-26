@@ -1,4 +1,4 @@
-@node cic-eth system maintenance
+@node cic-eth-appendix-system-maintenance
 @appendix Admin API
 
 The admin API is still in an early stage of refinement. User friendliness can be considerably improved.
