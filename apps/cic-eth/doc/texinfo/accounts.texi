@@ -1,4 +1,3 @@
-@node cic-eth-accounts
 @section Accounts
 
 Accounts are private keys in the signer component keyed by "addresses," a one-way transformation of a public key. Data can be signed by using the account as identifier for corresponding RPC requests.

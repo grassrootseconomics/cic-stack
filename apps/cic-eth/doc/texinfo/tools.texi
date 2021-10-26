@@ -1,4 +1,3 @@
-@node cic-eth-tools
 @section Tools
 
 A collection of CLI tools have been provided to help with diagnostics and other administrative tasks. These use the same configuration infrastructure as the daemons.

@@ -1,4 +1,3 @@
-@node cic-eth-appendix-transaction-types
 @appendix Transfer types
 
 @table @var

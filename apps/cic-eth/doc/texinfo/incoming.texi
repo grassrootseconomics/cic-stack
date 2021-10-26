@@ -1,4 +1,3 @@
-@node cic-eth-incoming
 @section Incoming transactions
 
 All transactions in mined blocks will be passed to a selection of plugin filters to the @code{chainsyncer} component. Each of these filters are individual python module files in @code{cic_eth.runnable.daemons.filters}. This section describes their function.

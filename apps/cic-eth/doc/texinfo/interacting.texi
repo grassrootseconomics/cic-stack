@@ -1,4 +1,3 @@
-@node cic-eth-interacting
 @section Interacting with the system
 
 The API to the @var{cic-eth} component is a proxy for executing @emph{chains of Celery tasks}. The tasks that compose individual chains are documented in @ref{cic-eth-appendix-task-chains,the Task Chain appendix}, which also describes a CLI tool that can generate graph representationso of them.
