@@ -36,7 +36,7 @@ Execute a token transfer on behalf of a custodial account.
 
 @subsection tag (cic-eth-tag)
 
-Associate an account address with a string identifier. @xref{cic-eth system accounts}
+Associate an account address with a string identifier. @xref{cic-eth-system-accounts}
 
 
 @anchor{cic-eth-tools-ctrl}
