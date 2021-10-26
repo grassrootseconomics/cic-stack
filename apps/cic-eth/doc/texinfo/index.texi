@@ -1,6 +1,5 @@
 @top cic-eth
 
-@include intro.texi
 @include dependencies.texi
 @include configuration.texi
 @include system.texi
