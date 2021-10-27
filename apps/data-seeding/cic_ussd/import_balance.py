@@ -65,7 +65,8 @@ args_override = {
     'REDIS_DB': getattr(args, 'redis_db'),
     'META_HOST': getattr(args, 'meta_host'),
     'META_PORT': getattr(args, 'meta_port'),
-    'WALLET_KEY_FILE': getattr(args, 'y')
+    'WALLET_KEY_FILE': getattr(args, 'y'),
+    'TOKEN_SYMBOL': getattr(args, 'token_symbol'),
 }
 config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')
@@ -110,7 +111,7 @@ def main():
                                                     config.get('CIC_REGISTRY_ADDRESS'),
                                                     signer_address,
                                                     signer)
-    ImportTask.balance_processor.init(args.token_symbol)
+    ImportTask.balance_processor.init(config.get('TOKEN_SYMBOL'))
     balances = {}
     accuracy = 10 ** 6
     count = 0

@@ -60,7 +60,7 @@ eth_tests = [
         ]
 
 phone_tests = [
-        'ussd',
+#        'ussd',
         'ussd_pins'
         ]
 

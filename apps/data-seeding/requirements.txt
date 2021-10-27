@@ -1,6 +1,6 @@
 sarafu-faucet~=0.0.7a2
 cic-eth[tools]~=0.12.4a13
-cic-types~=0.2.0a6
+cic-types~=0.2.1a2
 funga>=0.5.1a1,<=0.5.15
 faker==4.17.1
 chainsyncer~=0.0.7a3
