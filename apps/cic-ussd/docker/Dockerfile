@@ -1,6 +1,6 @@
-ARG DOCKER_REGISTRY="registry.gitlab.com/grassrootseconomics"
+ARG DEV_DOCKER_REGISTRY="registry.gitlab.com/grassrootseconomics"
 
-FROM $DOCKER_REGISTRY/cic-base-images:python-3.8.6-dev-e8eb2ee2
+FROM $DEV_DOCKER_REGISTRY/cic-base-images:python-3.8.6-dev-55da5f4e
 
 RUN apt-get install -y redis-server
 # create secrets directory
