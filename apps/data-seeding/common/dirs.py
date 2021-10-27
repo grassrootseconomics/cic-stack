@@ -39,6 +39,6 @@ def initialize_dirs(user_dir, force_reset=False):
     for d in dirs.keys():
         if d == 'old':
             continue
-        os.makedirs(dirs[d])
+        os.makedirs(dirs[d], exist_ok=True)
 
     return dirs
