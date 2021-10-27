@@ -72,7 +72,7 @@ config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
 logg.debug(f'config loaded from {args.c}:\n{config}')
 
-dirs = initialize_dirs(args.import_dir, force_reset=args.f)
+dirs = initialize_dirs(args.import_dir)
 
 valid_service_codes = config.get('USSD_SERVICE_CODE').split(",")
 
