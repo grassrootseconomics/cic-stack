@@ -1,4 +1,3 @@
-@node cic-eth-dependencies
 @section Dependencies
 
 This application is written in Python 3.8. It is tightly coupled with @code{python-celery}, which provides the task worker ecosystem. It also uses @code{SQLAlchemy} which provides useful abstractions for persistent storage though SQL, and @code{alembic} for database schema migrations.

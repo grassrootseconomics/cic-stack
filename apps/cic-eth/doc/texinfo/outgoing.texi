@@ -1,4 +1,3 @@
-@node cic-eth-outgoing
 @section Outgoing transactions
 
 @strong{Important! A pre-requisite for proper functioning of the component is that no other agent is sending transactions to the network for any of the keys in the keystore.}

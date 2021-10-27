@@ -1,4 +1,3 @@
-@node cic-eth-tools
 @section Tools
 
 A collection of CLI tools have been provided to help with diagnostics and other administrative tasks. These use the same configuration infrastructure as the daemons.
@@ -37,7 +36,7 @@ Execute a token transfer on behalf of a custodial account.
 
 @subsection tag (cic-eth-tag)
 
-Associate an account address with a string identifier. @xref{cic-eth system accounts}
+Associate an account address with a string identifier. @xref{cic-eth-system-accounts}
 
 
 @anchor{cic-eth-tools-ctrl}
