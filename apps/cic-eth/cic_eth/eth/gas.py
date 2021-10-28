@@ -41,6 +41,7 @@ from chainqueue.db.models.tx import TxCache
 from chainqueue.db.models.otx import Otx
 
 # local imports
+from cic_eth.db.models.gas_cache import GasCache
 from cic_eth.db.models.role import AccountRole
 from cic_eth.db.models.base import SessionBase
 from cic_eth.error import (
@@ -76,6 +77,34 @@ class MaxGasOracle:
 
     def gas(code=None):
         return MAXIMUM_FEE_UNITS
+
+
+@celery_app.task(base=CriticalSQLAlchemyTask)
+def apply_gas_value_cache(address, method, value, tx_hash):
+    return apply_gas_value_cache_local(address, method, value, tx_hash)
+
+
+def apply_gas_value_cache_local(address, method, value, tx_hash, session=None):
+    address = strip_0x(address)
+    tx_hash = strip_0x(tx_hash)
+    value = int(value)
+
+    session = SessionBase.bind_session(session)
+    q = session.query(GasCache)
+    q = q.filter(GasCache.address==address)
+    q = q.filter(GasCache.method==method)
+    o = q.first()
+
+    if o == None:
+        o = GasCache(address, method, value, tx_hash)
+    elif tx.gas_used > o.value:
+        o.value = value
+        o.tx_hash = strip_0x(tx_hash)
+
+    session.add(o)
+    session.commit()
+
+    SessionBase.release_session(session)
 
 
 def create_check_gas_task(tx_signed_raws_hex, chain_spec, holder_address, gas=None, tx_hashes_hex=None, queue=None):
