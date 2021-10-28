@@ -8,15 +8,14 @@ import confini
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 root_dir = os.path.dirname(os.path.dirname(script_dir))
+config_dir = os.path.join(root_dir, 'cic_eth', 'data', 'config')
 logg = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='session')
 def load_config():
-    config_dir = os.environ.get('CONFINI_DIR')
-    if config_dir == None:
-        config_dir = os.path.join(root_dir, 'config/test')
-    conf = confini.Config(config_dir, 'CICTEST')
+    override_config_dir = os.path.join(root_dir, 'config', 'test')
+    conf = confini.Config(config_dir, 'CICTEST', override_dirs=[override_config_dir])
     conf.process()
     logg.debug('config {}'.format(conf))
     return conf
