@@ -9,7 +9,7 @@ volumes:
 
 services:
   evm:
-    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/bloxberg-node:${TAG:-latest}
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}/bloxberg-node:${TAG:-latest}
     build:
       context: apps/bloxbergValidatorSetup
     restart: unless-stopped
@@ -41,12 +41,12 @@ services:
 
     
   bootstrap:
-    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/contract-migration:${TAG:-latest}
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}/contract-migration:${TAG:-latest}
     build:
       context: apps/contract-migration
       dockerfile: docker/Dockerfile
       args:
-          DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}
+          DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}
           PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
           EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
           EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
@@ -90,12 +90,12 @@ services:
 
 
   cic-signer:
-    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/funga-eth:${TAG:-latest}
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}/funga-eth:${TAG:-latest}
     build: 
       context: apps/cic-signer
       dockerfile: Dockerfile
       args:
-        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}
         PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
         EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
         EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
@@ -120,12 +120,12 @@ services:
 
   # queue handling for outgoing transactions and incoming transactions
   cic-eth-tasker:
-    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:${TAG:-latest}
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}/cic-eth:${TAG:-latest}
     build: 
       context: apps/cic-eth
       dockerfile: docker/Dockerfile
       args:
-        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}
         PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
         EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
         EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
@@ -170,12 +170,12 @@ services:
 
 
   cic-eth-tracker:
-    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:${TAG:-latest}
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}/cic-eth:${TAG:-latest}
     build: 
       context: apps/cic-eth
       dockerfile: docker/Dockerfile
       args:
-        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}
         PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
         EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
         EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
@@ -218,12 +218,12 @@ services:
 
 
   cic-eth-dispatcher:
-    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:${TAG:-latest}
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}/cic-eth:${TAG:-latest}
     build: 
       context: apps/cic-eth
       dockerfile: docker/Dockerfile
       args:
-        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}
         PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
         EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
         EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
@@ -262,12 +262,12 @@ services:
 
 
   cic-eth-retrier:
-    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:${TAG:-latest}
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}/cic-eth:${TAG:-latest}
     build: 
       context: apps/cic-eth
       dockerfile: docker/Dockerfile
       args:
-        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}
         PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
         EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
         EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
@@ -309,12 +309,12 @@ services:
 
     
   cic-cache-tracker:
-    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-cache:${TAG:-latest}
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}/cic-cache:${TAG:-latest}
     build: 
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
       args:
-        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}
         PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
         EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
         EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
@@ -357,12 +357,12 @@ services:
 
 
   cic-cache-tasker:
-    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-cache:${TAG:-latest}
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}/cic-cache:${TAG:-latest}
     build: 
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
       args:
-        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}
         PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
         EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
         EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
@@ -405,12 +405,12 @@ services:
 
   
   cic-cache-server:
-    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-cache:${TAG:-latest}
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}/cic-cache:${TAG:-latest}
     build: 
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
       args:
-        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}
         PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
         EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
         EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
@@ -449,13 +449,13 @@ services:
 
   # metadata replacement server for swarm
   cic-meta-server:
-    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-meta:${TAG:-latest}
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}/cic-meta:${TAG:-latest}
     hostname: meta
     build:
       context: apps/cic-meta
       dockerfile: docker/Dockerfile
       args:
-        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}
         NPM_REPOSITORY: ${DEV_NPM_REPOSITORY:-https://registry.npmjs.org}
     environment:
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
@@ -487,12 +487,12 @@ services:
 
 
   cic-user-tasker:
-    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-user:${TAG:-latest}
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}/cic-user:${TAG:-latest}
     build:
       context: apps/cic-ussd
       dockerfile: docker/Dockerfile
       args:
-        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}
     environment:
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
@@ -523,12 +523,12 @@ services:
 
 
   cic-user-server:
-    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-user:${TAG:-latest}
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}/cic-user:${TAG:-latest}
     build:
       context: apps/cic-ussd
       dockerfile: docker/Dockerfile
       args:
-        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}
         PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
         EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
         EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
@@ -552,12 +552,12 @@ services:
 
 
   cic-user-ussd-server:
-    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-user:${TAG:-latest}
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}/cic-user:${TAG:-latest}
     build:
       context: apps/cic-ussd
       dockerfile: docker/Dockerfile
       args:
-        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}
         PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
         EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
         EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
@@ -590,12 +590,12 @@ services:
 
 
   cic-notify-tasker:
-    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-notify:${TAG:-latest}
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}/cic-notify:${TAG:-latest}
     build:
       context: apps/cic-notify
       dockerfile: docker/Dockerfile
       args:
-        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}
         PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
         EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
         EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
@@ -621,12 +621,12 @@ services:
     command: "/root/start_tasker.sh -q cic-notify -vv"
 
   data-seeding:
-      image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/data-seeding:${TAG:-latest}
+      image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}/data-seeding:${TAG:-latest}
       build:
         context: apps/data-seeding
         dockerfile: docker/Dockerfile
         args:
-          DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+          DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics/cic-base-images}
           PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
           EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
           EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
