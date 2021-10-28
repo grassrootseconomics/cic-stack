@@ -1,4 +1,4 @@
-ARG DOCKER_REGISTRY="registry.gitlab.com/grassrootseconomics"
+ARG DOCKER_REGISTRY="registry.gitlab.com/grassrootseconomics/cic-base-images"
 
 FROM $DOCKER_REGISTRY/cic-base-images:python-3.8.6-dev-e8eb2ee2
 
