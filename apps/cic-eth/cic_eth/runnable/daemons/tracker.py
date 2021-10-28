@@ -99,10 +99,10 @@ def main():
     syncer_backends = SQLBackend.resume(chain_spec, block_offset)
 
     if len(syncer_backends) == 0:
-        initial_block_start = config.get('SYNCER_OFFSET')
-        initial_block_offset = block_offset
+        initial_block_start = int(config.get('SYNCER_OFFSET'))
+        initial_block_offset = int(block_offset)
         if config.true('SYNCER_NO_HISTORY'):
-            initial_block_start = block_offset
+            initial_block_start = initial_block_offset
             initial_block_offset += 1
         syncer_backends.append(SQLBackend.initial(chain_spec, initial_block_offset, start_block_height=initial_block_start))
         logg.info('found no backends to resume, adding initial sync from history start {} end {}'.format(initial_block_start, initial_block_offset))

@@ -76,18 +76,18 @@ arg_flags = cic_eth.cli.argflag_std_read
 local_arg_flags = cic_eth.cli.argflag_local_task
 argparser = cic_eth.cli.ArgumentParser(arg_flags)
 argparser.process_local_flags(local_arg_flags)
-#argparser.add_argument('--default-token-symbol', dest='default_token_symbol', type=str, help='Symbol of default token to use')
 argparser.add_argument('--trace-queue-status', default=None, dest='trace_queue_status', action='store_true', help='set to perist all queue entry status changes to storage')
 argparser.add_argument('--aux-all', action='store_true', help='include tasks from all submodules from the aux module path')
+argparser.add_argument('--min-fee-price', dest='min_fee_price', type=int, help='set minimum fee price for transactions, in wei')
 argparser.add_argument('--aux', action='append', type=str, default=[], help='add single submodule from the aux module path')
 args = argparser.parse_args()
 
 # process config
 extra_args = {
-#    'default_token_symbol': 'CIC_DEFAULT_TOKEN_SYMBOL',
     'aux_all': None,
     'aux': None,
     'trace_queue_status': 'TASKS_TRACE_QUEUE_STATUS',
+    'min_fee_price': 'ETH_MIN_FEE_PRICE',
         }
 config = cic_eth.cli.Config.from_args(args, arg_flags, local_arg_flags)
 
@@ -215,6 +215,8 @@ def main():
     argv.append('-n')
     argv.append(config.get('CELERY_QUEUE'))
 
+    if config.get('ETH_MIN_FEE_PRICE'):
+        BaseTask.min_fee_price = int(config.get('ETH_MIN_FEE_PRICE'))
     BaseTask.default_token_symbol = default_token_symbol
     BaseTask.default_token_address = default_token_address
     default_token = ERC20Token(chain_spec, conn, add_0x(BaseTask.default_token_address))

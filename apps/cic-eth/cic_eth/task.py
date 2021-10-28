@@ -29,13 +29,18 @@ class BaseTask(celery.Task):
     session_func = SessionBase.create_session
     call_address = ZERO_ADDRESS
     trusted_addresses = []
+    min_fee_price = 1
     create_nonce_oracle = RPCNonceOracle
-    create_gas_oracle = RPCGasOracle
     default_token_address = None
     default_token_symbol = None
     default_token_name = None
     default_token_decimals = None
     run_dir = '/run'
+
+
+    def create_gas_oracle(self, conn, code_callback=None, id_generator=None):
+        return RPCGasOracle(conn, code_callback=code_callback, min_price=self.min_fee_price, id_generator=id_generator)
+
 
     def create_session(self):
         return BaseTask.session_func()
