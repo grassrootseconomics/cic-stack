@@ -1,4 +1,4 @@
-@node cic-eth system maintenance
+@anchor{cic-eth-appendix-system-maintenance}
 @appendix Admin API
 
 The admin API is still in an early stage of refinement. User friendliness can be considerably improved.
@@ -33,7 +33,7 @@ Get the current state of a lock
 
 @appendixsection tag_account
 
-Associate an identifier with an account address (@xref{cic-eth system accounts})
+Associate an identifier with an account address (@xref{cic-eth-system-accounts})
 
 @appendixsection have_account
 

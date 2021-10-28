@@ -1,4 +1,3 @@
-@node cic-eth-services
 @section Services
 
 There are four daemons that together orchestrate all of the aforementioned recipes. This section will provide a high level description of them. 
