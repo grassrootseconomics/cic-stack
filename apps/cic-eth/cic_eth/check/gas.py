@@ -12,8 +12,9 @@ from cic_eth.db.models.base import SessionBase
 from cic_eth.db.enum import LockEnum
 from cic_eth.error import LockedError
 from cic_eth.admin.ctrl import check_lock
+from cic_eth.eth.gas import have_gas_minimum
 
-logg = logging.getLogger().getChild(__name__)
+logg = logging.getLogger(__name__)
 
 
 def health(*args, **kwargs):
@@ -31,18 +32,15 @@ def health(*args, **kwargs):
         return True
 
     gas_provider = AccountRole.get_address('GAS_GIFTER', session=session)
+    min_gas = int(config.get('ETH_GAS_HOLDER_MINIMUM_UNITS')) * int(config.get('ETH_GAS_GIFTER_REFILL_BUFFER'))
+    if config.get('ETH_MIN_FEE_PRICE'):
+        min_gas *= int(config.get('ETH_MIN_FEE_PRICE'))
+
+    r = have_gas_minimum(chain_spec, gas_provider, min_gas, session=session)
+
     session.close()
+    
+    if not r:
+        logg.error('EEK! gas gifter has balance {}, below minimum {}'.format(r, min_gas))
 
-    rpc = RPCConnection.connect(chain_spec, 'default')
-    o = balance(gas_provider)
-    r = rpc.do(o)
-    try: 
-        r = int(r, 16)
-    except TypeError:
-        r = int(r)
-    gas_min = int(config.get('ETH_GAS_GIFTER_MINIMUM_BALANCE'))
-    if r < gas_min:
-        logg.error('EEK! gas gifter has balance {}, below minimum {}'.format(r, gas_min))
-        return False
-
-    return True
+    return r

@@ -67,7 +67,10 @@ from cic_eth.registry import (
         connect_declarator,
         connect_token_registry,
         )
-from cic_eth.task import BaseTask
+from cic_eth.task import (
+        BaseTask,
+        CriticalWeb3Task,
+        )
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -215,8 +218,7 @@ def main():
     argv.append('-n')
     argv.append(config.get('CELERY_QUEUE'))
 
-    if config.get('ETH_MIN_FEE_PRICE'):
-        BaseTask.min_fee_price = int(config.get('ETH_MIN_FEE_PRICE'))
+    # TODO: More elegant way of setting queue-wide settings
     BaseTask.default_token_symbol = default_token_symbol
     BaseTask.default_token_address = default_token_address
     default_token = ERC20Token(chain_spec, conn, add_0x(BaseTask.default_token_address))
@@ -224,6 +226,14 @@ def main():
     BaseTask.default_token_decimals = default_token.decimals
     BaseTask.default_token_name = default_token.name
     BaseTask.trusted_addresses = trusted_addresses
+    CriticalWeb3Task.safe_gas_refill_amount = int(config.get('ETH_GAS_HOLDER_MINIMUM_UNITS')) * int(config.get('ETH_GAS_HOLDER_REFILL_UNITS'))
+    CriticalWeb3Task.safe_gas_threshold_amount = int(config.get('ETH_GAS_HOLDER_MINIMUM_UNITS')) * int(config.get('ETH_GAS_HOLDER_REFILL_THRESHOLD'))
+    CriticalWeb3Task.safe_gas_gifter_balance = int(config.get('ETH_GAS_HOLDER_MINIMUM_UNITS')) * int(config.get('ETH_GAS_GIFTER_REFILL_BUFFER'))
+    if config.get('ETH_MIN_FEE_PRICE'):
+        BaseTask.min_fee_price = int(config.get('ETH_MIN_FEE_PRICE'))
+        CriticalWeb3Task.safe_gas_threshold_amount *= BaseTask.min_fee_price
+        CriticalWeb3Task.safe_gas_refill_amount *= BaseTask.min_fee_price
+        CriticalWeb3Task.safe_gas_gifter_balance *= BaseTask.min_fee_price
 
     BaseTask.run_dir = config.get('CIC_RUN_DIR')
     logg.info('default token set to {} {}'.format(BaseTask.default_token_symbol, BaseTask.default_token_address))

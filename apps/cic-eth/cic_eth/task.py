@@ -83,19 +83,18 @@ class CriticalWeb3Task(CriticalTask):
     autoretry_for = (
         ConnectionError,
         )
-    safe_gas_threshold_amount = 2000000000 * 60000 * 3
+    safe_gas_threshold_amount = 60000 * 3
     safe_gas_refill_amount = safe_gas_threshold_amount * 5 
+    safe_gas_gifter_balance = safe_gas_threshold_amount * 5 * 100
 
 
-class CriticalSQLAlchemyAndWeb3Task(CriticalTask):
+class CriticalSQLAlchemyAndWeb3Task(CriticalWeb3Task):
     autoretry_for = (
         sqlalchemy.exc.DatabaseError,
         sqlalchemy.exc.TimeoutError,
         ConnectionError,
         sqlalchemy.exc.ResourceClosedError,
         )
-    safe_gas_threshold_amount = 2000000000 * 60000 * 3
-    safe_gas_refill_amount = safe_gas_threshold_amount * 5 
 
 
 class CriticalSQLAlchemyAndSignerTask(CriticalTask):
@@ -105,14 +104,11 @@ class CriticalSQLAlchemyAndSignerTask(CriticalTask):
         sqlalchemy.exc.ResourceClosedError,
         ) 
 
-class CriticalWeb3AndSignerTask(CriticalTask):
+class CriticalWeb3AndSignerTask(CriticalWeb3Task):
     autoretry_for = (
         ConnectionError,
         )
-    safe_gas_threshold_amount = 2000000000 * 60000 * 3
-    safe_gas_refill_amount = safe_gas_threshold_amount * 5 
-
-
+    
 @celery_app.task()
 def check_health(self):
     pass

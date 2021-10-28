@@ -64,8 +64,10 @@ class LockedError(Exception):
 
 class SeppukuError(Exception):
     """Exception base class for all errors that should cause system shutdown
-
     """
+    def __init__(self, message, lockdown=False):
+        self.message = message
+        self.lockdown = lockdown
 
 
 class SignerError(SeppukuError):

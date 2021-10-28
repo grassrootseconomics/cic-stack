@@ -65,6 +65,7 @@ from cic_eth.encode import (
         ZERO_ADDRESS_NORMAL,
         unpack_normal,
         )
+from cic_eth.error import SeppukuError
 
 celery_app = celery.current_app
 logg = logging.getLogger()
@@ -76,6 +77,22 @@ class MaxGasOracle:
 
     def gas(code=None):
         return MAXIMUM_FEE_UNITS
+
+
+def have_gas_minimum(chain_spec, address, min_gas, session=None, rpc=None):
+    if rpc == None:
+        rpc = RPCConnection.connect(chain_spec, 'default')
+    o = balance(add_0x(address))
+    r = rpc.do(o)
+    try: 
+        r = int(r)
+    except ValueError:
+        r = strip_0x(r)
+        r = int(r, 16)
+    logg.debug('have gas minimum {} have gas {} minimum is {}'.format(address, r, min_gas))
+    if r < min_gas:
+        return False
+    return True
 
 
 def create_check_gas_task(tx_signed_raws_hex, chain_spec, holder_address, gas=None, tx_hashes_hex=None, queue=None):
@@ -357,6 +374,13 @@ def refill_gas(self, recipient_address, chain_spec_dict):
     # set up evm RPC connection
     rpc = RPCConnection.connect(chain_spec, 'default')
 
+    # check the gas balance of the gifter
+    if not have_gas_minimum(chain_spec, gas_provider, self.safe_gas_refill_amount):
+        raise SeppukuError('Noooooooooooo; gas gifter {} is broke!'.format(gas_provider))
+
+    if not have_gas_minimum(chain_spec, gas_provider, self.safe_gas_gifter_balance):
+        logg.error('Gas gifter {} gas balance is below the safe level to operate!'.format(gas_provider))
+    
     # set up transaction builder
     nonce_oracle = CustodialTaskNonceOracle(gas_provider, self.request.root_id, session=session)
     gas_oracle = self.create_gas_oracle(rpc)

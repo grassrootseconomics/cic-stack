@@ -40,7 +40,7 @@ argparser = argparse.ArgumentParser()
 argparser.add_argument('-c', type=str, help='config override directory')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='Chain specification string')
 argparser.add_argument('-f', action='store_true', help='force clear previous state')
-argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:oldchain:1', help='chain spec')
+argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:foo:1:oldchain', help='chain spec')
 argparser.add_argument('--redis-host', dest='redis_host', type=str, help='redis host to use for task submission')
 argparser.add_argument('--redis-port', dest='redis_port', type=int, help='redis host to use for task submission')
 argparser.add_argument('--redis-db', dest='redis_db', type=int, help='redis db to use for task submission and callback')
@@ -227,9 +227,10 @@ if __name__ == '__main__':
                     )
             os.makedirs(os.path.dirname(filepath), exist_ok=True)
            
-            sub_old_chain_str = '{}:{}'.format(old_chain_spec.common_name(), old_chain_spec.network_id())
+            sub_old_chain_str = '{}:{}'.format(old_chain_spec.network_id(), old_chain_spec.common_name())
+            logg.debug('u id {}'.format(u.identities))
             f = open(filepath, 'w')
-            k = u.identities['evm'][sub_old_chain_str][0]
+            k = u.identities['evm'][old_chain_spec.fork()][sub_old_chain_str][0]
             tag_data = {'tags': user_tags[strip_0x(k)]}
             f.write(json.dumps(tag_data))
             f.close()

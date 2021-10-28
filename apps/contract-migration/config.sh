@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -a
+set -e
 
 if [ -z $DEV_DATA_DIR ]; then
 	export DEV_DATA_DIR=`mktemp -d`
@@ -33,6 +34,7 @@ else
 	fi
 	rm $bash_debug_flag -f ${DEV_DATA_DIR}/env_reset
 	rm $bash_debug_flag -f $noncefile
+	export SYNCER_OFFSET=`eth-info --raw block`
 	confini-dump --schema-dir ./config --prefix export > ${DEV_DATA_DIR}/env_reset
 fi
 
@@ -42,6 +44,7 @@ export DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER=${DEV_ETH_ACCOUNT_RESERVE_MINTER:-$
 export CIC_TRUST_ADDRESS=${CIC_TRUST_ADDRESS:-$DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER}
 export CIC_DEFAULT_TOKEN_SYMBOL=$TOKEN_SYMBOL
 export TOKEN_SINK_ADDRESS=${TOKEN_SINK_ADDRESS:-$DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER}
+
 
 if [ ! -f $noncefile ]; then
 	nonce=`eth-count -p $RPC_PROVIDER $DEV_DEBUG_FLAG $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER`
@@ -55,4 +58,5 @@ fi
 # Migration variable processing
 confini-dump --schema-dir ./config > ${DEV_DATA_DIR}/env_reset
 
+set +e
 set +a
