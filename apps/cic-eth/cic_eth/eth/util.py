@@ -1,15 +1,18 @@
 # external imports
 from chainlib.eth.gas import RPCGasOracle
+from hexathon import strip_0x
 
 # local imports
 from cic_eth.db.models.gas_cache import GasCache
+from cic_eth.encode import tx_normalize
+from cic_eth.db.models.base import SessionBase
 
 
 MAXIMUM_FEE_UNITS = 8000000
 
 class MaxGasOracle(RPCGasOracle):
 
-    def get_fee_units(code=None):
+    def get_fee_units(self, code=None):
         return MAXIMUM_FEE_UNITS
 
 
@@ -28,10 +31,10 @@ class CacheGasOracle(MaxGasOracle):
         address = tx_normalize.executable_address(address)
         session = SessionBase.bind_session(session)
         q = session.query(GasCache)
-        q = q.filter(GasCache.address=address)
+        q = q.filter(GasCache.address==address)
         if method != None:
             method = strip_0x(method)
-            q = q.filter(GasCache.method=method)
+            q = q.filter(GasCache.method==method)
         o = q.first()
         if o != None:
             self.value = int(o.value)

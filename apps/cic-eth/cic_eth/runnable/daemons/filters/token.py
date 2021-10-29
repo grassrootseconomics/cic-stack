@@ -17,8 +17,7 @@ import celery
 # local imports
 from .base import SyncFilter
 
-#logg = logging.getLogger(__name__)
-logg = logging.getLogger()
+logg = logging.getLogger(__name__)
 
 
 class TokenFilter(SyncFilter):

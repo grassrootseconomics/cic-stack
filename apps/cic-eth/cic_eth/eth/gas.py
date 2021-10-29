@@ -67,6 +67,7 @@ from cic_eth.encode import (
         unpack_normal,
         )
 from cic_eth.error import SeppukuError
+from cic_eth.eth.util import MAXIMUM_FEE_UNITS
 
 celery_app = celery.current_app
 logg = logging.getLogger()

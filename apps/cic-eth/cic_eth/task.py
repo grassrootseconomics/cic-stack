@@ -10,6 +10,7 @@ from chainlib.chain import ChainSpec
 from chainlib.connection import RPCConnection
 from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.eth.nonce import RPCNonceOracle
+from chainlib.eth.gas import RPCGasOracle
 from cic_eth_registry import CICRegistry
 from cic_eth_registry.error import UnknownContractError
 
@@ -30,7 +31,6 @@ class BaseTask(celery.Task):
     call_address = ZERO_ADDRESS
     trusted_addresses = []
     min_fee_price = 1
-    create_gas_oracle = CacheGasOracle
     default_token_address = None
     default_token_symbol = None
     default_token_name = None
@@ -38,8 +38,22 @@ class BaseTask(celery.Task):
     run_dir = '/run'
 
 
-    def create_gas_oracle(self, conn, code_callback=None, id_generator=None):
-        return RPCGasOracle(conn, code_callback=code_callback, min_price=self.min_fee_price, id_generator=id_generator)
+    def create_gas_oracle(self, conn, address=None, *args, **kwargs):
+        if address == None:
+            return RPCGasOracle(
+                conn,
+                code_callback=kwargs.get('code_callback'),
+                min_price=self.min_fee_price,
+                id_generator=kwargs.get('id_generator'),
+                )
+
+        return CacheGasOracle(
+                conn,
+                address,
+                method=kwargs.get('method'),
+                min_price=self.min_fee_price,
+                id_generator=kwargs.get('id_generator'),
+                )
 
 
     def create_session(self):

@@ -18,6 +18,7 @@ from chainlib.eth.block import (
         block_latest,
         block_by_number,
         )
+from chainlib.eth.address import is_same_address
 from chainlib.eth.contract import ABIContractEncoder
 from hexathon import strip_0x
 from eth_token_index import TokenUniqueSymbolIndex
@@ -39,7 +40,7 @@ def test_filter_gas(
         foo_token,
         token_registry,
         register_lookups,
-        celery_worker,
+        celery_session_worker,
         cic_registry,
     ):
 
@@ -86,7 +87,7 @@ def test_filter_gas(
     q = q.filter(GasCache.tx_hash==strip_0x(tx_hash_hex))
     o = q.first()
 
-    assert o.address == strip_0x(foo_token)
+    assert is_same_address(o.address, strip_0x(foo_token))
     assert o.value > 0
 
     enc = ABIContractEncoder()

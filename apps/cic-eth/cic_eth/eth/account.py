@@ -136,7 +136,7 @@ def register(self, account_address, chain_spec_dict, writer_address=None):
     # Generate and sign transaction
     rpc_signer = RPCConnection.connect(chain_spec, 'signer')
     nonce_oracle = CustodialTaskNonceOracle(writer_address, self.request.root_id, session=session) #, default_nonce)
-    gas_oracle = self.create_gas_oracle(rpc, AccountRegistry.gas)
+    gas_oracle = self.create_gas_oracle(rpc, code_callback=AccountRegistry.gas)
     account_registry = AccountsIndex(chain_spec, signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
     (tx_hash_hex, tx_signed_raw_hex) = account_registry.add(account_registry_address, writer_address, account_address, tx_format=TxFormat.RLP_SIGNED)
     rpc_signer.disconnect()
@@ -192,7 +192,7 @@ def gift(self, account_address, chain_spec_dict):
     # Generate and sign transaction
     rpc_signer = RPCConnection.connect(chain_spec, 'signer')
     nonce_oracle = CustodialTaskNonceOracle(account_address, self.request.root_id, session=session) #, default_nonce)
-    gas_oracle = self.create_gas_oracle(rpc, MinterFaucet.gas)
+    gas_oracle = self.create_gas_oracle(rpc, code_callback=MinterFaucet.gas)
     faucet = Faucet(chain_spec, signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
     (tx_hash_hex, tx_signed_raw_hex) = faucet.give_to(faucet_address, account_address, account_address, tx_format=TxFormat.RLP_SIGNED)
     rpc_signer.disconnect()
