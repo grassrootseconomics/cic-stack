@@ -83,7 +83,7 @@ services:
       - evm
       - postgres
       - redis
-        #- cic-eth-tasker
+      - cic-eth-tasker
     volumes:
       - contract-config:/tmp/cic/config
 
