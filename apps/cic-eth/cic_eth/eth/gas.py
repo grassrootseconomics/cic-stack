@@ -41,6 +41,7 @@ from chainqueue.db.models.tx import TxCache
 from chainqueue.db.models.otx import Otx
 
 # local imports
+from cic_eth.db.models.gas_cache import GasCache
 from cic_eth.db.models.role import AccountRole
 from cic_eth.db.models.base import SessionBase
 from cic_eth.error import (
@@ -71,12 +72,33 @@ celery_app = celery.current_app
 logg = logging.getLogger()
 
 
-MAXIMUM_FEE_UNITS = 8000000
 
-class MaxGasOracle:
+@celery_app.task(base=CriticalSQLAlchemyTask)
+def apply_gas_value_cache(address, method, value, tx_hash):
+    return apply_gas_value_cache_local(address, method, value, tx_hash)
 
-    def gas(code=None):
-        return MAXIMUM_FEE_UNITS
+
+def apply_gas_value_cache_local(address, method, value, tx_hash, session=None):
+    address = tx_normalize.executable_address(address)
+    tx_hash = tx_normalize.tx_hash(tx_hash)
+    value = int(value)
+
+    session = SessionBase.bind_session(session)
+    q = session.query(GasCache)
+    q = q.filter(GasCache.address==address)
+    q = q.filter(GasCache.method==method)
+    o = q.first()
+
+    if o == None:
+        o = GasCache(address, method, value, tx_hash)
+    elif tx.gas_used > o.value:
+        o.value = value
+        o.tx_hash = strip_0x(tx_hash)
+
+    session.add(o)
+    session.commit()
+
+    SessionBase.release_session(session)
 
 
 def have_gas_minimum(chain_spec, address, min_gas, session=None, rpc=None):
