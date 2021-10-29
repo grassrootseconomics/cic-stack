@@ -10,7 +10,6 @@ from chainlib.chain import ChainSpec
 from chainlib.connection import RPCConnection
 from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.eth.nonce import RPCNonceOracle
-from chainlib.eth.gas import RPCGasOracle
 from cic_eth_registry import CICRegistry
 from cic_eth_registry.error import UnknownContractError
 
@@ -30,7 +29,7 @@ class BaseTask(celery.Task):
     call_address = ZERO_ADDRESS
     trusted_addresses = []
     create_nonce_oracle = RPCNonceOracle
-    create_gas_oracle = RPCGasOracle
+    create_gas_oracle = CacheGasOracle
     default_token_address = None
     default_token_symbol = None
     default_token_name = None

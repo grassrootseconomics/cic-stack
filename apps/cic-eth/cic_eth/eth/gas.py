@@ -71,13 +71,6 @@ celery_app = celery.current_app
 logg = logging.getLogger()
 
 
-MAXIMUM_FEE_UNITS = 8000000
-
-class MaxGasOracle:
-
-    def gas(code=None):
-        return MAXIMUM_FEE_UNITS
-
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
 def apply_gas_value_cache(address, method, value, tx_hash):
@@ -85,8 +78,8 @@ def apply_gas_value_cache(address, method, value, tx_hash):
 
 
 def apply_gas_value_cache_local(address, method, value, tx_hash, session=None):
-    address = strip_0x(address)
-    tx_hash = strip_0x(tx_hash)
+    address = tx_normalize.executable_address(address)
+    tx_hash = tx_normalize.tx_hash(tx_hash)
     value = int(value)
 
     session = SessionBase.bind_session(session)

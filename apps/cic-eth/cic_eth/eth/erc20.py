@@ -10,6 +10,9 @@ from chainlib.eth.tx import (
         TxFormat,
         unpack,
         )
+from chainlib.eth.contract import (
+        ABIContractEncoder,
+        )
 from cic_eth_registry import CICRegistry
 from cic_eth_registry.erc20 import ERC20Token
 from hexathon import (
@@ -155,7 +158,7 @@ def transfer_from(self, tokens, holder_address, receiver_address, value, chain_s
 
     session = self.create_session()
     nonce_oracle = CustodialTaskNonceOracle(holder_address, self.request.root_id, session=session)
-    gas_oracle = self.create_gas_oracle(rpc, MaxGasOracle.gas)
+    gas_oracle = self.create_gas_oracle(rpc, t['address'], MaxGasOracle.gas)
     c = ERC20(chain_spec, signer=rpc_signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle)
     try:
         (tx_hash_hex, tx_signed_raw_hex) = c.transfer_from(t['address'], spender_address, holder_address, receiver_address, value, tx_format=TxFormat.RLP_SIGNED)
@@ -226,6 +229,11 @@ def transfer(self, tokens, holder_address, receiver_address, value, chain_spec_d
 
     session = self.create_session()
     nonce_oracle = CustodialTaskNonceOracle(holder_address, self.request.root_id, session=session)
+
+    enc = ABIContractEncoder()
+    enc.method('transferFrom')
+    method = enc.get()
+
     gas_oracle = self.create_gas_oracle(rpc, MaxGasOracle.gas)
     c = ERC20(chain_spec, signer=rpc_signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle)
     try:
