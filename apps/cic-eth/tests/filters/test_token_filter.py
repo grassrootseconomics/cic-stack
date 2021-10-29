@@ -20,6 +20,7 @@ from chainlib.eth.block import (
         )
 from chainlib.eth.contract import ABIContractEncoder
 from hexathon import strip_0x
+from eth_token_index import TokenUniqueSymbolIndex
 
 # local imports
 from cic_eth.runnable.daemons.filters.token import TokenFilter
@@ -32,10 +33,14 @@ def test_filter_gas(
         init_database,
         eth_rpc,
         eth_signer,
+        contract_roles,
         agent_roles,
         token_roles,
         foo_token,
-        celery_session_worker,
+        token_registry,
+        register_lookups,
+        celery_worker,
+        cic_registry,
     ):
 
     rpc = RPCConnection.connect(default_chain_spec, 'default')
@@ -49,7 +54,7 @@ def test_filter_gas(
     rcpt = eth_rpc.do(o)
     assert rcpt['status'] == 1
 
-    fltr = TokenFilter(default_chain_spec, queue=None)
+    fltr = TokenFilter(default_chain_spec, queue=None, call_address=agent_roles['ALICE'])
 
     o = block_latest()
     r = eth_rpc.do(o)
@@ -62,6 +67,17 @@ def test_filter_gas(
     tx_src = unpack(tx_signed_raw_bytes, default_chain_spec)
     tx = Tx(tx_src, block=block)
     tx.apply_receipt(rcpt)
+    t = fltr.filter(eth_rpc, block, tx, db_session=init_database)
+    assert t == None
+
+    nonce_oracle = RPCNonceOracle(contract_roles['CONTRACT_DEPLOYER'], eth_rpc)
+    c = TokenUniqueSymbolIndex(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle)
+    (tx_hash_hex_register, o) = c.register(token_registry, contract_roles['CONTRACT_DEPLOYER'], foo_token)
+    eth_rpc.do(o)
+    o = receipt(tx_hash_hex)
+    r = eth_rpc.do(o)
+    assert r['status'] == 1
+
     t = fltr.filter(eth_rpc, block, tx, db_session=init_database)
     r = t.get_leaf()
     assert t.successful()
