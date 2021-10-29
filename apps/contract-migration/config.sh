@@ -45,6 +45,14 @@ export CIC_TRUST_ADDRESS=${CIC_TRUST_ADDRESS:-$DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER
 export CIC_DEFAULT_TOKEN_SYMBOL=$TOKEN_SYMBOL
 export TOKEN_SINK_ADDRESS=${TOKEN_SINK_ADDRESS:-$DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER}
 
+if [ ! -f $noncefile ]; then
+	nonce=`eth-count -p $RPC_PROVIDER $DEV_DEBUG_FLAG $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER`
+	>&2 echo -e "\033[;96mUsing contract deployer address $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER with nonce $nonce\033[;39m"
+	echo -n $nonce > $noncefile
+else
+	nonce=`cat $noncefile`
+	>&2 echo -e "\033[;96mResuming usage with contract deployer address $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER with nonce $nonce\033[;39m"
+fi
 
 if [ ! -f $noncefile ]; then
 	nonce=`eth-count -p $RPC_PROVIDER $DEV_DEBUG_FLAG $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER`
