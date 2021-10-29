@@ -9,6 +9,7 @@ from chainlib.eth.contract import (
         )
 from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.eth.address import is_same_address
+from chainlib.eth.error import RequestMismatchException
 from cic_eth_registry import CICRegistry
 from cic_eth_registry.erc20 import ERC20Token
 from eth_token_index import TokenUniqueSymbolIndex

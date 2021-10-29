@@ -152,6 +152,12 @@ else
 	deploy_minter_${TOKEN_MINTER_MODE} $TOKEN_ADDRESS
 fi
 
+>&2 echo -e "\033[;96mTransfer a single token to self to poke the gas cacher\033[;39m"
+advance_nonce
+debug_rpc
+r=`erc20-transfer $DEV_WAIT_FLAG --nonce $nonce $fee_price_arg -p $RPC_PROVIDER -y $WALLET_KEY_FILE -i $CHAIN_SPEC -u $DEV_DEBUG_FLAG -s -e $TOKEN_ADDRESS -a $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER 1`
+add_pending_tx_hash $r
+
 check_wait 3
 
 >&2 echo -e "\033[;96mWriting env_reset file\033[;39m"
