@@ -23,7 +23,7 @@ def upgrade():
     op.create_table(
             'lock',
             sa.Column('id', sa.Integer, primary_key=True),
-            sa.Column("address", sa.String, nullable=True),
+            sa.Column("address", sa.String(42), nullable=True),
             sa.Column('blockchain', sa.String),
             sa.Column("flags", sa.BIGINT(), nullable=False, default=0),
             sa.Column("date_created", sa.DateTime, nullable=False, default=datetime.datetime.utcnow),

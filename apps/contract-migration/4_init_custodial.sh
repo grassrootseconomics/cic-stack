@@ -18,18 +18,6 @@ fi
 must_address "$CIC_REGISTRY_ADDRESS" "registry"
 must_eth_rpc
 
-
-
-default_token=`eth-contract-registry-list -u -i $CHAIN_SPEC -p $RPC_PROVIDER -e $CIC_REGISTRY_ADDRESS $DEV_DEBUG_FLAG --raw DefaultToken`
-h=`erc20-transfer -u -e $default_token -a $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER -y $WALLET_KEY_FILE -s 10`
-r=`eth-receipt 
-
-set +e
-set +a
-
-exit 0
-
-
 # get required addresses from registries
 token_index_address=`eth-contract-registry-list -u -i $CHAIN_SPEC -p $RPC_PROVIDER -e $CIC_REGISTRY_ADDRESS $DEV_DEBUG_FLAG --raw TokenRegistry`
 accounts_index_address=`eth-contract-registry-list -u -i $CHAIN_SPEC -p $RPC_PROVIDER -e $CIC_REGISTRY_ADDRESS $DEV_DEBUG_FLAG --raw AccountRegistry`

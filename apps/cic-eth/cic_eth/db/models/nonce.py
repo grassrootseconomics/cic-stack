@@ -12,7 +12,7 @@ from cic_eth.error import (
         IntegrityError,
         )
 
-logg = logging.getLogger(__name__)
+logg = logging.getLogger()
 
 
 class Nonce(SessionBase):
@@ -21,7 +21,7 @@ class Nonce(SessionBase):
     __tablename__ = 'nonce'
 
     nonce = Column(Integer)
-    address_hex = Column(String(40))
+    address_hex = Column(String(42))
 
 
     @staticmethod
