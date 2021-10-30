@@ -1,4 +1,4 @@
-cic-eth[tools]==0.12.4a13
+cic-eth[tools]==0.12.4a14
 chainlib-eth>=0.0.10a17,<0.1.0
 eth-erc20>=0.1.2a3,<0.2.0
 erc20-demurrage-token>=0.0.5a2,<0.1.0

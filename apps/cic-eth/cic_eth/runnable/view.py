@@ -16,9 +16,14 @@ import confini
 import celery
 from chainlib.chain import ChainSpec
 from chainlib.eth.connection import EthHTTPConnection
-from hexathon import add_0x
+from hexathon import (
+        add_0x,
+        strip_0x,
+        uniform as hex_uniform,
+        )
 
 # local imports
+import cic_eth.cli
 from cic_eth.api.admin import AdminApi
 from cic_eth.db.enum import (
     StatusEnum,
@@ -31,59 +36,84 @@ logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
 default_format = 'terminal'
-default_config_dir = os.environ.get('CONFINI_DIR', '/usr/local/etc/cic')
 
-argparser = argparse.ArgumentParser()
-argparser.add_argument('-p', '--provider', dest='p', default='http://localhost:8545', type=str, help='Web3 provider url (http only)')
-argparser.add_argument('-r', '--registry-address', dest='r', type=str, help='CIC registry address')
+arg_flags = cic_eth.cli.argflag_std_base
+local_arg_flags = cic_eth.cli.argflag_local_taskcallback
+argparser = cic_eth.cli.ArgumentParser(arg_flags)
 argparser.add_argument('-f', '--format', dest='f', default=default_format, type=str, help='Output format')
-argparser.add_argument('--status-raw', dest='status_raw', action='store_true', help='Output status bit enum names only')
-argparser.add_argument('-c', type=str, default=default_config_dir, help='config root to use')
-argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
-argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
-argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
-argparser.add_argument('-v', action='store_true', help='Be verbose')
-argparser.add_argument('-vv', help='be more verbose', action='store_true')
 argparser.add_argument('query', type=str, help='Transaction, transaction hash, account or "lock"')
+argparser.process_local_flags(local_arg_flags)
 args = argparser.parse_args()
 
-if args.v == True:
-    logging.getLogger().setLevel(logging.INFO)
-elif args.vv == True:
-    logging.getLogger().setLevel(logging.DEBUG)
 
+#default_config_dir = os.environ.get('CONFINI_DIR', '/usr/local/etc/cic')
 
-config_dir = os.path.join(args.c)
-os.makedirs(config_dir, 0o777, True)
-config = confini.Config(config_dir, args.env_prefix)
-config.process()
-args_override = {
-        'ETH_PROVIDER': getattr(args, 'p'),
-        'CIC_CHAIN_SPEC': getattr(args, 'i'),
-        'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
+#argparser = argparse.ArgumentParser()
+#argparser.add_argument('-p', '--provider', dest='p', default='http://localhost:8545', type=str, help='Web3 provider url (http only)')
+#argparser.add_argument('-r', '--registry-address', dest='r', type=str, help='CIC registry address')
+#argparser.add_argument('-f', '--format', dest='f', default=default_format, type=str, help='Output format')
+#argparser.add_argument('--status-raw', dest='status_raw', action='store_true', help='Output status bit enum names only')
+#argparser.add_argument('-c', type=str, default=default_config_dir, help='config root to use')
+#argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
+#argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
+#argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
+#argparser.add_argument('-v', action='store_true', help='Be verbose')
+#argparser.add_argument('-vv', help='be more verbose', action='store_true')
+#argparser.add_argument('query', type=str, help='Transaction, transaction hash, account or "lock"')
+#args = argparser.parse_args()
+
+#if args.v == True:
+#    logging.getLogger().setLevel(logging.INFO)
+#elif args.vv == True:
+#    logging.getLogger().setLevel(logging.DEBUG)
+#
+extra_args = {
+    'f': '_FORMAT',
+    'query': '_QUERY',
         }
-# override args
-config.dict_override(args_override, 'cli args')
-config.censor('PASSWORD', 'DATABASE')
-config.censor('PASSWORD', 'SSL')
-logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
+config = cic_eth.cli.Config.from_args(args, arg_flags, local_arg_flags, extra_args=extra_args)
 
-try:
-    config.add(add_0x(args.query), '_QUERY', True)
-except:
-    config.add(args.query, '_QUERY', True)
+celery_app = cic_eth.cli.CeleryApp.from_config(config)
 
-celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
-queue = args.q
+#config_dir = os.path.join(args.c)
+#os.makedirs(config_dir, 0o777, True)
+#config = confini.Config(config_dir, args.env_prefix)
+#config.process()
+#args_override = {
+#        'ETH_PROVIDER': getattr(args, 'p'),
+#        'CIC_CHAIN_SPEC': getattr(args, 'i'),
+#        'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
+#        }
+## override args
+#config.dict_override(args_override, 'cli args')
+#config.censor('PASSWORD', 'DATABASE')
+#config.censor('PASSWORD', 'SSL')
+#logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
+#
+#try:
+#    config.add(add_0x(args.query), '_QUERY', True)
+#except:
+#    config.add(args.query, '_QUERY', True)
 
-chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
+#celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
-rpc = EthHTTPConnection(args.p)
+queue = config.get('CELERY_QUEUE')
+
+chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
+
+#rpc = EthHTTPConnection(args.p)
 
 #registry_address = config.get('CIC_REGISTRY_ADDRESS')
 
-admin_api = AdminApi(rpc)
+# connect to celery
+celery_app = cic_eth.cli.CeleryApp.from_config(config)
+
+# set up rpc
+rpc = cic_eth.cli.RPC.from_config(config) #, use_signer=True)
+conn = rpc.get_default()
+
+admin_api = AdminApi(conn)
 
 t = admin_api.registry()
 registry_address = t.get()
@@ -113,7 +143,7 @@ def render_tx(o, **kwargs):
     
     for v in o.get('status_log', []):
         d = datetime.datetime.fromisoformat(v[0])
-        e = status_str(v[1], args.status_raw)
+        e = status_str(v[1], config.get('_RAW'))
         content += '{}: {}\n'.format(d, e)
 
     return content
@@ -154,20 +184,29 @@ def render_lock(o, **kwargs):
 def main():
     txs  = []
     renderer = render_tx
-    if len(config.get('_QUERY')) > 66:
+
+    query = config.get('_QUERY')
+    try:
+        query = hex_uniform(strip_0x(query))
+    except TypeError:
+        pass
+    except ValueError:
+        pass
+
+    if len(query) > 64:
         #registry = connect_registry(rpc, chain_spec, registry_address)
         #admin_api.tx(chain_spec, tx_raw=config.get('_QUERY'), registry=registry, renderer=renderer)
-        admin_api.tx(chain_spec, tx_raw=config.get('_QUERY'), renderer=renderer)
-    elif len(config.get('_QUERY')) > 42:
+        admin_api.tx(chain_spec, tx_raw=query, renderer=renderer)
+    elif len(query) > 40:
         #registry = connect_registry(rpc, chain_spec, registry_address)
         #admin_api.tx(chain_spec, tx_hash=config.get('_QUERY'), registry=registry, renderer=renderer)
-        admin_api.tx(chain_spec, tx_hash=config.get('_QUERY'), renderer=renderer)
+        admin_api.tx(chain_spec, tx_hash=query, renderer=renderer)
 
-    elif len(config.get('_QUERY')) == 42:
+    elif len(query) == 40:
         #registry = connect_registry(rpc, chain_spec, registry_address)
-        txs = admin_api.account(chain_spec, config.get('_QUERY'), include_recipient=False, renderer=render_account)
+        txs = admin_api.account(chain_spec, query, include_recipient=False, renderer=render_account)
         renderer = render_account
-    elif len(config.get('_QUERY')) >= 4 and config.get('_QUERY')[:4] == 'lock':
+    elif len(query) >= 4 and query[:4] == 'lock':
         t = admin_api.get_lock()
         txs = t.get()
         renderer = render_lock
@@ -175,7 +214,7 @@ def main():
             r = renderer(txs)
             sys.stdout.write(r + '\n')
     else:
-        raise ValueError('cannot parse argument {}'.format(config.get('_QUERY')))
+        raise ValueError('cannot parse argument {}'.format(query))
                    
 
 if __name__ == '__main__':
