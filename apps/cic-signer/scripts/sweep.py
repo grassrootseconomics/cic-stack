@@ -27,6 +27,9 @@ from chainlib.eth.address import (
         is_checksum_address,
         to_checksum_address,
         )
+from chainlib.eth.tx import (
+        TxFormat,
+        )
 import chainlib.eth.cli
 
        
@@ -75,29 +78,13 @@ def main():
     if not is_checksum_address(sink_address):
         sys.stderr.write('Invalid sink address {}\n'.format(sink_address))
         sys.exit(1)
-#    verify_string = random.randbytes(4).hex()
-#    verify_string_check = input('WARNING! This will transfer all remaining gas from all accounts in custodial care to account {}. To confirm, please enter the string: {}\n'.format(config.get('_SINK_ADDRESS'), verify_string))
-#    if verify_string != verify_string_check:
-#        sys.stderr.write('Verify string mismatch. Aborting!\n')
-#        sys.exit(1)
 
-#    redis_host = config.get('REDIS_HOST')
-#    redis_port = config.get('REDIS_PORT')
-#    redis_db = config.get('REDIS_DB')
-#    redis_channel = str(uuid.uuid4())
-#    r = redis.Redis(redis_host, redis_port, redis_db)
-#
-#    ps = r.pubsub()
-#    ps.subscribe(redis_channel)
-#    ps.get_message()
-#
-#    api = Api(
-#            config.get('CHAIN_SPEC'),
-#            queue=config.get('CELERY_QUEUE'),
-#            callback_param='{}:{}:{}:{}'.format(config.get('_REDIS_HOST_CALLBACK'), config.get('_REDIS_PORT_CALLBACK'), config.get('REDIS_DB'), redis_channel),
-#            callback_task='cic_eth.callbacks.redis.redis',
-#            callback_queue=config.get('CELERY_QUEUE'),
-#            )
+    if (config.get('_RPC_SEND')):
+        verify_string = random.randbytes(4).hex()
+        verify_string_check = input("\033[;31m*** WARNING! WARNING! WARNING! ***\033[;39m\nThis action will transfer all remaining gas from all accounts in custodial care to account {}. To confirm, please enter the string: {}\n".format(config.get('_RECIPIENT'), verify_string))
+        if verify_string != verify_string_check:
+            sys.stderr.write('Verify string mismatch. Aborting!\n')
+            sys.exit(1)
 
     signer = rpc.get_signer()
 
@@ -128,10 +115,14 @@ def main():
 
         nonce_oracle = RPCNonceOracle(account, conn)
         c = Gas(chain_spec, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle, signer=signer)
-        (tx_hash_hex, o) = c.create(account, config.get('_RECIPIENT'), transfer_amount)
-        r = conn.do(o)
+        tx_hash_hex = None
+        if (config.get('_RPC_SEND')):
+            (tx_hash_hex, o) = c.create(account, config.get('_RECIPIENT'), transfer_amount)
+            r = conn.do(o)
+        else:
+            (tx_hash_hex, o) = c.create(account, config.get('_RECIPIENT'), transfer_amount, tx_format=TxFormat.RLP_SIGNED)
 
-        logg.info('address {} balance {} net transfer {} tx {}'.format(account, account_balance, transfer_amount, r))
+        logg.info('address {} balance {} net transfer {} tx {}'.format(account, account_balance, transfer_amount, tx_hash_hex))
 
 if __name__ == '__main__':
     main()
