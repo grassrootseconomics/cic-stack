@@ -123,7 +123,7 @@ class AdminApi:
         return s_lock.apply_async()
 
 
-    def tag_account(self, tag, address_hex, chain_spec):
+    def tag_account(self, chain_spec, tag, address):
         """Persistently associate an address with a plaintext tag.
 
         Some tags are known by the system and is used to resolve addresses to use for certain transactions. 
@@ -138,11 +138,35 @@ class AdminApi:
             'cic_eth.eth.account.set_role',
             [
                 tag,
-                address_hex,
+                address,
                 chain_spec.asdict(),
                 ],
             queue=self.queue,
             )
+        return s_tag.apply_async()
+
+
+    def get_tag_account(self, chain_spec, tag=None, address=None):
+        if address != None:
+            s_tag = celery.signature(
+                'cic_eth.eth.account.role',
+                [
+                    address,
+                    chain_spec.asdict(),
+                    ],
+                queue=self.queue,
+                )
+
+        else:
+            s_tag = celery.signature(
+                'cic_eth.eth.account.role_account',
+                [
+                    tag,
+                    chain_spec.asdict(),
+                ],
+                queue=self.queue,
+                )
+
         return s_tag.apply_async()
 
 
@@ -503,7 +527,7 @@ class AdminApi:
                     queue=self.queue,
                     )
                 t = s.apply_async()
-                role = t.get()
+                role = t.get()[0][1]
                 if role != None:
                     tx['sender_description'] = role
 
@@ -556,7 +580,7 @@ class AdminApi:
                     queue=self.queue,
                     )
                 t = s.apply_async()
-                role = t.get()
+                role = t.get()[0][1]
                 if role != None:
                     tx['recipient_description'] = role
 

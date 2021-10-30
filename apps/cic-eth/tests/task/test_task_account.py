@@ -141,9 +141,57 @@ def test_role_task(
             )
     t = s.apply_async()
     r = t.get()
-    assert r == 'foo'
+    assert r[0][0] == address
+    assert r[0][1] == 'foo'
 
 
+def test_get_role_task(
+        init_database,
+        celery_session_worker,
+        default_chain_spec,
+        ):
+    address_foo = '0x' + os.urandom(20).hex()
+    role_foo = AccountRole.set('foo', address_foo)
+    init_database.add(role_foo)
+
+    address_bar = '0x' + os.urandom(20).hex()
+    role_bar = AccountRole.set('bar', address_bar)
+    init_database.add(role_bar)
+
+    init_database.commit()
+
+    s = celery.signature(
+            'cic_eth.eth.account.role_account',
+            [
+                'bar',
+                default_chain_spec.asdict(),
+                ],
+            queue=None,
+            )
+    t = s.apply_async()
+    r = t.get()
+    assert r[0][0] == address_bar
+    assert r[0][1] == 'bar'
+
+    s = celery.signature(
+            'cic_eth.eth.account.role_account',
+            [
+                None,
+                default_chain_spec.asdict(),
+                ],
+            queue=None,
+            )
+    t = s.apply_async()
+    r = t.get()
+    x_tags = ['foo', 'bar']
+    x_addrs = [address_foo, address_bar]
+
+    for v in r:
+        x_addrs.remove(v[0])
+        x_tags.remove(v[1])
+    
+    assert len(x_tags) == 0
+    assert len(x_addrs) == 0
 
 def test_gift(
     init_database,

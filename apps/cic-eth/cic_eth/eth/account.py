@@ -266,19 +266,46 @@ def set_role(self, tag, address, chain_spec_dict):
 
 @celery_app.task(bind=True, base=BaseTask)
 def role(self, address, chain_spec_dict):
-    """Return account role for address
+    """Return account role for address and/or role
 
     :param account: Account to check
     :type account: str, 0x-hex
-    :param chain_str: Chain spec string representation
-    :type chain_str: str
+    :param chain_spec_dict: Chain spec dict representation
+    :type chain_spec_dict: dict
     :returns: Account, or None if not exists
     :rtype: Varies
     """
     session = self.create_session()
     role_tag =  AccountRole.role_for(address, session=session)
     session.close()
-    return role_tag
+    return [(address, role_tag,)]
+
+
+@celery_app.task(bind=True, base=BaseTask)
+def role_account(self, role_tag, chain_spec_dict):
+    """Return address for role.
+
+    If the role parameter is None, will return addresses for all roles.
+
+    :param role_tag: Role to match
+    :type role_tag: str
+    :param chain_spec_dict: Chain spec dict representation
+    :type chain_spec_dict: dict
+    :returns: List with a single account/tag pair for a single tag, or a list of account and tag pairs for all tags
+    :rtype: list
+    """
+    session = self.create_session()
+
+    pairs = None
+    if role_tag != None:
+        addr = AccountRole.get_address(role_tag, session=session)
+        pairs = [(addr, role_tag,)]
+    else:
+        pairs = AccountRole.all(session=session)
+
+    session.close()
+
+    return pairs
 
 
 @celery_app.task(bind=True, base=CriticalSQLAlchemyTask)

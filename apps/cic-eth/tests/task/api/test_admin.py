@@ -103,11 +103,11 @@ def test_tag_account(
 
     api = AdminApi(eth_rpc, queue=None)
 
-    t = api.tag_account('foo', agent_roles['ALICE'], default_chain_spec)
+    t = api.tag_account(default_chain_spec, 'foo', agent_roles['ALICE'])
     t.get()
-    t = api.tag_account('bar', agent_roles['BOB'], default_chain_spec)
+    t = api.tag_account(default_chain_spec, 'bar', agent_roles['BOB'])
     t.get()
-    t = api.tag_account('bar', agent_roles['CAROL'], default_chain_spec)
+    t = api.tag_account(default_chain_spec, 'bar', agent_roles['CAROL'])
     t.get()
 
     assert AccountRole.get_address('foo', init_database) == tx_normalize.wallet_address(agent_roles['ALICE'])
