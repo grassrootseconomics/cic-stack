@@ -1,1 +1,2 @@
 funga-eth[sql]>=0.5.1a1,<0.6.0
+chainlib-eth>=0.0.10a18

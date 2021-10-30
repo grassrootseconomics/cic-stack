@@ -54,15 +54,6 @@ else
 	>&2 echo -e "\033[;96mResuming usage with contract deployer address $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER with nonce $nonce\033[;39m"
 fi
 
-if [ ! -f $noncefile ]; then
-	nonce=`eth-count -p $RPC_PROVIDER $DEV_DEBUG_FLAG $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER`
-	>&2 echo -e "\033[;96mUsing contract deployer address $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER with nonce $nonce\033[;39m"
-	echo -n $nonce > $noncefile
-else
-	nonce=`cat $noncefile`
-	>&2 echo -e "\033[;96mResuming usage with contract deployer address $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER with nonce $nonce\033[;39m"
-fi
-
 # Migration variable processing
 confini-dump --schema-dir ./config > ${DEV_DATA_DIR}/env_reset
 
