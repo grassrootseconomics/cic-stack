@@ -1,4 +1,4 @@
 celery==4.4.7
-chainlib-eth>=0.0.10a16,<0.1.0
+chainlib-eth>=0.0.10a20,<0.1.0
 semver==2.13.0
-crypto-dev-signer>=0.4.15rc2,<0.5.0
+urlybird~=0.0.1a2

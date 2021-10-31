@@ -18,7 +18,7 @@ from cic_eth.api import Api
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger('create_account_script')
 
-arg_flags = cic_eth.cli.argflag_std_base
+arg_flags = cic_eth.cli.argflag_local_base
 local_arg_flags = cic_eth.cli.argflag_local_taskcallback
 argparser = cic_eth.cli.ArgumentParser(arg_flags)
 argparser.add_argument('--token-symbol', dest='token_symbol', type=str, help='Token symbol')

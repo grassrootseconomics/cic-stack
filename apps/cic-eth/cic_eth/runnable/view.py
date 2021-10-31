@@ -46,27 +46,6 @@ argparser.process_local_flags(local_arg_flags)
 args = argparser.parse_args()
 
 
-#default_config_dir = os.environ.get('CONFINI_DIR', '/usr/local/etc/cic')
-
-#argparser = argparse.ArgumentParser()
-#argparser.add_argument('-p', '--provider', dest='p', default='http://localhost:8545', type=str, help='Web3 provider url (http only)')
-#argparser.add_argument('-r', '--registry-address', dest='r', type=str, help='CIC registry address')
-#argparser.add_argument('-f', '--format', dest='f', default=default_format, type=str, help='Output format')
-#argparser.add_argument('--status-raw', dest='status_raw', action='store_true', help='Output status bit enum names only')
-#argparser.add_argument('-c', type=str, default=default_config_dir, help='config root to use')
-#argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
-#argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
-#argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
-#argparser.add_argument('-v', action='store_true', help='Be verbose')
-#argparser.add_argument('-vv', help='be more verbose', action='store_true')
-#argparser.add_argument('query', type=str, help='Transaction, transaction hash, account or "lock"')
-#args = argparser.parse_args()
-
-#if args.v == True:
-#    logging.getLogger().setLevel(logging.INFO)
-#elif args.vv == True:
-#    logging.getLogger().setLevel(logging.DEBUG)
-#
 extra_args = {
     'f': '_FORMAT',
     'query': '_QUERY',
@@ -74,37 +53,9 @@ extra_args = {
 config = cic_eth.cli.Config.from_args(args, arg_flags, local_arg_flags, extra_args=extra_args)
 
 celery_app = cic_eth.cli.CeleryApp.from_config(config)
-
-
-#config_dir = os.path.join(args.c)
-#os.makedirs(config_dir, 0o777, True)
-#config = confini.Config(config_dir, args.env_prefix)
-#config.process()
-#args_override = {
-#        'ETH_PROVIDER': getattr(args, 'p'),
-#        'CIC_CHAIN_SPEC': getattr(args, 'i'),
-#        'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
-#        }
-## override args
-#config.dict_override(args_override, 'cli args')
-#config.censor('PASSWORD', 'DATABASE')
-#config.censor('PASSWORD', 'SSL')
-#logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
-#
-#try:
-#    config.add(add_0x(args.query), '_QUERY', True)
-#except:
-#    config.add(args.query, '_QUERY', True)
-
-#celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
-
 queue = config.get('CELERY_QUEUE')
 
 chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
-
-#rpc = EthHTTPConnection(args.p)
-
-#registry_address = config.get('CIC_REGISTRY_ADDRESS')
 
 # connect to celery
 celery_app = cic_eth.cli.CeleryApp.from_config(config)
@@ -194,16 +145,11 @@ def main():
         pass
 
     if len(query) > 64:
-        #registry = connect_registry(rpc, chain_spec, registry_address)
-        #admin_api.tx(chain_spec, tx_raw=config.get('_QUERY'), registry=registry, renderer=renderer)
         admin_api.tx(chain_spec, tx_raw=query, renderer=renderer)
     elif len(query) > 40:
-        #registry = connect_registry(rpc, chain_spec, registry_address)
-        #admin_api.tx(chain_spec, tx_hash=config.get('_QUERY'), registry=registry, renderer=renderer)
         admin_api.tx(chain_spec, tx_hash=query, renderer=renderer)
 
     elif len(query) == 40:
-        #registry = connect_registry(rpc, chain_spec, registry_address)
         txs = admin_api.account(chain_spec, query, include_recipient=False, renderer=render_account)
         renderer = render_account
     elif len(query) >= 4 and query[:4] == 'lock':

@@ -1,3 +1,6 @@
+# standard imports
+import logging
+
 # external imports
 from chainlib.eth.gas import RPCGasOracle
 from hexathon import strip_0x
@@ -7,8 +10,10 @@ from cic_eth.db.models.gas_cache import GasCache
 from cic_eth.encode import tx_normalize
 from cic_eth.db.models.base import SessionBase
 
-
 MAXIMUM_FEE_UNITS = 8000000
+
+logg = logging.getLogger(__name__)
+
 
 class MaxGasOracle(RPCGasOracle):
 
