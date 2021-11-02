@@ -6,4 +6,7 @@ set -e
 TAG=${TAG?Variable not set} \
 docker-compose \
 -f docker-compose.yml \
-build
+build \
+--no-cache \
+--parallel \
+--progress plain

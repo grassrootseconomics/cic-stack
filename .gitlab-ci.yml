@@ -10,6 +10,7 @@ include:
     #- local: 'apps/data-seeding/.gitlab-ci.yml'
 
 stages:
+  - version
   - build
   - test
   - deploy
@@ -20,9 +21,39 @@ variables:
   DOCKER_BUILDKIT: "1"
   COMPOSE_DOCKER_CLI_BUILD: "1"
   CI_DEBUG_TRACE: "true"
+  SEMVERBOT_VERSION: "0.2.0"
 
-before_script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  #before_script:
+  #  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+
+version:
+  #image: python:3.7-stretch
+  image: registry.gitlab.com/grassrootseconomics/cic-base-images/ci-version:b01318ae 
+  stage: version
+  script:
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+    - ssh-keyscan gitlab.com >> ~/.ssh/known_hosts && chmod 644 ~/.ssh/known_hosts
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - git remote set-url origin git@gitlab.com:grassrootseconomics/cic-internal-integration.git
+    - export TAG=$(sbot predict version -m auto)
+    - |
+      if [[ -z $TAG ]]
+      then
+        echo "tag could not be set $@"
+        exit 1
+      fi
+    - echo $TAG > version
+    - git tag -a v$TAG -m "ci tagged"
+    - git push origin v$TAG
+  artifacts:
+    paths:
+      - version
+  rules:
+  - if: $CI_COMMIT_REF_PROTECTED == "true"
+    when: always
+  - if: $CI_COMMIT_REF_NAME == "master"
+    when: always
 
 # runs on protected branches and pushes to repo
 build-push:
@@ -30,11 +61,16 @@ build-push:
   tags:
     - integration
   #script:
-  #  - TAG=$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA sh ./scripts/build-push.sh
+  #  - TAG=$CI_Cbefore_script:
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
-    - TAG=latest sh ./scripts/build-push.sh
+    - TAG=latest ./scripts/build-push.sh
+    - TAG=$(cat ./version) ./scripts/build-push.sh
   rules:
   - if: $CI_COMMIT_REF_PROTECTED == "true"
+    when: always
+  - if: $CI_COMMIT_REF_NAME == "master"
     when: always
 
 deploy-dev:
