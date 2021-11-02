@@ -251,7 +251,7 @@ async function processRequest(req, res) {
 		}
 
 		if (content === undefined) {
-			console.error('empty content', data);
+			console.error('empty content', mod, digest, data);
 			res.writeHead(404, {"Content-Type": "text/plain"});
 			res.end();
 			return;
