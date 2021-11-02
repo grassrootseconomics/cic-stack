@@ -193,6 +193,7 @@ async function processRequest(req, res) {
 						res.end();
 						return;
 					}
+					content = '';
 					break;
 
 				case 'get:automerge:client':
