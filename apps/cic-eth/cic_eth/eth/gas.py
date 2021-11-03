@@ -386,6 +386,7 @@ def refill_gas(self, recipient_address, chain_spec_dict):
     session.flush()
 
     # finally determine the value to send
+    # TODO: must be dynamic; more gas if price went up. 
     refill_amount = 0
     if not zero_amount:
         refill_amount = self.safe_gas_refill_amount
