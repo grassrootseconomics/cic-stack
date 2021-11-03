@@ -17,4 +17,5 @@ class ArgumentParser(BaseArgumentParser):
             self.add_argument('--offset', type=int, help='Start block height for initial history sync')
             self.add_argument('--no-history', action='store_true', dest='no_history', help='Skip initial history sync')
         if local_arg_flags & CICFlag.CHAIN:
-            self.add_argument('-r', '--registry-address', type=str, dest='registry_address', help='CIC registry contract address')
+            self.add_argument('--registry-address', type=str, dest='registry_address', help='CIC registry contract address')
+            self.add_argument('--trust-address', type=str, dest='trust_address', action='append', help='Add trust address')

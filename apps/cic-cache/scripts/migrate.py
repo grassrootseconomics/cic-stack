@@ -36,7 +36,7 @@ if args.vv:
 elif args.v:
     logging.getLogger().setLevel(logging.INFO)
 
-config = confini.Config(configdir, args.env_prefix)
+config = confini.Config(configdir, args.env_prefix, override_dirs=args.c)
 config.process()
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')

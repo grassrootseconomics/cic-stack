@@ -39,6 +39,9 @@ class Config(BaseConfig):
 
         if local_arg_flags & CICFlag.CHAIN:
             local_args_override['CIC_REGISTRY_ADDRESS'] = getattr(args, 'registry_address')
+            trust_addresses = getattr(args, 'trust_address', None)
+            if trust_addresses != None:
+                local_args_override['CIC_TRUST_ADDRESS'] = ','.join(trust_addresses)
 
         if local_arg_flags & CICFlag.CELERY:
             local_args_override['CELERY_QUEUE'] = getattr(args, 'celery_queue')

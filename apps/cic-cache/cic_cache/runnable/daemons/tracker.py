@@ -40,7 +40,7 @@ logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
 # process args
-arg_flags = cic_cache.cli.argflag_std_base
+arg_flags = cic_cache.cli.argflag_std_read
 local_arg_flags = cic_cache.cli.argflag_local_sync
 argparser = cic_cache.cli.ArgumentParser(arg_flags)
 argparser.process_local_flags(local_arg_flags)
