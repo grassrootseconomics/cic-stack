@@ -65,7 +65,7 @@ args_override = {
     'REDIS_DB': getattr(args, 'redis_db'),
     'META_HOST': getattr(args, 'meta_host'),
     'META_PORT': getattr(args, 'meta_port'),
-    'KEYSTORE_FILE_PATH': getattr(args, 'y')
+    'WALLET_KEY_FILE': getattr(args, 'y')
 }
 config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')

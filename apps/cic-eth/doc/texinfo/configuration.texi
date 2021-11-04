@@ -1,4 +1,3 @@
-@node cic-eth configuration
 @section Configuration
 
 Configuration parameters are grouped by configuration filename.

@@ -1,0 +1,3 @@
+@include admin.texi
+@include chains.texi
+@include transfertypes.texi

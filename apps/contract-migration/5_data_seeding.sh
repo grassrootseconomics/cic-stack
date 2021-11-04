@@ -10,9 +10,9 @@ WAIT_FOR_TIMEOUT=${WAIT_FOR_TIMEOUT:-60}
 
 set -e
 
-if [ ! -z $DEV_ETH_GAS_PRICE ]; then
-	gas_price_arg="--gas-price $DEV_ETH_GAS_PRICE"
-	fee_price_arg="--fee-price $DEV_ETH_GAS_PRICE"
+if [ ! -z $DEV_FEE_PRICE ]; then
+	gas_price_arg="--gas-price $DEV_FEE_PRICE"
+	fee_price_arg="--fee-price $DEV_FEE_PRICE"
 fi
 
 must_address "$CIC_REGISTRY_ADDRESS" "registry"

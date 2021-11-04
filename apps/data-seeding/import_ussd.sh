@@ -37,11 +37,11 @@ if [ "$INCLUDE_BALANCES" != "y" ]
 then
   echo -e "\033[;96mRunning worker without opening balance transactions\033[;96m"
   TARGET_TX_COUNT=$NUMBER_OF_USERS
-  nohup python cic_ussd/import_balance.py -vv -c "$CONFIG" -p "$ETH_PROVIDER" -r "$CIC_REGISTRY_ADDRESS" --token-symbol "$TOKEN_SYMBOL" -y "$KEYSTORE_PATH" "$OUT_DIR" > nohup.out 2> nohup.err < /dev/null &
+  nohup python cic_ussd/import_balance.py -vv -c "$CONFIG" -p "$ETH_PROVIDER" -r "$CIC_REGISTRY_ADDRESS" --token-symbol "$TOKEN_SYMBOL" -y "$WALLET_KEY_FILE" "$OUT_DIR" > nohup.out 2> nohup.err < /dev/null &
 else
   echo -e "\033[;96mRunning worker with opening balance transactions\033[;96m"
   TARGET_TX_COUNT=$((NUMBER_OF_USERS*2))
-  nohup python cic_ussd/import_balance.py -vv -c "$CONFIG" -p "$ETH_PROVIDER" -r "$CIC_REGISTRY_ADDRESS" --include-balances --token-symbol "$TOKEN_SYMBOL" -y "$KEYSTORE_PATH" "$OUT_DIR" &
+  nohup python cic_ussd/import_balance.py -vv -c "$CONFIG" -p "$ETH_PROVIDER" -r "$CIC_REGISTRY_ADDRESS" --include-balances --token-symbol "$TOKEN_SYMBOL" -y "$WALLET_KEY_FILE" "$OUT_DIR" &
 fi
 
 echo -e "\033[;96mTarget count set to ${TARGET_TX_COUNT}"

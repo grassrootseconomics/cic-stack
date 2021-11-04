@@ -22,6 +22,7 @@ logg = logging.getLogger()
 rootdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 dbdir = os.path.join(rootdir, 'cic_cache', 'db')
 migrationsdir = os.path.join(dbdir, 'migrations')
+configdir = os.path.join(rootdir, 'cic_cache', 'data', 'config')
 
 #config_dir = os.path.join('/usr/local/etc/cic-cache')
 
