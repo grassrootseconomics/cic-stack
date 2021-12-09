@@ -1,4 +1,6 @@
-# cic-internal-integration
+# CIC Stack (cic-internal-integration)
+
+Documentation as well as community contribution guides can be found [here](https://docs.grassecon.org) and the source of those docs can be found [here](https://gitlab.com/grassrootseconomics/grassrootseconomics.gitlab.io) 
 
 ## Getting started 
 
