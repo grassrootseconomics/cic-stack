@@ -1,19 +1,24 @@
-# Community Inclusion Currency Stack (CIC Stack) 
+## Community Inclusion Currency Stack (CIC Stack)
 
-A custodial evm wallet for executing transactions via USSD
+A custodial wallet and blockchain bidirectional interface engine for community inclusion currencies. Check the [CIC Stack summary](https://docs.grassecon.org/software/cic_stack/) page for more information.
 
-## Getting started 
+### Contributing
 
-This repo uses docker-compose and docker buildkit. Set the following environment variables to get started:
+See our [contribution guidelines](https://docs.grassecon.org/community/contrib/) for more details on:
 
-```
-export COMPOSE_DOCKER_CLI_BUILD=1
-export DOCKER_BUILDKIT=1
-```
+- Environment setup
+- Source Code Management (SCM) guidelines
+- Filing issues
 
-To get started see [./apps/contract-migration/README.md](./apps/contract-migration/README.md)
+#### Code of Conduct
 
-## Documentation 
+This project is released with a [Code of Conduct](https://docs.grassecon.org/community/conduct/). By participating in this project you agree to abide by its terms.
 
-[https://docs.grassecon.org/cic_stack/](https://docs.grassecon.org/cic_stack/)
+### Community
 
+- [Mattermost](https://chat.grassrootseconomics.net/cic/channels/dev)
+- [Discord](https://discord.gg/ud32KMgH76)
+
+### License
+
+Licensed under [GNU AGPLv3](https://gitlab.com/grassrootseconomics/cic-internal-integration/-/blob/master/LICENSE).
