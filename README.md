@@ -1,6 +1,6 @@
 ## Community Inclusion Currency Stack (CIC Stack)
 
-A custodial wallet and blockchain bidirectional interface engine for community inclusion currencies. Check the [CIC Stack summary](https://docs.grassecon.org/software/cic_stack/) page for more information.
+A custodial wallet and blockchain bidirectional interface engine for community inclusion currencies. Check the [CIC Stack summary](https://docs.grassecon.org/software) page for more information.
 
 ### Contributing
 
