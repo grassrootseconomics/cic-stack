@@ -265,8 +265,9 @@ def process_token_data(blockchain_address: str, token_symbol: str):
     query_token_metadata(identifier=identifier)
     token_info = query_token_info(identifier=identifier)
     hashed_token_info = hashed_token_proof(token_proof=token_info)
+    hashed_token_symbol = hashed_token_proof(token_symbol)
     query_token_data(blockchain_address=blockchain_address,
-                     hashed_proofs=[hashed_token_info],
+                     hashed_proofs=[[hashed_token_info, hashed_token_symbol]],
                      token_symbols=[token_symbol])
 
 
