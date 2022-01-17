@@ -9,6 +9,13 @@
   {
     "trigger": "scan_data",
     "source": "initial_language_selection",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected",
+    "unless":"cic_ussd.state_machine.logic.language.is_valid_language_selection"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "initial_language_selection",
     "dest": "initial_middle_language_set",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_eleven_selected",
     "unless": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
@@ -16,15 +23,20 @@
   {
     "trigger": "scan_data",
     "source": "initial_language_selection",
-    "dest": "exit",
-    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected",
-    "unless":"cic_ussd.state_machine.logic.language.is_valid_language_selection"
+    "dest": "exit_invalid_menu_option"
   },
   {
     "trigger": "scan_data",
     "source": "initial_middle_language_set",
-    "dest": "initial_language_selection",
-    "conditions": "cic_ussd.state_machine.logic.menu.menu_twenty_two_selected",
+    "dest": "account_creation_prompt",
+    "after": "cic_ussd.state_machine.logic.account.process_account_creation",
+    "conditions": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "initial_middle_language_set",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected",
     "unless": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
   },
   {
@@ -37,6 +49,25 @@
   {
     "trigger": "scan_data",
     "source": "initial_middle_language_set",
+    "dest": "initial_language_selection",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_twenty_two_selected",
+    "unless": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "initial_middle_language_set",
+    "dest": "exit_invalid_menu_option"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "initial_last_language_set",
+    "dest": "account_creation_prompt",
+    "after": "cic_ussd.state_machine.logic.account.process_account_creation",
+    "conditions": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "initial_last_language_set",
     "dest": "exit",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected",
     "unless": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
@@ -51,58 +82,46 @@
   {
     "trigger": "scan_data",
     "source": "initial_last_language_set",
-    "dest": "exit",
-    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected",
-    "unless": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
-  },
-  {
-    "trigger": "scan_data",
-    "source": "initial_middle_language_set",
-    "dest": "exit",
-    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected",
-    "unless": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
-  },
-  {
-    "trigger": "scan_data",
-    "source": "initial_language_selection",
-    "dest": "exit_invalid_menu_option"
-  },
-  {
-    "trigger": "scan_data",
-    "source": "middle_language_set",
-    "dest": "exit_invalid_menu_option"
-  },
-  {
-    "trigger": "scan_data",
-    "source": "last_language_set",
     "dest": "exit_invalid_menu_option"
   },
   {
     "trigger": "scan_data",
     "source": "select_preferred_language",
-    "dest": "exit",
-    "after": "cic_ussd.state_machine.logic.language.change_preferred_language",
+    "dest": "account_creation_prompt",
+    "after": "cic_ussd.state_machine.logic.account.process_account_creation",
     "conditions": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
   },
   {
     "trigger": "scan_data",
     "source": "select_preferred_language",
-    "dest": "middle_language_set",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected",
+    "unless":"cic_ussd.state_machine.logic.language.is_valid_language_selection"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "select_preferred_language",
+    "dest": "initial_middle_language_set",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_eleven_selected",
     "unless": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
   },
   {
     "trigger": "scan_data",
     "source": "select_preferred_language",
-    "dest": "exit",
-    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected",
-    "unless": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
+    "dest": "exit_invalid_menu_option"
   },
   {
     "trigger": "scan_data",
     "source": "middle_language_set",
-    "dest": "select_preferred_language",
-    "conditions": "cic_ussd.state_machine.logic.menu.menu_twenty_two_selected",
+    "dest": "account_creation_prompt",
+    "after": "cic_ussd.state_machine.logic.account.process_account_creation",
+    "conditions": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "middle_language_set",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected",
     "unless": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
   },
   {
@@ -115,40 +134,35 @@
   {
     "trigger": "scan_data",
     "source": "middle_language_set",
+    "dest": "select_preferred_langauge",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_twenty_two_selected",
+    "unless": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "middle_language_set",
+    "dest": "exit_invalid_menu_option"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "last_language_set",
+    "dest": "account_creation_prompt",
+    "after": "cic_ussd.state_machine.logic.account.process_account_creation",
+    "conditions": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "last_language_set",
     "dest": "exit",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected",
     "unless": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
   },
-    {
+  {
     "trigger": "scan_data",
     "source": "last_language_set",
     "dest": "middle_language_set",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_twenty_two_selected",
-      "unless": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
-  },
-  {
-    "trigger": "scan_data",
-    "source": "last_language_set",
-    "dest": "exit",
-    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected",
     "unless": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
-  },
-  {
-    "trigger": "scan_data",
-    "source": "middle_language_set",
-    "dest": "exit",
-    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected",
-    "unless": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
-  },
-  {
-    "trigger": "scan_data",
-    "source": "select_preferred_language",
-    "dest": "exit_invalid_menu_option"
-  },
-  {
-    "trigger": "scan_data",
-    "source": "middle_language_set",
-    "dest": "exit_invalid_menu_option"
   },
   {
     "trigger": "scan_data",
