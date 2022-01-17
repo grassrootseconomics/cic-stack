@@ -66,14 +66,15 @@ def parse_statement_transactions(statement: list):
     :rtype:
     """
     parsed_transactions = []
+    statement.sort(key=lambda d: d['timestamp'], reverse=True)
     for transaction in statement:
         action_tag = transaction.get('action_tag')
         decimals = transaction.get('token_decimals')
         amount = from_wei(decimals, transaction.get('token_value'))
         direction_tag = transaction.get('direction_tag')
         token_symbol = transaction.get('token_symbol')
-        metadata_id = transaction.get('metadata_id')
-        timestamp = datetime.datetime.now().strftime('%d/%m/%y, %H:%M')
+        metadata_id = transaction.get('alt_metadata_id')
+        timestamp = transaction.get('timestamp')
         transaction_repr = f'{action_tag} {amount} {token_symbol} {direction_tag} {metadata_id} {timestamp}'
         parsed_transactions.append(transaction_repr)
     return parsed_transactions
