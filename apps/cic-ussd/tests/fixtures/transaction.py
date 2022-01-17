@@ -1,6 +1,5 @@
 # standard import
-import random
-
+from datetime import datetime
 # external import
 import pytest
 
@@ -46,6 +45,7 @@ def statement(activated_account):
             'direction_tag': 'To',
             'metadata_id': activated_account.standard_metadata_id(),
             'phone_number': activated_account.phone_number,
+            'timestamp': datetime.now().strftime('%d/%m/%y, %H:%M')
         }
     ]
 

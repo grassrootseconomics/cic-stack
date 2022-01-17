@@ -141,14 +141,13 @@ def statement_callback(self, result, param: str, status_code: int):
     statement_transactions = filter_statement_transactions(result)
     for transaction in statement_transactions:
         recipient_transaction, sender_transaction = transaction_actors(transaction)
-        timestamp = datetime.now().strftime('%d/%m/%y, %H:%M')
         if recipient_transaction.get('blockchain_address') == param:
             recipient_transaction['alt_blockchain_address'] = sender_transaction.get('blockchain_address')
-            recipient_transaction['timestamp'] = timestamp
+            recipient_transaction['timestamp'] = datetime.utcfromtimestamp(transaction.get('timestamp')).strftime('%d/%m/%y, %H:%M')
             generate(param, queue, recipient_transaction)
         if sender_transaction.get('blockchain_address') == param:
             sender_transaction['alt_blockchain_address'] = recipient_transaction.get('blockchain_address')
-            sender_transaction['timestamp'] = timestamp
+            sender_transaction['timestamp'] = datetime.utcfromtimestamp(transaction.get('timestamp')).strftime('%d/%m/%y, %H:%M')
             generate(param, queue, sender_transaction)
 
 
