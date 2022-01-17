@@ -26,6 +26,7 @@ from chainlib.chain import ChainSpec
 from chainqueue.db.models.otx import Otx
 from cic_eth_registry.error import UnknownContractError
 from cic_eth_registry.erc20 import ERC20Token
+from cic_eth.eth.util import MAXIMUM_FEE_UNITS
 from hexathon import add_0x
 import liveness.linux
 
@@ -232,6 +233,7 @@ def main():
     if config.get('ETH_MIN_FEE_PRICE'):
         BaseTask.min_fee_price = int(config.get('ETH_MIN_FEE_PRICE'))
         CriticalWeb3Task.safe_gas_threshold_amount *= BaseTask.min_fee_price
+        CriticalWeb3Task.safe_gas_refill_amount = CriticalWeb3Task.safe_gas_refill_amount + MAXIMUM_FEE_UNITS
         CriticalWeb3Task.safe_gas_refill_amount *= BaseTask.min_fee_price
         CriticalWeb3Task.safe_gas_gifter_balance *= BaseTask.min_fee_price
 
