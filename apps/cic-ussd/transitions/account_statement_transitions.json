@@ -3,7 +3,7 @@
     "trigger": "scan_data",
     "source": "first_transaction_set",
     "dest": "middle_transaction_set",
-    "conditions": "cic_ussd.state_machine.logic.menu.menu_one_selected"
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_eleven_selected"
   },
   {
     "trigger": "scan_data",
@@ -20,13 +20,13 @@
     "trigger": "scan_data",
     "source": "middle_transaction_set",
     "dest": "last_transaction_set",
-    "conditions": "cic_ussd.state_machine.logic.menu.menu_one_selected"
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_eleven_selected"
   },
   {
     "trigger": "scan_data",
     "source": "middle_transaction_set",
     "dest": "first_transaction_set",
-    "conditions": "cic_ussd.state_machine.logic.menu.menu_two_selected"
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_twenty_two_selected"
   },
   {
     "trigger": "scan_data",
@@ -43,7 +43,7 @@
     "trigger": "scan_data",
     "source": "last_transaction_set",
     "dest": "middle_transaction_set",
-    "conditions": "cic_ussd.state_machine.logic.menu.menu_two_selected"
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_twenty_two_selected"
   },
   {
     "trigger": "scan_data",
