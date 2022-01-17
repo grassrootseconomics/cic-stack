@@ -9,4 +9,4 @@ erc20-faucet==0.3.2
 sarafu-faucet==0.0.7
 confini~=0.5.3
 eth-token-index==0.2.4
-okota==0.2.5a1
+okota==0.2.6

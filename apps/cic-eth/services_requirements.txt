@@ -12,4 +12,4 @@ erc20-faucet~=0.3.2
 erc20-transfer-authorization~=0.3.6
 sarafu-faucet~=0.0.7
 moolb~=0.2.0
-okota~=0.2.5
+okota~=0.2.6
