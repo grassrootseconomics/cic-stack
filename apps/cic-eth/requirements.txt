@@ -5,3 +5,5 @@ urlybird~=0.0.1
 cic-eth-registry~=0.6.6
 cic-types~=0.2.1a8
 cic-eth-aux-erc20-demurrage-token~=0.0.3
+fastapi[all]==0.70.1
+uvicorn[standard]<0.16.0

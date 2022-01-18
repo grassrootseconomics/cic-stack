@@ -172,6 +172,42 @@ services:
             set +a
             ./start_tasker.sh --aux-all -q cic-eth  -vv
 
+  cic-eth-server:
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}/cic-eth:${TAG:-latest}
+    ports:
+      - 5000:5000
+    build: 
+      context: apps/cic-eth
+      dockerfile: docker/Dockerfile
+      args:
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+    environment:
+      REDIS_PORT: 6379
+      REDIS_HOST: redis
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
+      CELERY_DEBUG: ${CELERY_DEBUG:-1}
+    restart: unless-stopped 
+    depends_on:
+      - cic-eth-tasker
+      - cic-eth-tracker
+      - cic-eth-dispatcher
+    volumes:
+      # - ./apps/cic-eth/:/root
+      - signer-data:/run/crypto-dev-signer
+      - contract-config:/tmp/cic/config/:ro
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -a
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
+        set +a
+        python -m cic_eth.runnable.daemons.server
 
   cic-eth-tracker:
     image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:${TAG:-latest}
