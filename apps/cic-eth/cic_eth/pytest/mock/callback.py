@@ -8,7 +8,7 @@ import tempfile
 # external imports
 import celery
 
-logg = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 celery_app = celery.current_app
 
@@ -19,8 +19,8 @@ class CallbackTask(celery.Task):
 
 @celery_app.task(bind=True, base=CallbackTask)
 def test_getter_callback(self, result, taskId, c):
-    print("path", self.mmap_path)
-    print("callback", result, taskId, c)
+    log.debug("path", self.mmap_path)
+    log.debug("callback", result, taskId, c)
     s = 'ok'
     if c > 0:
         s = 'err'

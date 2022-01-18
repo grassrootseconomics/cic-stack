@@ -118,7 +118,6 @@ def create_app(chain_spec, redis_host, redis_port, redis_db,redis_timeout, Gette
         )
         task = api.tokens(token_symbols, proof=proof)
         data = getter.get(catch=len(token_symbols))
-        print(f"data: {data}")
         if data:
             tokens = []
             if len(token_symbols) == 1:

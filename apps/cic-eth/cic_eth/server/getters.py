@@ -38,7 +38,7 @@ class TestGetter:
             while True:
                 if time.time() > timeout:
                     raise TimeoutError(f"Timeout ocurred waiting for {callback_param}")
-                print(f'Waiting for {callback_param}')
+                log.debug(f'Waiting for {callback_param}')
                 fp = os.path.join(CallbackTask.mmap_path, callback_param)
                 try:
                     f = open(fp, 'rb')
@@ -100,7 +100,6 @@ class RedisGetter:
                     for _i in range(catch):
                         message = self.ps.get_message(
                             timeout=self.redis_timeout)
-                        print(message)
                         result = json.loads(message['data'])["result"]
                         data.append(result)
             except Exception as e:

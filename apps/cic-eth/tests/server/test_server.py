@@ -85,7 +85,6 @@ def test_balance(client, agent_roles, foo_token_symbol, custodial_roles):
     response = client.get(
         '/balance', params={'address': agent_roles['ALICE'], 'token_symbol': foo_token_symbol})
     assert response.status_code == 200
-    print(f"response {response.json()}")
     token = response.json()
     assert token == [
         {
@@ -146,7 +145,6 @@ def test_transactions(client, agent_roles, foo_token_symbol, custodial_roles):
     ]
     response = client.get('/transactions', params={'address': agent_roles['ALICE']})
     assert response.status_code == 200
-    print(f"response {response.json()}")
     transactions = response.json()
 
     assert len(transactions) == 1
