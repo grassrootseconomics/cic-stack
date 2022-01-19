@@ -87,8 +87,8 @@
   {
     "trigger": "scan_data",
     "source": "select_preferred_language",
-    "dest": "account_creation_prompt",
-    "after": "cic_ussd.state_machine.logic.account.process_account_creation",
+    "dest": "complete",
+    "after": "cic_ussd.state_machine.logic.language.change_preferred_language",
     "conditions": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
   },
   {
@@ -101,7 +101,7 @@
   {
     "trigger": "scan_data",
     "source": "select_preferred_language",
-    "dest": "initial_middle_language_set",
+    "dest": "middle_language_set",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_eleven_selected",
     "unless": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
   },
@@ -113,8 +113,8 @@
   {
     "trigger": "scan_data",
     "source": "middle_language_set",
-    "dest": "account_creation_prompt",
-    "after": "cic_ussd.state_machine.logic.account.process_account_creation",
+    "dest": "complete",
+    "after": "cic_ussd.state_machine.logic.language.change_preferred_language",
     "conditions": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
   },
   {
@@ -134,7 +134,7 @@
   {
     "trigger": "scan_data",
     "source": "middle_language_set",
-    "dest": "select_preferred_langauge",
+    "dest": "select_preferred_language",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_twenty_two_selected",
     "unless": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
   },
@@ -146,8 +146,8 @@
   {
     "trigger": "scan_data",
     "source": "last_language_set",
-    "dest": "account_creation_prompt",
-    "after": "cic_ussd.state_machine.logic.account.process_account_creation",
+    "dest": "complete",
+    "after": "cic_ussd.state_machine.logic.language.change_preferred_language",
     "conditions": "cic_ussd.state_machine.logic.language.is_valid_language_selection"
   },
   {
