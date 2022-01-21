@@ -194,8 +194,7 @@ services:
     restart: unless-stopped 
     depends_on:
       - cic-eth-tasker
-      - cic-eth-tracker
-      - cic-eth-dispatcher
+
     volumes:
       # - ./apps/cic-eth/:/root
       - signer-data:/run/crypto-dev-signer
