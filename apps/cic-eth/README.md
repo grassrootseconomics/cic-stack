@@ -94,7 +94,7 @@ The number of worker processes for handling requests
 Gunicorn config file, or python module. It will override all other server args. (see
 https://docs.gunicorn.org/en/19.2.1/settings.html#config-file)
 
-````
+```
 </details>
 <br/>
 
@@ -105,7 +105,7 @@ https://docs.gunicorn.org/en/19.2.1/settings.html#config-file)
 ```bash
 python3 -m venv ./venv # Python 3.9
 source ./venv/activate
-````
+```
 
 ### Running All Unit Tests
 
