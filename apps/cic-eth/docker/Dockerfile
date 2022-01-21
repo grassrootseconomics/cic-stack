@@ -18,6 +18,7 @@ RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
     --extra-index-url $EXTRA_PIP_INDEX_URL $EXTRA_PIP_ARGS \
     -r requirements.txt \
     -r services_requirements.txt \
+    -r server_requirements.txt \
     -r admin_requirements.txt
 
 COPY . .

@@ -8,3 +8,4 @@ eth-tester==0.5.0b3
 py-evm==0.3.0a20
 eth-erc20~=0.1.5
 erc20-transfer-authorization~=0.3.6
+requests >=2.24.0,<3.0.0 # Used for FastApi's Test Server
