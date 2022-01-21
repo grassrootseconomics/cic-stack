@@ -107,7 +107,7 @@ start,"CON Balance %{account_balance} %{account_token_name}
 1. Tuma
 2. Sarafu yakwa
 3. Akaunti yakwa
-4. Uteithio"," ""CON Sazo %{account_balance} %{account_token_name}
+4. Uteithio","CON Sazo %{account_balance} %{account_token_name}
 1. Huma
 2. Sarafu zangu
 3. Akaunti yangu
@@ -1019,31 +1019,31 @@ initial_middle_language_set,"CON Choose language:
 %{middle_language_set}
 11. Nyime
 22. Mokalo
-00. Wuok","CON afaan chaguad
-.%{middle_language_set}
+00. Wuok","CON afaan chaguad:
+%{middle_language_set}
 11. Dhuur
 22.Waan dhabran
 00.Bai"
 initial_last_language_set,"CON Choose language:
-%{middle_language_set}
+%{last_language_set}
 22. Previous
 00. Exit","CON Choose language:
-%{middle_language_set}
+%{last_language_set}
 22. Rudi
 00. Ondoka","CON Sakua luka:
-%{middle_language_set}
+%{last_language_set}
 22. Itina 
 00. Uma","CON : Cagura ruthiomi
-%{middle_language_set}
+%{last_language_set}
 22. Thutha
 00. Uma","CON Tsagula luga:
-%{middle_language_set}
+%{last_language_set}
 22. Uyira ya nyuma
 00. Ombola","CON Yier dhok:
-%{middle_language_set}
+%{last_language_set}
 22. Mokalo
 00. Wuok","CON Afaan chaguad.
-%last_language_set
+%{last_language_set}
 22.Dheebi
 00.Bai"
 middle_language_set,"CON Choose language:
@@ -1070,7 +1070,8 @@ middle_language_set,"CON Choose language:
 %{middle_language_set}
 11. Nyime
 22. Mokalo
-00. Wuok","CON Afaan chaguad: %{middle_language_set}
+00. Wuok","CON Afaan chaguad:
+%{middle_language_set}
 11.Dhuur
 22.Dheebi
 00.Bai"
