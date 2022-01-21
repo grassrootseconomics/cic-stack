@@ -18,7 +18,7 @@ def create_app(chain_spec, redis_host, redis_port, redis_db,redis_timeout, Gette
         contact={
             "name": "Grassroots Economics",
             "url": "https://www.grassrootseconomics.org",
-            "email": "will@grassecon.org"
+            "email": "info@grassecon.org"
         },
         license_info={
             "name": "GPLv3",
@@ -107,7 +107,7 @@ def create_app(chain_spec, redis_host, redis_port, redis_db,redis_timeout, Gette
         return token
 
     @app.get("/tokens", response_model=List[Token])
-    def tokens(token_symbols: Optional[List[str]] = Query(None), proof: Optional[Union[str, List[str], List[List[str]]]] = None):
+    def tokens(token_symbols: Optional[List[str]] = Query(...), proof: Optional[List[str]] = None):
         getter = Getter(chain_spec, redis_host, redis_port, redis_db, redis_timeout)
         api = Api(
             chain_spec,
