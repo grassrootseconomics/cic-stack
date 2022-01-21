@@ -194,7 +194,7 @@ def handle_account_menu_operations(account: Account,
     menu_response = response(
         account, menu.get('display_key'), menu.get('name'), session, ussd_session.to_json())
     if not is_valid_response(menu_response):
-        raise ValueError(f'Invalid response: {response}')
+        raise ValueError(f'Invalid response: {menu_response}')
     persist_ussd_session(external_session_id, queue)
     return menu_response
 
