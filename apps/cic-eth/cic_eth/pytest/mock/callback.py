@@ -19,8 +19,6 @@ class CallbackTask(celery.Task):
 
 @celery_app.task(bind=True, base=CallbackTask)
 def test_getter_callback(self, result, taskId, c):
-    log.debug("path", self.mmap_path)
-    log.debug("callback", result, taskId, c)
     s = 'ok'
     if c > 0:
         s = 'err'
@@ -41,7 +39,7 @@ def test_getter_callback(self, result, taskId, c):
     m.close()
     f.close()
 
-    logg.debug('test callback ({}): {} {} {}'.format(s, result, taskId, c))
+    logg.debug('test_getter_callback ({}): {} {} {}'.format(s, result, taskId, c))
 
 @celery_app.task(bind=True, base=CallbackTask)
 def test_callback(self, a, b, c):
