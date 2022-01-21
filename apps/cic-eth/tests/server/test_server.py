@@ -4,10 +4,17 @@ import logging
 import pytest
 from chainlib.eth.address import is_address
 from cic_eth.pytest.fixtures_server import *
-
+from cic_eth.version import __version_string__
 from hexathon import strip_0x
 
 log = logging.getLogger(__name__)
+
+
+def test_version(client):
+    response = client.get('/version')
+    assert response.status_code == 200
+    version = response.json()
+    assert version == __version_string__
 
 
 def test_create_account(client):
@@ -15,6 +22,7 @@ def test_create_account(client):
     assert response.status_code == 200
     address = response.json()
     assert is_address(bytes.fromhex(address).hex())
+
 
 def test_default_token(client):
     response = client.get('/default_token')
@@ -26,6 +34,7 @@ def test_default_token(client):
         'name': 'Foo Token',
         'decimals': 6
     }
+
 
 def test_token(client):
     response = client.get('/token', params={'token_symbol': 'FOO'})
@@ -43,6 +52,7 @@ def test_token(client):
             'signers': ['0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF']
         }]
     }
+
 
 def test_tokens(client):
     response = client.get('/tokens', params={'token_symbols': ['BAR', 'FOO']})
@@ -79,7 +89,9 @@ def test_tokens(client):
         }
     ]
     # Ignore the ordered of tokens in the list
-    assert {(frozenset(item)) for item in tokens} == {(frozenset(item)) for item in tokens_expected}
+    assert {(frozenset(item)) for item in tokens} == {(frozenset(item))
+                                                      for item in tokens_expected}
+
 
 def test_balance(client, agent_roles, foo_token_symbol, custodial_roles):
     response = client.get(
@@ -96,6 +108,7 @@ def test_balance(client, agent_roles, foo_token_symbol, custodial_roles):
             'balance_available': 0
         }
     ]
+
 
 def test_transfer(client, agent_roles, custodial_roles, foo_token_symbol):
     transfer_response = client.post('/transfer', params={
@@ -143,7 +156,8 @@ def test_transactions(client, agent_roles, foo_token_symbol, custodial_roles):
             'balance_available': 1000
         }
     ]
-    response = client.get('/transactions', params={'address': agent_roles['ALICE']})
+    response = client.get(
+        '/transactions', params={'address': agent_roles['ALICE']})
     assert response.status_code == 200
     transactions = response.json()
 

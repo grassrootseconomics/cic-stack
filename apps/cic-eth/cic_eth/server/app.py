@@ -5,6 +5,7 @@ from cic_eth.api.api_task import Api
 from cic_eth.server import converters
 from cic_eth.server.models import (DefaultToken, Token, TokenBalance, Transaction)
 from fastapi import FastAPI, Query
+from cic_eth.version import __version_string__
 
 log = logging.getLogger(__name__)
 
@@ -24,6 +25,9 @@ def create_app(chain_spec, redis_host, redis_port, redis_db,redis_timeout, Gette
             "name": "GPLv3",
         }
     )
+    @app.get("/version", response_model=str)
+    def version():
+        return __version_string__
 
     @app.get("/transactions", response_model=List[Transaction])
     def transactions(address: str, limit: Optional[str] = 10):
