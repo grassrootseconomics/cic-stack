@@ -2,10 +2,7 @@
 from chainlib.eth.cli import ArgumentParser as BaseArgumentParser
 
 # local imports
-from .base import (
-        CICFlag,
-        Flag,
-        )
+from .base import CICFlag, Flag
 
 
 class ArgumentParser(BaseArgumentParser):
@@ -30,6 +27,11 @@ class ArgumentParser(BaseArgumentParser):
             self.add_argument('--celery-result-db', type=int, help='Celery result backend db (defaults to celery broker db)')
             self.add_argument('--celery-no-result', action='store_true', help='Disable the Celery results backend')
             self.add_argument('-q', '--celery-queue', dest='celery_queue', type=str, default='cic-eth', help='Task queue')
+        if local_arg_flags & CICFlag.SERVER:
+            self.add_argument('--server-port', type=int, default=5000, help='Server port')
+            self.add_argument('--server-host', type=str, default="0.0.0.0", help='Server host')
+            self.add_argument('--server-workers', type=int, default=1, help='The number of worker processes for handling requests')
+            self.add_argument('--server-config', type=str, default=None, help='Gunicorn config file, or python module. It will override all other server args. (see https://docs.gunicorn.org/en/19.2.1/settings.html#config-file)')
         if local_arg_flags & CICFlag.SYNCER:
             self.add_argument('--offset', type=int, help='Start block height for initial history sync')
             self.add_argument('--no-history', action='store_true', dest='no_history', help='Skip initial history sync')

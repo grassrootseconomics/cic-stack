@@ -24,8 +24,12 @@ class CICFlag(enum.IntEnum):
     # sync - nibble 4
     SYNCER = 4096
 
+    # server - nibble 5
+    SERVER=65536
+
 argflag_local_base = argflag_std_base | Flag.CHAIN_SPEC
 argflag_local_task = CICFlag.CELERY
 argflag_local_taskcallback = argflag_local_task | CICFlag.REDIS | CICFlag.REDIS_CALLBACK
 argflag_local_chain = CICFlag.CHAIN
 argflag_local_sync = CICFlag.SYNCER | CICFlag.CHAIN
+argflag_local_server = CICFlag.SERVER | CICFlag.REDIS | CICFlag.REDIS_CALLBACK | CICFlag.CELERY | Flag.CHAIN_SPEC

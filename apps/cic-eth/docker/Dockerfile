@@ -26,7 +26,7 @@ RUN python setup.py install
 
 ENV PYTHONPATH .
 
-
+COPY docker/gunicorn.conf.py ./gunicorn.conf.py 
 COPY docker/entrypoints/* ./ 
 RUN chmod 755 *.sh
 

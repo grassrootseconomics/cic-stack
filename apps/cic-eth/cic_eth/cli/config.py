@@ -45,7 +45,11 @@ class Config(BaseConfig):
 
         if local_arg_flags & CICFlag.CHAIN:
             local_args_override['CIC_REGISTRY_ADDRESS'] = getattr(args, 'registry_address')
-
+        if local_arg_flags & CICFlag.SERVER:
+            local_args_override['SERVER_PORT'] = getattr(args, 'server_port')
+            local_args_override['SERVER_HOST'] = getattr(args, 'server_host')
+            local_args_override['SERVER_WORKERS'] = getattr(args, 'server_workers')
+            local_args_override['SERVER_CONFIG'] = getattr(args, 'server_config')
         
         if local_arg_flags & CICFlag.CELERY:
             local_args_override['CELERY_QUEUE'] = getattr(args, 'celery_queue')

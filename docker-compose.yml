@@ -207,7 +207,7 @@ services:
         set -a
         if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
         set +a
-        python -m cic_eth.runnable.daemons.server
+        ./start_server.sh -vv
 
   cic-eth-tracker:
     image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:${TAG:-latest}
