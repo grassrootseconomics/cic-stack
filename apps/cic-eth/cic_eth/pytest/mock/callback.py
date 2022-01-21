@@ -39,7 +39,7 @@ def test_getter_callback(self, result, taskId, c):
     m.close()
     f.close()
 
-    logg.debug('test_getter_callback ({}): {} {} {}'.format(s, result, taskId, c))
+    log.debug('test_getter_callback ({}): {} {} {}'.format(s, result, taskId, c))
 
 @celery_app.task(bind=True, base=CallbackTask)
 def test_callback(self, a, b, c):
@@ -56,4 +56,4 @@ def test_callback(self, a, b, c):
     m.close()
     f.close()
 
-    logg.debug('test callback ({}): {} {} {}'.format(s, a, b, c))
+    log.debug('test callback ({}): {} {} {}'.format(s, a, b, c))
