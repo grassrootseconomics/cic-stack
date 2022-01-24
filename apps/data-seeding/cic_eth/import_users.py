@@ -49,6 +49,8 @@ argparser.add_argument('--redis-port-callback', dest='redis_port_callback', defa
 argparser.add_argument('--batch-size', dest='batch_size', default=100, type=int, help='burst size of sending transactions to node') # batch size should be slightly below cumulative gas limit worth, eg 80000 gas txs with 8000000 limit is a bit less than 100 batch size
 argparser.add_argument('--batch-delay', dest='batch_delay', default=2, type=int, help='seconds delay between batches')
 argparser.add_argument('--timeout', default=60.0, type=float, help='Callback timeout')
+argparser.add_argument('--default-tag', dest='default_tag', type=str, action='append', default=[],help='Default tag to add when tag is missing')
+argparser.add_argument('--tag', dest='tag', type=str, action='append', default=[], help='Explicitly add given tag')
 argparser.add_argument('-q', type=str, default='cic-eth', help='Task queue')
 argparser.add_argument('-v', action='store_true', help='Be verbose')
 argparser.add_argument('-vv', action='store_true', help='Be more verbose')
@@ -146,8 +148,9 @@ if __name__ == '__main__':
             break
         (old_address, tags_csv) = r.split(':')
         old_address = strip_0x(old_address)
-        user_tags[old_address] = tags_csv.split(',')
-        logg.debug('read tags {} for old address {}'.format(user_tags[old_address], old_address))
+        old_address_tag_key = to_checksum_address(old_address)
+        user_tags[old_address_tag_key] = tags_csv.split(',')
+        logg.debug('read tags {} for old address {}'.format(user_tags[old_address_tag_key], old_address))
 
 
     i = 0
@@ -231,7 +234,16 @@ if __name__ == '__main__':
             logg.debug('u id {}'.format(u.identities))
             f = open(filepath, 'w')
             k = u.identities['evm'][old_chain_spec.fork()][sub_old_chain_str][0]
-            tag_data = {'tags': user_tags[strip_0x(k)]}
+            k = to_checksum_address(strip_0x(k))
+            try:
+                tag_data = {'tags': user_tags[k]}
+            except KeyError:
+                logg.warning('missing tag for {}, adding defaults {}'.format(k, args.default_tag))
+                for tag in args.default_tag:
+                    tag_data['tags'].append(tag)
+            for tag in args.tag:
+                tag_data['tags'].append(tag)
+
             f.write(json.dumps(tag_data))
             f.close()
 
