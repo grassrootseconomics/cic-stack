@@ -151,11 +151,12 @@ class Handler:
         except RequestMismatchException:
             return
         recipient = r[0]
-        
+       
+        filename_recipient = strip_0x(recipient).upper()
         user_file = 'new/{}/{}/{}.json'.format(
-                recipient[2:4].upper(),
-                recipient[4:6].upper(),
-                recipient[2:].upper(),
+                filename_recipient[:2],
+                filename_recipient[2:4],
+                filename_recipient,
                 )
         filepath = os.path.join(self.user_dir, user_file)
         o = None
@@ -164,10 +165,10 @@ class Handler:
             o = json.load(f)
             f.close()
         except FileNotFoundError:
-            logg.error('no import record of address {}'.format(recipient))
+            logg.error('no import record of address {} {}'.format(filename_recipient, filepath))
             return
         u = Person.deserialize(o)
-        original_address = u.identities[old_chain_spec.engine()]['{}:{}'.format(old_chain_spec.common_name(), old_chain_spec.network_id())][0]
+        original_address = u.identities[old_chain_spec.engine()][old_chain_spec.fork()]['{}:{}'.format(old_chain_spec.network_id(), old_chain_spec.common_name())][0]
         try:
             balance = self.balances[original_address]
         except KeyError as e:

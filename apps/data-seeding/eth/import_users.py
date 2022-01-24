@@ -43,7 +43,7 @@ root_dir = os.path.dirname(script_dir)
 base_config_dir = os.path.join(root_dir, 'config')
 
 argparser = argparse.ArgumentParser()
-argparser.add_argument('-p', '--provider', dest='p', default='http://localhost:8545', type=str, help='Web3 provider url (http only)')
+argparser.add_argument('-p', '--provider', dest='p', type=str, help='Web3 provider url (http only)')
 argparser.add_argument('-y', '--key-file', dest='y', type=str, help='Ethereum keystore file to use for signing')
 argparser.add_argument('-c', type=str, help='config override directory')
 argparser.add_argument('-f', action='store_true', help='force clear previous state')
@@ -52,6 +52,8 @@ argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='Chain spe
 argparser.add_argument('-r', '--registry', dest='r', type=str, help='Contract registry address')
 argparser.add_argument('--batch-size', dest='batch_size', default=50, type=int, help='burst size of sending transactions to node')
 argparser.add_argument('--batch-delay', dest='batch_delay', default=2, type=int, help='seconds delay between batches')
+argparser.add_argument('--default-tag', dest='default_tag', type=str, action='append', default=[],help='Default tag to add when tag is missing')
+argparser.add_argument('--tag', dest='tag', type=str, action='append', default=[], help='Explicitly add given tag')
 argparser.add_argument('-v', action='store_true', help='Be verbose')
 argparser.add_argument('-vv', action='store_true', help='Be more verbose')
 argparser.add_argument('user_dir', type=str, help='path to users export dir tree')
@@ -141,8 +143,9 @@ if __name__ == '__main__':
             break
         (old_address, tags_csv) = r.split(':')
         old_address = strip_0x(old_address)
-        user_tags[old_address] = tags_csv.split(',')
-        logg.debug('read tags {} for old address {}'.format(user_tags[old_address], old_address))
+        old_address_tag_key = to_checksum_address(old_address)
+        user_tags[old_address_tag_key] = tags_csv.split(',')
+        logg.debug('read tags {} for old address {}'.format(user_tags[old_address_tag_key], old_address_tag_key))
 
     i = 0
     j = 0
@@ -166,7 +169,8 @@ if __name__ == '__main__':
             if u.identities.get('evm') == None:
                 u.identities['evm'] = {}
             sub_chain_str = '{}:{}'.format(chain_spec.network_id(), chain_spec.common_name())
-            u.identities['evm']['foo'][sub_chain_str] = [new_address]
+            u.identities['evm'][chain_spec.fork()] = {}
+            u.identities['evm'][chain_spec.fork()][sub_chain_str] = [new_address]
 
             new_address_clean = strip_0x(new_address)
             filepath = os.path.join(
@@ -222,8 +226,17 @@ if __name__ == '__main__':
            
             sub_old_chain_str = '{}:{}'.format(old_chain_spec.network_id(), old_chain_spec.common_name())
             f = open(filepath, 'w')
-            k = u.identities['evm']['foo'][sub_old_chain_str][0]
-            tag_data = {'tags': user_tags[strip_0x(k)]}
+            k = u.identities['evm'][old_chain_spec.fork()][sub_old_chain_str][0]
+            k = to_checksum_address(strip_0x(k))
+            tag_data = {'tags': []}
+            try:
+                tag_data = {'tags': user_tags[k]}
+            except KeyError:
+                logg.warning('missing tag for {}, adding defaults {}'.format(k, args.default_tag))
+                for tag in args.default_tag:
+                    tag_data['tags'].append(tag)
+            for tag in args.tag:
+                tag_data['tags'].append(tag)
             f.write(json.dumps(tag_data))
             f.close()
 
