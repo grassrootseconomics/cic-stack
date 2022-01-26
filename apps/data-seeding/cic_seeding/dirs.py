@@ -9,6 +9,9 @@ import logging
 from leveldir.hex import HexDir
 from hexathon import strip_0x
 
+# local imports
+from cic_seeding.index import AddressIndex
+
 logg = logging.getLogger(__name__)
 
 
@@ -23,6 +26,8 @@ class DirHandler:
         'custom_new',
         'phone',
         'phone_meta',
+        'phone_new',
+        'meta',
         }
 
     __csv_indices = {
@@ -41,6 +46,8 @@ class DirHandler:
         os.makedirs(self.dirs['src'], exist_ok=True)
 
 
+    # TODO: which of these are obsolete?
+    # TODO: should they all perhaps |
     def initialize_dirs(self):
         self.dirs['new'] = os.path.join(self.user_dir, 'new')
         self.dirs['meta'] = os.path.join(self.user_dir, 'meta')
@@ -52,6 +59,7 @@ class DirHandler:
         self.dirs['custom_new'] = os.path.join(self.dirs['custom'], 'new')
         self.dirs['custom_meta'] = os.path.join(self.dirs['custom'], 'meta')
         self.dirs['phone_meta'] = os.path.join(self.dirs['phone'], 'meta')
+        self.dirs['phone_new'] = os.path.join(self.dirs['phone'], 'new')
         self.dirs['preferences_meta'] = os.path.join(self.dirs['preferences'], 'meta')
         self.dirs['preferences_new'] = os.path.join(self.dirs['preferences'], 'new')
 
@@ -111,8 +119,6 @@ class DirHandler:
 
 
         for d in self.dirs.keys():
-            #if d == 'src':
-            #    continue
             os.makedirs(self.dirs[d], exist_ok=True)
 
 
@@ -135,6 +141,11 @@ class DirHandler:
     def add(self, k, v, dirkey):
         ifc = self.interfaces[dirkey]
         return ifc.add(k, v)
+
+
+    def get(self, k, dirkey):
+        ifc = self.interfaces[dirkey]
+        return ifc.get(k)
 
 
     def path(self, k, dirkey):
@@ -165,6 +176,15 @@ class HexDirInterface:
         return self.dir.add(kb, v)
 
 
+    def get(self, k):
+        k = strip_0x(k)
+        file_path = self.dir.to_filepath(k)
+        f = open(file_path, 'r')
+        v = f.read()
+        f.close()
+        return v
+
+
     def path(self, k):
         return self.dir.to_filepath(k)
 
@@ -175,14 +195,21 @@ class HexDirInterface:
 
 class IndexInterface:
 
-    def __init__(self, path):
+    def __init__(self, path, index_store=None):
         self.__path = path
         self.f = open(self.__path, 'a')
+        self.store = index_store
+        if self.store == None:
+            self.store = AddressIndex() 
 
 
     def add(self, k, v):
-        logg.debug('writing __{} {}'.format(k, v))
         self.f.write(k + ',' + v + '\n')
+        self.store.add(k, v)
+
+
+    def get(self, k):
+        self.store.get(k)
 
 
     def path(self, k):
@@ -192,6 +219,7 @@ class IndexInterface:
     def flush(self):
         self.f.close()
         self.f = open(self.__path, 'a')
+
 
     def __del__(self):
         self.f.close()

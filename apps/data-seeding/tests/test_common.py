@@ -43,10 +43,10 @@ class TestCommon(unittest.TestCase):
 
 
     def test_index(self):
-        k = 'foo'
+        k = 'deadbeef'
         v = 'bar'
         self.dh.add(k, v, 'tags')
-        k = 'baz'
+        k = '0123456'
         v = 'inky,pinky,blinky,clyde'
         self.dh.add(k, v, 'tags')
         self.dh.flush()
@@ -54,9 +54,9 @@ class TestCommon(unittest.TestCase):
         fp = os.path.join(self.d, 'tags.csv')
         f = open(fp, 'r')
         v = f.readline().rstrip()
-        self.assertEqual(v, 'foo,bar')
+        self.assertEqual(v, 'deadbeef,bar')
         v = f.readline().rstrip()
-        self.assertEqual(v, 'baz,inky,pinky,blinky,clyde')
+        self.assertEqual(v, '0123456,inky,pinky,blinky,clyde')
         f.close()
 
 
@@ -77,6 +77,15 @@ class TestCommon(unittest.TestCase):
         f = open(alias_item_path, 'r')
         v = f.read()
         f.close()
+        self.assertEqual(v, 'baz')
+
+
+    def test_getting(self):
+        address_bytes = os.urandom(20)
+        address = address_bytes.hex()
+
+        self.dh.add(address, 'baz', 'src')
+        v = self.dh.get(address, 'src')
         self.assertEqual(v, 'baz')
 
 

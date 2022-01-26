@@ -31,7 +31,7 @@ class AddressIndex:
 
     def get(self, k):
         k = normalize_key(k)
-        v = self.store[k]
+        v = self.store.get(k)
         if self.value_filter != None:
             v = self.value_filter(v)
         return v

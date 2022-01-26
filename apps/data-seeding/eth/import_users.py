@@ -34,8 +34,15 @@ from funga.eth.keystore.keyfile import to_dict as to_keyfile_dict
 # local imports
 from cic_seeding import DirHandler
 from cic_seeding.index import AddressIndex
-from cic_seeding.chain import set_chain_address
-from cic_seeding.legacy import legacy_normalize_key
+from cic_seeding.chain import (
+        set_chain_address,
+        get_chain_addresses,
+        )
+from cic_seeding.legacy import (
+        legacy_normalize_address,
+        legacy_normalize_index_key,
+        legacy_link_data,
+        )
 
 
 logging.basicConfig(level=logging.WARNING)
@@ -141,6 +148,8 @@ def register_eth(i, u):
 if __name__ == '__main__':
 
     def split_filter(v):
+        if v == None:
+            return []
         return v.split(',')
 
     user_tags = AddressIndex(value_filter=split_filter)
@@ -181,8 +190,8 @@ if __name__ == '__main__':
             dh.add(new_address, json.dumps(o), 'new')
 
 
-            #
-            new_address_clean = legacy_normalize_key(new_address)
+            # 
+            new_address_clean = legacy_normalize_address(new_address)
             
             meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), MetadataPointer.PERSON)
             meta_filepath = os.path.join(dirs['meta'], '{}.json'.format(new_address_clean.upper()))
@@ -191,54 +200,74 @@ if __name__ == '__main__':
             phone_object = phonenumbers.parse(u.tel)
             phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
             meta_phone_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.PHONE)
-            meta_phone_filepath = os.path.join(dirs['phone'], 'meta', meta_phone_key)
 
-            filepath = os.path.join(
-                    dirs['phone'],
-                    'new',
-                    meta_phone_key[:2].upper(),
-                    meta_phone_key[2:4].upper(),
-                    meta_phone_key.upper(),
-                    )
-            os.makedirs(os.path.dirname(filepath), exist_ok=True)
-            
-            f = open(filepath, 'w')
-            f.write(to_checksum_address(new_address_clean))
-            f.close()
+            #meta_phone_filepath = os.path.join(dirs['phone'], 'meta', meta_phone_key)
+            #filepath = os.path.join(
+            #        dirs['phone'],
+            #        'new',
+            #        meta_phone_key[:2].upper(),
+            #        meta_phone_key[2:4].upper(),
+            #        meta_phone_key.upper(),
+            #        )
+            #os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
-            os.symlink(os.path.realpath(filepath), meta_phone_filepath)
-
+            dh.add(meta_phone_key, new_address_clean, 'phone_new')
+            entry_path = dh.path(meta_phone_key, 'phone_new')
+            legacy_link_data(entry_path)
+            dh.alias('meta', 'meta_new')
+            #os.symlink(os.path.realpath(filepath), meta_phone_filepath)
+#            f = open(filepath, 'w')
+#            f.write(to_checksum_address(new_address_clean))
+#            f.close()
+#
+#            os.symlink(os.path.realpath(filepath), meta_phone_filepath)
 
             # custom data
             custom_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.CUSTOM)
-            custom_filepath = os.path.join(dirs['custom'], 'meta', custom_key)
+            #custom_filepath = os.path.join(dirs['custom'], 'meta', custom_key)
 
-            filepath = os.path.join(
-                    dirs['custom'],
-                    'new',
-                    custom_key[:2].upper(),
-                    custom_key[2:4].upper(),
-                    custom_key.upper() + '.json',
-                    )
-            os.makedirs(os.path.dirname(filepath), exist_ok=True)
-           
-            sub_old_chain_str = '{}:{}'.format(old_chain_spec.network_id(), old_chain_spec.common_name())
-            f = open(filepath, 'w')
-            k = u.identities['evm'][old_chain_spec.fork()][sub_old_chain_str][0]
-            k = to_checksum_address(strip_0x(k))
-            tag_data = {'tags': []}
-            try:
-                tag_data = {'tags': user_tags.get(k)}
-            except KeyError:
-                logg.warning('missing tag for {}, adding defaults {}'.format(k, args.default_tag))
-                for tag in args.default_tag:
-                    tag_data['tags'].append(tag)
+#            filepath = os.path.join(
+#                    dirs['custom'],
+#                    'new',
+#                    custom_key[:2].upper(),
+#                    custom_key[2:4].upper(),
+#                    custom_key.upper() + '.json',
+#                    )
+#            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+            
+            
+            get_chain_addresses(u, old_chain_spec)
+            #sub_old_chain_str = '{}:{}'.format(old_chain_spec.network_id(), old_chain_spec.common_name())
+            #f = open(filepath, 'w')
+            #k = u.identities['evm'][old_chain_spec.fork()][sub_old_chain_str][0]
+            #k = to_checksum_address(strip_0x(k))
+
+
+            #tag_data = None
+            new_address_index = legacy_normalize_index_key(new_address_clean)
+            tag_data = dh.get(new_address_index, 'tags')
+#            try:
+#                tag_data = {'tags': user_tags.get(k)}
+#            except KeyError:
+#                logg.warning('missing tag for {}, adding defaults {}'.format(k, args.default_tag))
+#                for tag in args.default_tag:
+#                    tag_data['tags'].append(tag)
+
+            for tag in args.default_tag:
+                #tag_data['tags'].append(tag)
+                tag_data.append(tag)
+
             for tag in args.tag:
-                tag_data['tags'].append(tag)
-            f.write(json.dumps(tag_data))
-            f.close()
+                #tag_data['tags'].append(tag)
+                tag_data.append(tag)
 
-            os.symlink(os.path.realpath(filepath), custom_filepath)
+            dh.add(custom_key, json.dumps({'tags': tag_data}), 'custom_new')
+            dh.alias('custom', 'custom_meta')
+
+            #f.write(json.dumps({'tags': tag_data}))
+            #f.close()
+
+            #os.symlink(os.path.realpath(filepath), custom_filepath)
 
             i += 1
             sys.stdout.write('imported {} {}'.format(i, u).ljust(200) + "\r")
