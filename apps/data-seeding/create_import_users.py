@@ -221,8 +221,9 @@ def prepareLocalFilePath(datadir, address):
 
 if __name__ == '__main__':
 
-    base_dir = os.path.join(user_dir, 'old')
-    os.makedirs(base_dir, exist_ok=True)
+    src_dir = os.path.join(user_dir, 'src')
+    base_dir = os.path.join(user_dir, 'src')
+    os.link(src_dir, base_dir)
 
     fa = open(os.path.join(user_dir, 'balances.csv'), 'w')
     ft = open(os.path.join(user_dir, 'tags.csv'), 'w')

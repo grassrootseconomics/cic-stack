@@ -175,8 +175,9 @@ if __name__ == '__main__':
             new_address = register_eth(i, u)
             if u.identities.get('evm') == None:
                 u.identities['evm'] = {}
-            sub_chain_str = '{}:{}'.format(chain_spec.common_name(), chain_spec.network_id())
-            u.identities['evm'][sub_chain_str] = [new_address]
+            sub_chain_str = '{}:{}'.format(chain_spec.network_id(), chain_spec.common_name())
+            u.identities['evm'][chain_spec.fork()] = {}
+            u.identities['evm'][chain_spec.fork()][sub_chain_str] = [new_address]
 
             new_address_clean = strip_0x(new_address)
             filepath = os.path.join(

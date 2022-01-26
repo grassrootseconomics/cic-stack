@@ -86,6 +86,7 @@ argparser.add_argument('--skip-custodial', dest='skip_custodial', action='store_
 argparser.add_argument('--skip-ussd', dest='skip_ussd', action='store_true', help='skip all ussd verifications')
 argparser.add_argument('--skip-metadata', dest='skip_metadata', action='store_true', help='skip all metadata verifications')
 argparser.add_argument('--skip-cache', dest='skip_cache', action='store_true', help='skip all cache verifications')
+argparser.add_argument('--skip-all', dest='skip_all', action='store_true', help='skip all verifications (only verifies outdir validity)')
 argparser.add_argument('--exclude', action='append', type=str, default=[], help='skip specified verification')
 argparser.add_argument('--include', action='append', type=str, help='include specified verification')
 argparser.add_argument('--list-verifications', action='store_true', help='print a list of verification check identifiers')
@@ -138,41 +139,43 @@ exit_on_error = args.x
 active_tests = []
 exclude = []
 include = args.include
-if args.include == None:
-    include = all_tests
-for t in args.exclude:
-    if t not in all_tests:
-        raise ValueError('Cannot exclude unknown verification "{}"'.format(t))
-    exclude.append(t)
-if args.skip_custodial:
-    logg.info('will skip all custodial verifications ({})'.format(','.join(custodial_tests)))
-    for t in custodial_tests:
-        if t not in exclude:
-            exclude.append(t)
-if args.skip_ussd:
-    logg.info('will skip all ussd verifications ({})'.format(','.join(phone_tests)))
-    for t in phone_tests:
-        if t not in exclude:
-            exclude.append(t)
-if args.skip_metadata:
-    logg.info('will skip all metadata verifications ({})'.format(','.join(metadata_tests)))
-    for t in metadata_tests:
-        if t not in exclude:
-            exclude.append(t)
-for t in include:
-    if t not in all_tests:
-        raise ValueError('Cannot include unknown verification "{}"'.format(t))
-    if t not in exclude:
-        active_tests.append(t)
-        logg.info('will perform verification "{}"'.format(t))
-
 api = None
-for t in custodial_tests:
-    if t in active_tests:
-        from cic_eth.api.admin import AdminApi
-        api = AdminApi(None)
-        logg.info('activating custodial module'.format(t))
-        break
+
+if not args.skip_all:
+    if args.include == None:
+        include = all_tests
+    for t in args.exclude:
+        if t not in all_tests:
+            raise ValueError('Cannot exclude unknown verification "{}"'.format(t))
+        exclude.append(t)
+    if args.skip_custodial:
+        logg.info('will skip all custodial verifications ({})'.format(','.join(custodial_tests)))
+        for t in custodial_tests:
+            if t not in exclude:
+                exclude.append(t)
+    if args.skip_ussd:
+        logg.info('will skip all ussd verifications ({})'.format(','.join(phone_tests)))
+        for t in phone_tests:
+            if t not in exclude:
+                exclude.append(t)
+    if args.skip_metadata:
+        logg.info('will skip all metadata verifications ({})'.format(','.join(metadata_tests)))
+        for t in metadata_tests:
+            if t not in exclude:
+                exclude.append(t)
+    for t in include:
+        if t not in all_tests:
+            raise ValueError('Cannot include unknown verification "{}"'.format(t))
+        if t not in exclude:
+            active_tests.append(t)
+            logg.info('will perform verification "{}"'.format(t))
+
+    for t in custodial_tests:
+        if t in active_tests:
+            from cic_eth.api.admin import AdminApi
+            api = AdminApi(None)
+            logg.info('activating custodial module'.format(t))
+            break
 
 
 outfunc = logg.debug
@@ -227,15 +230,19 @@ class VerifierState:
 
     def poke(self, item_key):
         self.items[item_key] += 1
+        logg.error('poked {}'.format(self.items[item_key]))
 
 
     def __str__(self):
         r = ''
         for k in self.items.keys():
             if k in self.active_tests:
-                r += '{}: {}/{}\n'.format(k, self.items[k], self.target_count)
+                if self.items[k] == 0:
+                    r += '{}: \x1b[0;92m{}/{}\x1b[0;39m\n'.format(k, self.target_count - self.items[k], self.target_count)
+                else:
+                    r += '{}: \x1b[0;91m{}/{}\x1b[0;39m\n'.format(k, self.target_count - self.items[k], self.target_count)
             else:
-                r += '{}: skipped\n'.format(k)
+                r += '{}: \x1b[0;33mskipped\x1b[0;39m\n'.format(k)
         return r
 
 
@@ -530,26 +537,28 @@ def main():
             f.close()
 
             u = Person.deserialize(o)
-            #logg.debug('data {}'.format(u.identities['evm']))
 
             new_chain_spec = chain_spec.asdict()
             arch = new_chain_spec.get('arch')
             fork = new_chain_spec.get('fork')
             tag = identity_tag(new_chain_spec)
             new_address = u.identities[arch][fork][tag][0]
+            new_address = to_checksum_address(new_address)
 
             old_chainspec = old_chain_spec.asdict()
             arch = old_chainspec.get('arch')
             fork = old_chainspec.get('fork')
             tag = identity_tag(old_chainspec)
             old_address = u.identities[arch][fork][tag][0]
+            old_address = to_checksum_address(old_address)
             balance = 0
             try:
                 balance = balances[old_address]
             except KeyError:
-                logg.info('no old balance found for {}, assuming 0'.format(old_address))
+                logg.info('no old balance found for {} in {}, assuming 0'.format(old_address, old_chainspec))
 
             s = 'checking {}: {} -> {} = {}'.format(i, old_address, new_address, balance)
+            outfunc(s)
 
             verifier.verify(new_address, balance, debug_stem=s)
             i += 1
