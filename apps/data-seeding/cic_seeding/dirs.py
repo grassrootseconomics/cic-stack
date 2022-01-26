@@ -2,6 +2,7 @@
 import os
 import shutil
 import sys
+import stat
 
 # external imports
 from leveldir.hex import HexDir
@@ -29,7 +30,7 @@ class DirHandler:
         self.force_reset = force_reset
         self.dirs = {}
         self.dirs['src'] = os.path.join(self.user_dir, 'src')
-        os.makedirs(self.dirs['src'])
+        os.makedirs(self.dirs['src'], exist_ok=force_reset)
 
 
     def initialize_dirs(self):
@@ -63,13 +64,15 @@ class DirHandler:
             for d in self.dirs.keys():
                 if d == 'src':
                     continue
-                st = os.stat(self.dirs[d])
-                if st.ISLNK(st.st_mode):
-                    continue
                 try:
-                    shutil.rmtree(self.dirs[d])
+                    st = os.stat(self.dirs[d])
+                    if stat.S_ISLNK(st.st_mode):
+                        continue
                 except FileNotFoundError:
-                    pass
+                    continue
+
+                shutil.rmtree(self.dirs[d])
+
 
         for d in self.dirs.keys():
             #if d == 'src':

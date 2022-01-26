@@ -3,35 +3,31 @@
 # standard imports
 import json
 import datetime
-import random
 import logging
 import os
-import hashlib
 import argparse
 import random
 
 # external imports
 import celery
-from faker import Faker
-from collections import OrderedDict
 import confini
-from cic_types.models.person import (
-    Person,
-    generate_vcard_from_contact_data,
-    get_contact_data_from_vcard,
-)
-from chainlib.eth.address import to_checksum_address, strip_0x
-import phonenumbers
+from hexathon import strip_0x
+
+# local imports
+from cic_seeding.user import *
+from cic_seeding import DirHandler
+
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
-fake = Faker(['sl', 'en_US', 'no', 'de', 'ro'])
 
 default_config_dir = './config'
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument('-c', type=str, default=default_config_dir, help='Config dir')
+argparser.add_argument('-f', action='store_true', help='Force use of existing output directory')
+argparser.add_argument('--seed', type=int, help='Random seed')
 argparser.add_argument('--tag', type=str, action='append',
                        help='Tags to add to record')
 argparser.add_argument('--gift-threshold', type=int,
@@ -53,31 +49,14 @@ config = confini.Config(args.c, os.environ.get('CONFINI_ENV_PREFIX'))
 config.process()
 logg.debug('loaded config\n{}'.format(config))
 
-dt_now = datetime.datetime.utcnow()
-dt_then = dt_now - datetime.timedelta(weeks=150)
-ts_now = int(dt_now.timestamp())
-ts_then = int(dt_then.timestamp())
 
-celery_app = celery.Celery(broker=config.get(
-    'CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
+#celery_app = celery.Celery(broker=config.get(
+#    'CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
 gift_max = args.gift_threshold or 0
 gift_factor = (10 ** 6)
 
-categories = [
-    "food/water",
-    "fuel/energy",
-    "education",
-    "health",
-    "shop",
-    "environment",
-    "transport",
-    "farming/labor",
-    "savingsgroup",
-]
-
 phone_idx = []
-
 user_dir = args.dir
 user_count = args.user_count
 
@@ -85,145 +64,37 @@ tags = args.tag
 if tags == None or len(tags) == 0:
     tags = ['individual']
 
-random.seed()
+if args.seed:
+    random.seed(args.seed)
+else:
+    random.seed()
 
 
-def genPhoneIndex(phone):
-    h = hashlib.new('sha256')
-    h.update(phone.encode('utf-8'))
-    h.update(b':cic.phone')
-    return h.digest().hex()
-
-
-def genId(addr, typ):
-    h = hashlib.new('sha256')
-    h.update(bytes.fromhex(addr[2:]))
-    h.update(typ.encode('utf-8'))
-    return h.digest().hex()
-
-
-def genDate():
-    ts = random.randint(ts_then, ts_now)
-    return int(datetime.datetime.fromtimestamp(ts).timestamp())
-
-
-def genPhone():
-    phone_str = '+254' + str(random.randint(100000000, 999999999))
-    phone_object = phonenumbers.parse(phone_str)
-    return phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
-
-
-def genPersonal(phone):
-    fn = fake.first_name()
-    ln = fake.last_name()
-    e = fake.email()
-
-    return generate_vcard_from_contact_data(ln, fn, phone, e)
-
-
-def genCats():
-    i = random.randint(0, 3)
-    return random.choices(categories, k=i)
-
-
-def genAmount():
-    return random.randint(0, gift_max) * gift_factor
-
-
-def genDob():
-    dob_src = fake.date_of_birth(minimum_age=15)
-    dob = {}
-
-    if random.random() < 0.5:
-        dob['year'] = dob_src.year
-
-        if random.random() > 0.5:
-            dob['month'] = dob_src.month
-            dob['day'] = dob_src.day
-
-    return dob
-
-
-def gen():
-    old_blockchain_address = os.urandom(20).hex()
-    gender = random.choice(['female', 'male', 'other'])
-    phone = genPhone()
-    v = genPersonal(phone)
-
-    contact_data = get_contact_data_from_vcard(v)
-    p = Person()
-    p.load_vcard(contact_data)
-
-    p.date_registered = genDate()
-    p.date_of_birth = genDob()
-    p.gender = gender
-    p.identities = {
-        'evm': {
-            'foo': {
-                '1:oldchain': [old_blockchain_address],
-            },
-        },
-    }
-    p.products = [fake.random_element(elements=OrderedDict(
-        [('fruit', 0.25),
-         ('maji', 0.05),
-         ('milk', 0.1),
-         ('teacher', 0.1),
-         ('doctor', 0.05),
-         ('boutique', 0.15),
-         ('recycling', 0.05),
-         ('farmer', 0.05),
-         ('oil', 0.05),
-         ('pastor', 0.1),
-         ('chama', 0.03),
-         ('pastor', 0.01),
-         ('bzrTsuZieaq', 0.01)
-         ]))]
-    p.location['area_name'] = fake.random_element(elements=OrderedDict(
-        [('mnarani', 0.05),
-         ('chilumani', 0.1),
-         ('madewani', 0.1),
-         ('kisauni', 0.05),
-         ('bangla', 0.1),
-         ('kabiro', 0.1),
-         ('manyani', 0.05),
-         ('ruben', 0.15),
-         ('makupa', 0.05),
-         ('kingston', 0.05),
-         ('rangala', 0.05),
-         ('homabay', 0.1),
-         ('nakuru', 0.03),
-         ('kajiado', 0.01),
-         ('zurtWicKtily', 0.01)
-         ]))
-    if random.randint(0, 1):
-        # fake.local_latitude()
-        p.location['latitude'] = (random.random() * 180) - 90
-        # fake.local_latitude()
-        p.location['longitude'] = (random.random() * 360) - 180
-
-    return old_blockchain_address, phone, p
-
-
-def prepareLocalFilePath(datadir, address):
-    parts = [
-        address[:2],
-        address[2:4],
-    ]
-    dirs = '{}/{}/{}'.format(
-        datadir,
-        parts[0],
-        parts[1],
-    )
-    os.makedirs(dirs, exist_ok=True)
-    return dirs
+#def prepareLocalFilePath(datadir, address):
+#    parts = [
+#        address[:2],
+#        address[2:4],
+#    ]
+#    dirs = '{}/{}/{}'.format(
+#        datadir,
+#        parts[0],
+#        parts[1],
+#    )
+#    os.makedirs(dirs, exist_ok=True)
+#    return dirs
 
 
 if __name__ == '__main__':
 
-    src_dir = os.path.join(user_dir, 'src')
-    base_dir = os.path.join(user_dir, 'src')
-    os.link(src_dir, base_dir)
+    dh = DirHandler(user_dir, force_reset=args.f)
+    dh.initialize_dirs()
+
+    legacy_dir = os.path.join(user_dir, 'old')
+    try:
+        os.unlink(legacy_dir)
+    except FileNotFoundError:
+        pass
+    os.symlink(dh.dirs['src'], legacy_dir, target_is_directory=True)
 
     fa = open(os.path.join(user_dir, 'balances.csv'), 'w')
     ft = open(os.path.join(user_dir, 'tags.csv'), 'w')
@@ -234,7 +105,7 @@ if __name__ == '__main__':
         phone = None
         o = None
         try:
-            (eth, phone, o) = gen()
+            (eth, phone, o) = genEntry()
         except Exception as e:
             logg.warning('generate failed, trying anew: {}'.format(e))
             continue
@@ -242,19 +113,14 @@ if __name__ == '__main__':
 
         print(o)
 
-        d = prepareLocalFilePath(base_dir, uid)
-        f = open('{}/{}'.format(d, uid + '.json'), 'w')
-        json.dump(o.serialize(), f)
-        f.close()
+        v = o.serialize()
+        dh.add(uid, json.dumps(v), 'src')
 
         pidx = genPhoneIndex(phone)
-        d = prepareLocalFilePath(os.path.join(user_dir, 'phone'), pidx)
-        f = open('{}/{}'.format(d, pidx), 'w')
-        f.write(eth)
-        f.close()
+        dh.add(pidx, eth, 'phone')
 
         ft.write('{}:{}\n'.format(eth, ','.join(tags)))
-        amount = genAmount()
+        amount = genAmount(gift_max, gift_factor)
         fa.write('{},{}\n'.format(eth, amount))
         logg.debug('pidx {}, uid {}, eth {}, amount {}, phone {}'.format(
             pidx, uid, eth, amount, phone))

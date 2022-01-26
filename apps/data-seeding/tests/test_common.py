@@ -6,7 +6,7 @@ import json
 import os
 
 # local imports
-from common.dirs import DirHandler
+from cic_seeding.dirs import DirHandler
 
 
 class TestCommon(unittest.TestCase):
