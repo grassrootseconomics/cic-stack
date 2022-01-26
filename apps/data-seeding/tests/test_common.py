@@ -5,6 +5,7 @@ import shutil
 import json
 import os
 import logging
+import stat
 
 # local imports
 from cic_seeding.dirs import DirHandler
@@ -57,6 +58,27 @@ class TestCommon(unittest.TestCase):
         v = f.readline().rstrip()
         self.assertEqual(v, 'baz,inky,pinky,blinky,clyde')
         f.close()
+
+
+    def test_alias(self):
+        address_bytes = os.urandom(20)
+        address = address_bytes.hex()
+
+        self.dh.add(address, 'baz', 'src')
+        self.dh.alias('src', 'foo')
+        self.assertIsNotNone(self.dh.dirs['foo'])
+
+        alias_dir = os.path.join(self.d, 'foo')
+        st = os.stat(alias_dir, follow_symlinks=False)
+        self.assertTrue(stat.S_ISLNK(st.st_mode))
+
+        address_check = address.upper()
+        alias_item_path = os.path.join(alias_dir, address_check[:2], address_check[2:4], address_check)
+        f = open(alias_item_path, 'r')
+        v = f.read()
+        f.close()
+        self.assertEqual(v, 'baz')
+
 
 if __name__ == '__main__':
     unittest.main()

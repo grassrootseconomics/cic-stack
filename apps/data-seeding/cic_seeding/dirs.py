@@ -66,13 +66,14 @@ class DirHandler:
     def alias(self, dirkey, alias):
         d = os.path.realpath(self.dirs[dirkey])
         sd = os.path.dirname(d)
-        alias_dir = os.path.join(sd, 'old')
+        alias_dir = os.path.join(sd, alias)
         try:
             os.unlink(alias_dir)
         except FileNotFoundError:
             pass
         os.symlink(d, alias_dir, target_is_directory=True)
         self.dirs[alias] = alias_dir
+        logg.debug('added alias {} for {}: {} -> {}'.format(alias, dirkey, d, alias_dir))
 
 
     def __build_indices(self):
