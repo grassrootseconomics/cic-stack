@@ -176,18 +176,22 @@ class HexDirInterface:
 class IndexInterface:
 
     def __init__(self, path):
-        self.path = path
-        self.f = open(self.path, 'a')
+        self.__path = path
+        self.f = open(self.__path, 'a')
 
 
     def add(self, k, v):
-        logg.debug('writing {} {}'.format(k, v))
+        logg.debug('writing __{} {}'.format(k, v))
         self.f.write(k + ',' + v + '\n')
+
+
+    def path(self, k):
+        return self.__path
 
 
     def flush(self):
         self.f.close()
-        self.f = open(self.path, 'a')
+        self.f = open(self.__path, 'a')
 
     def __del__(self):
         self.f.close()

@@ -43,6 +43,12 @@ from eth_contract_registry import Registry
 from eth_token_index import TokenUniqueSymbolIndex
 from erc20_faucet import Faucet
 
+# local imports
+from cic_seeding.user import get_chain_addresses
+from cic_seeding import DirHandler
+from cic_seeding.index import AddressIndex
+
+
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -56,7 +62,7 @@ argparser = argparse.ArgumentParser(description='daemon that monitors transactio
 argparser.add_argument('-p', '--provider', dest='p', type=str, help='chain rpc provider address')
 argparser.add_argument('-y', '--key-file', dest='y', type=str, help='Ethereum keystore file to use for signing')
 argparser.add_argument('-c', type=str, help='config override directory')
-argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:oldchain:1', help='chain spec')
+argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:foo:1:oldchain', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
 argparser.add_argument('--token-symbol', default='GFT', type=str, dest='token_symbol', help='Token symbol to use for trnsactions')
@@ -87,11 +93,13 @@ args_override = {
         'CHAIN_SPEC': getattr(args, 'i'),
         'RPC_PROVIDER': getattr(args, 'p'),
         'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
-        'KEYSTORE_FILE_PATH': getattr(args, 'y')
         }
 config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
+config.add(args.y, 'KEYSTORE_FILE_PATH', True)
+config.add(args.user_dir, '_USERDIR', True) 
+logg.debug('loaded config: \n{}'.format(config))
 
 #app = celery.Celery(backend=config.get('CELERY_RESULT_URL'),  broker=config.get('CELERY_BROKER_URL'))
 
@@ -119,6 +127,10 @@ user_dir = args.user_dir # user_out_dir from import_users.py
 
 token_symbol = args.token_symbol
 
+dh = DirHandler(config.get('_USERDIR'), force_reset=False)
+dh.initialize_dirs()
+dh.alias('src', 'old')
+dirs = dh.dirs
 
 class Handler:
 
@@ -168,9 +180,13 @@ class Handler:
             logg.error('no import record of address {} {}'.format(filename_recipient, filepath))
             return
         u = Person.deserialize(o)
-        original_address = u.identities[old_chain_spec.engine()][old_chain_spec.fork()]['{}:{}'.format(old_chain_spec.network_id(), old_chain_spec.common_name())][0]
+        logg.debug('serilized person {}'.format(o))
+
+        original_addresses = get_chain_addresses(u, old_chain_spec)
+        #original_address = u.identities[old_chain_spec.engine()][old_chain_spec.fork()]['{}:{}'.format(old_chain_spec.network_id(), old_chain_spec.common_name())][0]
+        original_address = strip_0x(original_addresses[0])
         try:
-            balance = self.balances[original_address]
+            balance = self.balances.get(original_address)
         except KeyError as e:
             logg.error('balance get fail orig {} new {}'.format(original_address, recipient))
             return
@@ -249,25 +265,14 @@ def main():
         block_offset = int(strip_0x(r), 16) + 1
 
     # TODO get decimals from token
-    balances = {}
-    f = open('{}/balances.csv'.format(user_dir, 'r'))
-    remove_zeros = 10**6
-    i = 0
-    while True:
-        l = f.readline()
-        if l == None:
-            break
-        r = l.split(',')
-        try:
-            address = to_checksum_address(r[0])
-            sys.stdout.write('loading balance {} {} {}'.format(i, address, r[1]).ljust(200) + "\r")
-        except ValueError:
-            break
-        balance = int(int(r[1].rstrip()) / remove_zeros)
-        balances[address] = balance
-        i += 1
+    balances_path = dh.path(None, 'balances')
 
-    f.close()
+    remove_zeros = 10**6
+    def remove_zeros_filter(v):
+        return int(int(v) / remove_zeros)
+
+    balances = AddressIndex(value_filter=remove_zeros_filter, name='balance index')
+    balances.add_from_file(balances_path)
 
     syncer_backend.set(block_offset, 0)
     syncer = HeadSyncer(syncer_backend, chain_interface, block_callback=progress_callback)

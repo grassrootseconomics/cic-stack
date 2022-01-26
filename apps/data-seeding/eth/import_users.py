@@ -33,6 +33,7 @@ from funga.eth.keystore.keyfile import to_dict as to_keyfile_dict
 
 # local imports
 from cic_seeding import DirHandler
+from cic_seeding.index import AddressIndex
 
 
 logging.basicConfig(level=logging.WARNING)
@@ -112,7 +113,7 @@ dh = DirHandler(config.get('_USERDIR'), force_reset=args.f)
 dh.initialize_dirs()
 dh.alias('src', 'old')
 dirs = dh.dirs
-dirs['phone'] = os.path.join(config.get('_USERDIR'))
+#dirs['phone'] = os.path.join(config.get('_USERDIR'))
 
 def register_eth(i, u):
 
@@ -139,17 +140,25 @@ def register_eth(i, u):
 
 if __name__ == '__main__':
 
-    user_tags = {}
-    f = open(os.path.join(config.get('_USERDIR'), 'tags.csv'), 'r')
-    while True:
-        r = f.readline().rstrip()
-        if len(r) == 0:
-            break
-        (old_address, tags_csv) = r.split(',', 1)
-        old_address = strip_0x(old_address)
-        old_address_tag_key = to_checksum_address(old_address)
-        user_tags[old_address_tag_key] = tags_csv.split(',')
-        logg.debug('read tags {} for old address {}'.format(user_tags[old_address_tag_key], old_address_tag_key))
+#    user_tags = {}
+#    f = open(os.path.join(config.get('_USERDIR'), 'tags.csv'), 'r')
+#    while True:
+#        r = f.readline().rstrip()
+#        if len(r) == 0:
+#            break
+#        (old_address, tags_csv) = r.split(',', 1)
+#        old_address = strip_0x(old_address)
+#        old_address_tag_key = to_checksum_address(old_address)
+#        user_tags[old_address_tag_key] = tags_csv.split(',')
+#        logg.debug('read tags {} for old address {}'.format(user_tags[old_address_tag_key], old_address_tag_key))
+
+    def split_filter(v):
+        return v.split(',')
+
+    user_tags = AddressIndex(value_filter=split_filter)
+    tags_path = dh.path(None, 'tags')
+    user_tags.add_from_file(tags_path)
+
 
     i = 0
     j = 0
@@ -234,7 +243,7 @@ if __name__ == '__main__':
             k = to_checksum_address(strip_0x(k))
             tag_data = {'tags': []}
             try:
-                tag_data = {'tags': user_tags[k]}
+                tag_data = {'tags': user_tags.get(k)}
             except KeyError:
                 logg.warning('missing tag for {}, adding defaults {}'.format(k, args.default_tag))
                 for tag in args.default_tag:

@@ -101,9 +101,9 @@ if __name__ == '__main__':
         pidx = genPhoneIndex(phone)
         dh.add(pidx, eth, 'phone')
 
-        dh.add(eth, ','.join(tags), 'tags')
+        dh.add(eth.upper(), ','.join(tags), 'tags')
         amount = genAmount(gift_max, gift_factor)
-        dh.add(eth, str(amount), 'balances')
+        dh.add(eth.upper(), str(amount), 'balances')
         logg.debug('pidx {}, uid {}, eth {}, amount {}, phone {}'.format(
             pidx, uid, eth, amount, phone))
 
