@@ -191,10 +191,16 @@ def test_tokens(
         break
 
     api_param = str(uuid.uuid4())
+    fp = os.path.join(CallbackTask.mmap_path, api_param)
+    f = open(fp, 'wb+')
+    f.write(b'\x00')
+    f.close()
+
     api = Api(str(default_chain_spec), queue=None, callback_param=api_param, callback_task='cic_eth.pytest.mock.callback.test_callback')
     t = api.tokens(['BAR'], proof=[[bar_token_declaration]])
     r = t.get()
     logg.debug('rr  {} {}'.format(r, t.children))
+
 
     while True:
         fp = os.path.join(CallbackTask.mmap_path, api_param)

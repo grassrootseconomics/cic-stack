@@ -2,6 +2,8 @@
   "start",
   "scan_data",
   "initial_language_selection",
+  "initial_middle_language_set",
+  "initial_last_language_set",
   "initial_pin_entry",
   "initial_pin_confirmation",
   "change_preferred_language"

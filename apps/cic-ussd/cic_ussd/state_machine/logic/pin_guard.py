@@ -9,9 +9,11 @@ from phonenumbers.phonenumberutil import NumberParseException
 from sqlalchemy.orm.session import Session
 
 # local imports
+from cic_ussd.account.guardianship import Guardianship
 from cic_ussd.account.metadata import get_cached_preferred_language
 from cic_ussd.db.models.account import Account
 from cic_ussd.db.models.base import SessionBase
+from cic_ussd.notifications import Notifier
 from cic_ussd.phone_number import process_phone_number, E164Format
 from cic_ussd.session.ussd_session import save_session_data
 from cic_ussd.translation import translation_for
@@ -82,8 +84,10 @@ def is_valid_guardian_addition(state_machine_data: Tuple[str, dict, Account, Ses
         preferred_language = i18n.config.get('fallback')
 
     is_valid_account = Account.get_by_phone_number(phone_number, session) is not None
+    guardianship = Guardianship()
+    is_system_guardian = guardianship.is_system_guardian(phone_number)
     is_initiator = phone_number == account.phone_number
-    is_existent_guardian = phone_number in account.get_guardians()
+    is_existent_guardian = phone_number in account.get_guardians() or is_system_guardian
 
     failure_reason = ''
     if not is_valid_account:
@@ -100,7 +104,7 @@ def is_valid_guardian_addition(state_machine_data: Tuple[str, dict, Account, Ses
         session_data['failure_reason'] = failure_reason
         save_session_data('cic-ussd', session, session_data, ussd_session)
 
-    return phone_number is not None and is_valid_account and not is_existent_guardian and not is_initiator
+    return phone_number is not None and is_valid_account and not is_existent_guardian and not is_initiator and not is_system_guardian
 
 
 def add_pin_guardian(state_machine_data: Tuple[str, dict, Account, Session]):
@@ -130,6 +134,9 @@ def is_set_pin_guardian(account: Account, checked_number: str, preferred_languag
     is_set_guardian = checked_number in set_guardians
     is_initiator = checked_number == account.phone_number
 
+    guardianship = Guardianship()
+    is_system_guardian = guardianship.is_system_guardian(checked_number)
+
     if not is_set_guardian:
         failure_reason = translation_for('helpers.error.is_not_existent_guardian', preferred_language)
 
@@ -141,7 +148,7 @@ def is_set_pin_guardian(account: Account, checked_number: str, preferred_languag
         session_data['failure_reason'] = failure_reason
         save_session_data('cic-ussd', session, session_data, ussd_session)
 
-    return is_set_guardian and not is_initiator
+    return (is_set_guardian or is_system_guardian) and not is_initiator
 
 
 def is_dialers_pin_guardian(state_machine_data: Tuple[str, dict, Account, Session]):
@@ -193,8 +200,20 @@ def initiate_pin_reset(state_machine_data: Tuple[str, dict, Account, Session]):
     save_session_data('cic-ussd', session, session_data, ussd_session)
     guarded_account_phone_number = session_data.get('guarded_account_phone_number')
     guarded_account = Account.get_by_phone_number(guarded_account_phone_number, session)
+
     if quorum_count >= guarded_account.guardian_quora:
         guarded_account.reset_pin(session)
         logg.debug(f'Reset initiated for: {guarded_account.phone_number}')
         session_data['quorum_count'] = 0
         save_session_data('cic-ussd', session, session_data, ussd_session)
+
+        preferred_language = get_cached_preferred_language(guarded_account.blockchain_address)
+        if not preferred_language:
+            preferred_language = i18n.config.get('fallback')
+
+        notifier = Notifier()
+        notifier.send_sms_notification(
+            key='sms.pin_reset_initiated',
+            phone_number=guarded_account.phone_number,
+            preferred_language=preferred_language,
+            pin_initiator=account.standard_metadata_id())

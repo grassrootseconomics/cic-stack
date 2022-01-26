@@ -288,7 +288,6 @@ def test_fix_nonce(
 
     init_database.commit()
    
-    logg.debug('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     txs = get_nonce_tx_local(default_chain_spec, 3, agent_roles['ALICE'], session=init_database)
     ks = txs.keys()
     assert len(ks) == 2

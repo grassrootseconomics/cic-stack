@@ -41,17 +41,17 @@ add_pending_tx_hash $r
 
 
 # Deploy transfer authorization contact
-advance_nonce
-debug_rpc
->&2 echo -e "\033[;96mDeploy transfer authorization contract\033[;39m"
-DEV_TRANSFER_AUTHORIZATION_ADDRESS=`erc20-transfer-auth-deploy --nonce $nonce -w $gas_price_arg -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER $DEV_DEBUG_FLAG`
-
-
->&2 echo -e "\033[;96mAdd transfer authorization record to contract registry\033[;39m"
-advance_nonce
-debug_rpc
-r=`eth-contract-registry-set $DEV_WAIT_FLAG $fee_price_arg --nonce $nonce -s -u -y $WALLET_KEY_FILE -e $CIC_REGISTRY_ADDRESS -i $CHAIN_SPEC  -p $RPC_PROVIDER $DEV_DEBUG_FLAG --identifier TransferAuthorization $DEV_TRANSFER_AUTHORIZATION_ADDRESS`
-add_pending_tx_hash $r
+#advance_nonce
+#debug_rpc
+#>&2 echo -e "\033[;96mDeploy transfer authorization contract\033[;39m"
+#DEV_TRANSFER_AUTHORIZATION_ADDRESS=`erc20-transfer-auth-deploy --nonce $nonce -w $gas_price_arg -y $WALLET_KEY_FILE -i $CHAIN_SPEC -p $RPC_PROVIDER $DEV_DEBUG_FLAG`
+#
+#
+#>&2 echo -e "\033[;96mAdd transfer authorization record to contract registry\033[;39m"
+#advance_nonce
+#debug_rpc
+#r=`eth-contract-registry-set $DEV_WAIT_FLAG $fee_price_arg --nonce $nonce -s -u -y $WALLET_KEY_FILE -e $CIC_REGISTRY_ADDRESS -i $CHAIN_SPEC  -p $RPC_PROVIDER $DEV_DEBUG_FLAG --identifier TransferAuthorization $DEV_TRANSFER_AUTHORIZATION_ADDRESS`
+#add_pending_tx_hash $r
 
 
 # Deploy token index contract
@@ -64,6 +64,13 @@ DEV_TOKEN_INDEX_ADDRESS=`okota-token-index-deploy --nonce $nonce -s -w -u $fee_p
 advance_nonce
 debug_rpc
 r=`eth-contract-registry-set $DEV_WAIT_FLAG $fee_price_arg --nonce $nonce -s -u -y $WALLET_KEY_FILE -e $CIC_REGISTRY_ADDRESS -i $CHAIN_SPEC -p $RPC_PROVIDER $DEV_DEBUG_FLAG --identifier TokenRegistry $DEV_TOKEN_INDEX_ADDRESS`
+add_pending_tx_hash $r
+
+# Assign writer for token index
+>&2 echo -e "\033[;96mEnable token index writer $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER to write to accounts index contract at $DEV_TOKEN_INDEX_ADDRESS\033[;39m"
+advance_nonce
+debug_rpc
+r=`eth-accounts-index-writer -s -u -i $CHAIN_SPEC -p $RPC_PROVIDER --nonce $nonce --fee-limit 1000000 -e $DEV_TOKEN_INDEX_ADDRESS $DEV_DEBUG_FLAG $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER`
 add_pending_tx_hash $r
 
 check_wait 2

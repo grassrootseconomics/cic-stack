@@ -9,6 +9,10 @@ else
 	mkdir -p $DEV_DATA_DIR
 fi
 
+if [ -z $RPC_PROVIDER ]; then
+	export RPC_PROVIDER="http://localhost:8545"
+fi
+
 # Handle wallet
 export WALLET_KEY_FILE=${WALLET_KEY_FILE:-`realpath ./keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c`}
 if [ ! -f $WALLET_KEY_FILE ]; then
@@ -46,7 +50,7 @@ export CIC_DEFAULT_TOKEN_SYMBOL=$TOKEN_SYMBOL
 export TOKEN_SINK_ADDRESS=${TOKEN_SINK_ADDRESS:-$DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER}
 
 if [ ! -f $noncefile ]; then
-	nonce=`eth-count -p $RPC_PROVIDER $DEV_DEBUG_FLAG $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER`
+	nonce=`eth-count $DEV_DEBUG_FLAG $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER`
 	>&2 echo -e "\033[;96mUsing contract deployer address $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER with nonce $nonce\033[;39m"
 	echo -n $nonce > $noncefile
 else

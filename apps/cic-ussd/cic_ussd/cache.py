@@ -14,7 +14,7 @@ class Cache:
     store: Redis = None
 
 
-def cache_data(key: str, data: str):
+def cache_data(key: str, data: [bytes, float, int, str]):
     """
     :param key:
     :type key:
@@ -55,5 +55,6 @@ def cache_data_key(identifier: Union[list, bytes], salt: MetadataPointer):
             hash_object.update(identity)
     else:
         hash_object.update(identifier)
-    hash_object.update(salt.value.encode(encoding="utf-8"))
+    if salt != MetadataPointer.NONE:
+        hash_object.update(salt.value.encode(encoding="utf-8"))
     return hash_object.digest().hex()

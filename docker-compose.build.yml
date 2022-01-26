@@ -1,0 +1,52 @@
+version: '3.2'
+
+services:
+  cic-cache:
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-cache:${TAG:-latest}
+    build:
+      context: apps/cic-cache
+      dockerfile: docker/Dockerfile
+      cache_from:
+        - ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-cache:latest
+  cic-eth:
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:${TAG:-latest}
+    build:
+      context: apps/cic-eth
+      dockerfile: docker/Dockerfile
+      cache_from:
+        - ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:latest
+  cic-meta:
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-meta:${TAG:-latest}
+    build:
+      context: apps/cic-meta
+      dockerfile: docker/Dockerfile
+      cache_from:
+        - ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-meta:latest
+  cic-notify:
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-notify:${TAG:-latest}
+    build:
+      context: apps/cic-notify
+      dockerfile: docker/Dockerfile
+      cache_from:
+        - ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-notify:latest
+  funga-eth:
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/funga-eth:${TAG:-latest}
+    build:
+      context: apps/cic-signer
+      dockerfile: Dockerfile
+      cache_from:
+        - ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/funga-eth:latest
+  cic-ussd:
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-ussd:${TAG:-latest}
+    build:
+      context: apps/cic-ussd
+      dockerfile: docker/Dockerfile
+      cache_from:
+        - ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-ussd:latest
+  cic-contract-bootstrap:
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-contract-bootstrap:${TAG:-latest}
+    build:
+      context: apps/contract-migration
+      dockerfile: docker/Dockerfile
+      cache_from:
+        - ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-ussd:latest

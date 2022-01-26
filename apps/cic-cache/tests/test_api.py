@@ -14,7 +14,7 @@ def test_api_all_data(
         ):
 
     env = {
-        'PATH_INFO': '/txa/410000/420000',
+        'PATH_INFO': '/txa/100/0/410000/420000',
         'HTTP_X_CIC_CACHE_MODE': 'all',
             }
     j = process_transactions_all_data(init_database, env)
@@ -23,7 +23,7 @@ def test_api_all_data(
     assert len(o['data']) == 2
 
     env = {
-        'PATH_INFO': '/txa/420000/410000',
+        'PATH_INFO': '/txa/100/0/420000/410000',
         'HTTP_X_CIC_CACHE_MODE': 'all',
             }
    

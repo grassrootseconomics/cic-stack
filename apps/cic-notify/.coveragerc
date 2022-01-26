@@ -1,0 +1,7 @@
+[report]
+omit =
+	venv/*
+	scripts/*
+	cic_notify/db/migrations/*
+	cic_notify/runnable/*
+	cic_notify/version.py

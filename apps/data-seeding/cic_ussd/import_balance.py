@@ -9,8 +9,8 @@ from chainlib.chain import ChainSpec
 from chainlib.eth.address import to_checksum_address
 from chainlib.eth.connection import EthHTTPConnection
 from confini import Config
-from crypto_dev_signer.eth.signer import ReferenceSigner as EIP155Signer
-from crypto_dev_signer.keystore.dict import DictKeystore
+from funga.eth.signer import EIP155Signer
+from funga.eth.keystore.dict import DictKeystore
 
 # local imports
 from import_util import BalanceProcessor, get_celery_worker_status

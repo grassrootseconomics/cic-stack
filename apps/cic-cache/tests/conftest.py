@@ -6,6 +6,7 @@ import datetime
 # external imports
 import pytest
 import moolb
+from chainlib.encode import TxHexNormalizer
 
 # local imports
 from cic_cache import db
@@ -42,6 +43,8 @@ def txs(
         list_tokens,
         ):
 
+    tx_normalize = TxHexNormalizer()
+
     session = init_database
 
     tx_number = 13 
@@ -54,10 +57,10 @@ def txs(
         tx_hash_first,
         list_defaults['block'],
         tx_number,
-        list_actors['alice'],
-        list_actors['bob'],
-        list_tokens['foo'],
-        list_tokens['foo'],
+        tx_normalize.wallet_address(list_actors['alice']),
+        tx_normalize.wallet_address(list_actors['bob']),
+        tx_normalize.executable_address(list_tokens['foo']),
+        tx_normalize.executable_address(list_tokens['foo']),
         1024,
         2048,
         True,
@@ -74,10 +77,10 @@ def txs(
         tx_hash_second,
         list_defaults['block']-1,
         tx_number,
-        list_actors['diane'],
-        list_actors['alice'],
-        list_tokens['foo'],
-        list_tokens['foo'],
+        tx_normalize.wallet_address(list_actors['diane']),
+        tx_normalize.wallet_address(list_actors['alice']),
+        tx_normalize.executable_address(list_tokens['foo']),
+        tx_normalize.wallet_address(list_tokens['foo']),
         1024,
         2048,
         False,
@@ -103,6 +106,8 @@ def more_txs(
 
     session = init_database
 
+    tx_normalize = TxHexNormalizer()
+
     tx_number = 666
     tx_hash = '0x' + os.urandom(32).hex()
     tx_signed = '0x' + os.urandom(128).hex()
@@ -115,10 +120,10 @@ def more_txs(
         tx_hash,
         list_defaults['block']+2,
         tx_number,
-        list_actors['alice'],
-        list_actors['diane'],
-        list_tokens['bar'],
-        list_tokens['bar'],
+        tx_normalize.wallet_address(list_actors['alice']),
+        tx_normalize.wallet_address(list_actors['diane']),
+        tx_normalize.executable_address(list_tokens['bar']),
+        tx_normalize.executable_address(list_tokens['bar']),
         2048,
         4096,
         False,

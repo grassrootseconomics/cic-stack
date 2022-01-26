@@ -82,7 +82,7 @@ def test_query_regex(
         [ 
             ('alice', None, None, [(420000, 13), (419999, 42)]),
             ('alice', None, 1, [(420000, 13)]),
-            ('alice', 1, None, [(419999, 42)]), # 420000 == list_defaults['block']
+            ('alice', 1, 1, [(419999, 42)]), # 420000 == list_defaults['block']
             ('alice', 2, None, []), # 420000 == list_defaults['block']
             ],
         )
@@ -107,10 +107,11 @@ def test_query_process_txs_account(
     path_info = '/tx/user/0x' + strip_0x(actor)
     if query_offset != None:
         path_info += '/' + str(query_offset)
-    if query_limit != None:
-        if query_offset == None:
-            path_info += '/0'
-        path_info += '/' + str(query_limit)
+    if query_limit == None:
+        query_limit = 100
+    path_info += '/' + str(query_limit)
+    if query_offset == None:
+        path_info += '/0'
     env = {
             'PATH_INFO': path_info,
             }
@@ -192,7 +193,7 @@ def test_query_process_txs_bloom(
 @pytest.mark.parametrize(
         'query_block_start, query_block_end, query_match_count',
         [ 
-            (None, 42, 0),
+            (1, 42, 0),
             (420000, 420001, 1),
             (419999, 419999, 1), # matches are inclusive
             (419999, 420000, 2),
@@ -211,7 +212,7 @@ def test_query_process_txs_data(
         query_match_count,
         ):
 
-    path_info = '/txa'
+    path_info = '/txa/100/0'
     if query_block_start != None:
         path_info += '/' + str(query_block_start)
     if query_block_end != None:
@@ -227,4 +228,5 @@ def test_query_process_txs_data(
     assert r != None
 
     o = json.loads(r[1])
+    logg.debug('oo {}'.format(o))
     assert len(o['data']) == query_match_count

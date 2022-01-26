@@ -26,16 +26,7 @@ ARG pip_trusted_host=pypi.org
 RUN pip install --index-url $PIP_INDEX_URL \
     --pre \
     --extra-index-url $EXTRA_PIP_INDEX_URL $EXTRA_PIP_ARGS \
-    -r requirements.txt 
-
-COPY override_requirements.txt . 
-
-RUN pip install --index-url $PIP_INDEX_URL \
-    --pre \
-    --extra-index-url $EXTRA_PIP_INDEX_URL $EXTRA_PIP_ARGS \
-    --force-reinstall \
-    --no-cache \
-    -r override_requirements.txt 
+    -r requirements.txt
 
 RUN pip freeze
 

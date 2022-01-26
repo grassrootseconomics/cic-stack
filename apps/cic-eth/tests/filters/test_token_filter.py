@@ -40,6 +40,7 @@ def test_filter_gas(
         foo_token,
         token_registry,
         register_lookups,
+        register_tokens,
         celery_session_worker,
         cic_registry,
     ):
@@ -69,7 +70,7 @@ def test_filter_gas(
     tx = Tx(tx_src, block=block)
     tx.apply_receipt(rcpt)
     t = fltr.filter(eth_rpc, block, tx, db_session=init_database)
-    assert t == None
+    assert t.get() == None
 
     nonce_oracle = RPCNonceOracle(contract_roles['CONTRACT_DEPLOYER'], eth_rpc)
     c = TokenUniqueSymbolIndex(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle)

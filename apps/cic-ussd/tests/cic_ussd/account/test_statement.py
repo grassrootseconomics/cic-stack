@@ -11,8 +11,7 @@ from cic_ussd.account.statement import (filter_statement_transactions,
                                         generate,
                                         get_cached_statement,
                                         parse_statement_transactions,
-                                        query_statement,
-                                        statement_transaction_set)
+                                        query_statement)
 from cic_ussd.account.transaction import transaction_actors
 from cic_ussd.cache import cache_data_key, get_cached_data
 
@@ -74,12 +73,3 @@ def test_query_statement(blockchain_address, limit, load_chain_spec, activated_a
     query_statement(blockchain_address, limit)
     assert mock_transaction_list_query.get('address') == blockchain_address
     assert mock_transaction_list_query.get('limit') == limit
-
-
-def test_statement_transaction_set(cache_default_token_data, load_chain_spec, preferences, set_locale_files, statement):
-    parsed_transactions = parse_statement_transactions(statement)
-    preferred_language = preferences.get('preferred_language')
-    transaction_set = statement_transaction_set(preferred_language, parsed_transactions)
-    transaction_set.startswith('Sent')
-    transaction_set = statement_transaction_set(preferred_language, [])
-    transaction_set.startswith('No')

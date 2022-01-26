@@ -61,7 +61,7 @@ function deploy_token_erc20_demurrage_token() {
 	_deploy_token_defaults "DET" "Demurrage Token"
 	advance_nonce
 	debug_rpc
-	TOKEN_ADDRESS=`erc20-demurrage-token-deploy --nonce $nonce $fee_price_arg -p $RPC_PROVIDER -y $WALLET_KEY_FILE -i $CHAIN_SPEC --name "$TOKEN_NAME" --symbol $TOKEN_SYMBOL $DEV_DEBUG_FLAG -ww -s` 
+	TOKEN_ADDRESS=`erc20-demurrage-token-deploy --nonce $nonce $fee_price_arg -p $RPC_PROVIDER -y $WALLET_KEY_FILE -i $CHAIN_SPEC --name "$TOKEN_NAME" --symbol $TOKEN_SYMBOL --decimals $TOKEN_DECIMALS $DEV_DEBUG_FLAG -ww -s`
 }
 
 function deploy_accounts_index() {
@@ -160,8 +160,8 @@ add_pending_tx_hash $r
 
 check_wait 3
 
->&2 echo -e "\033[;96mWriting token metadata and proofs\033[;39m"
-python scripts/proofs.py --token-symbol $TOKEN_SYMBOL -e $TOKEN_ADDRESS --address-declarator $DEV_ADDRESS_DECLARATOR --signer-address $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER
+>&2 echo -e "\033[;96mWriting token proofs to okota\033[;39m"
+python scripts/proofs.py --write-chain --token-symbol $TOKEN_SYMBOL -e $TOKEN_ADDRESS --address-declarator $DEV_ADDRESS_DECLARATOR --signer-address $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER
 
 >&2 echo -e "\033[;96mWriting env_reset file\033[;39m"
 confini-dump --schema-dir ./config > ${DEV_DATA_DIR}/env_reset

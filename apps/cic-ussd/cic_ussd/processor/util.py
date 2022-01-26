@@ -3,16 +3,15 @@ import datetime
 import json
 import logging
 import time
-from typing import Union
+from typing import List, Union
 
 # external imports
-from cic_types.condiments import MetadataPointer
 from cic_types.models.person import get_contact_data_from_vcard
 from tinydb.table import Document
 
 # local imports
-from cic_ussd.cache import cache_data_key, get_cached_data
 from cic_ussd.menu.ussd_menu import UssdMenu
+from cic_ussd.state_machine.logic.manager import States
 from cic_ussd.translation import translation_for
 
 logg = logging.getLogger(__file__)
@@ -21,9 +20,7 @@ logg = logging.getLogger(__file__)
 def latest_input(user_input: str) -> str:
     """
     :param user_input:
-    :type user_input:
     :return:
-    :rtype:
     """
     return user_input.split('*')[-1]
 
@@ -68,81 +65,28 @@ def resume_last_ussd_session(last_state: str) -> Document:
     :return:
     :rtype:
     """
-    # TODO [Philip]: This can be cleaned further
-    non_reusable_states = [
-        'account_creation_prompt',
-        'exit',
-        'exit_invalid_pin',
-        'exit_invalid_new_pin',
-        'exit_invalid_recipient',
-        'exit_invalid_request',
-        'exit_pin_blocked',
-        'exit_pin_mismatch',
-        'exit_successful_transaction'
-    ]
-    if last_state in non_reusable_states:
+
+    if last_state in States.non_resumable_states:
         return UssdMenu.find_by_name('start')
     return UssdMenu.find_by_name(last_state)
 
 
-def wait_for_cache(identifier: Union[list, bytes], resource_name: str, salt: MetadataPointer, interval: int = 1, max_retry: int = 5):
+def ussd_menu_list(fallback: str, menu_list: list, split: int = 3) -> List[str]:
     """
-    :param identifier:
-    :type identifier:
-    :param interval:
-    :type interval:
-    :param resource_name:
-    :type resource_name:
-    :param salt:
-    :type salt:
-    :param max_retry:
-    :type max_retry:
+    :param fallback:
+    :type fallback:
+    :param menu_list:
+    :type menu_list:
+    :param split:
+    :type split:
     :return:
     :rtype:
     """
-    key = cache_data_key(identifier=identifier, salt=salt)
-    resource = get_cached_data(key)
-    counter = 0
-    while resource is None:
-        logg.debug(f'Waiting for: {resource_name} at: {key}. Checking after: {interval} ...')
-        time.sleep(interval)
-        counter += 1
-        resource = get_cached_data(key)
-        if resource is not None:
-            logg.debug(f'{resource_name} now available.')
-            break
-        else:
-            if counter == max_retry:
-                logg.debug(f'Could not find: {resource_name} within: {max_retry}')
-                break
-
-
-def wait_for_session_data(resource_name: str, session_data_key: str, ussd_session: dict, interval: int = 1, max_retry: int = 5):
-    """
-    :param interval:
-    :type interval:
-    :param resource_name:
-    :type resource_name:
-    :param session_data_key:
-    :type session_data_key:
-    :param ussd_session:
-    :type ussd_session:
-    :param max_retry:
-    :type max_retry:
-    :return:
-    :rtype:
-    """
-    session_data = ussd_session.get('data').get(session_data_key)
-    counter = 0
-    while session_data is None:
-        logg.debug(f'Waiting for: {resource_name}. Checking after: {interval} ...')
-        time.sleep(interval)
-        counter += 1
-        session_data = ussd_session.get('data').get(session_data_key)
-        if session_data is not None:
-            logg.debug(f'{resource_name} now available.')
-            break
-        else:
-            if counter == max_retry:
-                logg.debug(f'Could not find: {resource_name} within: {max_retry}')
-                break
+    menu_list_sets = [menu_list[item:item + split] for item in range(0, len(menu_list), split)]
+    menu_list_reprs = []
+    for i in range(split):
+        try:
+            menu_list_reprs.append(''.join(f'{list_set_item}\n' for list_set_item in menu_list_sets[i]).rstrip('\n'))
+        except IndexError:
+            menu_list_reprs.append(fallback)
+    return menu_list_reprs

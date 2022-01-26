@@ -92,7 +92,7 @@ def apply_gas_value_cache_local(address, method, value, tx_hash, session=None):
 
     if o == None:
         o = GasCache(address, method, value, tx_hash)
-    elif tx.gas_used > o.value:
+    elif value > o.value:
         o.value = value
         o.tx_hash = strip_0x(tx_hash)
 

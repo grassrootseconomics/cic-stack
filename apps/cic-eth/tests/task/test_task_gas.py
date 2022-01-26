@@ -35,8 +35,24 @@ from hexathon import strip_0x
 from cic_eth.eth.gas import cache_gas_data
 from cic_eth.error import OutOfGasError
 from cic_eth.queue.tx import queue_create
+from cic_eth.task import BaseTask
 
 logg = logging.getLogger()
+
+
+def test_task_gas_limit(
+        eth_rpc,
+        eth_signer,
+        default_chain_spec,
+        agent_roles,
+        celery_session_worker,
+        ):
+    rpc = RPCConnection.connect(default_chain_spec, 'default')
+    gas_oracle = BaseTask().create_gas_oracle(rpc)
+    c = Gas(default_chain_spec, signer=eth_signer, gas_oracle=gas_oracle)
+    (tx_hash_hex, o) = c.create(agent_roles['ALICE'], agent_roles['BOB'], 10, tx_format=TxFormat.RLP_SIGNED)
+    tx = unpack(bytes.fromhex(strip_0x(o)), default_chain_spec)
+    assert (tx['gas'], BaseTask.min_fee_price)
 
 
 def test_task_check_gas_ok(

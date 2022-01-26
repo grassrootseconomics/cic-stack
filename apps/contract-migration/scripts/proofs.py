@@ -18,6 +18,7 @@ from eth_address_declarator.declarator import AddressDeclarator
 from funga.eth.signer import EIP155Signer
 from funga.eth.keystore.dict import DictKeystore
 from hexathon import add_0x, strip_0x
+from okota.token_index.index import to_identifier
 
 # local imports
 
@@ -34,6 +35,8 @@ arg_parser = cic_eth.cli.ArgumentParser(arg_flags)
 arg_parser.add_argument('--token-symbol', type=str, help='Token symbol whose metadata is being processed.')
 arg_parser.add_argument('--address-declarator', type=str, help='Address to address declarator contract')
 arg_parser.add_argument('--signer-address', type=str, help='Wallet keyfile address')
+arg_parser.add_argument('--write-metadata', dest='write_metadata', action='store_true', help='Write metadata to data aviilability layer')
+arg_parser.add_argument('--write-chain', dest='write_chain', action='store_true', help='Write metadata proofs to chain')
 arg_parser.add_argument('-e', type=str, help='Token address.')
 args = arg_parser.parse_args()
 config = cic_eth.cli.Config.from_args(args, arg_flags, 0, base_config_dir=base_config_dir)
@@ -88,40 +91,44 @@ if __name__ == '__main__':
     token_meta_file.close()
     token_proof_file.close()
 
-    token_meta_writer = MetadataRequestsHandler(cic_type=MetadataPointer.TOKEN_META, identifier=token_address_bytes)
-    write_metadata(token_meta_writer, token_meta_data)
-
-    token_meta_symbol_writer = MetadataRequestsHandler(cic_type=MetadataPointer.TOKEN_META_SYMBOL,
-                                                       identifier=token_symbol_bytes)
-    write_metadata(token_meta_symbol_writer, token_meta_data)
-
-    token_proof_writer = MetadataRequestsHandler(cic_type=MetadataPointer.TOKEN_PROOF, identifier=token_address_bytes)
-    write_metadata(token_proof_writer, token_proof_data)
-
-    token_proof_symbol_writer = MetadataRequestsHandler(cic_type=MetadataPointer.TOKEN_PROOF_SYMBOL,
-                                                        identifier=token_symbol_bytes)
-    write_metadata(token_proof_symbol_writer, token_proof_data)
-
-    rpc = EthHTTPConnection(url=config.get('RPC_PROVIDER'), chain_spec=chain_spec)
-    contract_wrapper = wrapper(chain_spec, rpc)
-
     hashed_token_proof = hash_proof(data=json.dumps(token_proof_data).encode('utf-8'))
-    identifier = bytes.fromhex(hashed_token_proof)
-    token_immutable_proof_writer = MetadataRequestsHandler(cic_type=MetadataPointer.NONE, identifier=identifier)
-    write_metadata(token_immutable_proof_writer, token_proof_data)
-    write_to_declarator(contract_address=args.address_declarator,
-                        contract_wrapper=contract_wrapper,
-                        proof=hashed_token_proof,
-                        rpc=rpc,
-                        signer_address=args.signer_address,
-                        token_address=args.e)
 
-    hashed_token_proof = hash_proof(args.token_symbol.encode('utf-8'))
-    identifier = bytes.fromhex(hashed_token_proof)
-    token_immutable_proof_writer = MetadataRequestsHandler(cic_type=MetadataPointer.NONE, identifier=identifier)
-    write_to_declarator(contract_address=args.address_declarator,
-                        contract_wrapper=contract_wrapper,
-                        proof=identifier,
-                        rpc=rpc,
-                        signer_address=args.signer_address,
-                        token_address=args.e)
+    if args.write_chain:
+        rpc = EthHTTPConnection(url=config.get('RPC_PROVIDER'), chain_spec=chain_spec)
+        contract_wrapper = wrapper(chain_spec, rpc)
+
+        logg.debug(f'Writing hashed proof: {hashed_token_proof}')
+        write_to_declarator(contract_address=args.address_declarator,
+                            contract_wrapper=contract_wrapper,
+                            proof=hashed_token_proof,
+                            rpc=rpc,
+                            signer_address=args.signer_address,
+                            token_address=args.e)
+
+        hashed_token_proof_rev = to_identifier(args.token_symbol)
+        logg.debug(f'Writing hashed proof: {hashed_token_proof}')
+        write_to_declarator(contract_address=args.address_declarator,
+                            contract_wrapper=contract_wrapper,
+                            proof=hashed_token_proof_rev,
+                            rpc=rpc,
+                            signer_address=args.signer_address,
+                            token_address=args.e)
+
+    if args.write_metadata:
+        token_meta_writer = MetadataRequestsHandler(cic_type=MetadataPointer.TOKEN_META, identifier=token_address_bytes)
+        write_metadata(token_meta_writer, token_meta_data)
+
+        token_meta_symbol_writer = MetadataRequestsHandler(cic_type=MetadataPointer.TOKEN_META_SYMBOL,
+                                                           identifier=token_symbol_bytes)
+        write_metadata(token_meta_symbol_writer, token_meta_data)
+
+        token_proof_writer = MetadataRequestsHandler(cic_type=MetadataPointer.TOKEN_PROOF, identifier=token_address_bytes)
+        write_metadata(token_proof_writer, token_proof_data)
+
+        token_proof_symbol_writer = MetadataRequestsHandler(cic_type=MetadataPointer.TOKEN_PROOF_SYMBOL,
+                                                            identifier=token_symbol_bytes)
+        write_metadata(token_proof_symbol_writer, token_proof_data)
+
+        identifier = bytes.fromhex(hashed_token_proof)
+        token_immutable_proof_writer = MetadataRequestsHandler(cic_type=MetadataPointer.NONE, identifier=identifier)
+        write_metadata(token_immutable_proof_writer, token_proof_data)

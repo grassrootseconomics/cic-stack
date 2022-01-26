@@ -35,6 +35,6 @@ RUN  pip install --index-url $PIP_INDEX_URL  \
      --extra-index-url $EXTRA_PIP_INDEX_URL $EXTRA_PIP_ARGS \
      -r requirements.txt
 
-COPY . . 
+COPY . .
 
 ENTRYPOINT [ ]

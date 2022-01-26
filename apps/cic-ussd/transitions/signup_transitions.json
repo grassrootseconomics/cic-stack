@@ -1,31 +1,6 @@
 [
   {
     "trigger": "scan_data",
-    "source": "initial_language_selection",
-    "dest": "initial_pin_entry",
-    "after": "cic_ussd.state_machine.logic.account.change_preferred_language",
-    "conditions": "cic_ussd.state_machine.logic.menu.menu_one_selected"
-  },
-  {
-    "trigger": "scan_data",
-    "source": "initial_language_selection",
-    "dest": "initial_pin_entry",
-    "after": "cic_ussd.state_machine.logic.account.change_preferred_language",
-    "conditions": "cic_ussd.state_machine.logic.menu.menu_two_selected"
-  },
-  {
-    "trigger": "scan_data",
-    "source": "initial_language_selection",
-    "dest": "help",
-    "conditions": "cic_ussd.state_machine.logic.menu.menu_three_selected"
-  },
-  {
-    "trigger": "scan_data",
-    "source": "initial_language_selection",
-    "dest": "exit_invalid_menu_option"
-  },
-  {
-    "trigger": "scan_data",
     "source": "initial_pin_entry",
     "dest": "initial_pin_confirmation",
     "after": "cic_ussd.state_machine.logic.pin.save_initial_pin_to_session_data",
@@ -39,7 +14,6 @@
   {
     "trigger": "scan_data",
     "source": "initial_pin_confirmation",
-    "unless": "cic_ussd.state_machine.logic.validator.has_cached_person_metadata",
     "conditions": "cic_ussd.state_machine.logic.pin.pins_match",
     "dest": "start",
     "after": [

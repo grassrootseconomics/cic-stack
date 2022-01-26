@@ -11,6 +11,8 @@ services:
     image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/bloxberg-node:${TAG:-latest}
     build:
       context: apps/bloxbergValidatorSetup
+      args:
+          DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
     restart: unless-stopped
     ports:
       - ${DEV_ETH_PORT_HTTP:-63545}:8545
@@ -21,7 +23,7 @@ services:
       - bloxberg-data:/root/.local/share/io.parity.ethereum/
 
   postgres:
-    image: postgres:12.5-alpine
+    image: ${IMAGE_BASE_URL:-docker.io}/postgres:12.5-alpine
     environment:
       POSTGRES_HOST_AUTH_METHOD: trust # for postgres user access w/o password. Obvioulsy not safe but allows easy elevated debugging.  
       # PGDATA: /tmp/cic/postgres
@@ -153,7 +155,7 @@ services:
       SIGNER_PROVIDER: ${SIGNER_PROVIDER:-http://cic-signer:8000}
       SIGNER_SECRET: ${SIGNER_SECRET:-deadbeef}
       TASKS_TRACE_QUEUE_STATUS: ${TASKS_TRACE_QUEUE_STATUS:-1}
-      ETH_MIN_FEE_PRICE: $ETH_MIN_FEE_PRICE
+      ETH_MIN_FEE_PRICE: ${ETH_MIN_FEE_PRICE:-1000000000}
     restart: unless-stopped 
     depends_on:
       - evm
@@ -164,13 +166,13 @@ services:
       - signer-data:/run/crypto-dev-signer
       - contract-config:/tmp/cic/config/:ro
     command:
-      - /bin/bash
-      - -c
-      - |
-        set -a
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
-        set +a
-        ./start_tasker.sh --aux-all -q cic-eth  -vv
+        - /bin/bash
+        - -c
+        - |
+            set -a
+            if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
+            set +a
+            ./start_tasker.sh --aux-all -q cic-eth  -vv
 
 
   cic-eth-tracker:
@@ -203,7 +205,7 @@ services:
       SYNCER_LOOP_INTERVAL: ${SYNCER_LOOP_INTERVAL:-5}
       SYNCER_NO_HISTORY: ${SYNCER_NO_HISTORY:-1}
       SYNCER_OFFSET: ${SYNCER_OFFSET:-0}
-      TASKS_TRANSFER_CALLBACKS: ${TASKS_TRANSFER_CALLBACKS:-"cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback"}
+      TASKS_TRANSFER_CALLBACKS: ${TASKS_TRANSFER_CALLBACKS:-cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback}
     restart: unless-stopped 
     depends_on:
       - evm
@@ -342,7 +344,7 @@ services:
       SYNCER_LOOP_INTERVAL: ${SYNCER_LOOP_INTERVAL:-5}
       SYNCER_OFFSET: ${SYNCER_OFFSET:-0}
       SYNCER_NO_HISTORY: ${SYNCER_NO_HISTORY:-1}
-      TASKS_TRANSFER_CALLBACKS: ${TASKS_TRANSFER_CALLBACKS:-"cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback"}
+      TASKS_TRANSFER_CALLBACKS: ${TASKS_TRANSFER_CALLBACKS:-cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback}
     restart: unless-stopped 
     depends_on:
       - evm
@@ -497,7 +499,7 @@ services:
       dockerfile: docker/Dockerfile
       args:
         PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
-        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net}
         EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
         DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
     environment:
@@ -554,6 +556,7 @@ services:
     restart: on-failure 
     ports:
       - ${DEV_CIC_USER_SERVER_PORT:-63415}:9500
+      - 5050:5050
     depends_on:
       - postgres
       - redis
@@ -595,6 +598,7 @@ services:
       - cic-cache-tasker
     ports:
       - ${DEV_CIC_USER_USSD_SERVER_PORT:-63315}:9000
+      - 5051:5050
     volumes:
       - ./apps/contract-migration/testdata/pgp/:/usr/src/secrets/
     command: "/root/start_cic_user_ussd_server.sh -vv"

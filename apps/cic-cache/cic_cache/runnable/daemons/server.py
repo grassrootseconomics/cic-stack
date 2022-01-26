@@ -12,21 +12,20 @@ import cic_cache.cli
 from cic_cache.db import dsn_from_config
 from cic_cache.db.models.base import SessionBase
 from cic_cache.runnable.daemons.query import (
+        process_default_limit,
         process_transactions_account_bloom,
+        process_transactions_account_data,
         process_transactions_all_bloom,
         process_transactions_all_data,
         )
+import cic_cache.cli
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
-rootdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-dbdir = os.path.join(rootdir, 'cic_cache', 'db')
-migrationsdir = os.path.join(dbdir, 'migrations')
 
-# process args
-arg_flags = cic_cache.cli.argflag_std_base
-local_arg_flags = cic_cache.cli.argflag_local_task
+arg_flags = cic_cache.cli.argflag_std_read
+local_arg_flags = cic_cache.cli.argflag_local_sync | cic_cache.cli.argflag_local_task 
 argparser = cic_cache.cli.ArgumentParser(arg_flags)
 argparser.process_local_flags(local_arg_flags)
 args = argparser.parse_args()
@@ -35,7 +34,7 @@ args = argparser.parse_args()
 config = cic_cache.cli.Config.from_args(args, arg_flags, local_arg_flags)
 
 # connect to database
-dsn = dsn_from_config(config)
+dsn = dsn_from_config(config, 'cic_cache')
 SessionBase.connect(dsn, config.true('DATABASE_DEBUG'))
 
 
@@ -47,9 +46,11 @@ def application(env, start_response):
 
     session = SessionBase.create_session()
     for handler in [
+            process_transactions_account_data,
+            process_transactions_account_bloom,
             process_transactions_all_data,
             process_transactions_all_bloom,
-            process_transactions_account_bloom,
+            process_default_limit,
             ]:
         r = None
         try:

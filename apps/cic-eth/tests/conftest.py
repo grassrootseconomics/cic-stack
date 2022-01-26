@@ -41,12 +41,27 @@ def api(
 
 @pytest.fixture(scope='function')
 def default_token(
+        default_chain_spec,
         foo_token,
         foo_token_symbol,
+        call_sender,
+        eth_rpc,
         ):
     BaseTask.default_token_symbol = foo_token_symbol
     BaseTask.default_token_address = foo_token   
 
+    c = ERC20(default_chain_spec)
+    o = c.decimals(foo_token, sender_address=call_sender)
+    v = eth_rpc.do(o)
+    decimals = c.parse_decimals(v)
+    BaseTask.default_token_decimals = decimals 
+
+    o = c.name(foo_token, sender_address=call_sender)
+    v = eth_rpc.do(o)
+    name = c.parse_name(v)
+    BaseTask.default_token_name = name
+
+    return foo_token
 
 
 @pytest.fixture(scope='session')

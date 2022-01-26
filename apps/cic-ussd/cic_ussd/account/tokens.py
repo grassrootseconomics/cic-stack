@@ -14,8 +14,7 @@ from cic_ussd.account.chain import Chain
 from cic_ussd.cache import cache_data, cache_data_key, get_cached_data
 from cic_ussd.error import CachedDataNotFoundError, SeppukuError
 from cic_ussd.metadata.tokens import query_token_info, query_token_metadata
-from cic_ussd.processor.util import wait_for_cache
-from cic_ussd.translation import translation_for
+from cic_ussd.processor.poller import wait_for_cache
 
 logg = logging.getLogger(__file__)
 
@@ -266,8 +265,9 @@ def process_token_data(blockchain_address: str, token_symbol: str):
     query_token_metadata(identifier=identifier)
     token_info = query_token_info(identifier=identifier)
     hashed_token_info = hashed_token_proof(token_proof=token_info)
+    hashed_token_symbol = hashed_token_proof(token_symbol)
     query_token_data(blockchain_address=blockchain_address,
-                     hashed_proofs=[hashed_token_info],
+                     hashed_proofs=[[hashed_token_info, hashed_token_symbol]],
                      token_symbols=[token_symbol])
 
 
@@ -325,17 +325,4 @@ def set_active_token(blockchain_address: str, token_symbol: str):
     key = cache_data_key(identifier=bytes.fromhex(blockchain_address), salt=MetadataPointer.TOKEN_ACTIVE)
     cache_data(key=key, data=token_symbol)
 
-
-def token_list_set(preferred_language: str, token_data_reprs: list):
-    """
-    :param preferred_language:
-    :type preferred_language:
-    :param token_data_reprs:
-    :type token_data_reprs:
-    :return:
-    :rtype:
-    """
-    if not token_data_reprs:
-        return translation_for('helpers.no_tokens_list', preferred_language)
-    return ''.join(f'{token_data_repr}\n' for token_data_repr in token_data_reprs)
 

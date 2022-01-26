@@ -10,7 +10,10 @@ from cic_types.models.person import get_contact_data_from_vcard
 # local imports
 from cic_ussd.account.metadata import get_cached_preferred_language
 from cic_ussd.metadata import PersonMetadata
-from cic_ussd.processor.util import latest_input, parse_person_metadata, resume_last_ussd_session
+from cic_ussd.processor.util import (latest_input,
+                                     parse_person_metadata,
+                                     resume_last_ussd_session,
+                                     ussd_menu_list)
 from cic_ussd.translation import translation_for
 
 
@@ -32,7 +35,7 @@ def test_parse_person_metadata(activated_account, cache_person_metadata, cache_p
     cached_person_metadata = person_metadata.get_cached_metadata()
     person_metadata = json.loads(cached_person_metadata)
     preferred_language = get_cached_preferred_language(activated_account.blockchain_address)
-    display_key = 'ussd.kenya.display_person_metadata'
+    display_key = 'ussd.display_person_metadata'
     parsed_person_metadata = parse_person_metadata(cached_person_metadata,
                                                    display_key,
                                                    preferred_language)
@@ -60,3 +63,20 @@ def test_parse_person_metadata(activated_account, cache_person_metadata, cache_p
 ])
 def test_resume_last_ussd_session(expected_menu_name, last_state, load_ussd_menu):
     assert resume_last_ussd_session(last_state).get('name') == expected_menu_name
+
+
+def test_ussd_menu_list(activated_account, cache_preferences, load_ussd_menu, set_locale_files):
+    blockchain_address = activated_account.blockchain_address
+    preferred_language = get_cached_preferred_language(blockchain_address)
+    fallback = translation_for('helpers.no_transaction_history', preferred_language)
+    menu_list_sets = ['1. FII 50.0', '2. GFT 60.0', '3. DET 49.99']
+    split = 3
+    menu_list = ussd_menu_list(fallback=fallback, menu_list=menu_list_sets, split=split)
+    menu_list_sets = [menu_list_sets[item:item + split] for item in range(0, len(menu_list), split)]
+    menu_list_reprs = []
+    for i in range(split):
+        try:
+            menu_list_reprs.append(''.join(f'{list_set_item}\n' for list_set_item in menu_list_sets[i]).rstrip('\n'))
+        except IndexError:
+            menu_list_reprs.append(fallback)
+    assert menu_list == menu_list_reprs

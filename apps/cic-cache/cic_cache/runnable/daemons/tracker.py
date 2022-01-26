@@ -50,7 +50,7 @@ args = argparser.parse_args()
 config = cic_cache.cli.Config.from_args(args, arg_flags, local_arg_flags)
 
 # connect to database
-dsn = dsn_from_config(config)
+dsn = dsn_from_config(config, 'cic_cache')
 SessionBase.connect(dsn, debug=config.true('DATABASE_DEBUG'))
 
 # set up rpc

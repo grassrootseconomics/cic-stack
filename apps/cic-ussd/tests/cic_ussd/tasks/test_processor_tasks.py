@@ -52,6 +52,11 @@ def test_cache_statement(activated_account,
     cached_statement = get_cached_data(key)
     cached_statement = json.loads(cached_statement)
     assert len(cached_statement) == 1
+
+    sender_transaction['token_value'] = 60.0
+    s_parse_transaction = celery.signature(
+        'cic_ussd.tasks.processor.parse_transaction', [sender_transaction])
+    result = s_parse_transaction.apply_async().get()
     s_cache_statement = celery.signature(
         'cic_ussd.tasks.processor.cache_statement', [result, activated_account.blockchain_address]
     )

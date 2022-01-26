@@ -1,1 +1,1 @@
-include *requirements.txt cic_cache/data/config/*
+include *requirements.txt cic_cache/data/config/* cic_cache/db/migrations/default/* cic_cache/db/migrations/default/versions/*

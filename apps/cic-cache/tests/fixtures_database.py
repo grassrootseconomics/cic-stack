@@ -24,11 +24,15 @@ def database_engine(
     if load_config.get('DATABASE_ENGINE') == 'sqlite':
         SessionBase.transactional = False
         SessionBase.poolable = False
+        name = 'cic_cache'
+        database_name = name
+        if load_config.get('DATABASE_PREFIX'):
+            database_name = '{}_{}'.format(load_config.get('DATABASE_PREFIX'), database_name)
         try:
-            os.unlink(load_config.get('DATABASE_NAME'))
+            os.unlink(database_name)
         except FileNotFoundError:
             pass
-    dsn = dsn_from_config(load_config)
+    dsn = dsn_from_config(load_config, name)
     SessionBase.connect(dsn, debug=load_config.true('DATABASE_DEBUG'))
     return dsn
 

@@ -2,7 +2,7 @@
 
 import json
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 # external imports
 import celery
@@ -15,7 +15,7 @@ from cic_ussd.cache import Cache, cache_data, cache_data_key, get_cached_data
 from cic_ussd.account.chain import Chain
 from cic_ussd.db.models.base import SessionBase
 from cic_ussd.db.models.account import Account
-from cic_ussd.processor.util import wait_for_cache
+from cic_ussd.processor.poller import wait_for_cache
 from cic_ussd.account.statement import filter_statement_transactions
 from cic_ussd.account.transaction import transaction_actors
 from cic_ussd.account.tokens import (collate_token_metadata,
@@ -32,14 +32,14 @@ celery_app = celery.current_app
 
 
 @celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
-def account_creation_callback(self, result: str, url: str, status_code: int):
+def account_creation_callback(self, result: str, param: str, status_code: int):
     """This function defines a task that creates a user and
     :param self: Reference providing access to the callback task instance.
     :type self: celery.Task
     :param result: The blockchain address for the created account
     :type result: str
-    :param url: URL provided to callback task in cic-eth should http be used for callback.
-    :type url: str
+    :param param: URL provided to callback task in cic-eth should http be used for callback.
+    :type param: str
     :param status_code: The status of the task to create an account
     :type status_code: int
     """
@@ -69,6 +69,15 @@ def account_creation_callback(self, result: str, url: str, status_code: int):
     set_active_token(blockchain_address=result, token_symbol=token_symbol)
 
     queue = self.request.delivery_info.get('routing_key')
+    preferences_data = {"preferred_language": param}
+    # temporarily caching selected language
+    key = cache_data_key(bytes.fromhex(result), MetadataPointer.PREFERENCES)
+    cache_data(key, json.dumps(preferences_data))
+    s_preferences_metadata = celery.signature(
+        'cic_ussd.tasks.metadata.add_preferences_metadata', [result, preferences_data], queue=queue
+    )
+    s_preferences_metadata.apply_async()
+
     s_phone_pointer = celery.signature(
         'cic_ussd.tasks.metadata.add_phone_pointer', [result, phone_number], queue=queue
     )
@@ -134,9 +143,11 @@ def statement_callback(self, result, param: str, status_code: int):
         recipient_transaction, sender_transaction = transaction_actors(transaction)
         if recipient_transaction.get('blockchain_address') == param:
             recipient_transaction['alt_blockchain_address'] = sender_transaction.get('blockchain_address')
+            recipient_transaction['timestamp'] = datetime.utcfromtimestamp(transaction.get('timestamp')).strftime('%d/%m/%y, %H:%M')
             generate(param, queue, recipient_transaction)
         if sender_transaction.get('blockchain_address') == param:
             sender_transaction['alt_blockchain_address'] = recipient_transaction.get('blockchain_address')
+            sender_transaction['timestamp'] = datetime.utcfromtimestamp(transaction.get('timestamp')).strftime('%d/%m/%y, %H:%M')
             generate(param, queue, sender_transaction)
 
 
@@ -221,6 +232,10 @@ def transaction_callback(result: dict, param: str, status_code: int):
     """
     if status_code != 0:
         raise ValueError(f'Unexpected status code: {status_code}.')
+
+    print(f'THE RETURNING TRANSACTION IS: {result}')
+    print(f'STATUS CODE: {status_code}')
+    print(f'WITH PARAM: {param}')
 
     chain_str = Chain.spec.__str__()
     destination_token_symbol = result.get('destination_token_symbol')

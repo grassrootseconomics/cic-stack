@@ -63,22 +63,32 @@ class Config(BaseConfig):
                     config.get('REDIS_HOST'),
                     config.get('REDIS_PORT'),
                     )
+            db = getattr(args, 'redis_db', None)
+            if db != None:
+                db = str(db)
+
             redis_url = (
                     'redis',
                     hostport,
-                    getattr(args, 'redis_db', None),
+                    db,
                     )
+
+
             celery_config_url = urllib.parse.urlsplit(config.get('CELERY_BROKER_URL'))
             hostport = urlhostmerge(
                     celery_config_url[1],
                     getattr(args, 'celery_host', None),
                     getattr(args, 'celery_port', None),
                     )
+            db = getattr(args, 'redis_db', None)
+            if db != None:
+                db = str(db)
             celery_arg_url = (
                     getattr(args, 'celery_scheme', None),
                     hostport,
-                    getattr(args, 'celery_db', None),
+                    db,
                     )
+
             celery_url = urlmerge(redis_url, celery_config_url, celery_arg_url)
             celery_url_string = urllib.parse.urlunsplit(celery_url)
             local_celery_args_override['CELERY_BROKER_URL'] = celery_url_string

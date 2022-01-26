@@ -1,4 +1,7 @@
 celery==4.4.7
-chainlib-eth>=0.0.10a20,<0.1.0
 semver==2.13.0
-urlybird~=0.0.1a2
+chainlib-eth~=0.0.15
+urlybird~=0.0.1
+cic-eth-registry~=0.6.6
+cic-types~=0.2.1a8
+cic-eth-aux-erc20-demurrage-token~=0.0.3

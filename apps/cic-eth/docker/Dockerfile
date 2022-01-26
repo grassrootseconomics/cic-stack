@@ -11,13 +11,6 @@ ARG EXTRA_PIP_INDEX_URL=https://pip.grassrootseconomics.net
 ARG EXTRA_PIP_ARGS=""
 ARG PIP_INDEX_URL=https://pypi.org/simple
 
-RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
-    pip install --index-url $PIP_INDEX_URL \
-    --pre \
-    --extra-index-url $EXTRA_PIP_INDEX_URL $EXTRA_PIP_ARGS \
-    cic-eth-aux-erc20-demurrage-token~=0.0.2a7
-
-
 COPY *requirements.txt ./
 RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
     pip install --index-url $PIP_INDEX_URL \
@@ -25,7 +18,7 @@ RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
     --extra-index-url $EXTRA_PIP_INDEX_URL $EXTRA_PIP_ARGS \
     -r requirements.txt \
     -r services_requirements.txt \
-    -r admin_requirements.txt 
+    -r admin_requirements.txt
 
 COPY . .
 RUN python setup.py install
@@ -40,8 +33,6 @@ RUN chmod 755 *.sh
 # # they can all be overridden by environment variables
 # # to generate a list of environment variables from configuration, use: confini-dump -z <dir> (executable provided by confini package)
 #COPY config/ /usr/local/etc/cic-eth/
-COPY cic_eth/db/migrations/ /usr/local/share/cic-eth/alembic/
-COPY crypto_dev_signer_config/ /usr/local/etc/crypto-dev-signer/
 
 # TODO this kind of code sharing across projects should be discouraged...can we make util a library?
 #COPY util/liveness/health.sh /usr/local/bin/health.sh
@@ -66,9 +57,8 @@ ENTRYPOINT []
 ## # they can all be overridden by environment variables
 ## # to generate a list of environment variables from configuration, use: confini-dump -z <dir> (executable provided by confini package)
 #COPY config/ /usr/local/etc/cic-eth/
-#COPY cic_eth/db/migrations/ /usr/local/share/cic-eth/alembic/
-#COPY crypto_dev_signer_config/ /usr/local/etc/crypto-dev-signer/
-#COPY scripts/ scripts/ 
+COPY cic_eth/db/migrations/ /usr/local/share/cic-eth/alembic/
+#COPY scripts/ scripts/
 #
 ## TODO this kind of code sharing across projects should be discouraged...can we make util a library?
 ##COPY util/liveness/health.sh /usr/local/bin/health.sh

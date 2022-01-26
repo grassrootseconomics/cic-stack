@@ -13,7 +13,6 @@ from cic_types.condiments import MetadataPointer
 from cic_ussd.account.chain import Chain
 from cic_ussd.account.transaction import from_wei
 from cic_ussd.cache import cache_data_key, get_cached_data
-from cic_ussd.translation import translation_for
 
 logg = logging.getLogger(__name__)
 
@@ -67,14 +66,15 @@ def parse_statement_transactions(statement: list):
     :rtype:
     """
     parsed_transactions = []
+    statement.sort(key=lambda d: d['timestamp'], reverse=True)
     for transaction in statement:
         action_tag = transaction.get('action_tag')
         decimals = transaction.get('token_decimals')
         amount = from_wei(decimals, transaction.get('token_value'))
         direction_tag = transaction.get('direction_tag')
         token_symbol = transaction.get('token_symbol')
-        metadata_id = transaction.get('metadata_id')
-        timestamp = datetime.datetime.now().strftime('%d/%m/%y, %H:%M')
+        metadata_id = transaction.get('alt_metadata_id')
+        timestamp = transaction.get('timestamp')
         transaction_repr = f'{action_tag} {amount} {token_symbol} {direction_tag} {metadata_id} {timestamp}'
         parsed_transactions.append(transaction_repr)
     return parsed_transactions
@@ -97,17 +97,3 @@ def query_statement(blockchain_address: str, limit: int = 9):
         callback_param=blockchain_address
     )
     cic_eth_api.list(address=blockchain_address, limit=limit)
-
-
-def statement_transaction_set(preferred_language: str, transaction_reprs: list):
-    """
-    :param preferred_language:
-    :type preferred_language:
-    :param transaction_reprs:
-    :type transaction_reprs:
-    :return:
-    :rtype:
-    """
-    if not transaction_reprs:
-        return translation_for('helpers.no_transaction_history', preferred_language)
-    return ''.join(f'{transaction_repr}\n' for transaction_repr in transaction_reprs)

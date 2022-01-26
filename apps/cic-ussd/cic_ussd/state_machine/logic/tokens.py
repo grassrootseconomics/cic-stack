@@ -7,7 +7,7 @@ from sqlalchemy.orm.session import Session
 # local imports
 from cic_ussd.account.tokens import set_active_token
 from cic_ussd.db.models.account import Account
-from cic_ussd.processor.util import wait_for_session_data
+from cic_ussd.processor.poller import wait_for_session_data
 from cic_ussd.session.ussd_session import save_session_data
 
 
@@ -23,7 +23,7 @@ def is_valid_token_selection(state_machine_data: Tuple[str, dict, Account, Sessi
     account_tokens_list = session_data.get('account_tokens_list')
     if not account_tokens_list:
         wait_for_session_data('Account token list', session_data_key='account_tokens_list', ussd_session=ussd_session)
-    if user_input not in ['00', '22']:
+    if user_input not in ['00', '11', '22']:
         try:
             user_input = int(user_input)
             return user_input <= len(account_tokens_list)

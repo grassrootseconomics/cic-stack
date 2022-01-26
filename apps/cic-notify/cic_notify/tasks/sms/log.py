@@ -7,7 +7,7 @@ import celery
 
 celery_app = celery.current_app
 logg = celery_app.log.get_default_logger()
-local_logg = logging.getLogger(__name__)
+local_logg = logging.getLogger()
 
 
 @celery_app.task

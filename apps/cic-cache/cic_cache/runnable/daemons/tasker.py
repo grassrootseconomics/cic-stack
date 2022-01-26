@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 import argparse
+import tempfile
 
 # third-party imports
 import celery
@@ -28,7 +29,7 @@ args = argparser.parse_args()
 config = cic_cache.cli.Config.from_args(args, arg_flags, local_arg_flags)
 
 # connect to database
-dsn = dsn_from_config(config)
+dsn = dsn_from_config(config, 'cic_cache')
 SessionBase.connect(dsn)
 
 # set up celery

@@ -23,7 +23,7 @@ def test_ussd_metadata_handler(activated_account,
                                setup_metadata_signer):
     identifier = bytes.fromhex(strip_0x(activated_account.blockchain_address))
     cic_type = MetadataPointer.PERSON
-    metadata_client = UssdMetadataHandler(cic_type, identifier)
+    metadata_client = UssdMetadataHandler(cic_type=cic_type, identifier=identifier)
     assert metadata_client.cic_type == cic_type
     assert metadata_client.engine == 'pgp'
     assert metadata_client.identifier == identifier

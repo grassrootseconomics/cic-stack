@@ -22,7 +22,7 @@ from hexathon import (
 from chainqueue.error import NotLocalTxError
 from eth_erc20 import ERC20
 from chainqueue.sql.tx import cache_tx_dict
-from okota.token_index import to_identifier
+from okota.token_index.index import to_identifier
 
 # local imports
 from cic_eth.db.models.base import SessionBase
@@ -46,13 +46,14 @@ from cic_eth.task import (
 from cic_eth.eth.nonce import CustodialTaskNonceOracle
 from cic_eth.encode import tx_normalize
 from cic_eth.eth.trust import verify_proofs
+from cic_eth.error import SignerError
 
 celery_app = celery.current_app
 logg = logging.getLogger()
 
 
-@celery_app.task(base=CriticalWeb3Task)
-def balance(tokens, holder_address, chain_spec_dict):
+@celery_app.task(bind=True, base=CriticalWeb3Task)
+def balance(self, tokens, holder_address, chain_spec_dict):
     """Return token balances for a list of tokens for given address
 
     :param tokens: Token addresses
@@ -71,8 +72,9 @@ def balance(tokens, holder_address, chain_spec_dict):
     for t in tokens:
         address = t['address']
         logg.debug('address {} {}'.format(address, holder_address))
+        gas_oracle = self.create_gas_oracle(rpc, min_price=self.min_fee_price)
         token = ERC20Token(chain_spec, rpc, add_0x(address))
-        c = ERC20(chain_spec)
+        c = ERC20(chain_spec, gas_oracle=gas_oracle)
         o = c.balance_of(address, holder_address, sender_address=caller_address)
         r = rpc.do(o)
         t['balance_network'] = c.parse_balance(r)

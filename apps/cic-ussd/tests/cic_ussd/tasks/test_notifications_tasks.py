@@ -14,13 +14,14 @@ from cic_ussd.translation import translation_for
 
 
 def test_transaction(cache_default_token_data,
+                     cache_token_data,
                      celery_session_worker,
                      load_support_phone,
                      mock_notifier_api,
                      notification_data,
                      set_locale_files):
     notification_data['transaction_type'] = 'transfer'
-    amount = from_wei(notification_data.get('token_value'))
+    amount = from_wei(6, notification_data.get('token_value'))
     balance = notification_data.get('available_balance')
     phone_number = notification_data.get('phone_number')
     preferred_language = notification_data.get('preferred_language')

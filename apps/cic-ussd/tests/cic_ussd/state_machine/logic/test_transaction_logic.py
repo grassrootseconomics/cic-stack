@@ -3,13 +3,12 @@ import json
 
 # external imports
 import pytest
-import requests_mock
-from chainlib.hash import strip_0x
 
 # local imports
+from cic_ussd.account.metadata import get_cached_preferred_language
+from cic_ussd.account.tokens import get_active_token_symbol, get_cached_token_data
 from cic_ussd.account.transaction import to_wei
 from cic_ussd.cache import get_cached_data
-from cic_ussd.metadata import PersonMetadata
 from cic_ussd.state_machine.logic.transaction import (is_valid_recipient,
                                                       is_valid_transaction_amount,
                                                       has_sufficient_balance,
@@ -17,7 +16,6 @@ from cic_ussd.state_machine.logic.transaction import (is_valid_recipient,
                                                       retrieve_recipient_metadata,
                                                       save_recipient_phone_to_session_data,
                                                       save_transaction_amount_to_session_data)
-
 
 # test imports
 
@@ -49,17 +47,18 @@ def test_is_valid_transaction_amount(activated_account, amount, expected_result,
 ])
 def test_has_sufficient_balance(activated_account,
                                 cache_balances,
-                                cache_default_token_data,
+                                cache_token_data,
                                 expected_result,
                                 generic_ussd_session,
                                 init_database,
+                                set_active_token,
                                 value):
     state_machine_data = (value, generic_ussd_session, activated_account, init_database)
     assert has_sufficient_balance(state_machine_data=state_machine_data) == expected_result
 
 
 def test_process_transaction_request(activated_account,
-                                     cache_default_token_data,
+                                     cache_token_data,
                                      cached_ussd_session,
                                      celery_session_worker,
                                      init_cache,
@@ -67,7 +66,12 @@ def test_process_transaction_request(activated_account,
                                      load_chain_spec,
                                      load_config,
                                      mock_transfer_api,
+                                     set_active_token,
                                      valid_recipient):
+    blockchain_address = activated_account.blockchain_address
+    token_symbol = get_active_token_symbol(blockchain_address)
+    token_data = get_cached_token_data(blockchain_address, token_symbol)
+    decimals = token_data.get("decimals")
     cached_ussd_session.set_data('recipient_phone_number', valid_recipient.phone_number)
     cached_ussd_session.set_data('transaction_amount', '50')
     ussd_session = get_cached_data(cached_ussd_session.external_session_id)
@@ -76,7 +80,7 @@ def test_process_transaction_request(activated_account,
     process_transaction_request(state_machine_data)
     assert mock_transfer_api['from_address'] == activated_account.blockchain_address
     assert mock_transfer_api['to_address'] == valid_recipient.blockchain_address
-    assert mock_transfer_api['value'] == to_wei(50)
+    assert mock_transfer_api['value'] == to_wei(decimals, 50)
     assert mock_transfer_api['token_symbol'] == load_config.get('TEST_TOKEN_SYMBOL')
 
 

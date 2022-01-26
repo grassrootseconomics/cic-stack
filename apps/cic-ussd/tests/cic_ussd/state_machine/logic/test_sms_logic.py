@@ -23,6 +23,7 @@ def test_upsell_unregistered_recipient(activated_account,
                                        load_support_phone,
                                        mock_notifier_api,
                                        set_locale_files,
+                                       set_active_token,
                                        valid_recipient):
     cached_ussd_session.set_data('recipient_phone_number', valid_recipient.phone_number)
     state_machine_data = ('', cached_ussd_session.to_json(), activated_account, init_database)

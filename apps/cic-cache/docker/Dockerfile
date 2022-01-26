@@ -4,9 +4,9 @@ FROM $DOCKER_REGISTRY/cic-base-images:python-3.8.6-dev-e8eb2ee2
 
 COPY requirements.txt .
 
-ARG EXTRA_PIP_INDEX_URL="https://pip.grassrootseconomics.net"
+ARG EXTRA_PIP_INDEX_URL=https://pip.grassrootseconomics.net
 ARG EXTRA_PIP_ARGS=""
-ARG PIP_INDEX_URL="https://pypi.org/simple"
+ARG PIP_INDEX_URL=https://pypi.org/simple
 
 RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
     pip install --index-url $PIP_INDEX_URL \
@@ -14,14 +14,9 @@ RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
     --extra-index-url $EXTRA_PIP_INDEX_URL $EXTRA_PIP_ARGS \
     -r requirements.txt
 
-COPY . . 
 
-RUN python setup.py install
-
-# ini files in config directory defines the configurable parameters for the application
-# they can all be overridden by environment variables
-# to generate a list of environment variables from configuration, use: confini-dump -z <dir> (executable provided by confini package)
-#COPY config/ /usr/local/etc/cic-cache/
+COPY . .
+RUN pip install .  --extra-index-url $EXTRA_PIP_INDEX_URL
 
 # for db migrations
 COPY ./aux/wait-for-it/wait-for-it.sh ./
