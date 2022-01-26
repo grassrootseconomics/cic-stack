@@ -38,12 +38,13 @@ class DirHandler:
 
     hexdir_level = 2
 
-    def __init__(self, user_dir, force_reset=False):
+    def __init__(self, user_dir, force_reset=False, stores={}):
         self.user_dir = user_dir
         self.force_reset = force_reset
         self.dirs = {}
         self.dirs['src'] = os.path.join(self.user_dir, 'src')
         os.makedirs(self.dirs['src'], exist_ok=True)
+        self.__stores = stores
 
 
     # TODO: which of these are obsolete?
@@ -135,7 +136,8 @@ class DirHandler:
     def __register_indices(self):
         for k in self.__csv_indices:
             fp = os.path.join(self.user_dir, k + '.csv')
-            self.interfaces[k] = IndexInterface(fp)
+            self.interfaces[k] = IndexInterface(fp, store=self.__stores.get(k))
+        logg.debug('added index {}'.format(self.interfaces[k]))
 
 
     def add(self, k, v, dirkey):
@@ -195,10 +197,10 @@ class HexDirInterface:
 
 class IndexInterface:
 
-    def __init__(self, path, index_store=None):
+    def __init__(self, path, store=None):
         self.__path = path
         self.f = open(self.__path, 'a')
-        self.store = index_store
+        self.store = store
         if self.store == None:
             self.store = AddressIndex() 
 
@@ -209,7 +211,7 @@ class IndexInterface:
 
 
     def get(self, k):
-        self.store.get(k)
+        return self.store.get(k)
 
 
     def path(self, k):
@@ -224,3 +226,6 @@ class IndexInterface:
     def __del__(self):
         self.f.close()
 
+
+    def __str__(self):
+        return 'index interface with store {}'.format(self.store)

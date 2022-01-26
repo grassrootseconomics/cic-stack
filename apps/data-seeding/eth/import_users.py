@@ -116,13 +116,8 @@ r = rpc.do(o)
 account_registry_address = registry.parse_address_of(r)
 logg.info('using account registry {}'.format(account_registry_address))
 
-dh = DirHandler(config.get('_USERDIR'), force_reset=args.f)
-dh.initialize_dirs()
-dh.alias('src', 'old')
-dirs = dh.dirs
 
-
-def register_eth(i, u):
+def register_eth(i, u, dirs):
 
     address_hex = keystore.new()
     address = add_0x(to_checksum_address(address_hex))
@@ -152,9 +147,15 @@ if __name__ == '__main__':
             return []
         return v.split(',')
 
-    user_tags = AddressIndex(value_filter=split_filter)
+    stores = {}
+    stores['tags'] = AddressIndex(value_filter=split_filter, name='tags index')
+    dh = DirHandler(config.get('_USERDIR'), force_reset=args.f, stores=stores)
+    dh.initialize_dirs()
+    dh.alias('src', 'old')
+    dirs = dh.dirs
+
     tags_path = dh.path(None, 'tags')
-    user_tags.add_from_file(tags_path)
+    stores['tags'].add_from_file(tags_path)
 
     srcdir = dh.dirs.get('src')
 
@@ -178,7 +179,7 @@ if __name__ == '__main__':
 
 
             # create new ethereum address (in custodial backend)
-            new_address = register_eth(i, u)
+            new_address = register_eth(i, u, dh.dirs)
 
             
             # add address to identities in person object
@@ -236,7 +237,9 @@ if __name__ == '__main__':
 #            os.makedirs(os.path.dirname(filepath), exist_ok=True)
             
             
-            get_chain_addresses(u, old_chain_spec)
+            old_addresses = get_chain_addresses(u, old_chain_spec)
+            old_address = legacy_normalize_address(old_addresses[0])
+            logg.debug('old address {}'.format(old_address))
             #sub_old_chain_str = '{}:{}'.format(old_chain_spec.network_id(), old_chain_spec.common_name())
             #f = open(filepath, 'w')
             #k = u.identities['evm'][old_chain_spec.fork()][sub_old_chain_str][0]
@@ -244,8 +247,8 @@ if __name__ == '__main__':
 
 
             #tag_data = None
-            new_address_index = legacy_normalize_index_key(new_address_clean)
-            tag_data = dh.get(new_address_index, 'tags')
+            tag_data = dh.get(old_address, 'tags')
+
 #            try:
 #                tag_data = {'tags': user_tags.get(k)}
 #            except KeyError:
