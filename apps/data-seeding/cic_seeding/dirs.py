@@ -20,14 +20,14 @@ class DirHandler:
     __address_dirs = {
         'src': 20,
         'new': 20,
+        'keystore': 20,
             }
 
     __hash_dirs = {
-        'custom_new',
-        'phone',
-        'phone_meta',
-        'phone_new',
-        'meta',
+        'custom_new': 32,
+        'phone': 32,
+        'phone_new': 32,
+        'meta': 32,
         }
 
     __csv_indices = {
@@ -63,6 +63,7 @@ class DirHandler:
         self.dirs['phone_new'] = os.path.join(self.dirs['phone'], 'new')
         self.dirs['preferences_meta'] = os.path.join(self.dirs['preferences'], 'meta')
         self.dirs['preferences_new'] = os.path.join(self.dirs['preferences'], 'new')
+        self.dirs['keystore'] = os.path.join(self.user_dir, 'keystore')
 
         self.interfaces = {}
 
@@ -75,6 +76,7 @@ class DirHandler:
     def alias(self, dirkey, alias):
         d = os.path.realpath(self.dirs[dirkey])
         sd = os.path.dirname(d)
+
         alias_dir = os.path.join(sd, alias)
         try:
             os.unlink(alias_dir)
@@ -119,7 +121,9 @@ class DirHandler:
                 shutil.rmtree(self.dirs[d])
 
 
-        for d in self.dirs.keys():
+        #for d in self.dirs.keys():
+        mkdirs = self.__address_dirs | self.__hash_dirs
+        for d in mkdirs.keys():
             os.makedirs(self.dirs[d], exist_ok=True)
 
 
@@ -141,6 +145,7 @@ class DirHandler:
 
 
     def add(self, k, v, dirkey):
+        logg.debug('dh add {} {} {}'.format(k, v, dirkey))
         ifc = self.interfaces[dirkey]
         return ifc.add(k, v)
 

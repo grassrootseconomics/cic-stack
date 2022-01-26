@@ -42,6 +42,7 @@ from cic_seeding.legacy import (
         legacy_normalize_address,
         legacy_normalize_index_key,
         legacy_link_data,
+        legacy_normalize_file_key,
         )
 
 
@@ -117,7 +118,7 @@ account_registry_address = registry.parse_address_of(r)
 logg.info('using account registry {}'.format(account_registry_address))
 
 
-def register_eth(i, u, dirs):
+def register_eth(i, u, dirhandler):
 
     address_hex = keystore.new()
     address = add_0x(to_checksum_address(address_hex))
@@ -130,12 +131,13 @@ def register_eth(i, u, dirs):
 
     pk = keystore.get(address)
     keyfile_content = to_keyfile_dict(pk, 'foo')
-    keyfile_path = os.path.join(dirs['keyfile'], '{}.json'.format(address))
-    f = open(keyfile_path, 'w')
-    json.dump(keyfile_content, f)
-    f.close()
 
-    logg.debug('[{}] register eth {} {} tx {} keyfile {}'.format(i, u, address, tx_hash_hex, keyfile_path))
+    address_index = legacy_normalize_file_key(address)
+    dirhandler.add(address_index, json.dumps(keyfile_content), 'keystore')
+    path = dirhandler.path(address_index, 'keystore')
+    legacy_link_data(path)
+
+    logg.debug('[{}] register eth {} {} tx {} keyfile {}'.format(i, u, address, tx_hash_hex, path))
 
     return address
    
@@ -152,6 +154,8 @@ if __name__ == '__main__':
     dh = DirHandler(config.get('_USERDIR'), force_reset=args.f, stores=stores)
     dh.initialize_dirs()
     dh.alias('src', 'old')
+    dh.alias('custom_new', 'meta')
+    dh.alias('phone_new', 'meta')
     dirs = dh.dirs
 
     tags_path = dh.path(None, 'tags')
@@ -179,7 +183,7 @@ if __name__ == '__main__':
 
 
             # create new ethereum address (in custodial backend)
-            new_address = register_eth(i, u, dh.dirs)
+            new_address = register_eth(i, u, dh)
 
             
             # add address to identities in person object
@@ -215,7 +219,7 @@ if __name__ == '__main__':
             dh.add(meta_phone_key, new_address_clean, 'phone_new')
             entry_path = dh.path(meta_phone_key, 'phone_new')
             legacy_link_data(entry_path)
-            dh.alias('meta', 'meta_new')
+            ##dh.alias('meta', 'meta/new')
             #os.symlink(os.path.realpath(filepath), meta_phone_filepath)
 #            f = open(filepath, 'w')
 #            f.write(to_checksum_address(new_address_clean))
@@ -265,7 +269,8 @@ if __name__ == '__main__':
                 tag_data.append(tag)
 
             dh.add(custom_key, json.dumps({'tags': tag_data}), 'custom_new')
-            dh.alias('custom', 'custom_meta')
+            custom_path = dh.path(custom_key, 'custom_new')
+            legacy_link_data(custom_path)
 
             #f.write(json.dumps({'tags': tag_data}))
             #f.close()
