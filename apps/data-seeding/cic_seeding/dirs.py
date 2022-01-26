@@ -38,7 +38,7 @@ class DirHandler:
         self.force_reset = force_reset
         self.dirs = {}
         self.dirs['src'] = os.path.join(self.user_dir, 'src')
-        os.makedirs(self.dirs['src'], exist_ok=force_reset)
+        os.makedirs(self.dirs['src'], exist_ok=True)
 
 
     def initialize_dirs(self):
@@ -63,13 +63,24 @@ class DirHandler:
         self.__register_indices()
 
 
+    def alias(self, dirkey, alias):
+        d = os.path.realpath(self.dirs[dirkey])
+        sd = os.path.dirname(d)
+        alias_dir = os.path.join(sd, 'old')
+        try:
+            os.unlink(alias_dir)
+        except FileNotFoundError:
+            pass
+        os.symlink(d, alias_dir, target_is_directory=True)
+        self.dirs[alias] = alias_dir
+
+
     def __build_indices(self):
         for idx in self.__csv_indices:
             idx_path = os.path.join(self.user_dir, idx + '.csv')
             try: 
                 os.stat(idx_path)
-                if not self.force_reset:
-                    raise FileExistsError(idx_path)
+                continue
             except FileNotFoundError:
                 pass
 

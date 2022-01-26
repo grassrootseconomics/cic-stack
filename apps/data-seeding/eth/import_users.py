@@ -32,7 +32,7 @@ from funga.eth.signer.defaultsigner import EIP155Signer
 from funga.eth.keystore.keyfile import to_dict as to_keyfile_dict
 
 # local imports
-from common.dirs import initialize_dirs
+from cic_seeding import DirHandler
 
 
 logging.basicConfig(level=logging.WARNING)
@@ -107,7 +107,11 @@ r = rpc.do(o)
 account_registry_address = registry.parse_address_of(r)
 logg.info('using account registry {}'.format(account_registry_address))
 
-dirs = initialize_dirs(config.get('_USERDIR'), force_reset=args.f)
+#dirs = initialize_dirs(config.get('_USERDIR'), force_reset=args.f)
+dh = DirHandler(config.get('_USERDIR'), force_reset=args.f)
+dh.initialize_dirs()
+dh.alias('src', 'old')
+dirs = dh.dirs
 dirs['phone'] = os.path.join(config.get('_USERDIR'))
 
 def register_eth(i, u):
@@ -141,7 +145,7 @@ if __name__ == '__main__':
         r = f.readline().rstrip()
         if len(r) == 0:
             break
-        (old_address, tags_csv) = r.split(':')
+        (old_address, tags_csv) = r.split(',', 1)
         old_address = strip_0x(old_address)
         old_address_tag_key = to_checksum_address(old_address)
         user_tags[old_address_tag_key] = tags_csv.split(',')

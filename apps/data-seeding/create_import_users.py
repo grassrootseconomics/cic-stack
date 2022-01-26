@@ -70,20 +70,14 @@ else:
 def legacy_link(path):
     new_path = path + '.json'
     logg.debug('add legacy data symlink {} -> {}'.format(path, new_path))
-    os.symlink(path, new_path)
+    os.symlink(os.path.realpath(path), new_path)
 
 
 if __name__ == '__main__':
 
     dh = DirHandler(user_dir, force_reset=args.f)
     dh.initialize_dirs()
-
-    legacy_dir = os.path.join(user_dir, 'old')
-    try:
-        os.unlink(legacy_dir)
-    except FileNotFoundError:
-        pass
-    os.symlink(dh.dirs['src'], legacy_dir, target_is_directory=True)
+    dh.alias('src', 'old')
 
     i = 0
     while i < user_count:
