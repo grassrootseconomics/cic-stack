@@ -47,5 +47,6 @@ class TestIndex(unittest.TestCase):
         v = idx.get('abcdef')
         self.assertEqual(v, 'inky,pinky,blinky,clyde')
 
+
 if __name__ == '__main__':
     unittest.main()

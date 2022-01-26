@@ -26,7 +26,9 @@ from cic_types.processor import generate_metadata_pointer
 from cic_types import MetadataPointer
 
 # local imports
-from common.dirs import initialize_dirs
+#from common.dirs import initialize_dirs
+from cic_seeding import DirHandler
+from cic_seeding.index import AddressIndex
 
 
 logging.basicConfig(level=logging.WARNING)
@@ -76,6 +78,7 @@ args_override = {
         }
 config.dict_override(args_override, 'cli')
 config.add(args.user_dir, '_USERDIR', True)
+logg.debug('config loaded:\n{}'.format(config))
 
 celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
@@ -96,7 +99,10 @@ chain_str = str(chain_spec)
 batch_size = args.batch_size
 batch_delay = args.batch_delay
 
-dirs = initialize_dirs(config.get('_USERDIR'), force_reset=args.f)
+dh = DirHandler(config.get('_USERDIR'), force_reset=args.f)
+dh.initialize_dirs()
+dh.alias('src', 'old')
+dirs = dh.dirs
 
 
 def register_eth(i, u):
@@ -140,17 +146,24 @@ def register_eth(i, u):
 
 if __name__ == '__main__':
 
-    user_tags = {}
-    f = open(os.path.join(config.get('_USERDIR'), 'tags.csv'), 'r')
-    while True:
-        r = f.readline().rstrip()
-        if len(r) == 0:
-            break
-        (old_address, tags_csv) = r.split(':')
-        old_address = strip_0x(old_address)
-        old_address_tag_key = to_checksum_address(old_address)
-        user_tags[old_address_tag_key] = tags_csv.split(',')
-        logg.debug('read tags {} for old address {}'.format(user_tags[old_address_tag_key], old_address))
+#    user_tags = {}
+#    f = open(os.path.join(config.get('_USERDIR'), 'tags.csv'), 'r')
+#    while True:
+#        r = f.readline().rstrip()
+#        if len(r) == 0:
+#            break
+#        (old_address, tags_csv) = r.split(':')
+#        old_address = strip_0x(old_address)
+#        old_address_tag_key = to_checksum_address(old_address)
+#        user_tags[old_address_tag_key] = tags_csv.split(',')
+#        logg.debug('read tags {} for old address {}'.format(user_tags[old_address_tag_key], old_address))
+#
+    def split_filter(v):
+        return v.split(',')
+
+    user_tags = AddressIndex(value_filter=split_filter)
+    tags_path = dh.path(None, 'tags')
+    user_tags.add_from_file(tags_path)
 
 
     i = 0
@@ -237,7 +250,7 @@ if __name__ == '__main__':
             k = u.identities['evm'][old_chain_spec.fork()][sub_old_chain_str][0]
             k = to_checksum_address(strip_0x(k))
             try:
-                tag_data = {'tags': user_tags[k]}
+                tag_data = {'tags': user_tags.get(k)}
             except KeyError:
                 logg.warning('missing tag for {}, adding defaults {}'.format(k, args.default_tag))
                 for tag in args.default_tag:
