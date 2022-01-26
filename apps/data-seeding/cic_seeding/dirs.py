@@ -22,6 +22,11 @@ class DirHandler:
         'phone_meta',
         }
 
+    __csv_indices = {
+        'balances',
+        'tags','tags',
+            }
+
 
     hexdir_level = 2
 
@@ -47,10 +52,26 @@ class DirHandler:
         self.dirs['preferences_meta'] = os.path.join(self.dirs['preferences'], 'meta')
         self.dirs['preferences_new'] = os.path.join(self.dirs['preferences'], 'new')
 
-        self.dir_interfaces = {}
+        self.interfaces = {}
 
         self.__build_dirs()
+        self.__build_indices()
         self.__register_hex_dirs()
+        self.__register_indices()
+
+
+    def __build_indices(self):
+        for idx in self.__csv_indices:
+            idx_path = os.path.join(self.user_dir, idx + '.csv')
+            try: 
+                os.stat(idx_path)
+                if not self.force_reset:
+                    raise FileExistsError(idx_path)
+            except FileNotFoundError:
+                pass
+
+            f = open(idx_path, 'w')
+            f.close()
 
 
     def __build_dirs(self):
@@ -83,15 +104,21 @@ class DirHandler:
     def __register_hex_dirs(self):
         for dirkey in self.__address_dirs:
             d = HexDirInterface(self.dirs[dirkey], 20)
-            self.dir_interfaces[dirkey] = d
+            self.interfaces[dirkey] = d
 
         for dirkey in self.__hash_dirs:
             d = HexDirInterface(self.dirs[dirkey], 32)
-            self.dir_interfaces[dirkey] = d
+            self.interfaces[dirkey] = d
+
+
+    def __register_indices(self):
+        for k in self.__csv_indices:
+            fp = os.path.join(self.user_dir, k + '.csv')
+            self.interfaces[k] = IndexInterface(fp)
 
 
     def add(self, k, v, dirkey):
-        ifc = self.dir_interfaces[dirkey]
+        ifc = self.interfaces[dirkey]
         return ifc.add(k, v)
 
 
@@ -110,4 +137,17 @@ class HexDirInterface:
         return self.dir.add(kb, v)
 
 
-    #def get(self, k, dirkey):
+class IndexInterface:
+
+    def __init__(self, path):
+        self.path = path
+        self.f = open(path, 'a')
+
+
+    def add(self, k, v):
+        self.f.write(k + ',' + v + '\n')
+
+
+    def __del__(self):
+        self.f.close()
+

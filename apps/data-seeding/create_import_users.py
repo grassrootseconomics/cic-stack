@@ -9,7 +9,6 @@ import argparse
 import random
 
 # external imports
-import celery
 import confini
 from hexathon import strip_0x
 
@@ -40,6 +39,7 @@ argparser.add_argument('user_count', type=int,
                        help='amount of users to generate')
 args = argparser.parse_args()
 
+
 if args.v:
     logg.setLevel(logging.INFO)
 elif args.vv:
@@ -49,9 +49,6 @@ config = confini.Config(args.c, os.environ.get('CONFINI_ENV_PREFIX'))
 config.process()
 logg.debug('loaded config\n{}'.format(config))
 
-
-#celery_app = celery.Celery(broker=config.get(
-#    'CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
 gift_max = args.gift_threshold or 0
 gift_factor = (10 ** 6)
@@ -70,20 +67,6 @@ else:
     random.seed()
 
 
-#def prepareLocalFilePath(datadir, address):
-#    parts = [
-#        address[:2],
-#        address[2:4],
-#    ]
-#    dirs = '{}/{}/{}'.format(
-#        datadir,
-#        parts[0],
-#        parts[1],
-#    )
-#    os.makedirs(dirs, exist_ok=True)
-#    return dirs
-
-
 if __name__ == '__main__':
 
     dh = DirHandler(user_dir, force_reset=args.f)
@@ -95,9 +78,6 @@ if __name__ == '__main__':
     except FileNotFoundError:
         pass
     os.symlink(dh.dirs['src'], legacy_dir, target_is_directory=True)
-
-    fa = open(os.path.join(user_dir, 'balances.csv'), 'w')
-    ft = open(os.path.join(user_dir, 'tags.csv'), 'w')
 
     i = 0
     while i < user_count:
@@ -119,13 +99,10 @@ if __name__ == '__main__':
         pidx = genPhoneIndex(phone)
         dh.add(pidx, eth, 'phone')
 
-        ft.write('{}:{}\n'.format(eth, ','.join(tags)))
+        dh.add(eth, ','.join(tags), 'tags')
         amount = genAmount(gift_max, gift_factor)
-        fa.write('{},{}\n'.format(eth, amount))
+        dh.add(eth, str(amount), 'balances')
         logg.debug('pidx {}, uid {}, eth {}, amount {}, phone {}'.format(
             pidx, uid, eth, amount, phone))
 
         i += 1
-
-    ft.close()
-    fa.close()
