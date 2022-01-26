@@ -5,7 +5,7 @@ FROM $DOCKER_REGISTRY/debian:buster-slim
 WORKDIR /root
 
 RUN apt-get update -y 
-RUN apt-get install -y cmake llvm git python3-venv curl clang
+RUN apt-get install -y cmake llvm git python3-venv curl clang bsdmainutils libssl-dev autoconf libtool pkg-config python3-pip
 
 RUN git clone --depth 1 --branch v3.3.3 https://git.grassecon.net/grassrootseconomics/openethereum
 
@@ -21,8 +21,6 @@ ARG EXTRA_PIP_INDEX_URL="https://pip.grassrootseconomics.net"
 ARG EXTRA_PIP_ARGS=""
 ARG PIP_INDEX_URL="https://pypi.org/simple"
 
-RUN apt-get install -y python3-pip
-RUN apt-get install -y libssl-dev autoconf libtool pkg-config
 RUN pip3 install --index-url $PIP_INDEX_URL \
 	--pre \
 	--extra-index-url $EXTRA_PIP_INDEX_URL \
@@ -30,7 +28,6 @@ RUN pip3 install --index-url $PIP_INDEX_URL \
 
 ENV VANITY_STRING=${VANITY_STRING:-"Kitabu Sarafu Karibu Sana"}
 
-RUN apt-get install -y bsdmainutils
 COPY ./extra.sh ./extra.sh
 COPY ./aux/bash-templater/templater.sh ./templater.sh
 COPY ./kitabu*template ./
