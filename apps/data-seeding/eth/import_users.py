@@ -34,6 +34,8 @@ from funga.eth.keystore.keyfile import to_dict as to_keyfile_dict
 # local imports
 from cic_seeding import DirHandler
 from cic_seeding.index import AddressIndex
+from cic_seeding.chain import set_chain_address
+from cic_seeding.legacy import legacy_normalize_key
 
 
 logging.basicConfig(level=logging.WARNING)
@@ -78,8 +80,7 @@ args_override = {
         }
 config.dict_override(args_override, 'cli')
 config.add(args.user_dir, '_USERDIR', True)
-
-#user_dir = args.user_dir
+logg.debug('config loaded:\n{}'.format(config))
 
 chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
 chain_str = str(chain_spec)
@@ -108,12 +109,11 @@ r = rpc.do(o)
 account_registry_address = registry.parse_address_of(r)
 logg.info('using account registry {}'.format(account_registry_address))
 
-#dirs = initialize_dirs(config.get('_USERDIR'), force_reset=args.f)
 dh = DirHandler(config.get('_USERDIR'), force_reset=args.f)
 dh.initialize_dirs()
 dh.alias('src', 'old')
 dirs = dh.dirs
-#dirs['phone'] = os.path.join(config.get('_USERDIR'))
+
 
 def register_eth(i, u):
 
@@ -140,18 +140,6 @@ def register_eth(i, u):
 
 if __name__ == '__main__':
 
-#    user_tags = {}
-#    f = open(os.path.join(config.get('_USERDIR'), 'tags.csv'), 'r')
-#    while True:
-#        r = f.readline().rstrip()
-#        if len(r) == 0:
-#            break
-#        (old_address, tags_csv) = r.split(',', 1)
-#        old_address = strip_0x(old_address)
-#        old_address_tag_key = to_checksum_address(old_address)
-#        user_tags[old_address_tag_key] = tags_csv.split(',')
-#        logg.debug('read tags {} for old address {}'.format(user_tags[old_address_tag_key], old_address_tag_key))
-
     def split_filter(v):
         return v.split(',')
 
@@ -159,11 +147,13 @@ if __name__ == '__main__':
     tags_path = dh.path(None, 'tags')
     user_tags.add_from_file(tags_path)
 
+    srcdir = dh.dirs.get('src')
 
     i = 0
     j = 0
-    for x in os.walk(dirs['old']):
+    for x in os.walk(srcdir):
         for y in x[2]:
+            # load user metadata from old chain address file
             if y[len(y)-5:] != '.json':
                 continue
             filepath = os.path.join(x[0], y)
@@ -176,29 +166,24 @@ if __name__ == '__main__':
                 continue
             f.close()
             u = Person.deserialize(o)
-            logg.debug('u {}'.format(o))
 
+
+            # create new ethereum address (in custodial backend)
             new_address = register_eth(i, u)
-            if u.identities.get('evm') == None:
-                u.identities['evm'] = {}
-            sub_chain_str = '{}:{}'.format(chain_spec.network_id(), chain_spec.common_name())
-            u.identities['evm'][chain_spec.fork()] = {}
-            u.identities['evm'][chain_spec.fork()][sub_chain_str] = [new_address]
 
-            new_address_clean = strip_0x(new_address)
-            filepath = os.path.join(
-                    dirs['new'],
-                    new_address_clean[:2].upper(),
-                    new_address_clean[2:4].upper(),
-                    new_address_clean.upper() + '.json',
-                    )
-            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+            
+            # add address to identities in person object
+            set_chain_address(u, chain_spec, new_address)
 
+
+            # add updated person record to the migration data folder
             o = u.serialize()
-            f = open(filepath, 'w')
-            f.write(json.dumps(o))
-            f.close()
+            dh.add(new_address, json.dumps(o), 'new')
 
+
+            #
+            new_address_clean = legacy_normalize_key(new_address)
+            
             meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), MetadataPointer.PERSON)
             meta_filepath = os.path.join(dirs['meta'], '{}.json'.format(new_address_clean.upper()))
             os.symlink(os.path.realpath(filepath), meta_filepath)
@@ -262,5 +247,3 @@ if __name__ == '__main__':
             if j == batch_size:
                 time.sleep(batch_delay)
                 j = 0
-
-    #fi.close()

@@ -36,16 +36,6 @@ ts_now = int(dt_now.timestamp())
 ts_then = int(dt_then.timestamp())
 
 
-def get_chain_addresses(person, chain_spec):
-    engine = person.identities[chain_spec.engine()]
-    fork = engine[chain_spec.fork()]
-
-    network_selector = '{}:{}'.format(chain_spec.network_id(), chain_spec.common_name())
-    chain = fork[network_selector]
-
-    return chain
-
-
 def genPhoneIndex(phone):
     h = hashlib.new('sha256')
     h.update(phone.encode('utf-8'))

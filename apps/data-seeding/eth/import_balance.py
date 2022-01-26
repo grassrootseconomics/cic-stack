@@ -44,7 +44,7 @@ from eth_token_index import TokenUniqueSymbolIndex
 from erc20_faucet import Faucet
 
 # local imports
-from cic_seeding.user import get_chain_addresses
+from cic_seeding.chain import get_chain_addresses
 from cic_seeding import DirHandler
 from cic_seeding.index import AddressIndex
 
