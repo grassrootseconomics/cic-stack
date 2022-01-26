@@ -4,9 +4,12 @@ import tempfile
 import shutil
 import json
 import os
+import logging
 
 # local imports
 from cic_seeding.dirs import DirHandler
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 class TestCommon(unittest.TestCase):
@@ -37,6 +40,23 @@ class TestCommon(unittest.TestCase):
         fp = os.path.join(self.dh.dirs['new'], address_check[0:2], address_check[2:4], address_check)
         os.stat(fp)
 
+
+    def test_index(self):
+        k = 'foo'
+        v = 'bar'
+        self.dh.add(k, v, 'tags')
+        k = 'baz'
+        v = 'inky,pinky,blinky,clyde'
+        self.dh.add(k, v, 'tags')
+        self.dh.flush()
+
+        fp = os.path.join(self.d, 'tags.csv')
+        f = open(fp, 'r')
+        v = f.readline().rstrip()
+        self.assertEqual(v, 'foo,bar')
+        v = f.readline().rstrip()
+        self.assertEqual(v, 'baz,inky,pinky,blinky,clyde')
+        f.close()
 
 if __name__ == '__main__':
     unittest.main()

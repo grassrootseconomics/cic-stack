@@ -3,10 +3,13 @@ import os
 import shutil
 import sys
 import stat
+import logging
 
 # external imports
 from leveldir.hex import HexDir
 from hexathon import strip_0x
+
+logg = logging.getLogger(__name__)
 
 
 class DirHandler:
@@ -24,7 +27,7 @@ class DirHandler:
 
     __csv_indices = {
         'balances',
-        'tags','tags',
+        'tags',
             }
 
 
@@ -122,6 +125,14 @@ class DirHandler:
         return ifc.add(k, v)
 
 
+    def flush(self, interface=None):
+        if interface != None:
+            self.interfaces[interface].flush()
+            return
+        for ifc in self.interfaces.keys():
+            self.interfaces[ifc].flush()
+
+
 class HexDirInterface:
 
     levels = 2
@@ -137,16 +148,25 @@ class HexDirInterface:
         return self.dir.add(kb, v)
 
 
+    def flush(self):
+        pass
+
+
 class IndexInterface:
 
     def __init__(self, path):
         self.path = path
-        self.f = open(path, 'a')
+        self.f = open(self.path, 'a')
 
 
     def add(self, k, v):
+        logg.debug('writing {} {}'.format(k, v))
         self.f.write(k + ',' + v + '\n')
 
+
+    def flush(self):
+        self.f.close()
+        self.f = open(self.path, 'a')
 
     def __del__(self):
         self.f.close()
