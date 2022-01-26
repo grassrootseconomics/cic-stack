@@ -125,6 +125,11 @@ class DirHandler:
         return ifc.add(k, v)
 
 
+    def path(self, k, dirkey):
+        ifc = self.interfaces[dirkey]
+        return ifc.path(k)
+
+
     def flush(self, interface=None):
         if interface != None:
             self.interfaces[interface].flush()
@@ -146,6 +151,10 @@ class HexDirInterface:
         kb = bytes.fromhex(k)
         v =  v.encode('utf-8')
         return self.dir.add(kb, v)
+
+
+    def path(self, k):
+        return self.dir.to_filepath(k)
 
 
     def flush(self):

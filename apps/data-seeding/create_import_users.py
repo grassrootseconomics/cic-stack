@@ -67,6 +67,12 @@ else:
     random.seed()
 
 
+def legacy_link(path):
+    new_path = path + '.json'
+    logg.debug('add legacy data symlink {} -> {}'.format(path, new_path))
+    os.symlink(path, new_path)
+
+
 if __name__ == '__main__':
 
     dh = DirHandler(user_dir, force_reset=args.f)
@@ -95,6 +101,8 @@ if __name__ == '__main__':
 
         v = o.serialize()
         dh.add(uid, json.dumps(v), 'src')
+        entry_path = dh.path(uid, 'src')
+        legacy_link(entry_path)
 
         pidx = genPhoneIndex(phone)
         dh.add(pidx, eth, 'phone')
