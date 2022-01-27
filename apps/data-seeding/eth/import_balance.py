@@ -214,6 +214,7 @@ def progress_callback(block_number, tx_index):
 def main():
 
     imp = EthImporter(rpc, signer, signer_address, config)
+    imp.prepare()
     sys.exit(0)
 
     # Get Sarafu token address
