@@ -29,6 +29,10 @@ class AddressIndex:
         self.store[k] = v
 
 
+    def path(self, k):
+        return None
+
+
     def get(self, k):
         k = normalize_key(k)
         v = self.store.get(k)

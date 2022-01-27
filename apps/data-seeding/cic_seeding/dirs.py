@@ -53,6 +53,12 @@ class DirHandler:
         self.dirs['src'] = os.path.join(self.user_dir, 'src')
         os.makedirs(self.dirs['src'], exist_ok=True)
         self.__stores = stores
+        self.interfaces = {
+            'tags': AddressIndex(),
+            'balances': AddressIndex(),
+                }
+        for k in self.__stores.keys():
+            self.interfaces[k] = self.__stores.get(k)
 
 
     # TODO: which of these are obsolete?
@@ -73,8 +79,6 @@ class DirHandler:
         #self.dirs['preferences_new'] = os.path.join(self.dirs['preferences'], 'new')
         self.dirs['keystore'] = os.path.join(self.user_dir, 'keystore')
         self.dirs['bak'] = os.path.join(self.user_dir, 'bak')
-
-        self.interfaces = {}
 
         if reset:
             self.__reset(remove_src=remove_src)

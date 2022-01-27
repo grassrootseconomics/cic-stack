@@ -34,17 +34,29 @@ class Importer:
         self.chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
         self.source_chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC_SOURCE'))
 
-        stores['tags'] = AddressIndex(value_filter=split_filter, name='tags index')
+        self.stores = {}
+        self.stores['tags'] = AddressIndex(value_filter=split_filter, name='tags index')
         self.dh = DirHandler(config.get('_USERDIR'), stores=stores, exist_ok=True)
-        self.dh.initialize_dirs(reset=config.get('_RESET'))
+        try:
+            reset = config.get('_RESET')
+            self.dh.initialize_dirs(reset=config.get('_RESET'))
+        except KeyError:
+            pass
         self.default_tag = default_tag
     
         tags_path = self.dh.path(None, 'tags')
-        stores['tags'].add_from_file(tags_path)
 
+        try:
+            self.stores['tags'].add_from_file(tags_path)
+        except TypeError:
+            pass
 
     def prepare(self):
         pass
+
+
+    def filter(self, conn, block, tx, db_session):
+        return self.filter(conn, block, tx, db_session=db_session)
 
 
     def process_user(self, i, u):
@@ -128,3 +140,6 @@ class Importer:
                 j += 1
                 if j == batch_size:
                     time.sleep(batch_delay)
+
+    def process_target(self):
+        pass

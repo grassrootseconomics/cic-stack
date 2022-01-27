@@ -45,10 +45,7 @@ from eth_token_index import TokenUniqueSymbolIndex
 from erc20_faucet import Faucet
 
 # local imports
-from cic_seeding.chain import get_chain_addresses
-from cic_seeding import DirHandler
-from cic_seeding.index import AddressIndex
-from cic_seeding.filter import remove_zeros_filter
+from cic_seeding.imports.eth import EthImporter
 
 
 logging.basicConfig(level=logging.WARNING)
@@ -93,6 +90,7 @@ config.process()
 # override args
 args_override = {
         'CHAIN_SPEC': getattr(args, 'i'),
+        'CHAIN_SPEC_SOURCE': getattr(args, 'old_chain_spec'),
         'RPC_PROVIDER': getattr(args, 'p'),
         'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
         }
@@ -128,6 +126,8 @@ if args.until > 0:
 chain_spec = ChainSpec.from_chain_str(chain_str)
 old_chain_spec_str = args.old_chain_spec
 old_chain_spec = ChainSpec.from_chain_str(old_chain_spec_str)
+
+rpc = EthHTTPConnection(args.p)
 
 user_dir = args.user_dir # user_out_dir from import_users.py
 
@@ -212,43 +212,11 @@ def progress_callback(block_number, tx_index):
 
 
 def main():
-    global chain_str, block_offset, user_dir
-    
-    dh = DirHandler(config.get('_USERDIR'), append=True)
-    dh.initialize_dirs()
-    dirs = dh.dirs
 
-    conn = EthHTTPConnection(config.get('RPC_PROVIDER'))
-    gas_oracle = OverrideGasOracle(conn=conn, limit=8000000)
-    nonce_oracle = RPCNonceOracle(signer_address, conn)
-
-    # Get Token registry address
-    registry = Registry(chain_spec)
-    o = registry.address_of(config.get('CIC_REGISTRY_ADDRESS'), 'TokenRegistry')
-    r = conn.do(o)
-    token_index_address = registry.parse_address_of(r)
-    token_index_address = to_checksum_address(token_index_address)
-    logg.info('found token index address {}'.format(token_index_address))
-    
-    # Get Faucet address
-    o = registry.address_of(config.get('CIC_REGISTRY_ADDRESS'), 'Faucet')
-    r = conn.do(o)
-    faucet_address = registry.parse_address_of(r)
-    faucet_address = to_checksum_address(faucet_address)
-    logg.info('found faucet {}'.format(faucet_address))
+    imp = EthImporter(rpc, signer, signer_address, config)
+    sys.exit(0)
 
     # Get Sarafu token address
-    token_index = TokenUniqueSymbolIndex(chain_spec)
-    o = token_index.address_of(token_index_address, token_symbol)
-    r = conn.do(o)
-    token_address = token_index.parse_address_of(r)
-    try:
-        token_address = to_checksum_address(token_address)
-    except ValueError as e:
-        logg.critical('lookup failed for token {}: {}'.format(token_symbol, e))
-        sys.exit(1)
-    logg.info('found token address {}'.format(token_address))
-
     syncer_backend = None
     if block_limit > 0:
         syncer_backend = MemBackend.custom(chain_str, block_limit, block_offset=block_offset)
