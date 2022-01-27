@@ -27,6 +27,7 @@ class DirHandler:
         'phone': 32,
         'meta': 32,   # pointers to entries in "
         'custom': 32, # tags
+        'txs': 32,
         }
 
     __csv_indices = {
@@ -255,8 +256,8 @@ class IndexInterface:
 
 
     def add(self, k, v):
-        self.f.write(k + ',' + v + '\n')
         self.store.add(k, v)
+        self.f.write(k + ',' + v + '\n')
 
 
     def get(self, k):

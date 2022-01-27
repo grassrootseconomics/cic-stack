@@ -101,8 +101,6 @@ config.add(args.y, 'KEYSTORE_FILE_PATH', True)
 config.add(args.user_dir, '_USERDIR', True) 
 logg.debug('loaded config: \n{}'.format(config))
 
-#app = celery.Celery(backend=config.get('CELERY_RESULT_URL'),  broker=config.get('CELERY_BROKER_URL'))
-
 signer_address = None
 keystore = DictKeystore()
 if args.y != None:
@@ -127,16 +125,15 @@ user_dir = args.user_dir # user_out_dir from import_users.py
 
 token_symbol = args.token_symbol
 
-dh = DirHandler(config.get('_USERDIR'), force_reset=False)
+dh = DirHandler(config.get('_USERDIR'), append=True)
 dh.initialize_dirs()
-dh.alias('src', 'old')
 dirs = dh.dirs
 
 class Handler:
 
     account_index_add_signature = keccak256_string_to_hex('add(address)')[:8]
 
-    def __init__(self, conn, chain_spec, user_dir, balances, token_address, faucet_address, signer_address, signer, gas_oracle, nonce_oracle):
+    def __init__(self, dh, conn, chain_spec, user_dir, balances, token_address, faucet_address, signer_address, signer, gas_oracle, nonce_oracle):
         self.token_address = token_address
         self.faucet_address = faucet_address
         self.user_dir = user_dir
@@ -163,28 +160,15 @@ class Handler:
         except RequestMismatchException:
             return
         recipient = r[0]
-       
-        filename_recipient = strip_0x(recipient).upper()
-        user_file = 'new/{}/{}/{}.json'.format(
-                filename_recipient[:2],
-                filename_recipient[2:4],
-                filename_recipient,
-                )
-        filepath = os.path.join(self.user_dir, user_file)
-        o = None
-        try:
-            f = open(filepath, 'r')
-            o = json.load(f)
-            f.close()
-        except FileNotFoundError:
-            logg.error('no import record of address {} {}'.format(filename_recipient, filepath))
-            return
+      
+        j = dh.get(recipient, 'new')
+        o = json.loads(j)
+
         u = Person.deserialize(o)
         logg.debug('serilized person {}'.format(o))
 
         original_addresses = get_chain_addresses(u, old_chain_spec)
-        #original_address = u.identities[old_chain_spec.engine()][old_chain_spec.fork()]['{}:{}'.format(old_chain_spec.network_id(), old_chain_spec.common_name())][0]
-        original_address = strip_0x(original_addresses[0])
+        original_address = original_addresses[0]
         try:
             balance = self.balances.get(original_address)
         except KeyError as e:
@@ -276,7 +260,7 @@ def main():
 
     syncer_backend.set(block_offset, 0)
     syncer = HeadSyncer(syncer_backend, chain_interface, block_callback=progress_callback)
-    handler = Handler(conn, chain_spec, user_dir, balances, token_address, faucet_address, signer_address, signer, gas_oracle, nonce_oracle)
+    handler = Handler(dh, conn, chain_spec, user_dir, balances, token_address, faucet_address, signer_address, signer, gas_oracle, nonce_oracle)
     syncer.add_filter(handler)
     syncer.loop(1, conn)
     
