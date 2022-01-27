@@ -48,7 +48,7 @@ from erc20_faucet import Faucet
 from cic_seeding.chain import get_chain_addresses
 from cic_seeding import DirHandler
 from cic_seeding.index import AddressIndex
-
+from cic_seeding.filter import remove_zeros_filter
 
 
 logging.basicConfig(level=logging.WARNING)
@@ -209,11 +209,6 @@ class Handler:
 
 def progress_callback(block_number, tx_index):
     sys.stdout.write(str(block_number).ljust(200) + "\n")
-
-
-__remove_zeros = 10**6
-def remove_zeros_filter(v):
-        return int(int(v) / __remove_zeros)
 
 
 def main():

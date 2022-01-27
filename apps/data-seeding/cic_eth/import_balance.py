@@ -38,6 +38,7 @@ from hexathon import (
 from cic_seeding.chain import get_chain_addresses
 from cic_seeding import DirHandler
 from cic_seeding.index import AddressIndex
+from cic_seeding.filter import remove_zeros_filter
 
 
 logging.basicConfig(level=logging.WARNING)
@@ -187,18 +188,18 @@ def progress_callback(block_number, tx_index):
     sys.stdout.write(str(block_number).ljust(200) + "\n")
 
 
-__remove_zeros = 10**6
-def remove_zeros_filter(v):
-        return int(int(v) / __remove_zeros)
-
-
 def main():
     global chain_str, block_offset, user_dir
  
-    dh = DirHandler(config.get('_USERDIR'), append=True)
+    balances = AddressIndex(value_filter=remove_zeros_filter, name='balance index')
+
+    dh = DirHandler(config.get('_USERDIR'), append=True, stores={'balances': balances})
     dh.initialize_dirs()
     dirs = dh.dirs
-    
+
+    balances_path = dh.path(None, 'balances')
+    balances.add_from_file(balances_path)
+   
     conn = EthHTTPConnection(config.get('RPC_PROVIDER'))
     gas_oracle = OverrideGasOracle(conn=conn, limit=8000000)
     nonce_oracle = RPCNonceOracle(signer_address, conn)
@@ -235,13 +236,7 @@ def main():
         r = conn.do(o)
         block_offset = int(strip_0x(r), 16) + 1
 
-    balances_path = dh.path(None, 'balances')
-
-    remove_zeros = 10**6
-    balances = AddressIndex(value_filter=remove_zeros_filter, name='balance index')
-    balances.add_from_file(balances_path)
-
-
+    
     # TODO get decimals from token
     syncer = None
     if block_limit > 0:

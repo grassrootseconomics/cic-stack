@@ -41,6 +41,7 @@ class AddressIndex:
         if typ != 'csv':
             raise NotImplementedError(typ)
 
+        i = 0
         f = open(file, 'r')
         while True:
             r = f.readline().rstrip()
@@ -49,7 +50,10 @@ class AddressIndex:
             (address, v) = r.split(',', 1)
             address = normalize_key(address)
             self.store[address] = v
-            logg.debug('added key {} value {} to {} from file {}'.format(address, v, self, file))
+            logg.debug('added key {}: {} value {} to {} from file {}'.format(i, address, v, self, file))
+            i += 1
+        
+        return i
 
 
     def __str__(self):
