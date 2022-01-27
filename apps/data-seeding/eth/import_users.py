@@ -19,7 +19,6 @@ from hexathon import (
         )
 from cic_types.models.person import Person
 from chainlib.eth.address import to_checksum_address
-from chainlib.chain import ChainSpec
 from chainlib.eth.connection import EthHTTPConnection
 from cic_types.processor import generate_metadata_pointer
 from cic_types import MetadataPointer
@@ -87,15 +86,6 @@ config.dict_override(args_override, 'cli')
 config.add(args.user_dir, '_USERDIR', True)
 logg.debug('config loaded:\n{}'.format(config))
 
-chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
-chain_str = str(chain_spec)
-
-old_chain_spec = ChainSpec.from_chain_str(args.old_chain_spec)
-old_chain_str = str(old_chain_spec)
-
-batch_size = args.batch_size
-batch_delay = args.batch_delay
-
 rpc = EthHTTPConnection(args.p)
 
 signer_address = None
@@ -107,9 +97,7 @@ if args.y != None:
 signer = EIP155Signer(keystore)
 
 
-
 if __name__ == '__main__':
-  
     registry_address = config.get('CIC_REGISTRY_ADDRESS')
     imp = EthImporter(rpc, signer, signer_address, chain_spec, old_chain_spec, registry_address, config.get('_USERDIR'), exist_ok=True, reset=args.reset, default_tag=args.default_tag)
     imp.prepare()

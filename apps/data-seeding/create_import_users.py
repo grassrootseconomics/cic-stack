@@ -71,7 +71,7 @@ else:
 
 if __name__ == '__main__':
 
-    dh = DirHandler(user_dir, append=args.f)
+    dh = DirHandler(user_dir, exist_ok=args.f)
     dh.initialize_dirs(reset=args.reset, remove_src=args.reset)
 
     i = 0

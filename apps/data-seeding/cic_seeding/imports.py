@@ -10,6 +10,7 @@ import sys
 from cic_types.models.person import Person
 from cic_types.processor import generate_metadata_pointer
 from cic_types import MetadataPointer
+from chainlib.chain import ChainSpec
 
 # local imports
 from cic_seeding import DirHandler
@@ -29,13 +30,13 @@ logg = logging.getLogger(__name__)
 
 class Importer:
 
-    def __init__(self, target_chain_spec, source_chain_spec, registry_address, data_dir, stores=None, exist_ok=False, reset=False, reset_src=False, default_tag=[]):
-        stores = {}
+    def __init__(self, config, stores={}, default_tag=[]):
+        self.chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
+        self.source_chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC_SOURCE'))
+
         stores['tags'] = AddressIndex(value_filter=split_filter, name='tags index')
-        self.dh = DirHandler(data_dir, stores=stores, exist_ok=True)
-        self.dh.initialize_dirs(reset=reset or reset_src)
-        self.chain_spec = target_chain_spec
-        self.old_chain_spec = source_chain_spec
+        self.dh = DirHandler(config.get('_USERDIR'), stores=stores, exist_ok=True)
+        self.dh.initialize_dirs(reset=config.get('_RESET'))
         self.default_tag = default_tag
     
         tags_path = self.dh.path(None, 'tags')
@@ -50,8 +51,14 @@ class Importer:
         raise NotImplementedError()
 
 
-    def create_account(self):
+    def create_account(self, i, u):
         raise NotImplementedError()
+
+
+    def process_user(self, i, u):
+        address = self.create_account(i, u)
+        logg.debug('[{}] register eth new address {} for {}'.format(i, address, u))
+        return address
 
 
     def process_src(self, tags=[], batch_size=100, batch_delay=0.2):
@@ -100,7 +107,7 @@ class Importer:
                 # custom data
                 custom_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.CUSTOM)
                 
-                old_addresses = get_chain_addresses(u, self.old_chain_spec)
+                old_addresses = get_chain_addresses(u, self.source_chain_spec)
                 old_address = legacy_normalize_address(old_addresses[0])
 
                 tag_data = self.dh.get(old_address, 'tags')
