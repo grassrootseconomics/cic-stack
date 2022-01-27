@@ -27,6 +27,7 @@ default_config_dir = './config'
 argparser = argparse.ArgumentParser()
 argparser.add_argument('-c', type=str, default=default_config_dir, help='Config dir')
 argparser.add_argument('-f', action='store_true', help='Force use of existing output directory')
+argparser.add_argument('--reset', action='store_true', help='force clear previous state')
 argparser.add_argument('--seed', type=int, help='Random seed')
 argparser.add_argument('--tag', type=str, action='append',
                        help='Tags to add to record')
@@ -70,9 +71,8 @@ else:
 
 if __name__ == '__main__':
 
-    dh = DirHandler(user_dir, force_reset=args.f)
-    dh.initialize_dirs()
-    dh.alias('src', 'old')
+    dh = DirHandler(user_dir, append=args.f)
+    dh.initialize_dirs(reset=args.reset, remove_src=args.reset)
 
     i = 0
     while i < user_count:

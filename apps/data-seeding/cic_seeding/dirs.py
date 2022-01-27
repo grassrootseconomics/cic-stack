@@ -16,7 +16,7 @@ logg = logging.getLogger(__name__)
 
 
 class DirHandler:
-    
+
     __address_dirs = {
         'src': 20,
         'new': 20,
@@ -24,10 +24,9 @@ class DirHandler:
             }
 
     __hash_dirs = {
-        'custom_new': 32,
         'phone': 32,
-        'phone_new': 32,
-        'meta': 32,
+        'meta': 32,   # pointers to entries in "
+        'custom': 32, # tags
         }
 
     __csv_indices = {
@@ -35,12 +34,20 @@ class DirHandler:
         'tags',
             }
 
+    __key_descriptions = {
+        'src': 'user entries to migrate',
+        'new': 'user entries with new addresses',
+        'phone': 'phone number content address to blockchain address association',
+        'meta': 'blockchain address content address to metadata association',
+        'custom': 'blockchain address content address to extended metadata association',
+            }
+
 
     hexdir_level = 2
 
-    def __init__(self, user_dir, force_reset=False, stores={}):
+    def __init__(self, user_dir, stores={}, append=False):
         self.user_dir = user_dir
-        self.force_reset = force_reset
+        self.append = append
         self.dirs = {}
         self.dirs['src'] = os.path.join(self.user_dir, 'src')
         os.makedirs(self.dirs['src'], exist_ok=True)
@@ -49,23 +56,30 @@ class DirHandler:
 
     # TODO: which of these are obsolete?
     # TODO: should they all perhaps |
-    def initialize_dirs(self):
+    def initialize_dirs(self, reset=False, remove_src=False):
         self.dirs['new'] = os.path.join(self.user_dir, 'new')
         self.dirs['meta'] = os.path.join(self.user_dir, 'meta')
         self.dirs['custom'] = os.path.join(self.user_dir, 'custom')
         self.dirs['phone'] = os.path.join(self.user_dir, 'phone')
-        self.dirs['preferences'] = os.path.join(self.user_dir, 'preferences')
+        #self.dirs['preferences'] = os.path.join(self.user_dir, 'preferences')
         self.dirs['txs'] = os.path.join(self.user_dir, 'txs')
-        self.dirs['keyfile'] = os.path.join(self.user_dir, 'keystore')
-        self.dirs['custom_new'] = os.path.join(self.dirs['custom'], 'new')
-        self.dirs['custom_meta'] = os.path.join(self.dirs['custom'], 'meta')
-        self.dirs['phone_meta'] = os.path.join(self.dirs['phone'], 'meta')
-        self.dirs['phone_new'] = os.path.join(self.dirs['phone'], 'new')
-        self.dirs['preferences_meta'] = os.path.join(self.dirs['preferences'], 'meta')
-        self.dirs['preferences_new'] = os.path.join(self.dirs['preferences'], 'new')
+        #self.dirs['keyfile'] = os.path.join(self.user_dir, 'keystore')
+        #self.dirs['custom_new'] = os.path.join(self.dirs['custom'], 'new')
+        #self.dirs['custom_meta'] = os.path.join(self.dirs['custom'], 'meta')
+        #self.dirs['phone_meta'] = os.path.join(self.dirs['phone'], 'meta')
+        #self.dirs['phone_new'] = os.path.join(self.dirs['phone'], 'new')
+        #self.dirs['preferences_meta'] = os.path.join(self.dirs['preferences'], 'meta')
+        #self.dirs['preferences_new'] = os.path.join(self.dirs['preferences'], 'new')
         self.dirs['keystore'] = os.path.join(self.user_dir, 'keystore')
+        self.dirs['bak'] = os.path.join(self.user_dir, 'bak')
 
         self.interfaces = {}
+
+        if reset:
+            self.__reset(remove_src=remove_src)
+
+        if not remove_src:
+            self.__check()
 
         self.__build_dirs()
         self.__build_indices()
@@ -73,18 +87,63 @@ class DirHandler:
         self.__register_indices()
 
 
-    def alias(self, dirkey, alias):
-        d = os.path.realpath(self.dirs[dirkey])
-        sd = os.path.dirname(d)
+    def __check(self):
+        if not self.append:
+            try:
+                os.stat(self.dirs['src'])
+                raise FileExistsError('src directory exists and append not set')
+            except FileNotFoundError:
+                pass 
 
-        alias_dir = os.path.join(sd, alias)
+
+    def __reset(self, remove_src=False):
+        for k in self.dirs:
+            d = self.dirs[k]
+            if k == 'bak':
+                continue
+            if k == 'src':
+                if not remove_src:
+                    continue
+            shutil.rmtree(d, ignore_errors=True)
+            logg.debug('removed existing directory {}'.format(d))
+
+        if remove_src:
+            for idx in self.__csv_indices:
+                idx_path = os.path.join(self.user_dir, idx + '.csv')
+                os.unlink(idx_path)
+                logg.debug('removed index {}'.format(idx_path))
+
         try:
-            os.unlink(alias_dir)
-        except FileNotFoundError:
+            os.makedirs(self.dirs['src'])
+        except FileExistsError:
             pass
-        os.symlink(d, alias_dir, target_is_directory=True)
-        self.dirs[alias] = alias_dir
-        logg.debug('added alias {} for {}: {} -> {}'.format(alias, dirkey, d, alias_dir))
+
+        try:
+            os.makedirs(self.dirs['bak'])
+        except FileExistsError:
+            pass
+
+
+    def alias(self, source, alias, source_filename, alias_filename=None, use_interface=True):
+        if source not in self.dirs:
+            raise ValueError('source "{}" not found'.format(source))
+        if alias not in self.dirs:
+            raise ValueError('alias "{}" not found'.format(source))
+
+        if alias_filename == None:
+            alias_filename = source_filename
+
+        source_path = self.interfaces[source].path(source_filename)
+        if use_interface:
+            alias_path = self.interfaces[alias].path(alias_filename)
+        else:
+            alias_path = os.path.join(self.dirs[alias], alias_filename)
+      
+        source_path = os.path.realpath(source_path)
+
+        os.makedirs(os.path.dirname(alias_path), exist_ok=True)
+        os.symlink(source_path, alias_path)
+        logg.debug('added alias {} -> {}: {} -> {}'.format(alias, source, alias_filename, source_filename))
 
 
     def __build_indices(self):
@@ -107,21 +166,6 @@ class DirHandler:
             sys.stderr.write('no users to import. please run create_import_users.py first\n')
             sys.exit(1)
 
-        if self.force_reset:
-            for d in self.dirs.keys():
-                if d == 'src':
-                    continue
-                try:
-                    st = os.stat(self.dirs[d])
-                    if stat.S_ISLNK(st.st_mode):
-                        continue
-                except FileNotFoundError:
-                    continue
-
-                shutil.rmtree(self.dirs[d])
-
-
-        #for d in self.dirs.keys():
         mkdirs = self.__address_dirs | self.__hash_dirs
         for d in mkdirs.keys():
             os.makedirs(self.dirs[d], exist_ok=True)

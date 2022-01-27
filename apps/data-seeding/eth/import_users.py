@@ -57,8 +57,8 @@ argparser = argparse.ArgumentParser()
 argparser.add_argument('-p', '--provider', dest='p', type=str, help='Web3 provider url (http only)')
 argparser.add_argument('-y', '--key-file', dest='y', type=str, help='Ethereum keystore file to use for signing')
 argparser.add_argument('-c', type=str, help='config override directory')
-argparser.add_argument('-f', action='store_true', help='force clear previous state')
-argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:foo:1:oldchain', help='chain spec')
+argparser.add_argument('--reset', action='store_true', help='force clear previous state')
+argparser.add_argument('--src-chain-spec', type=str, dest='old_chain_spec', default='evm:foo:1:oldchain', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='Chain specification string')
 argparser.add_argument('-r', '--registry', dest='r', type=str, help='Contract registry address')
 argparser.add_argument('--batch-size', dest='batch_size', default=50, type=int, help='burst size of sending transactions to node')
@@ -140,22 +140,21 @@ def register_eth(i, u, dirhandler):
     logg.debug('[{}] register eth {} {} tx {} keyfile {}'.format(i, u, address, tx_hash_hex, path))
 
     return address
-   
+
+
+def split_filter(v):
+    if v == None:
+        return []
+    return v.split(',')
+
 
 if __name__ == '__main__':
 
-    def split_filter(v):
-        if v == None:
-            return []
-        return v.split(',')
 
     stores = {}
     stores['tags'] = AddressIndex(value_filter=split_filter, name='tags index')
-    dh = DirHandler(config.get('_USERDIR'), force_reset=args.f, stores=stores)
-    dh.initialize_dirs()
-    dh.alias('src', 'old')
-    dh.alias('custom_new', 'meta')
-    dh.alias('phone_new', 'meta')
+    dh = DirHandler(config.get('_USERDIR'), append=True, stores=stores)
+    dh.initialize_dirs(reset=args.reset)
     dirs = dh.dirs
 
     tags_path = dh.path(None, 'tags')
@@ -199,8 +198,9 @@ if __name__ == '__main__':
             new_address_clean = legacy_normalize_address(new_address)
             
             meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), MetadataPointer.PERSON)
-            meta_filepath = os.path.join(dirs['meta'], '{}.json'.format(new_address_clean.upper()))
-            os.symlink(os.path.realpath(filepath), meta_filepath)
+            #meta_filepath = os.path.join(dirs['meta'], '{}.json'.format(new_address_clean.upper()))
+            #os.symlink(os.path.realpath(filepath), meta_filepath)
+            dh.alias('new', 'meta', new_address_clean, alias_filename=new_address_clean + '.json', use_interface=False)
 
             phone_object = phonenumbers.parse(u.tel)
             phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
@@ -216,10 +216,9 @@ if __name__ == '__main__':
             #        )
             #os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
-            dh.add(meta_phone_key, new_address_clean, 'phone_new')
-            entry_path = dh.path(meta_phone_key, 'phone_new')
+            dh.add(meta_phone_key, new_address_clean, 'phone')
+            entry_path = dh.path(meta_phone_key, 'phone')
             legacy_link_data(entry_path)
-            ##dh.alias('meta', 'meta/new')
             #os.symlink(os.path.realpath(filepath), meta_phone_filepath)
 #            f = open(filepath, 'w')
 #            f.write(to_checksum_address(new_address_clean))
@@ -268,8 +267,8 @@ if __name__ == '__main__':
                 #tag_data['tags'].append(tag)
                 tag_data.append(tag)
 
-            dh.add(custom_key, json.dumps({'tags': tag_data}), 'custom_new')
-            custom_path = dh.path(custom_key, 'custom_new')
+            dh.add(custom_key, json.dumps({'tags': tag_data}), 'custom')
+            custom_path = dh.path(custom_key, 'custom')
             legacy_link_data(custom_path)
 
             #f.write(json.dumps({'tags': tag_data}))
