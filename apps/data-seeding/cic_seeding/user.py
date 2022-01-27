@@ -151,3 +151,4 @@ def genEntry():
         p.location['longitude'] = (random.random() * 360) - 180
 
     return old_blockchain_address, phone, p
+

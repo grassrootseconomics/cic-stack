@@ -46,9 +46,9 @@ class DirHandler:
 
     hexdir_level = 2
 
-    def __init__(self, user_dir, stores={}, append=False):
+    def __init__(self, user_dir, stores={}, exist_ok=False):
         self.user_dir = user_dir
-        self.append = append
+        self.append = exist_ok
         self.dirs = {}
         self.dirs['src'] = os.path.join(self.user_dir, 'src')
         os.makedirs(self.dirs['src'], exist_ok=True)

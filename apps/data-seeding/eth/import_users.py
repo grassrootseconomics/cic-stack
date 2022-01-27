@@ -21,12 +21,9 @@ from cic_types.models.person import Person
 from chainlib.eth.address import to_checksum_address
 from chainlib.chain import ChainSpec
 from chainlib.eth.connection import EthHTTPConnection
-from chainlib.eth.gas import RPCGasOracle
-from chainlib.eth.nonce import RPCNonceOracle
 from cic_types.processor import generate_metadata_pointer
 from cic_types import MetadataPointer
 from eth_accounts_index.registry import AccountRegistry
-from eth_contract_registry import Registry
 from funga.eth.keystore.dict import DictKeystore
 from funga.eth.signer.defaultsigner import EIP155Signer
 from funga.eth.keystore.keyfile import to_dict as to_keyfile_dict
@@ -43,6 +40,7 @@ from cic_seeding.legacy import (
         legacy_link_data,
         legacy_normalize_file_key,
         )
+from cic_seeding.eth import EthImporter
 
 
 logging.basicConfig(level=logging.WARNING)
@@ -108,176 +106,11 @@ if args.y != None:
     logg.debug('now have key for signer address {}'.format(signer_address))
 signer = EIP155Signer(keystore)
 
-nonce_oracle = RPCNonceOracle(signer_address, rpc)
-
-registry = Registry(chain_spec)
-o = registry.address_of(config.get('CIC_REGISTRY_ADDRESS'), 'AccountRegistry')
-r = rpc.do(o)
-account_registry_address = registry.parse_address_of(r)
-logg.info('using account registry {}'.format(account_registry_address))
-
-
-def register_eth(i, u, dh):
-
-    address_hex = keystore.new()
-    address = add_0x(to_checksum_address(address_hex))
-
-    gas_oracle = RPCGasOracle(rpc, code_callback=AccountRegistry.gas)
-    c = AccountRegistry(chain_spec, signer=signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
-    (tx_hash_hex, o) = c.add(account_registry_address, signer_address, address)
-    logg.debug('o {}'.format(o))
-    rpc.do(o)
-
-    pk = keystore.get(address)
-    keyfile_content = to_keyfile_dict(pk, 'foo')
-
-    address_index = legacy_normalize_file_key(address)
-    dh.add(address_index, json.dumps(keyfile_content), 'keystore')
-    path = dh.path(address_index, 'keystore')
-    legacy_link_data(path)
-
-    logg.debug('[{}] register eth {} {} tx {} keyfile {}'.format(i, u, address, tx_hash_hex, path))
-
-    return address
-
-
-def split_filter(v):
-    if v == None:
-        return []
-    return v.split(',')
 
 
 if __name__ == '__main__':
-
-
-    stores = {}
-    stores['tags'] = AddressIndex(value_filter=split_filter, name='tags index')
-    dh = DirHandler(config.get('_USERDIR'), append=True, stores=stores)
-    dh.initialize_dirs(reset=args.reset)
-    dirs = dh.dirs
-
-    tags_path = dh.path(None, 'tags')
-    stores['tags'].add_from_file(tags_path)
-
-    srcdir = dh.dirs.get('src')
-
-    i = 0
-    j = 0
-    for x in os.walk(srcdir):
-        for y in x[2]:
-            # load user metadata from old chain address file
-            if y[len(y)-5:] != '.json':
-                continue
-            filepath = os.path.join(x[0], y)
-            f = open(filepath, 'r')
-            try:
-                o = json.load(f)
-            except json.decoder.JSONDecodeError as e:
-                f.close()
-                logg.error('load error for {}: {}'.format(y, e))
-                continue
-            f.close()
-            u = Person.deserialize(o)
-
-
-            # create new ethereum address (in custodial backend)
-            new_address = register_eth(i, u, dh)
-
-            
-            # add address to identities in person object
-            set_chain_address(u, chain_spec, new_address)
-
-
-            # add updated person record to the migration data folder
-            o = u.serialize()
-            dh.add(new_address, json.dumps(o), 'new')
-
-
-            # 
-            new_address_clean = legacy_normalize_address(new_address)
-            
-            meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), MetadataPointer.PERSON)
-            #meta_filepath = os.path.join(dirs['meta'], '{}.json'.format(new_address_clean.upper()))
-            #os.symlink(os.path.realpath(filepath), meta_filepath)
-            dh.alias('new', 'meta', new_address_clean, alias_filename=new_address_clean + '.json', use_interface=False)
-
-            phone_object = phonenumbers.parse(u.tel)
-            phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
-            meta_phone_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.PHONE)
-
-            #meta_phone_filepath = os.path.join(dirs['phone'], 'meta', meta_phone_key)
-            #filepath = os.path.join(
-            #        dirs['phone'],
-            #        'new',
-            #        meta_phone_key[:2].upper(),
-            #        meta_phone_key[2:4].upper(),
-            #        meta_phone_key.upper(),
-            #        )
-            #os.makedirs(os.path.dirname(filepath), exist_ok=True)
-
-            dh.add(meta_phone_key, new_address_clean, 'phone')
-            entry_path = dh.path(meta_phone_key, 'phone')
-            legacy_link_data(entry_path)
-            #os.symlink(os.path.realpath(filepath), meta_phone_filepath)
-#            f = open(filepath, 'w')
-#            f.write(to_checksum_address(new_address_clean))
-#            f.close()
-#
-#            os.symlink(os.path.realpath(filepath), meta_phone_filepath)
-
-            # custom data
-            custom_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.CUSTOM)
-            #custom_filepath = os.path.join(dirs['custom'], 'meta', custom_key)
-
-#            filepath = os.path.join(
-#                    dirs['custom'],
-#                    'new',
-#                    custom_key[:2].upper(),
-#                    custom_key[2:4].upper(),
-#                    custom_key.upper() + '.json',
-#                    )
-#            os.makedirs(os.path.dirname(filepath), exist_ok=True)
-            
-            
-            old_addresses = get_chain_addresses(u, old_chain_spec)
-            old_address = legacy_normalize_address(old_addresses[0])
-            #sub_old_chain_str = '{}:{}'.format(old_chain_spec.network_id(), old_chain_spec.common_name())
-            #f = open(filepath, 'w')
-            #k = u.identities['evm'][old_chain_spec.fork()][sub_old_chain_str][0]
-            #k = to_checksum_address(strip_0x(k))
-
-
-            #tag_data = None
-            tag_data = dh.get(old_address, 'tags')
-
-#            try:
-#                tag_data = {'tags': user_tags.get(k)}
-#            except KeyError:
-#                logg.warning('missing tag for {}, adding defaults {}'.format(k, args.default_tag))
-#                for tag in args.default_tag:
-#                    tag_data['tags'].append(tag)
-
-            for tag in args.default_tag:
-                #tag_data['tags'].append(tag)
-                tag_data.append(tag)
-
-            for tag in args.tag:
-                #tag_data['tags'].append(tag)
-                tag_data.append(tag)
-
-            dh.add(custom_key, json.dumps({'tags': tag_data}), 'custom')
-            custom_path = dh.path(custom_key, 'custom')
-            legacy_link_data(custom_path)
-
-            #f.write(json.dumps({'tags': tag_data}))
-            #f.close()
-
-            #os.symlink(os.path.realpath(filepath), custom_filepath)
-
-            i += 1
-            sys.stdout.write('imported {} {}'.format(i, u).ljust(200) + "\r")
-        
-            j += 1
-            if j == batch_size:
-                time.sleep(batch_delay)
-                j = 0
+  
+    registry_address = config.get('CIC_REGISTRY_ADDRESS')
+    imp = EthImporter(rpc, signer, signer_address, chain_spec, old_chain_spec, registry_address, config.get('_USERDIR'), exist_ok=True, reset=args.reset, default_tag=args.default_tag)
+    imp.prepare()
+    imp.process_src(tags=args.tag)
