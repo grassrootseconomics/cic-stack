@@ -9,15 +9,18 @@ set -e
 export DOCKER_BUILDKIT=1
 export COMPOSE_DOCKER_CLI_BUILD=1
 
-PREDICTED_TAG=$(sbot predict version -m auto)
+CURRENT_TAG=$(cat ./version)
 
+# builds and tags latest
 docker-compose -f docker-compose.build.yml build --progress plain
 
-export TAG=v$PREDICTED_TAG
+export TAG=$CURRENT_TAG
 
+# builds, tags and pushes semver
 docker-compose -f docker-compose.build.yml build --progress plain
 docker-compose -f docker-compose.build.yml push
 
 export TAG=latest
 
+# pushes latest
 docker-compose -f docker-compose.build.yml push
