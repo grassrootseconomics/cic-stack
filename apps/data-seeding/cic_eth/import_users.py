@@ -29,7 +29,15 @@ from cic_types import MetadataPointer
 #from common.dirs import initialize_dirs
 from cic_seeding import DirHandler
 from cic_seeding.index import AddressIndex
-
+from cic_seeding.chain import (
+        set_chain_address,
+        get_chain_addresses,
+        )
+from cic_seeding.legacy import (
+        legacy_normalize_address,
+        legacy_link_data,
+        legacy_normalize_file_key,
+        )
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -99,13 +107,12 @@ chain_str = str(chain_spec)
 batch_size = args.batch_size
 batch_delay = args.batch_delay
 
-dh = DirHandler(config.get('_USERDIR'), force_reset=args.f)
+dh = DirHandler(config.get('_USERDIR'), append=True)
 dh.initialize_dirs()
-dh.alias('src', 'old')
 dirs = dh.dirs
 
 
-def register_eth(i, u):
+def register_eth(i, u, dh):
     redis_channel = str(uuid.uuid4())
     ps.subscribe(redis_channel)
     #ps.get_message()
@@ -144,6 +151,11 @@ def register_eth(i, u):
     return address
    
 
+def split_filter(v):
+    return v.split(',')
+
+
+
 if __name__ == '__main__':
 
 #    user_tags = {}
@@ -158,9 +170,6 @@ if __name__ == '__main__':
 #        user_tags[old_address_tag_key] = tags_csv.split(',')
 #        logg.debug('read tags {} for old address {}'.format(user_tags[old_address_tag_key], old_address))
 #
-    def split_filter(v):
-        return v.split(',')
-
     user_tags = AddressIndex(value_filter=split_filter)
     tags_path = dh.path(None, 'tags')
     user_tags.add_from_file(tags_path)
@@ -169,7 +178,7 @@ if __name__ == '__main__':
     i = 0
     j = 0
 
-    for x in os.walk(dirs['old']):
+    for x in os.walk(dirs['src']):
         for y in x[2]:
             if y[len(y)-5:] != '.json':
                 continue
@@ -182,86 +191,112 @@ if __name__ == '__main__':
                 logg.error('load error for {}: {}'.format(y, e))
                 continue
             f.close()
-            logg.debug('deserializing {} {}'.format(filepath, o))
             u = Person.deserialize(o)
 
-            new_address = register_eth(i, u)
-            if u.identities.get('evm') == None:
-                u.identities['evm'] = {}
-            sub_chain_str = '{}:{}'.format(chain_spec.network_id(), chain_spec.common_name())
-            u.identities['evm'][chain_spec.fork()] = {}
-            u.identities['evm'][chain_spec.fork()][sub_chain_str] = [new_address]
+#            new_address = register_eth(i, u)
+            # create new ethereum address (in custodial backend)
+            new_address = register_eth(i, u, dh)
 
-            new_address_clean = strip_0x(new_address)
-            filepath = os.path.join(
-                    dirs['new'],
-                    new_address_clean[:2].upper(),
-                    new_address_clean[2:4].upper(),
-                    new_address_clean.upper() + '.json',
-                    )
-            os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
+#            if u.identities.get('evm') == None:
+#                u.identities['evm'] = {}
+#            sub_chain_str = '{}:{}'.format(chain_spec.network_id(), chain_spec.common_name())
+#            u.identities['evm'][chain_spec.fork()] = {}
+#            u.identities['evm'][chain_spec.fork()][sub_chain_str] = [new_address]
+
+            # add address to identities in person object
+            set_chain_address(u, chain_spec, new_address)
+
+
+            # add updated person record to the migration data folder
             o = u.serialize()
-            f = open(filepath, 'w')
-            f.write(json.dumps(o))
-            f.close()
+            dh.add(new_address, json.dumps(o), 'new')
+
+            new_address_clean = legacy_normalize_address(new_address)
+
+
+            #new_address_clean = strip_0x(new_address)
+#            new_address_clean = legacy_normalize_address(new_address)
+#            filepath = os.path.join(
+#                    dirs['new'],
+#                    new_address_clean[:2].upper(),
+#                    new_address_clean[2:4].upper(),
+#                    new_address_clean.upper() + '.json',
+#                    )
+#            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+#
+#            o = u.serialize()
+#            f = open(filepath, 'w')
+#            f.write(json.dumps(o))
+#            f.close()
 
             meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), MetadataPointer.PERSON)
-            meta_filepath = os.path.join(dirs['meta'], '{}.json'.format(new_address_clean.upper()))
-            os.symlink(os.path.realpath(filepath), meta_filepath)
+#            meta_filepath = os.path.join(dirs['meta'], '{}.json'.format(new_address_clean.upper()))
+#            os.symlink(os.path.realpath(filepath), meta_filepath)
+            dh.alias('new', 'meta', new_address_clean, alias_filename=new_address_clean + '.json', use_interface=False)
 
             phone_object = phonenumbers.parse(u.tel)
             phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
             meta_phone_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.PHONE)
-            meta_phone_filepath = os.path.join(dirs['phone'], 'meta', meta_phone_key)
-
-            filepath = os.path.join(
-                    dirs['phone'],
-                    'new',
-                    meta_phone_key[:2].upper(),
-                    meta_phone_key[2:4].upper(),
-                    meta_phone_key.upper(),
-                    )
-            os.makedirs(os.path.dirname(filepath), exist_ok=True)
-            
-            f = open(filepath, 'w')
-            f.write(to_checksum_address(new_address_clean))
-            f.close()
-
-            os.symlink(os.path.realpath(filepath), meta_phone_filepath)
+            #meta_phone_filepath = os.path.join(dirs['phone'], 'meta', meta_phone_key)
+#            filepath = os.path.join(
+#                    dirs['phone'],
+#                    'new',
+#                    meta_phone_key[:2].upper(),
+#                    meta_phone_key[2:4].upper(),
+#                    meta_phone_key.upper(),
+#                    )
+#            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+ 
+            dh.add(meta_phone_key, new_address_clean, 'phone')
+            entry_path = dh.path(meta_phone_key, 'phone')
+            legacy_link_data(entry_path)
+           
+#            f = open(filepath, 'w')
+#            f.write(to_checksum_address(new_address_clean))
+#            f.close()
+#
+#            os.symlink(os.path.realpath(filepath), meta_phone_filepath)
 
 
             # custom data
             custom_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), MetadataPointer.CUSTOM)
-            custom_filepath = os.path.join(dirs['custom'], 'meta', custom_key)
+#            custom_filepath = os.path.join(dirs['custom'], 'meta', custom_key)
+#
+#            filepath = os.path.join(
+#                    dirs['custom'],
+#                    'new',
+#                    custom_key[:2].upper(),
+#                    custom_key[2:4].upper(),
+#                    custom_key.upper() + '.json',
+#                    )
+#            os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
-            filepath = os.path.join(
-                    dirs['custom'],
-                    'new',
-                    custom_key[:2].upper(),
-                    custom_key[2:4].upper(),
-                    custom_key.upper() + '.json',
-                    )
-            os.makedirs(os.path.dirname(filepath), exist_ok=True)
-           
-            sub_old_chain_str = '{}:{}'.format(old_chain_spec.network_id(), old_chain_spec.common_name())
-            logg.debug('u id {}'.format(u.identities))
-            f = open(filepath, 'w')
-            k = u.identities['evm'][old_chain_spec.fork()][sub_old_chain_str][0]
-            k = to_checksum_address(strip_0x(k))
-            try:
-                tag_data = {'tags': user_tags.get(k)}
-            except KeyError:
-                logg.warning('missing tag for {}, adding defaults {}'.format(k, args.default_tag))
-                for tag in args.default_tag:
-                    tag_data['tags'].append(tag)
-            for tag in args.tag:
-                tag_data['tags'].append(tag)
+            old_addresses = get_chain_addresses(u, old_chain_spec)
+            old_address = legacy_normalize_address(old_addresses[0])
+          
+#            sub_old_chain_str = '{}:{}'.format(old_chain_spec.network_id(), old_chain_spec.common_name())
+#            logg.debug('u id {}'.format(u.identities))
+#            f = open(filepath, 'w')
+#            k = u.identities['evm'][old_chain_spec.fork()][sub_old_chain_str][0]
+#            k = to_checksum_address(strip_0x(k))
 
-            f.write(json.dumps(tag_data))
-            f.close()
 
-            os.symlink(os.path.realpath(filepath), custom_filepath)
+            tag_data = dh.get(old_address, 'tags')
+
+#            try:
+#                tag_data = {'tags': user_tags.get(k)}
+#            except KeyError:
+#                logg.warning('missing tag for {}, adding defaults {}'.format(k, args.default_tag))
+#                for tag in args.default_tag:
+#                    tag_data['tags'].append(tag)
+#            for tag in args.tag:
+#                tag_data['tags'].append(tag)
+
+#            f.write(json.dumps(tag_data))
+#            f.close()
+
+#            os.symlink(os.path.realpath(filepath), custom_filepath)
 
 
             i += 1

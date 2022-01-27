@@ -40,7 +40,6 @@ from cic_seeding.chain import (
         )
 from cic_seeding.legacy import (
         legacy_normalize_address,
-        legacy_normalize_index_key,
         legacy_link_data,
         legacy_normalize_file_key,
         )
@@ -118,7 +117,7 @@ account_registry_address = registry.parse_address_of(r)
 logg.info('using account registry {}'.format(account_registry_address))
 
 
-def register_eth(i, u, dirhandler):
+def register_eth(i, u, dh):
 
     address_hex = keystore.new()
     address = add_0x(to_checksum_address(address_hex))
@@ -133,8 +132,8 @@ def register_eth(i, u, dirhandler):
     keyfile_content = to_keyfile_dict(pk, 'foo')
 
     address_index = legacy_normalize_file_key(address)
-    dirhandler.add(address_index, json.dumps(keyfile_content), 'keystore')
-    path = dirhandler.path(address_index, 'keystore')
+    dh.add(address_index, json.dumps(keyfile_content), 'keystore')
+    path = dh.path(address_index, 'keystore')
     legacy_link_data(path)
 
     logg.debug('[{}] register eth {} {} tx {} keyfile {}'.format(i, u, address, tx_hash_hex, path))
@@ -242,7 +241,6 @@ if __name__ == '__main__':
             
             old_addresses = get_chain_addresses(u, old_chain_spec)
             old_address = legacy_normalize_address(old_addresses[0])
-            logg.debug('old address {}'.format(old_address))
             #sub_old_chain_str = '{}:{}'.format(old_chain_spec.network_id(), old_chain_spec.common_name())
             #f = open(filepath, 'w')
             #k = u.identities['evm'][old_chain_spec.fork()][sub_old_chain_str][0]

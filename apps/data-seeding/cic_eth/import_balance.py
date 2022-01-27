@@ -21,6 +21,7 @@ from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.hash import keccak256_string_to_hex
 from chainsyncer.backend.memory import MemBackend
 from chainsyncer.driver.head import HeadSyncer
+from chainsyncer.driver.history import HistorySyncer
 from cic_eth.cli.chain import chain_interface
 from cic_types.models.person import Person
 from eth_accounts_index import AccountsIndex
@@ -33,6 +34,12 @@ from hexathon import (
     strip_0x,
 )
 
+# local imports
+from cic_seeding.chain import get_chain_addresses
+from cic_seeding import DirHandler
+from cic_seeding.index import AddressIndex
+
+
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
@@ -44,7 +51,7 @@ argparser = argparse.ArgumentParser(description='daemon that monitors transactio
 argparser.add_argument('-c', type=str, help='config override directory')
 argparser.add_argument('-p', '--provider', dest='p', type=str, help='chain rpc provider address')
 argparser.add_argument('-y', '--key-file', dest='y', type=str, help='Ethereum keystore file to use for signing')
-argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:oldchain:1', help='chain spec')
+argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:foo:1:oldchain', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
 argparser.add_argument('--token-symbol', default='GFT', type=str, dest='token_symbol', help='Token symbol to use for trnsactions')
@@ -52,6 +59,7 @@ argparser.add_argument('--head', action='store_true', help='start at current blo
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
 argparser.add_argument('--offset', type=int, default=0, help='block offset to start syncer from')
+argparser.add_argument('--until', type=int, default=0, help='block to terminate syncing at')
 argparser.add_argument('-v', help='be verbose', action='store_true')
 argparser.add_argument('-vv', help='be more verbose', action='store_true')
 argparser.add_argument('user_dir', type=str, help='user export directory')
@@ -77,6 +85,9 @@ args_override = {
 config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
+config.add(args.y, 'KEYSTORE_FILE_PATH', True)
+config.add(args.user_dir, '_USERDIR', True) 
+logg.debug('loaded config: \n{}'.format(config))
 
 #app = celery.Celery(backend=config.get('CELERY_RESULT_URL'),  broker=config.get('CELERY_BROKER_URL'))
 
@@ -96,6 +107,12 @@ if args.head:
 else:
     block_offset = args.offset
 
+block_limit = 0
+if args.until > 0:
+    if not args.head and args.until <= block_offset:
+        raise ValueError('sync termination block number must be later than offset ({} >= {})'.format(block_offset, args.until))
+    block_limit = args.until
+
 chain_spec = ChainSpec.from_chain_str(chain_str)
 old_chain_spec_str = args.old_chain_spec
 old_chain_spec = ChainSpec.from_chain_str(old_chain_spec_str)
@@ -109,12 +126,13 @@ class Handler:
 
     account_index_add_signature = keccak256_string_to_hex('add(address)')[:8]
 
-    def __init__(self, conn, chain_spec, user_dir, balances, token_address, signer, gas_oracle, nonce_oracle):
+    def __init__(self, dh, conn, chain_spec, user_dir, balances, token_address, signer, gas_oracle, nonce_oracle):
         self.token_address = token_address
         self.user_dir = user_dir
         self.balances = balances
         self.chain_spec = chain_spec
         self.tx_factory = ERC20(chain_spec, signer, gas_oracle, nonce_oracle)
+        self.dh = dh
 
 
     def name(self):
@@ -132,26 +150,16 @@ class Handler:
         except RequestMismatchException:
             return
         recipient = r[0]
-       
-        filename_recipient = strip_0x(recipient).upper()
-        user_file = 'new/{}/{}/{}.json'.format(
-                filename_recipient[:2],
-                filename_recipient[2:4],
-                filename_recipient,
-                )
-        filepath = os.path.join(self.user_dir, user_file)
-        o = None
-        try:
-            f = open(filepath, 'r')
-            o = json.load(f)
-            f.close()
-        except FileNotFoundError:
-            logg.error('no import record of address {}'.format(recipient))
-            return
+
+        j = self.dh.get(recipient, 'new')
+        o = json.loads(j)
+
         u = Person.deserialize(o)
-        original_address = u.identities[old_chain_spec.engine()][old_chain_spec.fork()]['{}:{}'.format(old_chain_spec.network_id(), old_chain_spec.common_name())][0]
+        original_addresses = get_chain_addresses(u, old_chain_spec)
+        original_address = original_addresses[0]
+
         try:
-            balance = self.balances[original_address]
+            balance = self.balances.get(original_address)
         except KeyError as e:
             logg.error('balance get fail orig {} new {}'.format(original_address, recipient))
             return
@@ -179,9 +187,17 @@ def progress_callback(block_number, tx_index):
     sys.stdout.write(str(block_number).ljust(200) + "\n")
 
 
+__remove_zeros = 10**6
+def remove_zeros_filter(v):
+        return int(int(v) / __remove_zeros)
+
 
 def main():
     global chain_str, block_offset, user_dir
+ 
+    dh = DirHandler(config.get('_USERDIR'), append=True)
+    dh.initialize_dirs()
+    dirs = dh.dirs
     
     conn = EthHTTPConnection(config.get('RPC_PROVIDER'))
     gas_oracle = OverrideGasOracle(conn=conn, limit=8000000)
@@ -207,37 +223,32 @@ def main():
         sys.exit(1)
     logg.info('found token address {}'.format(token_address))
 
-    syncer_backend = MemBackend(chain_str, 0)
+    syncer_backend = None
+    if block_limit > 0:
+        syncer_backend = MemBackend.custom(chain_str, block_limit, block_offset=block_offset)
+    else:
+        syncer_backend = MemBackend(chain_str, 0)
+        syncer_backend.set(block_offset, 0)
 
     if block_offset == -1:
         o = block_latest()
         r = conn.do(o)
         block_offset = int(strip_0x(r), 16) + 1
 
-    # TODO get decimals from token
-    balances = {}
-    f = open('{}/balances.csv'.format(user_dir, 'r'))
+    balances_path = dh.path(None, 'balances')
+
     remove_zeros = 10**6
-    i = 0
-    while True:
-        l = f.readline()
-        if l == None:
-            break
-        r = l.split(',')
-        try:
-            address = to_checksum_address(r[0])
-            sys.stdout.write('loading balance {} {} {}'.format(i, address, r[1]).ljust(200) + "\r")
-        except ValueError:
-            break
-        balance = int(int(r[1].rstrip()) / remove_zeros)
-        balances[address] = balance
-        i += 1
+    balances = AddressIndex(value_filter=remove_zeros_filter, name='balance index')
+    balances.add_from_file(balances_path)
 
-    f.close()
 
-    syncer_backend.set(block_offset, 0)
-    syncer = HeadSyncer(syncer_backend, chain_interface, block_callback=progress_callback)
-    handler = Handler(conn, chain_spec, user_dir, balances, token_address, signer, gas_oracle, nonce_oracle)
+    # TODO get decimals from token
+    syncer = None
+    if block_limit > 0:
+        syncer = HistorySyncer(syncer_backend, chain_interface, block_callback=progress_callback)
+    else:
+        syncer = HeadSyncer(syncer_backend, chain_interface, block_callback=progress_callback)
+    handler = Handler(dh, conn, chain_spec, user_dir, balances, token_address, signer, gas_oracle, nonce_oracle)
     syncer.add_filter(handler)
     syncer.loop(1, conn)
     

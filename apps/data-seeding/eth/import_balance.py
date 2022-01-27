@@ -18,6 +18,7 @@ from hexathon import (
         )
 from chainsyncer.backend.memory import MemBackend
 from chainsyncer.driver.head import HeadSyncer
+from chainsyncer.driver.history import HistorySyncer
 from chainlib.eth.connection import EthHTTPConnection
 from chainlib.eth.block import (
         block_latest,
@@ -70,6 +71,7 @@ argparser.add_argument('--head', action='store_true', help='start at current blo
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
 argparser.add_argument('--offset', type=int, default=0, help='block offset to start syncer from')
+argparser.add_argument('--until', type=int, default=0, help='block to terminate syncing at')
 argparser.add_argument('-v', help='be verbose', action='store_true')
 argparser.add_argument('-vv', help='be more verbose', action='store_true')
 argparser.add_argument('user_dir', type=str, help='user export directory')
@@ -117,6 +119,12 @@ if args.head:
 else:
     block_offset = args.offset
 
+block_limit = 0
+if args.until > 0:
+    if not args.head and args.until <= block_offset:
+        raise ValueError('sync termination block number must be later than offset ({} >= {})'.format(block_offset, args.until))
+    block_limit = args.until
+
 chain_spec = ChainSpec.from_chain_str(chain_str)
 old_chain_spec_str = args.old_chain_spec
 old_chain_spec = ChainSpec.from_chain_str(old_chain_spec_str)
@@ -124,10 +132,6 @@ old_chain_spec = ChainSpec.from_chain_str(old_chain_spec_str)
 user_dir = args.user_dir # user_out_dir from import_users.py
 
 token_symbol = args.token_symbol
-
-dh = DirHandler(config.get('_USERDIR'), append=True)
-dh.initialize_dirs()
-dirs = dh.dirs
 
 class Handler:
 
@@ -143,6 +147,7 @@ class Handler:
         self.gas_oracle = gas_oracle
         self.signer_address = signer_address
         self.signer = signer
+        self.dh = dh
 
 
     def name(self):
@@ -161,7 +166,7 @@ class Handler:
             return
         recipient = r[0]
       
-        j = dh.get(recipient, 'new')
+        j = self.dh.get(recipient, 'new')
         o = json.loads(j)
 
         u = Person.deserialize(o)
@@ -206,10 +211,18 @@ def progress_callback(block_number, tx_index):
     sys.stdout.write(str(block_number).ljust(200) + "\n")
 
 
+__remove_zeros = 10**6
+def remove_zeros_filter(v):
+        return int(int(v) / __remove_zeros)
+
 
 def main():
     global chain_str, block_offset, user_dir
     
+    dh = DirHandler(config.get('_USERDIR'), append=True)
+    dh.initialize_dirs()
+    dirs = dh.dirs
+
     conn = EthHTTPConnection(config.get('RPC_PROVIDER'))
     gas_oracle = OverrideGasOracle(conn=conn, limit=8000000)
     nonce_oracle = RPCNonceOracle(signer_address, conn)
@@ -241,7 +254,12 @@ def main():
         sys.exit(1)
     logg.info('found token address {}'.format(token_address))
 
-    syncer_backend = MemBackend(chain_str, 0)
+    syncer_backend = None
+    if block_limit > 0:
+        syncer_backend = MemBackend.custom(chain_str, block_limit, block_offset=block_offset)
+    else:
+        syncer_backend = MemBackend(chain_str, 0)
+        syncer_backend.set(block_offset, 0)
 
     if block_offset == -1:
         o = block_latest()
@@ -251,15 +269,15 @@ def main():
     # TODO get decimals from token
     balances_path = dh.path(None, 'balances')
 
-    remove_zeros = 10**6
-    def remove_zeros_filter(v):
-        return int(int(v) / remove_zeros)
-
     balances = AddressIndex(value_filter=remove_zeros_filter, name='balance index')
     balances.add_from_file(balances_path)
 
-    syncer_backend.set(block_offset, 0)
-    syncer = HeadSyncer(syncer_backend, chain_interface, block_callback=progress_callback)
+    syncer = None
+    if block_limit > 0:
+        syncer = HistorySyncer(syncer_backend, chain_interface, block_callback=progress_callback)
+    else:
+        syncer = HeadSyncer(syncer_backend, chain_interface, block_callback=progress_callback)
+
     handler = Handler(dh, conn, chain_spec, user_dir, balances, token_address, faucet_address, signer_address, signer, gas_oracle, nonce_oracle)
     syncer.add_filter(handler)
     syncer.loop(1, conn)
