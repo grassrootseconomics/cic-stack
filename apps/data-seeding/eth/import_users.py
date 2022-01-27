@@ -39,7 +39,7 @@ from cic_seeding.legacy import (
         legacy_link_data,
         legacy_normalize_file_key,
         )
-from cic_seeding.eth import EthImporter
+from cic_seeding.imports.eth import EthImporter
 
 
 logging.basicConfig(level=logging.WARNING)
@@ -53,6 +53,7 @@ argparser = argparse.ArgumentParser()
 argparser.add_argument('-p', '--provider', dest='p', type=str, help='Web3 provider url (http only)')
 argparser.add_argument('-y', '--key-file', dest='y', type=str, help='Ethereum keystore file to use for signing')
 argparser.add_argument('-c', type=str, help='config override directory')
+argparser.add_argument('-f', action='store_true', help='force clear previous state')
 argparser.add_argument('--reset', action='store_true', help='force clear previous state')
 argparser.add_argument('--src-chain-spec', type=str, dest='old_chain_spec', default='evm:foo:1:oldchain', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='Chain specification string')
@@ -80,10 +81,15 @@ config.process()
 args_override = {
         'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
         'CHAIN_SPEC': getattr(args, 'i'),
+        'CHAIN_SPEC_SOURCE': getattr(args, 'old_chain_spec'),
+        'TAG_DEFAULT': getattr(args, 'default_tag'),
         'KEYSTORE_FILE_PATH': getattr(args, 'y')
         }
 config.dict_override(args_override, 'cli')
 config.add(args.user_dir, '_USERDIR', True)
+config.add(args.reset, '_RESET', True)
+config.add(False, '_RESET_SRC', True)
+config.add(args.f, '_APPEND', True)
 logg.debug('config loaded:\n{}'.format(config))
 
 rpc = EthHTTPConnection(args.p)
@@ -98,7 +104,6 @@ signer = EIP155Signer(keystore)
 
 
 if __name__ == '__main__':
-    registry_address = config.get('CIC_REGISTRY_ADDRESS')
-    imp = EthImporter(rpc, signer, signer_address, chain_spec, old_chain_spec, registry_address, config.get('_USERDIR'), exist_ok=True, reset=args.reset, default_tag=args.default_tag)
+    imp = EthImporter(rpc, signer, signer_address, config)
     imp.prepare()
     imp.process_src(tags=args.tag)

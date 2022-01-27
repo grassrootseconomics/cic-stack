@@ -24,7 +24,7 @@ from cic_types import MetadataPointer
 
 # local imports
 #from common.dirs import initialize_dirs
-from cic_seeding.eth import CicEthImporter
+from cic_seeding.imports.cic_eth import CicEthImporter
 from cic_seeding.index import AddressIndex
 from cic_seeding.chain import (
         set_chain_address,
@@ -98,7 +98,6 @@ logg.debug('config loaded:\n{}'.format(config))
 
 
 if __name__ == '__main__':
-    registry_address = config.get('CIC_REGISTRY_ADDRESS')
     imp = CicEthImporter(config)
     imp.prepare()
     imp.process_src(tags=args.tag)
