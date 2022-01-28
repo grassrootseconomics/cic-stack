@@ -53,18 +53,28 @@ class ImportUser:
         self.chain_spec = target_chain_spec
         self.source_chain_spec = source_chain_spec
 
-        addresses = get_chain_addresses(person, target_chain_spec)
-        if verify_address != None:
-            if not is_same_address(verify_address, addresses[0]):
-                raise ValueError('extracted adddress {} does not match verify adderss {}'.format(addresses[0], verify_address))
-        self.address = addresses[0]
+        addresses = None
+        try:
+            addresses = get_chain_addresses(person, target_chain_spec)
+        except AttributeError:
+            logg.debug('user has no valid target chain spec: {}'.format(target_chain_spec))
+            pass
+
+        self.address = None
+        if addresses != None:
+            if verify_address != None:
+                if not is_same_address(verify_address, addresses[0]):
+                    raise ValueError('extracted adddress {} does not match verify adderss {}'.format(addresses[0], verify_address))
+            self.address = addresses[0]
 
         original_addresses = get_chain_addresses(person, source_chain_spec)
         self.original_address = original_addresses[0]
 
         self.original_balance = self.original_token_balance(dirhandler)
-    
-        self.description = '{} {}@{} -> {}@{} original token balance {}'.format(
+   
+        
+        if self.address != None:
+            self.description = '{} {}@{} -> {}@{} original token balance {}'.format(
                 self.person,
                 self.original_address,
                 self.source_chain_spec,
@@ -72,6 +82,14 @@ class ImportUser:
                 self.chain_spec,
                 self.original_balance,
                 )
+        else:
+            self.description = '{} {}@{} original token balance {}'.format(
+                self.person,
+                self.original_address,
+                self.source_chain_spec,
+                self.original_balance,
+                )
+
 
 
     def original_token_balance(self, dh):
@@ -100,8 +118,8 @@ class Importer:
         self.stores['tags'] = AddressIndex(value_filter=split_filter, name='tags index')
         self.stores['balances'] = AddressIndex(value_filter=remove_zeros_filter, name='balance index')
 
-        for k in stores:
-            logg.info('adding auxiliary dirhandler store {}'.format(k))
+        for k in stores.keys():
+            #logg.info('adding auxiliary dirhandler store {}'.format(k))
             self.stores[k] = stores[k]
 
         self.dh = DirHandler(config.get('_USERDIR'), stores=self.stores, exist_ok=True)
@@ -141,6 +159,10 @@ class Importer:
                 }
 
         self.rpc = rpc
+
+
+    def path(self, k):
+        return self.dh.dirs.get(k)
 
 
     def user_by_address(self, address):
@@ -298,36 +320,42 @@ class Importer:
         custom_path = self.dh.path(custom_key, 'custom')
         legacy_link_data(custom_path)
 
-       
+
+    def walk(self, callback, batch_size=100, batch_delay=0.2):
+       srcdir = self.dh.dirs.get('src')
+
+       i = 0
+       j = 0
+       for x in os.walk(srcdir):
+           for y in x[2]:
+               s = None
+               try:
+                   s = self.dh.get(y, 'src')
+               except ValueError:
+                   continue
+               o = json.loads(s)
+               u = Person.deserialize(o)
+
+               logg.debug('person {}'.format(u))
+
+               callback(i, u)
+
+               i += 1
+               sys.stdout.write('processed {} {}'.format(i, u).ljust(200) + "\r")
+           
+               j += 1
+               if j == batch_size:
+                   time.sleep(batch_delay)
+
+
+    def process_sync(self, i, u):
+        # create new ethereum address (in custodial backend)
+        new_address = self.process_user(i, u)
+        self.process_address(i, u, new_address, tags=tags)
+
         
     def process_src(self, tags=[], batch_size=100, batch_delay=0.2):
-        srcdir = self.dh.dirs.get('src')
-
-        i = 0
-        j = 0
-        for x in os.walk(srcdir):
-            for y in x[2]:
-                s = None
-                try:
-                    s = self.dh.get(y, 'src')
-                except ValueError:
-                    continue
-                o = json.loads(s)
-                u = Person.deserialize(o)
-
-                logg.debug('person {}'.format(u))
-
-                # create new ethereum address (in custodial backend)
-                new_address = self.process_user(i, u)
-
-                self.process_address(i, u, new_address, tags=tags)
-
-                i += 1
-                sys.stdout.write('processed {} {}'.format(i, u).ljust(200) + "\r")
-            
-                j += 1
-                if j == batch_size:
-                    time.sleep(batch_delay)
+        self.walk(self.process_sync, batch_size=100, batch_delay=0.2)
 
 
     def _address_by_tx(self, tx):

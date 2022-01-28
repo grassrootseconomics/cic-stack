@@ -52,19 +52,27 @@ class DirHandler:
         self.dirs = {}
         self.dirs['src'] = os.path.join(self.user_dir, 'src')
         os.makedirs(self.dirs['src'], exist_ok=True)
-        self.__stores = stores
-        self.interfaces = {
+        self.__stores = {
             'tags': AddressIndex(),
             'balances': AddressIndex(),
                 }
-        for k in self.__stores.keys():
-            self.add_store(k, self.__stores[k])
+        self.interfaces = {}
 
         self.__define_dirs()
 
+        for k in stores.keys():
+            if k in list(self.__stores.keys()):
+                continue
+            self.add_interface(k, stores[k])
 
-    def add_store(self, k, store):
-            self.interfaces[k] = store
+
+    def add_interface(self, k, v):
+        logg.info('adding extra store {} -> {}'.format(k, v))
+        self.interfaces[k] = v
+        self.dirs[k] = v.path(None)
+        os.makedirs(self.dirs[k], exist_ok=True)
+
+
 
 
     # TODO: which of these are obsolete?
@@ -97,9 +105,9 @@ class DirHandler:
         #self.dirs['phone_new'] = os.path.join(self.dirs['phone'], 'new')
         #self.dirs['preferences_meta'] = os.path.join(self.dirs['preferences'], 'meta')
         #self.dirs['preferences_new'] = os.path.join(self.dirs['preferences'], 'new')
-        self.dirs['ussd_addr'] = os.path.join(self.user_dir, 'ussd_addr')
         self.dirs['keystore'] = os.path.join(self.user_dir, 'keystore')
         self.dirs['bak'] = os.path.join(self.user_dir, 'bak')
+        self.dirs['aux'] = os.path.join(self.user_dir, 'aux')
 
 
     def __check(self):
@@ -329,6 +337,10 @@ class QueueInterface:
 
     def rm(self, k):
         return self.store.rm(k)
+
+
+    def rm(self, k):
+        return self.store.path(k)
 
 
     def flush(self, k):

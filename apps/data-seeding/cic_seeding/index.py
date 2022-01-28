@@ -108,6 +108,7 @@ class AddressQueue:
         f = open(fp, 'w')
         f.write(v)
         f.close()
+        self.c += 1
 
 
     def get(self, k):
@@ -127,3 +128,9 @@ class AddressQueue:
 
     def flush(self):
         pass
+
+
+    def path(self, k):
+        if k == None:
+            return self.queue_dir
+        return os.path.join(self.queue_dir, k)

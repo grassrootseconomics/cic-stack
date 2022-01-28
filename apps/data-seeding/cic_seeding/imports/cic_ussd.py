@@ -5,13 +5,17 @@ import urllib.parse
 import uuid
 import os
 import json
+import threading
 
 # external imports
 from urlybird.host import url_apply_port_string
 import phonenumbers
 
 # local imports
-from cic_seeding.imports import Importer
+from cic_seeding.imports import (
+        Importer,
+        ImportUser,
+        )
 
 logg = logging.getLogger(__name__)
 
@@ -40,9 +44,51 @@ def _e164_phone_number(phone_number: str):
     return phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
 
 
+def default_req_factory(meta_url, ptr):
+    url = urllib.parse.urljoin(meta_url, ptr)
+    return urllib.request.Request(url=url)
+
+
+class CicUssdConnectWorker(threading.Thread):
+
+    req_factory = default_req_factory
+    delay = 1
+    max_tries = 0
+
+    def __init__(self, user, meta_url):
+        super(CicUssdConnectWorker, self).__init__()
+        self.user = user 
+        self.meta_url = meta_url
+       
+
+    def run(self):
+        ph = phone_number_to_e164(user.tel, None)
+        self.phone = ph.encode('utf-8')
+        self.ptr = self.generate_metadata_pointer(self.phone, MetadataPointer.PHONE)
+        self.req = self.req_factory(meta_url, self.ptr)
+
+        tries = 0
+        while True:
+            r = None
+            tries += 1
+            try:
+                r = urllib.request.urlopen(self.req)
+                break 
+            except urllib.error.HTTPError:
+                if max_tries > 0 and max_tries == tries:
+                    raise RuntimeError('cannot find metadata resource {} -> {}'.format(self.phone, self.ptr))
+                time.sleep(self.delay)
+                continue
+            
+
+            logg.debug('have address!!!!! {}'.format(r.read()))
+            return
+
+
 class CicUssdImporter(Importer):
 
     def __init__(self, config, rpc, signer, signer_address, stores={}, default_tag=[]):
+        logg.debug('stores {}'.format(stores))
         super(CicUssdImporter, self).__init__(config, rpc, signer, signer_address, stores=stores, default_tag=default_tag)
         self.ussd_provider = config.get('USSD_PROVIDER')
         self.ussd_valid_service_codes = config.get('USSD_SERVICE_CODE').split(',')
@@ -70,6 +116,29 @@ class CicUssdImporter(Importer):
         req.data = data_bytes
 
         return req
+
+
+    def _queue_user(self, i, u):
+        iu = ImportUser(self.dh, u, self.chain_spec, self.source_chain_spec)
+        self.dh.add(None, iu.original_address, 'ussd_phone')
+
+
+    def get(self, k):
+        return self.dh.get(k)
+
+        
+    def prepare(self):
+        need_init = False
+        try:
+            os.stat(self.dh.path('.complete', 'ussd_phone'))
+        except FileNotFoundError:
+            need_init = True
+
+        if need_init:
+            self.walk(self._queue_user)
+            fp = self.dh.path('.complete', 'ussd_phone')
+            f = open(fp, 'w')
+            f.close()
 
 
     def create_account(self, i, u):

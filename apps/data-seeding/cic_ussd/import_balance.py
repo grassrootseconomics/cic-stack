@@ -129,11 +129,29 @@ def main():
     global block_offset, block_limit
 
     store_path = os.path.join(config.get('_USERDIR'), 'ussd_address')
-    os.makedirs(store_path, exist_ok=True) 
     unconnected_address_store = AddressQueue(store_path)
+    ##unconnected_address_interface = QueueInterface(unconnected_address_store)
 
-    imp = CicUssdImporter(config, rpc, signer, signer_address, stores={'ussd_address': unconnected_address_store})
+    store_path = os.path.join(config.get('_USERDIR'), 'ussd_phone')
+    unconnected_phone_store = AddressQueue(store_path)
+
+    imp = CicUssdImporter(config, rpc, signer, signer_address, stores={
+        'ussd_address': unconnected_address_store,
+        'ussd_phone': unconnected_phone_store,
+        },
+        )
     imp.prepare()
+    sys.exit(0)
+
+    while True:
+        phone = None
+        try:
+            phone = self.imp.get(None, 'ussd_phone')
+        except FileNotFoundError:
+            break
+
+        CicUssdConnectWorker(config.get('META_PROVIDER', phone))
+
 
     o = block_latest_query()
     block_latest = rpc.do(o)
