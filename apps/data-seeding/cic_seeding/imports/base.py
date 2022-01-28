@@ -236,9 +236,11 @@ class Importer:
             c = self.stores[k].add_from_file(path)
             self.index_count[k] = c
 
-        self.__init_lookups()
-
-        self.__set_token_details()
+        if self.rpc != None:
+            self.__init_lookups()
+            self.__set_token_details()
+        else:
+            logg.warning('no blockchain rpc defined, so will not look up anything from there')
 
 
     def process_user(self, i, u):
@@ -254,6 +256,49 @@ class Importer:
         logg.debug('[{}] register eth new address {} for {}'.format(i, address, u))
         return address
 
+
+    def process_address(self, i, u, address, tags=[]):
+        # add address to identities in person object
+        set_chain_address(u, self.chain_spec, new_address)
+
+
+        # add updated person record to the migration data folder
+        o = u.serialize()
+        self.dh.add(new_address, json.dumps(o), 'new')
+
+
+        new_address_clean = legacy_normalize_address(new_address)
+        meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), MetadataPointer.PERSON)
+        self.dh.alias('new', 'meta', new_address_clean, alias_filename=new_address_clean + '.json', use_interface=False)
+
+        phone_object = phonenumbers.parse(u.tel)
+        phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
+        meta_phone_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.PHONE)
+
+
+        self.dh.add(meta_phone_key, new_address_clean, 'phone')
+        entry_path = self.dh.path(meta_phone_key, 'phone')
+        legacy_link_data(entry_path)
+
+        # custom data
+        custom_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.CUSTOM)
+        
+        old_addresses = get_chain_addresses(u, self.source_chain_spec)
+        old_address = legacy_normalize_address(old_addresses[0])
+
+        tag_data = self.dh.get(old_address, 'tags')
+
+        for tag in self.default_tag:
+            tag_data.append(tag)
+
+        for tag in tags:
+            tag_data.append(tag)
+
+        self.dh.add(custom_key, json.dumps({'tags': tag_data}), 'custom')
+        custom_path = self.dh.path(custom_key, 'custom')
+        legacy_link_data(custom_path)
+
+       
         
     def process_src(self, tags=[], batch_size=100, batch_delay=0.2):
         srcdir = self.dh.dirs.get('src')
@@ -275,49 +320,10 @@ class Importer:
                 # create new ethereum address (in custodial backend)
                 new_address = self.process_user(i, u)
 
-                
-                # add address to identities in person object
-                set_chain_address(u, self.chain_spec, new_address)
-
-
-                # add updated person record to the migration data folder
-                o = u.serialize()
-                self.dh.add(new_address, json.dumps(o), 'new')
-
-
-                new_address_clean = legacy_normalize_address(new_address)
-                meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), MetadataPointer.PERSON)
-                self.dh.alias('new', 'meta', new_address_clean, alias_filename=new_address_clean + '.json', use_interface=False)
-
-                phone_object = phonenumbers.parse(u.tel)
-                phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
-                meta_phone_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.PHONE)
-
-
-                self.dh.add(meta_phone_key, new_address_clean, 'phone')
-                entry_path = self.dh.path(meta_phone_key, 'phone')
-                legacy_link_data(entry_path)
-
-                # custom data
-                custom_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.CUSTOM)
-                
-                old_addresses = get_chain_addresses(u, self.source_chain_spec)
-                old_address = legacy_normalize_address(old_addresses[0])
-
-                tag_data = self.dh.get(old_address, 'tags')
-
-                for tag in self.default_tag:
-                    tag_data.append(tag)
-
-                for tag in tags:
-                    tag_data.append(tag)
-
-                self.dh.add(custom_key, json.dumps({'tags': tag_data}), 'custom')
-                custom_path = self.dh.path(custom_key, 'custom')
-                legacy_link_data(custom_path)
+                self.process_address(i, u, new_address, tags=tags)
 
                 i += 1
-                sys.stdout.write('imported {} {}'.format(i, u).ljust(200) + "\r")
+                sys.stdout.write('processed {} {}'.format(i, u).ljust(200) + "\r")
             
                 j += 1
                 if j == batch_size:

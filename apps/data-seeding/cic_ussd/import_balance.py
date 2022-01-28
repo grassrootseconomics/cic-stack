@@ -38,7 +38,7 @@ from chainlib.eth.block import block_latest as block_latest_query
 # local imports
 from cic_seeding.chain import get_chain_addresses
 from cic_seeding.imports.cic_ussd import CicUssdImporter
-from cic_seeding.index import AddressIndex
+from cic_seeding.index import AddressQueue
 from cic_seeding.filter import remove_zeros_filter
 from cic_seeding.notify import sync_progress_callback
 
@@ -127,8 +127,12 @@ rpc = EthHTTPConnection(args.p)
 
 def main():
     global block_offset, block_limit
- 
-    imp = CicUssdImporter(config, rpc, signer, signer_address)
+
+    store_path = os.path.join(config.get('_USERDIR'), 'ussd_address')
+    os.makedirs(store_path, exist_ok=True) 
+    unconnected_address_store = AddressQueue(store_path)
+
+    imp = CicUssdImporter(config, rpc, signer, signer_address, stores={'ussd_address': unconnected_address_store})
     imp.prepare()
 
     o = block_latest_query()

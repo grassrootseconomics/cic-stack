@@ -3,6 +3,8 @@ import logging
 import urllib.request
 import urllib.parse
 import uuid
+import os
+import json
 
 # external imports
 from urlybird.host import url_apply_port_string
@@ -49,7 +51,7 @@ class CicUssdImporter(Importer):
         self.ussd_provider_ssl = _ussd_ssl(config)
 
 
-    def _build_ussd_request(phone_number: str, service_code: str, txt: str=None):
+    def _build_ussd_request(self, phone_number, service_code, txt=None):
         session = uuid.uuid4().hex
         if txt == None:
             txt = service_code
@@ -57,7 +59,7 @@ class CicUssdImporter(Importer):
             'sessionId': session,
             'serviceCode': service_code,
             'phoneNumber': phone_number,
-            'text': service_code,
+            'text': txt,
         }
 
         req = urllib.request.Request(self.ussd_url)
@@ -71,11 +73,12 @@ class CicUssdImporter(Importer):
 
 
     def create_account(self, i, u):
-        phone_number = e164_phone_number(person.tel)
+        phone_number = _e164_phone_number(u.tel)
         req = self._build_ussd_request(
                              phone_number,
                              self.ussd_service_code,
                              )
+        logg.debug('sending to ussd endpoint {} {}'.format(req.full_url, req.data))
         response = urllib.request.urlopen(req)
         response_data = response.read().decode('utf-8')
         logg.debug(f'ussd response: {response_data[4:]}')
@@ -83,7 +86,9 @@ class CicUssdImporter(Importer):
         req = self._build_ussd_request(
                              phone_number,
                              self.ussd_service_code,
+                             txt='1',
                              )
+        logg.debug('sending to ussd endpoint {} {}'.format(req.full_url, req.data))
         response = urllib.request.urlopen(req)
         response_data = response.read().decode('utf-8')
         logg.debug(f'ussd response: {response_data[4:]}')
@@ -91,6 +96,7 @@ class CicUssdImporter(Importer):
 
     def process_user(self, i, u):
         self.create_account(i, u)
+        return None
 
 
     def filter(self, conn, block, tx, db_session):
@@ -99,10 +105,18 @@ class CicUssdImporter(Importer):
         if address == None:
             return
 
-        if self.dh.get(address, 'balances'):
-            logg.debug('address {} match register tx {} but not in balances list'.format(address, tx.hash))
-            return
-        
+        k = self.dh.add(None, address, 'ussd_address')
+        logg.debug('stored unconnected address {} as index {}'.format(address, k))
+
+        #if self.dh.get(address, 'balances'):
+        #    logg.debug('address {} match register tx {} but not in balances list'.format(address, tx.hash))
+        #    return
+
+
+    def process_address(self, i, u, address, tags=[]):
+        pass
+
+
 #
 #            s_person_metadata = celery.signature(
 #                'import_task.generate_person_metadata', [phone_number], queue=args.q

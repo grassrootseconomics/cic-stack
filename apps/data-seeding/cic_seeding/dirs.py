@@ -58,9 +58,13 @@ class DirHandler:
             'balances': AddressIndex(),
                 }
         for k in self.__stores.keys():
-            self.interfaces[k] = self.__stores.get(k)
+            self.add_store(k, self.__stores[k])
 
         self.__define_dirs()
+
+
+    def add_store(self, k, store):
+            self.interfaces[k] = store
 
 
     # TODO: which of these are obsolete?
@@ -93,6 +97,7 @@ class DirHandler:
         #self.dirs['phone_new'] = os.path.join(self.dirs['phone'], 'new')
         #self.dirs['preferences_meta'] = os.path.join(self.dirs['preferences'], 'meta')
         #self.dirs['preferences_new'] = os.path.join(self.dirs['preferences'], 'new')
+        self.dirs['ussd_addr'] = os.path.join(self.user_dir, 'ussd_addr')
         self.dirs['keystore'] = os.path.join(self.user_dir, 'keystore')
         self.dirs['bak'] = os.path.join(self.user_dir, 'bak')
 
@@ -120,8 +125,11 @@ class DirHandler:
         if remove_src:
             for idx in self.__csv_indices:
                 idx_path = os.path.join(self.user_dir, idx + '.csv')
-                os.unlink(idx_path)
-                logg.debug('removed index {}'.format(idx_path))
+                try:
+                    os.unlink(idx_path)
+                    logg.debug('removed index {}'.format(idx_path))
+                except FileNotFoundError:
+                    continue
 
         try:
             os.makedirs(self.dirs['src'])
@@ -221,6 +229,10 @@ class DirHandler:
         for ifc in self.interfaces.keys():
             self.interfaces[ifc].flush()
 
+    def rm(self, k, dirkey):
+        ifc = self.interfaces[dirkey]
+        return ifc.rm(k)
+
 
 class HexDirInterface:
 
@@ -250,6 +262,10 @@ class HexDirInterface:
         return self.dir.to_filepath(k)
 
 
+    def rm(self):
+        raise NotImplementedError()
+
+
     def flush(self):
         pass
 
@@ -265,8 +281,9 @@ class IndexInterface:
 
 
     def add(self, k, v):
-        self.store.add(k, v)
+        k = self.store.add(k, v)
         self.f.write(k + ',' + v + '\n')
+        return k
 
 
     def get(self, k):
@@ -284,9 +301,35 @@ class IndexInterface:
         self.f = open(self.__path, 'a')
 
 
+    def rm(self):
+        raise NotImplementedError()
+
+
     def __del__(self):
         self.f.close()
 
 
     def __str__(self):
         return 'index interface with store {}'.format(self.store)
+
+
+class QueueInterface:
+
+    def __init__(self, store):
+        self.store = store
+
+    
+    def get(self, k):
+        return self.store.get(k)
+
+
+    def add(self, k, v):
+        return self.store.add(k, v)
+
+
+    def rm(self, k):
+        return self.store.rm(k)
+
+
+    def flush(self, k):
+        return self.store.flush()

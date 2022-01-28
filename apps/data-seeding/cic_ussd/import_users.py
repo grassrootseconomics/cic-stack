@@ -60,6 +60,8 @@ arg_parser.add_argument('--ussd-host', dest='ussd_host', type=str,
 arg_parser.add_argument('--ussd-no-ssl', dest='ussd_no_ssl', help='do not use ssl (careful)', action='store_true')
 arg_parser.add_argument('--ussd-port', dest='ussd_port', type=str,
                         help="port to ussd app responsible for processing ussd requests.")
+arg_parser.add_argument('--default-tag', dest='default_tag', type=str, action='append', default=[],help='Default tag to add when tag is missing')
+arg_parser.add_argument('--tag', dest='tag', type=str, action='append', default=[], help='Explicitly add given tag')
 arg_parser.add_argument('-v', help='be verbose', action='store_true')
 arg_parser.add_argument('-vv', help='be more verbose', action='store_true')
 arg_parser.add_argument('--timeout', default=60.0, type=float, help='Callback timeout')
@@ -109,33 +111,10 @@ logg.debug(f'config loaded from {args.c}:\n{config}')
 #celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 #get_celery_worker_status(celery_app)
 
-rpc = EthHTTPConnection(args.p)
+#rpc = EthHTTPConnection(args.p)
 
 
 if __name__ == '__main__':
-    imp = CicUssdImporter(config, rpc, None, None)
+    imp = CicUssdImporter(config, None, None, None)
     imp.prepare()
     imp.process_src(tags=args.tag)
-
-#    i = 0
-#    j = 0
-#    for x in os.walk(dirs['old']):
-#        for y in x[2]:
-#            if y[len(y) - 5:] != '.json':
-#                continue
-#
-#            file_path = os.path.join(x[0], y)
-#            with open(file_path, 'r') as account_file:
-#                try:
-#                    account_data = json.load(account_file)
-#                except json.decoder.JSONDecodeError as e:
-#                    logg.error('load error for {}: {}'.format(y, e))
-#                    continue
-#            person = Person.deserialize(account_data)
-#            #register_account(person)
-#            i += 1
-#            sys.stdout.write('imported: {} {}'.format(i, person).ljust(200) + "\r\n")
-#            j += 1
-#            if j == args.batch_size:
-#                time.sleep(args.batch_delay)
-#                j = 0
