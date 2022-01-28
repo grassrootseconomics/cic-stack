@@ -16,11 +16,6 @@ from cic_types.processor import (
         phone_number_to_e164,
         )
 from cic_types.condiments import MetadataPointer
-#from cic_types.models.person import (
-#        Person,
-#        manage_identity_data,
-#        )
-#from chainlib.eth.constant import ZERO_ADDRESS
 
 # local imports
 from cic_seeding.imports import (
@@ -96,11 +91,6 @@ class CicUssdConnectWorker(threading.Thread):
                 continue
     
         logg.debug('have address {} for phone {}'.format(address, ph))
-
-        #set_chain_address(self.user.person, self.imp.chain_spec, address)
-
-        #o = self.user.person.serialize()
-        #v = json.dumps(o)
 
         self.imp.add(address, v, 'new')
 
@@ -191,33 +181,8 @@ class CicUssdImporter(Importer):
             return
 
         serialized_block = self._export_user_block(address, block, tx)
-
-        #k = self.dh.add(None, address, 'ussd_address')
-        #logg.debug('stored unconnected address {} as index {}'.format(address, k))
-        
-#        p = Person()
-#        p.load_vcard({
-#            'email': '',
-#            'family': 'Doe',
-#            'given': 'John',
-#            'tel': '+254123456789',
-#            })
-#        p.date_registered = 1
-#        p.identities = manage_identity_data(address, str(self.chain_spec))
-#        p.identities = manage_identity_data(ZERO_ADDRESS, str(self.source_chain_spec))
-#        p.gender = 'all'
-#        o = p.serialize()
-
-        #v = json.dumps(o)
-        #self.dh.add(address, v, 'ussd_tx_src')
-
         self.dh.add(address, serialized_block, 'ussd_tx_src')
-
-        #if self.dh.get(address, 'balances'):
-        #    logg.debug('address {} match register tx {} but not in balances list'.format(address, tx.hash))
-        #    return
-
-
+        
 #
 #            s_person_metadata = celery.signature(
 #                'import_task.generate_person_metadata', [phone_number], queue=args.q
