@@ -42,6 +42,7 @@ from cic_seeding.legacy import (
         legacy_link_data,
         )
 from cic_seeding.error import UnknownTokenError
+from cic_seeding.chain import serialize_block_tx
 
 logg = logging.getLogger(__name__)
 
@@ -120,7 +121,6 @@ class Importer:
         self.stores['balances'] = AddressIndex(value_filter=remove_zeros_filter, name='balance index')
 
         for k in stores.keys():
-            #logg.info('adding auxiliary dirhandler store {}'.format(k))
             self.stores[k] = stores[k]
 
         self.dh = DirHandler(config.get('_USERDIR'), stores=self.stores, exist_ok=True)
@@ -172,6 +172,10 @@ class Importer:
 
     def path(self, k):
         return self.dh.dirs.get(k)
+
+
+    def to_user(self, person):
+        return ImportUser(self.dh, person, self.chain_spec, self.source_chain_spec)
 
 
     def user_by_address(self, address, original=False):
@@ -300,7 +304,6 @@ class Importer:
         o = u.serialize()
         self.dh.add(new_address, json.dumps(o), 'new')
 
-
         new_address_clean = legacy_normalize_address(new_address)
         meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), MetadataPointer.PERSON)
         self.dh.alias('new', 'meta', new_address_clean, alias_filename=new_address_clean + '.json', use_interface=False)
@@ -333,8 +336,8 @@ class Importer:
         legacy_link_data(custom_path)
 
 
-    def walk(self, callback, tags=[], batch_size=100, batch_delay=0.2):
-       srcdir = self.dh.dirs.get('src')
+    def walk(self, callback, tags=[], batch_size=100, batch_delay=0.2, dirkey='src'):
+       srcdir = self.dh.dirs.get(dirkey)
 
        i = 0
        j = 0
@@ -342,7 +345,7 @@ class Importer:
            for y in x[2]:
                s = None
                try:
-                   s = self.dh.get(y, 'src')
+                   s = self.dh.get(y, dirkey)
                except ValueError:
                    continue
                o = json.loads(s)
@@ -358,7 +361,10 @@ class Importer:
                j += 1
                if j == batch_size:
                    time.sleep(batch_delay)
+                   j = 0
 
+       return i
+            
 
     def process_sync(self, i, u, tags=[]):
         # create new ethereum address (in custodial backend)
@@ -381,6 +387,7 @@ class Importer:
             return None
         address = r[0]
 
+        logg.debug('looking at tx {}'.format(tx))
         if tx.status != TxStatus.SUCCESS:
             logg.warning('failed accounts index transaction for {}: {}'.format(address, tx.hash))
             return None
@@ -444,7 +451,14 @@ class Importer:
     def _export_tx(self, tx_hash, data):
         tx_hash_hex = strip_0x(tx_hash)
         tx_data = strip_0x(data)
-        self.dh.add(tx_hash_hex, tx_data, 'txs')
+        self.dh.add(tx_hash_hex, tx_data, 'tx')
+        return tx_data
+
+
+    def _export_user_block(self, address, block, tx):
+        v = serialize_block_tx(block, tx)
+        self.dh.add(address, v, 'user_block')
+        return v
 
 
     def filter(self, conn, block, tx, db_session):

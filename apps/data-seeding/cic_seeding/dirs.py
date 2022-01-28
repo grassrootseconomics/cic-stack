@@ -21,13 +21,14 @@ class DirHandler:
         'src': 20,
         'new': 20,
         'keystore': 20,
+        'user_block': 20,
             }
 
     __hash_dirs = {
         'phone': 32,
         'meta': 32,   # pointers to entries in "
         'custom': 32, # tags
-        'txs': 32,
+        'tx': 32,
         }
 
     __csv_indices = {
@@ -97,7 +98,7 @@ class DirHandler:
         self.dirs['custom'] = os.path.join(self.user_dir, 'custom')
         self.dirs['phone'] = os.path.join(self.user_dir, 'phone')
         #self.dirs['preferences'] = os.path.join(self.user_dir, 'preferences')
-        self.dirs['txs'] = os.path.join(self.user_dir, 'txs')
+        self.dirs['tx'] = os.path.join(self.user_dir, 'tx')
         #self.dirs['keyfile'] = os.path.join(self.user_dir, 'keystore')
         #self.dirs['custom_new'] = os.path.join(self.dirs['custom'], 'new')
         #self.dirs['custom_meta'] = os.path.join(self.dirs['custom'], 'meta')
@@ -106,8 +107,8 @@ class DirHandler:
         #self.dirs['preferences_meta'] = os.path.join(self.dirs['preferences'], 'meta')
         #self.dirs['preferences_new'] = os.path.join(self.dirs['preferences'], 'new')
         self.dirs['keystore'] = os.path.join(self.user_dir, 'keystore')
-        self.dirs['bak'] = os.path.join(self.user_dir, 'bak')
-        self.dirs['aux'] = os.path.join(self.user_dir, 'aux')
+#        self.dirs['bak'] = os.path.join(self.user_dir, 'bak')
+        self.dirs['user_block'] = os.path.join(self.user_dir, 'user_block')
 
 
     def __check(self):

@@ -1,3 +1,11 @@
+# standard imports
+import json
+
+# external imports
+from chainlib.eth.block import Block
+from chainlib.eth.tx import Tx
+
+
 def __process_chain(person, chain_spec, create_path=False):
     engine = person.identities.get(chain_spec.engine())
     if engine == None:
@@ -31,3 +39,18 @@ def get_chain_addresses(person, chain_spec):
 def set_chain_address(person, chain_spec, address):
     chain = __process_chain(person, chain_spec, create_path=True)
     chain.append(address)
+
+
+def serialize_block_tx(block, tx):
+    o = {
+            'block': block.src(),
+            'tx': tx.src(),
+            }
+    return json.dumps(o)
+
+
+def deserialize_block_tx(v):
+    o = json.loads(v)
+    block = Block(o['block'])
+    tx = Tx(o['tx'])
+    return (block, tx,)

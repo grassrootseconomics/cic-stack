@@ -114,6 +114,7 @@ class CicEthImporter(Importer):
 
 
     def filter(self, conn, block, tx, db_session):
+        logg.debug('hey ho')
         # get user if matching tx
         u = self._user_by_tx(tx)
         if u == None:

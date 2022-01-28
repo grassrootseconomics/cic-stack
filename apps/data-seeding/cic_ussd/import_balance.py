@@ -41,9 +41,17 @@ from cic_seeding.imports.cic_ussd import (
         CicUssdImporter,
         CicUssdConnectWorker,
         )
-from cic_seeding.index import AddressQueue
+from cic_seeding.imports.cic_eth import (
+        CicEthImporter,
+        )
+from cic_seeding.index import (
+        AddressQueue,
+        SeedQueue,
+        normalize_key,
+        )
 from cic_seeding.filter import remove_zeros_filter
 from cic_seeding.notify import sync_progress_callback
+from cic_seeding.sync import DeferredSyncer
 
 
 logging.basicConfig(level=logging.WARNING)
@@ -128,17 +136,19 @@ if args.until > 0:
 rpc = EthHTTPConnection(args.p)
 
 
+
+
 def main():
     global block_offset, block_limit
 
-    store_path = os.path.join(config.get('_USERDIR'), 'ussd_address')
-    unconnected_address_store = AddressQueue(store_path)
+    store_path = os.path.join(config.get('_USERDIR'), 'ussd_tx_src')
+    blocktx_store = SeedQueue(store_path, key_normalizer=normalize_key)
 
     store_path = os.path.join(config.get('_USERDIR'), 'ussd_phone')
     unconnected_phone_store = AddressQueue(store_path)
 
     imp = CicUssdImporter(config, rpc, signer, signer_address, stores={
-        'ussd_address': unconnected_address_store,
+        'ussd_tx_src': blocktx_store,
         'ussd_phone': unconnected_phone_store,
         },
         )
@@ -162,8 +172,6 @@ def main():
     for w in workers:
         w.join()
 
-    sys.exit(0)
-
     o = block_latest_query()
     block_latest = rpc.do(o)
     block_latest = int(strip_0x(block_latest), 16) + 1
@@ -182,6 +190,13 @@ def main():
         syncer_backend = MemBackend(chain_str, 0)
         syncer_backend.set(block_offset, 0)
 
+
+    sync_imp = CicEthImporter(config, rpc, signer, signer_address)
+    syncer = DeferredSyncer(syncer_backend, imp, 'ussd_tx_src', block_callback=sync_progress_callback)
+    syncer.add_filter(sync_imp)
+    syncer.loop(1, rpc)
+    sys.exit(0)    
+
     # TODO get decimals from token
     syncer = None
     if block_limit > 0:
@@ -192,7 +207,7 @@ def main():
         logg.info('using headsyncer: {}'.format(syncer_backend))
 
     syncer.add_filter(imp)
-    syncer.loop(1, rpc)
+    syncer.loop(1.0, rpc)
     
 
 if __name__ == '__main__':

@@ -16,14 +16,16 @@ from cic_types.processor import (
         phone_number_to_e164,
         )
 from cic_types.condiments import MetadataPointer
+#from cic_types.models.person import (
+#        Person,
+#        manage_identity_data,
+#        )
+#from chainlib.eth.constant import ZERO_ADDRESS
 
 # local imports
 from cic_seeding.imports import (
         Importer,
         ImportUser,
-        )
-from cic_seeding.chain import (
-        set_chain_address,
         )
 
 
@@ -95,10 +97,10 @@ class CicUssdConnectWorker(threading.Thread):
     
         logg.debug('have address {} for phone {}'.format(address, ph))
 
-        set_chain_address(self.user.person, self.imp.chain_spec, address)
+        #set_chain_address(self.user.person, self.imp.chain_spec, address)
 
-        o = self.user.person.serialize()
-        v = json.dumps(o)
+        #o = self.user.person.serialize()
+        #v = json.dumps(o)
 
         self.imp.add(address, v, 'new')
 
@@ -106,7 +108,6 @@ class CicUssdConnectWorker(threading.Thread):
 class CicUssdImporter(Importer):
 
     def __init__(self, config, rpc, signer, signer_address, stores={}, default_tag=[]):
-        logg.debug('stores {}'.format(stores))
         super(CicUssdImporter, self).__init__(config, rpc, signer, signer_address, stores=stores, default_tag=default_tag)
         self.ussd_provider = config.get('USSD_PROVIDER')
         self.ussd_valid_service_codes = config.get('USSD_SERVICE_CODE').split(',')
@@ -189,16 +190,32 @@ class CicUssdImporter(Importer):
         if address == None:
             return
 
-        k = self.dh.add(None, address, 'ussd_address')
-        logg.debug('stored unconnected address {} as index {}'.format(address, k))
+        serialized_block = self._export_user_block(address, block, tx)
+
+        #k = self.dh.add(None, address, 'ussd_address')
+        #logg.debug('stored unconnected address {} as index {}'.format(address, k))
+        
+#        p = Person()
+#        p.load_vcard({
+#            'email': '',
+#            'family': 'Doe',
+#            'given': 'John',
+#            'tel': '+254123456789',
+#            })
+#        p.date_registered = 1
+#        p.identities = manage_identity_data(address, str(self.chain_spec))
+#        p.identities = manage_identity_data(ZERO_ADDRESS, str(self.source_chain_spec))
+#        p.gender = 'all'
+#        o = p.serialize()
+
+        #v = json.dumps(o)
+        #self.dh.add(address, v, 'ussd_tx_src')
+
+        self.dh.add(address, serialized_block, 'ussd_tx_src')
 
         #if self.dh.get(address, 'balances'):
         #    logg.debug('address {} match register tx {} but not in balances list'.format(address, tx.hash))
         #    return
-
-
-    def process_address(self, i, u, address, tags=[]):
-        pass
 
 
 #

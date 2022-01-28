@@ -71,9 +71,9 @@ class AddressIndex:
         return self.name
 
 
-class AddressQueue:
+class SeedQueue:
 
-    def __init__(self, queue_dir):
+    def __init__(self, queue_dir, key_normalizer=None, value_filter=None):
         self.queue_dir = queue_dir
         self.newdir = os.path.join(queue_dir, 'new')
         self.curdir = os.path.join(queue_dir, 'cur')
@@ -81,6 +81,61 @@ class AddressQueue:
         os.makedirs(self.newdir, exist_ok=True)
         os.makedirs(self.curdir, exist_ok=True)
         os.makedirs(self.deldir, exist_ok=True)
+        self.key_normalizer = key_normalizer
+        self.value_filter = value_filter
+
+
+    def tell(self):
+        return self.c
+
+
+    def add(self, k, v):
+        if self.key_normalizer != None:
+            k = self.key_normalizer(k)
+        newd = os.path.join(self.newdir, str(k))
+        f = open(newd, 'w')
+        f.write(v)
+        f.close()
+        return k
+
+
+    def get(self, k):
+        if self.key_normalizer != None:
+            k = self.key_normalizer(k)
+        newd = os.path.join(self.newdir, str(k))
+        curd = os.path.join(self.curdir, str(k))
+        shutil.move(newd, curd)
+        f = open(curd, 'r')
+        v = f.read()
+        f.close()
+
+        if self.value_filter != None:
+            v = self.value_filter(v)
+        return v
+
+
+    def rm(self, k):
+        curd = os.path.join(self.curdir, k)
+        deld = os.path.join(self.deldir, k)
+        shutil.move(curd, deld)
+
+
+    def flush(self):
+        pass
+
+
+    def path(self, k):
+        if k == None:
+            return self.queue_dir
+        if self.key_normalizer != None:
+            k = self.key_normalizer(k)
+        return os.path.join(self.queue_dir, k)
+
+
+class AddressQueue(SeedQueue):
+
+    def __init__(self, queue_dir, key_normalizer=None, value_filter=None):
+        super(AddressQueue, self).__init__(queue_dir, key_normalizer=None, value_filter=None)
 
         self.c = sys.maxsize
         for v in os.listdir(self.newdir):
@@ -101,11 +156,9 @@ class AddressQueue:
         logg.info('start queue index set to {}'.format(self.c))
 
     
-    def tell(self):
-        return self.c
-
-
     def add(self, k, v):
+        if self.key_normalizer != None:
+            k = self.key_normalizer(k)
         if k != None and k != self.c:
             raise ValueError('explicit index value {} does not match current in store: {}'.format(k, self.c))
         fp = os.path.join(self.newdir, str(self.c))
@@ -113,29 +166,3 @@ class AddressQueue:
         f.write(v)
         f.close()
         self.c += 1
-
-
-    def get(self, k):
-        newd = os.path.join(self.newdir, str(k))
-        curd = os.path.join(self.curdir, str(k))
-        shutil.move(newd, curd)
-        f = open(curd, 'r')
-        v = f.read()
-        f.close()
-        return v
-
-
-    def rm(self, k):
-        curd = os.path.join(self.curdir, k)
-        deld = os.path.join(self.deldir, k)
-        shutil.move(curd, deld)
-
-
-    def flush(self):
-        pass
-
-
-    def path(self, k):
-        if k == None:
-            return self.queue_dir
-        return os.path.join(self.queue_dir, k)
