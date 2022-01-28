@@ -43,6 +43,7 @@ class CicEthRedisTransport(Importer):
 
 
     def prepare(self):
+        super(CicEthImporter, self).prepare()
         redis_channel = str(uuid.uuid4())
         self.ps.subscribe(redis_channel)
         self.params = '{}:{}'.format(

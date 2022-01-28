@@ -60,10 +60,26 @@ class DirHandler:
         for k in self.__stores.keys():
             self.interfaces[k] = self.__stores.get(k)
 
+        self.__define_dirs()
+
 
     # TODO: which of these are obsolete?
     # TODO: should they all perhaps |
     def initialize_dirs(self, reset=False, remove_src=False):
+        
+        if reset:
+            self.__reset(remove_src=remove_src)
+
+        if not remove_src:
+            self.__check()
+
+        self.__build_dirs()
+        self.__build_indices()
+        self.__register_hex_dirs()
+        self.__register_indices()
+
+
+    def __define_dirs(self):
         self.dirs['new'] = os.path.join(self.user_dir, 'new')
         self.dirs['meta'] = os.path.join(self.user_dir, 'meta')
         self.dirs['custom'] = os.path.join(self.user_dir, 'custom')
@@ -79,17 +95,6 @@ class DirHandler:
         #self.dirs['preferences_new'] = os.path.join(self.dirs['preferences'], 'new')
         self.dirs['keystore'] = os.path.join(self.user_dir, 'keystore')
         self.dirs['bak'] = os.path.join(self.user_dir, 'bak')
-
-        if reset:
-            self.__reset(remove_src=remove_src)
-
-        if not remove_src:
-            self.__check()
-
-        self.__build_dirs()
-        self.__build_indices()
-        self.__register_hex_dirs()
-        self.__register_indices()
 
 
     def __check(self):
@@ -265,7 +270,9 @@ class IndexInterface:
 
 
     def get(self, k):
-        return self.store.get(k)
+        v = self.store.get(k)
+        logg.debug('get {} {}'.format(k, v))
+        return v
 
 
     def path(self, k):

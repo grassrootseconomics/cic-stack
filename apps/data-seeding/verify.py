@@ -40,6 +40,10 @@ from cic_seeding.chain import get_chain_addresses
 from cic_seeding import DirHandler
 from cic_seeding.index import AddressIndex
 from cic_seeding.filter import remove_zeros_filter
+from cic_seeding.imports import (
+        ImportUser,
+        Importer,
+        )
 
 
 logging.basicConfig(level=logging.WARNING)
@@ -123,6 +127,7 @@ config.process()
 # override args
 args_override = {
         'CHAIN_SPEC': getattr(args, 'i'),
+        'CHAIN_SPEC_SOURCE': getattr(args, 'old_chain_spec'),
         'RPC_PROVIDER': getattr(args, 'p'),
         'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
         'META_PROVIDER': getattr(args, 'meta_provider'),
@@ -132,6 +137,9 @@ args_override = {
 config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
+config.add(args.user_dir, '_USERDIR', True)
+config.add(False, '_RESET', True)
+config.add(True, '_APPEND', True)
 logg.debug('config loaded:\n{}'.format(config))
 
 token_symbol = args.token_symbol
@@ -150,8 +158,9 @@ exclude = []
 include = args.include
 api = None
 
-if not args.skip_all:
-    
+if args.skip_all:
+    include = []
+else:
     if args.include == None:
         include = all_tests
 
@@ -279,7 +288,7 @@ class VerifierError(Exception):
 class Verifier:
 
     # TODO: what an awful function signature
-    def __init__(self, dh, conn, target_count, cic_eth_api, gas_oracle, chain_spec, index_address, token_address, faucet_address, data_dir, exit_on_error=False):
+    def __init__(self, importer, conn, cic_eth_api, gas_oracle, chain_spec, index_address, token_address, faucet_address, data_dir, exit_on_error=False):
         self.conn = conn
         self.gas_oracle = gas_oracle
         self.chain_spec = chain_spec
@@ -292,7 +301,7 @@ class Verifier:
         self.data_dir = data_dir
         self.exit_on_error = exit_on_error
         self.faucet_tx_factory = Faucet(chain_spec, gas_oracle=gas_oracle)
-        self.dh = dh
+        self.imp = importer
 
         verifymethods = []
         for k in dir(self):
@@ -304,7 +313,9 @@ class Verifier:
         self.faucet_amount = self.faucet_tx_factory.parse_token_amount(r)
         logg.info('faucet amount set to {} at verify initialization time'.format(self.faucet_amount))
 
-        self.state = VerifierState(verifymethods, target_count, active_tests=active_tests)
+        self.state = VerifierState(verifymethods, len(self.imp), active_tests=active_tests)
+
+        logg.info('verification entry count is {}'.format(len(self.imp)))
 
 
     def verify_accounts_index(self, address, balance=None):
@@ -324,7 +335,7 @@ class Verifier:
             actual_balance = int(strip_0x(r), 16)
         except ValueError:
             actual_balance = int(r)
-        balance = int(balance / 1000000) * 1000000
+        balance = int(balance) * 1000000
         balance += self.faucet_amount
         logg.info('balance for {}: {}'.format(address, balance))
         if balance != actual_balance:
@@ -452,7 +463,7 @@ class Verifier:
     def verify(self, address, balance, debug_stem=None):
   
         for k in active_tests:
-            s = '{} {}'.format(debug_stem, k)
+            s = '{}: {}'.format(debug_stem, k)
             outfunc(s)
             try:
                 m = getattr(self, 'verify_{}'.format(k))
@@ -476,6 +487,7 @@ def main():
     conn = EthHTTPConnection(config.get('RPC_PROVIDER'))
     gas_oracle = OverrideGasOracle(conn=conn, limit=8000000)
 
+    # TODO: replace with corresponding init in importer
     # Get Token registry address
     registry = Registry(chain_spec)
     o = registry.address_of(config.get('CIC_REGISTRY_ADDRESS'), 'TokenRegistry')
@@ -498,7 +510,7 @@ def main():
     faucet_index_address = to_checksum_address(token_index_address)
     logg.info('found faucet {}'.format(faucet_address))
 
-# Get Sarafu token address
+    # Get Sarafu token address
     token_index = TokenUniqueSymbolIndex(chain_spec)
     o = token_index.address_of(token_index_address, token_symbol)
     r = conn.do(o)
@@ -510,46 +522,26 @@ def main():
         sys.exit(1)
     logg.info('found token address {}'.format(token_address))
  
-    balances = AddressIndex(value_filter=remove_zeros_filter, name='balance index')
-    dh = DirHandler(user_dir, append=True, stores={'balances': balances})
-    dh.initialize_dirs()
-    dirs = dh.dirs
+    imp = Importer(config)
+    imp.prepare()
 
-    balances_path = dh.path(None, 'balances')
-    i = balances.add_from_file(balances_path)
-
-    verifier = Verifier(dh, conn, i, api, gas_oracle, chain_spec, account_index_address, token_address, faucet_address, user_dir, exit_on_error)
+    verifier = Verifier(imp, conn, api, gas_oracle, chain_spec, account_index_address, token_address, faucet_address, user_dir, exit_on_error)
 
     user_new_dir = os.path.join(user_dir, 'new')
     i = 0
     for x in os.walk(user_new_dir):
         for y in x[2]:
-            j = None
+            u = None
             try:
-                j = dh.get(y, 'new')
+                u = imp.user_by_address(y)
             except ValueError:
                 continue
 
-            o = json.loads(j)
-            u = Person.deserialize(o)
-            logg.debug('processing {}'.format(u))
-
-            new_addresses = get_chain_addresses(u, chain_spec)
-            new_address = to_checksum_address(new_addresses[0])
-
-            old_addresses = get_chain_addresses(u, old_chain_spec)
-            old_address = to_checksum_address(old_addresses[0])
-            
-            balance = 0
-            try:
-                balance = balances.get(old_address)
-            except KeyError:
-                logg.info('no old balance found for {} in {}, assuming 0'.format(old_address, old_chainspec))
-
-            s = 'checking {}: {}@{} -> {}@{} = {}'.format(i, old_address, old_chain_spec, new_address, chain_spec, balance)
+            s = 'processing {}'.format(u.description)
             outfunc(s)
 
-            verifier.verify(new_address, balance, debug_stem=s)
+            s = 'check {}'.format(u)
+            verifier.verify(u.address, u.original_balance, debug_stem=s)
             i += 1
 
     print()

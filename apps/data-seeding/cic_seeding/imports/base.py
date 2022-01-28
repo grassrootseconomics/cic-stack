@@ -15,7 +15,10 @@ from chainlib.chain import ChainSpec
 # local imports
 from cic_seeding import DirHandler
 from cic_seeding.index import AddressIndex
-from cic_seeding.filter import split_filter
+from cic_seeding.filter import (
+        split_filter,
+        remove_zeros_filter,
+        )
 from cic_seeding.chain import (
         set_chain_address,
         get_chain_addresses,
@@ -28,6 +31,49 @@ from cic_seeding.legacy import (
 logg = logging.getLogger(__name__)
 
 
+class ImportUser:
+
+    def __init__(self, dirhandler, person, target_chain_spec, source_chain_spec, verify_address=None):
+        self.person = person
+        self.chain_spec = target_chain_spec
+        self.source_chain_spec = source_chain_spec
+
+        addresses = get_chain_addresses(person, target_chain_spec)
+        if verify_address != None:
+            if not is_same_address(verify_address, addresses[0]):
+                raise ValueError('extracted adddress {} does not match verify adderss {}'.format(addresses[0], verify_address))
+        self.address = addresses[0]
+
+        original_addresses = get_chain_addresses(person, source_chain_spec)
+        self.original_address = original_addresses[0]
+
+        self.original_balance = self.original_token_balance(dirhandler)
+    
+        self.description = '{} {}@{} -> {}@{} original token balance {}'.format(
+                self.person,
+                self.original_address,
+                self.source_chain_spec,
+                self.address,
+                self.chain_spec,
+                self.original_balance,
+                )
+
+
+    def original_token_balance(self, dh):
+        logg.debug('found original address {}@{} for {}'.format(self.original_address, self.source_chain_spec, self.person))
+        balance = 0
+        try:
+            balance = dh.get(self.original_address, 'balances')
+        except KeyError as e:
+            logg.error('balance get fail for {}'.format(self))
+            return
+        return balance
+
+
+    def __str__(self):
+        return str(self.person)
+
+
 class Importer:
 
     def __init__(self, config, stores={}, default_tag=[]):
@@ -36,27 +82,46 @@ class Importer:
 
         self.stores = {}
         self.stores['tags'] = AddressIndex(value_filter=split_filter, name='tags index')
-        self.dh = DirHandler(config.get('_USERDIR'), stores=stores, exist_ok=True)
+        self.stores['balances'] = AddressIndex(value_filter=remove_zeros_filter, name='balance index')
+
+        for k in stores:
+            self.stores[k] = stores[k]
+       
+        self.dh = DirHandler(config.get('_USERDIR'), stores=self.stores, exist_ok=True)
         try:
             reset = config.get('_RESET')
-            self.dh.initialize_dirs(reset=config.get('_RESET'))
+            self.dh.initialize_dirs(reset=config.true('_RESET'))
         except KeyError:
+            logg.debug('whoa')
             pass
         self.default_tag = default_tag
-    
-        tags_path = self.dh.path(None, 'tags')
 
-        try:
-            self.stores['tags'].add_from_file(tags_path)
-        except TypeError:
-            pass
+        self.index_count = {}
+
+
+    def user_by_address(self, address):
+        j = self.dh.get(address, 'new')
+        o = json.loads(j)
+        person = Person.deserialize(o)
+        return ImportUser(self.dh, person, self.chain_spec, self.source_chain_spec)
+
+
+    def __len__(self):
+        return self.index_count['balances']
+
 
     def prepare(self):
-        pass
+        for k in [
+                'tags',
+                'balances',
+                ]:
+            path = self.dh.path(None, k)
+            c = self.stores[k].add_from_file(path)
+            self.index_count[k] = c
 
 
     def filter(self, conn, block, tx, db_session):
-        return self.filter(conn, block, tx, db_session=db_session)
+        pass
 
 
     def process_user(self, i, u):

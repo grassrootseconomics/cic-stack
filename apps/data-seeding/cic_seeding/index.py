@@ -48,7 +48,8 @@ class AddressIndex:
         i = 0
         f = open(file, 'r')
         while True:
-            r = f.readline().rstrip()
+            r = f.readline()
+            r = r.rstrip()
             if len(r) == 0:
                 break
             (address, v) = r.split(',', 1)
