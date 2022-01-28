@@ -41,6 +41,7 @@ from cic_seeding.legacy import (
         legacy_normalize_address,
         legacy_link_data,
         )
+from cic_seeding.error import UnknownTokenError
 
 logg = logging.getLogger(__name__)
 
@@ -126,6 +127,7 @@ class Importer:
             self.signer_address = signer_address
             self.nonce_oracle = RPCNonceOracle(signer_address, rpc)
 
+        self.__preferred_token_symbol = config.get('TOKEN_SYMBOL')
         self.token_address = None
         self.token = None
         self.token_multiplier = 1
@@ -180,25 +182,28 @@ class Importer:
         o = self.registry.address_of(self.registry_address, 'DefaultToken')
         r = self.rpc.do(o)
         token_address = self.registry.parse_address_of(r)
-        logg.info('found default token in registry {}'.format(address))
+        logg.info('found default token in registry {}'.format(token_address))
         return token_address
 
 
-    def _default_token(self, token_index_address, token_symbol='GFT'):
+    def _default_token(self, token_index_address, token_symbol):
         # TODO: in place of default value in arg, should get registry default token as fallback
+        if token_symbol == None:
+            raise ValueError('no token symbol given')
         token_index = TokenUniqueSymbolIndex(self.chain_spec)
         o = token_index.address_of(token_index_address, token_symbol)
         r = self.rpc.do(o)
         token_address = token_index.parse_address_of(r)
         if is_same_address(token_address, ZERO_ADDRESS):
-            raise FileNotFoundError()
+            raise FileNotFoundError('token index {} doesn\'t know token "{}"'.format(token_index_address, token_symbol))
         try:
-            self.token_address = to_checksum_address(token_address)
+            token_address = to_checksum_address(token_address)
         except ValueError as e:
             logg.critical('lookup failed for token {}: {}'.format(token_symbol, e))
-            sys.exit(1)
-        #self.token_symbol = token_symbol
+            raise UnknownTokenError('token index {} token symbol {}'.format(token_index_address, token_symbol))
         logg.info('token index {} resolved address {} for token {}'.format(token_index_address, token_address, token_symbol))
+        
+        return token_address
 
 
     def __init_lookups(self):
@@ -209,9 +214,11 @@ class Importer:
                 ]:
             getattr(self, '_' + v)()
         try:
-            self.lookup['token'] = self._default_token(self.lookup.get('token_index'))
-        except FileNotFoundError:
+            self.lookup['token'] = self._default_token(self.lookup.get('token_index'), self.__preferred_token_symbol)
+        except ValueError:
             self.lookup['token'] = self._registry_default_token()
+
+        self.token_address = self.lookup['token']
 
 
     def __set_token_details(self):
