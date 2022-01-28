@@ -297,23 +297,23 @@ class Importer:
 
     def process_address(self, i, u, address, tags=[]):
         # add address to identities in person object
-        set_chain_address(u, self.chain_spec, new_address)
+        set_chain_address(u, self.chain_spec, address)
 
 
         # add updated person record to the migration data folder
         o = u.serialize()
-        self.dh.add(new_address, json.dumps(o), 'new')
+        self.dh.add(address, json.dumps(o), 'new')
 
-        new_address_clean = legacy_normalize_address(new_address)
-        meta_key = generate_metadata_pointer(bytes.fromhex(new_address_clean), MetadataPointer.PERSON)
-        self.dh.alias('new', 'meta', new_address_clean, alias_filename=new_address_clean + '.json', use_interface=False)
+        address_clean = legacy_normalize_address(address)
+        meta_key = generate_metadata_pointer(bytes.fromhex(address_clean), MetadataPointer.PERSON)
+        self.dh.alias('new', 'meta', address_clean, alias_filename=address_clean + '.json', use_interface=False)
 
         phone_object = phonenumbers.parse(u.tel)
         phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
         meta_phone_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.PHONE)
 
 
-        self.dh.add(meta_phone_key, new_address_clean, 'phone')
+        self.dh.add(meta_phone_key, address_clean, 'phone')
         entry_path = self.dh.path(meta_phone_key, 'phone')
         legacy_link_data(entry_path)
 
@@ -432,7 +432,6 @@ class Importer:
 
 
     def _gift_tokens(self, conn, user):
-        logg.debug('foo')
         balance_full = user.original_balance * self.token_multiplier
 
         gas_oracle = RPCGasOracle(self.rpc, code_callback=self.get_max_gas)

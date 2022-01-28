@@ -150,7 +150,7 @@ def main():
         logg.info('using headsyncer: {}'.format(syncer_backend))
 
     syncer.add_filter(imp)
-    syncer.loop(1, rpc) #conn)
+    syncer.loop(1, rpc)
     
 
 if __name__ == '__main__':

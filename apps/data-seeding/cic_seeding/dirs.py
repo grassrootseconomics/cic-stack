@@ -53,27 +53,28 @@ class DirHandler:
         self.dirs = {}
         self.dirs['src'] = os.path.join(self.user_dir, 'src')
         os.makedirs(self.dirs['src'], exist_ok=True)
-        self.__stores = {
-            'tags': AddressIndex(),
-            'balances': AddressIndex(),
-                }
         self.interfaces = {}
 
         self.__define_dirs()
 
+        if stores.get('tags') == None:
+            stores['tags'] = AddressIndex()
+
+        if stores.get('balances') == None:
+            stores['balances'] = AddressIndex()
+
         for k in stores.keys():
-            if k in list(self.__stores.keys()):
-                continue
             self.add_interface(k, stores[k])
 
 
     def add_interface(self, k, v):
-        logg.info('adding extra store {} -> {}'.format(k, v))
         self.interfaces[k] = v
-        self.dirs[k] = v.path(None)
+        path = v.path(None)
+        logg.info('added store {} -> {}'.format(k, v))
+        if path == None:
+            return
+        self.dirs[k] = path
         os.makedirs(self.dirs[k], exist_ok=True)
-
-
 
 
     # TODO: which of these are obsolete?
@@ -97,17 +98,8 @@ class DirHandler:
         self.dirs['meta'] = os.path.join(self.user_dir, 'meta')
         self.dirs['custom'] = os.path.join(self.user_dir, 'custom')
         self.dirs['phone'] = os.path.join(self.user_dir, 'phone')
-        #self.dirs['preferences'] = os.path.join(self.user_dir, 'preferences')
         self.dirs['tx'] = os.path.join(self.user_dir, 'tx')
-        #self.dirs['keyfile'] = os.path.join(self.user_dir, 'keystore')
-        #self.dirs['custom_new'] = os.path.join(self.dirs['custom'], 'new')
-        #self.dirs['custom_meta'] = os.path.join(self.dirs['custom'], 'meta')
-        #self.dirs['phone_meta'] = os.path.join(self.dirs['phone'], 'meta')
-        #self.dirs['phone_new'] = os.path.join(self.dirs['phone'], 'new')
-        #self.dirs['preferences_meta'] = os.path.join(self.dirs['preferences'], 'meta')
-        #self.dirs['preferences_new'] = os.path.join(self.dirs['preferences'], 'new')
         self.dirs['keystore'] = os.path.join(self.user_dir, 'keystore')
-#        self.dirs['bak'] = os.path.join(self.user_dir, 'bak')
         self.dirs['user_block'] = os.path.join(self.user_dir, 'user_block')
 
 
@@ -142,11 +134,6 @@ class DirHandler:
 
         try:
             os.makedirs(self.dirs['src'])
-        except FileExistsError:
-            pass
-
-        try:
-            os.makedirs(self.dirs['bak'])
         except FileExistsError:
             pass
 
@@ -211,7 +198,7 @@ class DirHandler:
     def __register_indices(self):
         for k in self.__csv_indices:
             fp = os.path.join(self.user_dir, k + '.csv')
-            self.interfaces[k] = IndexInterface(fp, store=self.__stores.get(k))
+            self.interfaces[k] = IndexInterface(fp, store=self.interfaces[k])
         logg.debug('added index {}'.format(self.interfaces[k]))
 
 
