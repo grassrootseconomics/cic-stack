@@ -21,6 +21,7 @@ from cic_types.models.person import Person
 from cic_eth.api.api_task import Api
 from cic_types.processor import generate_metadata_pointer
 from cic_types import MetadataPointer
+from chainlib.eth.connection import EthHTTPConnection
 
 # local imports
 #from common.dirs import initialize_dirs
@@ -46,7 +47,9 @@ base_config_dir = os.path.join(root_dir, 'config')
 argparser = argparse.ArgumentParser()
 argparser.add_argument('-c', type=str, help='config override directory')
 argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='Chain specification string')
+argparser.add_argument('-p', '--provider', dest='p', type=str, help='chain rpc provider address')
 argparser.add_argument('-f', action='store_true', help='force clear previous state')
+argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
 argparser.add_argument('--reset', action='store_true', help='force clear previous state')
 argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:foo:1:oldchain', help='chain spec')
 argparser.add_argument('--redis-host', dest='redis_host', type=str, help='redis host to use for task submission')
@@ -79,6 +82,8 @@ config.process()
 args_override = {
         'CHAIN_SPEC': getattr(args, 'i'),
         'CHAIN_SPEC_SOURCE': getattr(args, 'old_chain_spec'),
+        'RPC_PROVIDER': getattr(args, 'p'),
+        'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
         'REDIS_HOST': getattr(args, 'redis_host'),
         'REDIS_PORT': getattr(args, 'redis_port'),
         'REDIS_DB': getattr(args, 'redis_db'),
@@ -96,8 +101,10 @@ config.add(args.redis_port_callback, '_REDIS_PORT_CALLBACK', True)
 config.add(args.redis_db, '_REDIS_DB_CALLBACK', True)
 logg.debug('config loaded:\n{}'.format(config))
 
+rpc = EthHTTPConnection(config.get('RPC_PROVIDER'))
+
 
 if __name__ == '__main__':
-    imp = CicEthImporter(config)
+    imp = CicEthImporter(config, rpc)
     imp.prepare()
     imp.process_src(tags=args.tag)

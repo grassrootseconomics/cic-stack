@@ -148,54 +148,13 @@ class EthImporter(Importer):
         return tx_hash_hex
 
 
-    def __address_by_tx(self, tx):
-        if tx.payload == None or len(tx.payload) == 0:
-            return None
-
-        r = None
-        try:
-            r = AccountsIndex.parse_add_request(tx.payload)
-        except RequestMismatchException:
-            return None
-        address = r[0]
-
-        if tx.status != TxStatus.SUCCESS:
-            logg.warning('failed accounts index transaction for {}: {}'.format(address, tx.hash))
-            return None
-
-        logg.debug('account registry add match for {} in {}'.format(address, tx.hash))
-        return address
-
-
-    def __user_by_address(self, address):
-        try:
-            j = self.dh.get(address, 'new')
-        except FileNotFoundError:
-            logg.debug('skip tx with unknown recipient address {}'.format(address))
-            return None
-
-        o = json.loads(j)
-
-        person = Person.deserialize(o)
-
-        u = ImportUser(self.dh, person, self.chain_spec, self.source_chain_spec, verify_address=address)
-
-        return u
-
 
     def filter(self, conn, block, tx, db_session):
-        super(EthImporter, self).filter(conn, block, tx, db_session)
-
         # get user if matching tx
-        address = self.__address_by_tx(tx) 
-        if address == None:
-            return
-        u = self.__user_by_address(address)
+        u = self._user_by_tx(tx)
         if u == None:
-            logg.debug('no match in import data for address {}'.format(address))
             return
-        logg.info('tx user match for ' + u.description)
-
+        
         # transfer old balance
         self.__gift_tokens(conn, u)
         

@@ -13,7 +13,7 @@ from cic_seeding.imports import Importer
 logg = logging.getLogger(__name__)
 
 
-class CicEthRedisTransport(Importer):
+class CicEthRedisTransport:
    
     def __init__(self, config):
         global celery_app
@@ -43,7 +43,6 @@ class CicEthRedisTransport(Importer):
 
 
     def prepare(self):
-        super(CicEthImporter, self).prepare()
         redis_channel = str(uuid.uuid4())
         self.ps.subscribe(redis_channel)
         self.params = '{}:{}'.format(
@@ -81,8 +80,8 @@ class CicEthRedisTransport(Importer):
 
 class CicEthImporter(Importer):
 
-    def __init__(self, config, result_transport=None, stores={}):
-        super(CicEthImporter, self).__init__(config, stores=stores)
+    def __init__(self, config, rpc, result_transport=None, stores={}):
+        super(CicEthImporter, self).__init__(config, rpc, stores=stores)
         self.res = result_transport
         if self.res == None:
             self.res = CicEthRedisTransport(config)
@@ -116,4 +115,11 @@ class CicEthImporter(Importer):
         return address
 
 
+    def filter(self, conn, block, tx, db_session):
+        # get user if matching tx
+        u = self._user_by_tx(tx)
+        if u == None:
+            return
 
+        # transfer old balance
+        self.__gift_tokens(conn, u)

@@ -205,10 +205,6 @@ class Importer:
         self.__set_token_details()
 
 
-    def filter(self, conn, block, tx, db_session):
-        pass
-
-
     def process_user(self, i, u):
         raise NotImplementedError()
 
@@ -290,6 +286,62 @@ class Importer:
                 j += 1
                 if j == batch_size:
                     time.sleep(batch_delay)
+
+
+    def _address_by_tx(self, tx):
+        if tx.payload == None or len(tx.payload) == 0:
+            return None
+
+        r = None
+        try:
+            r = AccountsIndex.parse_add_request(tx.payload)
+        except RequestMismatchException:
+            return None
+        address = r[0]
+
+        if tx.status != TxStatus.SUCCESS:
+            logg.warning('failed accounts index transaction for {}: {}'.format(address, tx.hash))
+            return None
+
+        logg.debug('account registry add match for {} in {}'.format(address, tx.hash))
+        return address
+
+
+    def _user_by_address(self, address):
+        try:
+            j = self.dh.get(address, 'new')
+        except FileNotFoundError:
+            logg.debug('skip tx with unknown recipient address {}'.format(address))
+            return None
+
+        o = json.loads(j)
+
+        person = Person.deserialize(o)
+
+        u = ImportUser(self.dh, person, self.chain_spec, self.source_chain_spec, verify_address=address)
+
+        return u
+
+
+    def _user_by_tx(self, tx):
+        if tx.payload == None or len(tx.payload) == 0:
+            logg.debug('no payload, skipping {}'.format(tx))
+            return None
+
+        address = self._address_by_tx(tx) 
+        if address == None:
+            return None
+        u = self._user_by_address(address)
+
+        if u == None:
+            logg.debug('no match in import data for address {}'.format(address))
+            return None
+
+        logg.info('tx user match for ' + u.description)
+
+
+    def filter(self, conn, block, tx, db_session):
+        raise NotImplementedError()
 
 
     def get_max_gas(self, v):

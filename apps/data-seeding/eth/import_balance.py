@@ -79,13 +79,13 @@ args_override = {
         'CHAIN_SPEC_SOURCE': getattr(args, 'old_chain_spec'),
         'RPC_PROVIDER': getattr(args, 'p'),
         'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
+        'WALLET_KEY_FILE': getattr(args, 'y'),
         'TOKEN_SYMBOL': getattr(args, 'token_symbol'),
         'ETH_GAS_AMOUNT': getattr(args, 'gas_amount'),
         }
 config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
-config.add(args.y, 'KEYSTORE_FILE_PATH', True)
 config.add(args.user_dir, '_USERDIR', True) 
 config.add(False, '_RESET', True)
 config.add(args.keep_alive, '_KEEP_ALIVE', True)
@@ -101,6 +101,7 @@ signer = EIP155Signer(keystore)
 
 queue = args.q
 chain_str = config.get('CHAIN_SPEC')
+
 block_offset = 0
 if args.head:
     block_offset = -1

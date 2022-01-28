@@ -61,6 +61,8 @@ argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFI
 argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
 argparser.add_argument('--offset', type=int, default=0, help='block offset to start syncer from')
 argparser.add_argument('--until', type=int, default=0, help='block to terminate syncing at')
+argparser.add_argument('--keep-alive', dest='keep_alive', action='store_true', help='continue syncing after latest block reched')
+argparser.add_argument('--gas-amount', dest='gas_amount', type=int, help='amount of gas to gift to new accounts')
 argparser.add_argument('-v', help='be verbose', action='store_true')
 argparser.add_argument('-vv', help='be more verbose', action='store_true')
 argparser.add_argument('user_dir', type=str, help='user export directory')
@@ -79,18 +81,18 @@ else:
 config.process()
 args_override = {
         'CHAIN_SPEC': getattr(args, 'i'),
+        'CHAIN_SPEC_SOURCE': getattr(args, 'old_chain_spec'),
         'RPC_PROVIDER': getattr(args, 'p'),
         'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
         'WALLET_KEY_FILE': getattr(args, 'y'),
+        'TOKEN_SYMBOL': getattr(args, 'token_symbol'),
+        'ETH_GAS_AMOUNT': getattr(args, 'gas_amount'),
         }
 config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
-config.add(args.y, 'KEYSTORE_FILE_PATH', True)
 config.add(args.user_dir, '_USERDIR', True) 
 logg.debug('loaded config: \n{}'.format(config))
-
-#app = celery.Celery(backend=config.get('CELERY_RESULT_URL'),  broker=config.get('CELERY_BROKER_URL'))
 
 signer_address = None
 keystore = DictKeystore()
@@ -102,6 +104,7 @@ signer = EIP155Signer(keystore)
 
 queue = args.q
 chain_str = config.get('CHAIN_SPEC')
+
 block_offset = 0
 if args.head:
     block_offset = -1
@@ -114,115 +117,58 @@ if args.until > 0:
         raise ValueError('sync termination block number must be later than offset ({} >= {})'.format(block_offset, args.until))
     block_limit = args.until
 
-chain_spec = ChainSpec.from_chain_str(chain_str)
-old_chain_spec_str = args.old_chain_spec
-old_chain_spec = ChainSpec.from_chain_str(old_chain_spec_str)
-
-user_dir = args.user_dir # user_out_dir from import_users.py
-
-token_symbol = args.token_symbol
-
-
-class Handler:
-
-    account_index_add_signature = keccak256_string_to_hex('add(address)')[:8]
-
-    def __init__(self, dh, conn, chain_spec, user_dir, balances, token_address, signer, gas_oracle, nonce_oracle):
-        self.token_address = token_address
-        self.user_dir = user_dir
-        self.balances = balances
-        self.chain_spec = chain_spec
-        self.tx_factory = ERC20(chain_spec, signer, gas_oracle, nonce_oracle)
-        self.dh = dh
-
-
-    def name(self):
-        return 'balance_handler'
-
-
-    def filter(self, conn, block, tx, db_session):
-        if tx.payload == None or len(tx.payload) == 0:
-            logg.debug('no payload, skipping {}'.format(tx))
-            return
-
-        recipient = None
-        try:
-            r = AccountsIndex.parse_add_request(tx.payload)
-        except RequestMismatchException:
-            return
-        recipient = r[0]
-
-        j = self.dh.get(recipient, 'new')
-        o = json.loads(j)
-
-        u = Person.deserialize(o)
-        original_addresses = get_chain_addresses(u, old_chain_spec)
-        original_address = original_addresses[0]
-
-        try:
-            balance = self.balances.get(original_address)
-        except KeyError as e:
-            logg.error('balance get fail orig {} new {}'.format(original_address, recipient))
-            return
-
-        # TODO: store token object in handler ,get decimals from there
-        multiplier = 10**6
-        balance_full = balance * multiplier
-        logg.info('registered {} originally {} ({}) tx hash {} balance {}'.format(recipient, original_address, u, tx.hash, balance_full))
-
-        (tx_hash_hex, o) = self.tx_factory.transfer(self.token_address, signer_address, recipient, balance_full)
-        logg.info('submitting erc20 transfer tx {} for recipient {}'.format(tx_hash_hex, recipient))
-        r = conn.do(o)
-
-        tx_path = os.path.join(
-                user_dir,
-                'txs',
-                strip_0x(tx_hash_hex),
-                )
-        f = open(tx_path, 'w')
-        f.write(strip_0x(o['params'][0]))
-        f.close()
-
-
-def progress_callback(block_number, tx_index):
-    sys.stdout.write(str(block_number).ljust(200) + "\n")
+rpc = EthHTTPConnection(args.p)
 
 
 def main():
     global chain_str, block_offset, user_dir
  
-    balances = AddressIndex(value_filter=remove_zeros_filter, name='balance index')
+    #balances = AddressIndex(value_filter=remove_zeros_filter, name='balance index')
 
-    dh = DirHandler(config.get('_USERDIR'), append=True, stores={'balances': balances})
-    dh.initialize_dirs()
-    dirs = dh.dirs
+    imp = EthImporter(rpc, signer, signer_address, config)
+    imp.prepare()
 
-    balances_path = dh.path(None, 'balances')
-    balances.add_from_file(balances_path)
-   
-    conn = EthHTTPConnection(config.get('RPC_PROVIDER'))
-    gas_oracle = OverrideGasOracle(conn=conn, limit=8000000)
-    nonce_oracle = RPCNonceOracle(signer_address, conn)
+    o = block_latest_query()
+    block_latest = rpc.do(o)
+    block_latest = int(strip_0x(block_latest), 16) + 1
+    logg.info('block number at start of execution is {}'.format(block_latest))
+
+    if block_offset == -1:
+        block_offset = block_latest
+    elif not config.true('_KEEP_ALIVE'):
+        if block_limit == 0:
+            block_limit = block_latest
+
+#    dh = DirHandler(config.get('_USERDIR'), append=True, stores={'balances': balances})
+#    dh.initialize_dirs()
+#    dirs = dh.dirs
+#
+#    balances_path = dh.path(None, 'balances')
+#    balances.add_from_file(balances_path)
+#   
+#    conn = EthHTTPConnection(config.get('RPC_PROVIDER'))
+#    gas_oracle = OverrideGasOracle(conn=conn, limit=8000000)
+#    nonce_oracle = RPCNonceOracle(signer_address, conn)
 
     # Get Token registry address
-    registry = Registry(chain_spec)
-    o = registry.address_of(config.get('CIC_REGISTRY_ADDRESS'), 'TokenRegistry')
-    r = conn.do(o)
-    token_index_address = registry.parse_address_of(r)
-    token_index_address = to_checksum_address(token_index_address)
-    logg.info('found token index address {}'.format(token_index_address))
-    
-    # Get Sarafu token address
-    token_index = TokenUniqueSymbolIndex(chain_spec)
-    o = token_index.address_of(token_index_address, token_symbol)
-    r = conn.do(o)
-    token_address = token_index.parse_address_of(r)
-    try:
-        token_address = to_checksum_address(token_address)
-    except ValueError as e:
-        logg.critical('lookup failed for token {}: {}'.format(token_symbol, e))
-        sys.exit(1)
-    logg.info('found token address {}'.format(token_address))
+#    registry = Registry(chain_spec)
+#    o = registry.address_of(config.get('CIC_REGISTRY_ADDRESS'), 'TokenRegistry')
+#    r = conn.do(o)
+#    token_index_address = registry.parse_address_of(r)
+#    token_index_address = to_checksum_address(token_index_address)
+#    logg.info('found token index address {}'.format(token_index_address))
+#    
+#    # Get Sarafu token address
+#    token_index = TokenUniqueSymbolIndex(chain_spec)
+#    o = token_index.address_of(token_index_address, token_symbol)
+#    r = conn.do(o)
+#    token_address = token_index.parse_address_of(r)
+#    try:
+#        token_address = to_checksum_address(token_address)
+#    except ValueError as e:
+#        logg.critical('lookup failed for token {}: {}'.format(token_symbol, e))
+#        sys.exit(1)
+#    logg.info('found token address {}'.format(token_address))
 
     syncer_backend = None
     if block_limit > 0:
@@ -231,20 +177,16 @@ def main():
         syncer_backend = MemBackend(chain_str, 0)
         syncer_backend.set(block_offset, 0)
 
-    if block_offset == -1:
-        o = block_latest()
-        r = conn.do(o)
-        block_offset = int(strip_0x(r), 16) + 1
-
-    
     # TODO get decimals from token
     syncer = None
     if block_limit > 0:
         syncer = HistorySyncer(syncer_backend, chain_interface, block_callback=progress_callback)
+        logg.info('using historysyncer: {}'.format(syncer_backend))
     else:
         syncer = HeadSyncer(syncer_backend, chain_interface, block_callback=progress_callback)
-    handler = Handler(dh, conn, chain_spec, user_dir, balances, token_address, signer, gas_oracle, nonce_oracle)
-    syncer.add_filter(handler)
+        logg.info('using headsyncer: {}'.format(syncer_backend))
+
+    syncer.add_filter(imp)
     syncer.loop(1, conn)
     
 
