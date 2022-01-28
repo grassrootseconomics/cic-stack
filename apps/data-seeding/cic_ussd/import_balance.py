@@ -134,6 +134,41 @@ if args.until > 0:
 rpc = EthHTTPConnection(args.p)
 
 
+class DeferredImporter(threading.Thread):
+
+    def __init__(self, syncer, eth_endpoint, delay=1):
+        super(DeferredImporter, self).__init__()
+        self.syncer = syncer
+        self.delay = delay
+        self.rpc = EthHTTPConnection(eth_endpoint)
+
+
+    def run(self):
+        self.syncer.loop(self.delay, rpc)
+
+
+def spawn_connect_workers(imp, config, count):
+    workers = []
+
+    throttle_queue = queue.SimpleQueue(maxsize=8)
+    i = count
+    while True:
+        throttle_queue.get()
+        phone = None
+        try:
+            address = imp.get(i, 'ussd_phone')
+        except FileNotFoundError as e:
+            break
+        u = imp.user_by_address(address, original=True)
+
+        w = CicUssdConnectWorker(imp, config.get('META_PROVIDER'), u, throttle_queue=throttle_queue)
+        i += 1
+        w.start()
+        workers.append(w)
+
+    return workers
+
+
 def main():
     global block_offset, block_limit
 
@@ -150,23 +185,8 @@ def main():
         )
     imp.prepare()
     
-    workers = []
-    i = unconnected_phone_store.tell()
-    while True:
-        phone = None
-        try:
-            address = imp.get(i, 'ussd_phone')
-        except FileNotFoundError as e:
-            logg.debug('e {}'.format(e))
-            break
-        u = imp.user_by_address(address, original=True)
-
-        w = CicUssdConnectWorker(imp, config.get('META_PROVIDER'), u)
-        i += 1
-        w.start()
-
-    for w in workers:
-        w.join()
+    offset = unconnected_phone_store.tell()
+    workers = spawn_connect_workers(imp, config, offset)
 
     o = block_latest_query()
     block_latest = rpc.do(o)
@@ -186,14 +206,12 @@ def main():
         syncer_backend = MemBackend(chain_str, 0)
         syncer_backend.set(block_offset, 0)
 
-
     sync_imp = SimpleImporter(config, rpc, signer, signer_address)
     syncer = DeferredSyncer(syncer_backend, chain_interface, imp, 'ussd_tx_src', block_callback=sync_progress_callback)
     syncer.add_filter(sync_imp)
-    syncer.loop(1, rpc)
-    sys.exit(0)    
+    deferred_thread = DeferredImporter(syncer, config.get('RPC_PROVIDER'))
+    deferred_thread.start()
 
-    # TODO get decimals from token
     syncer = None
     if block_limit > 0:
         syncer = HistorySyncer(syncer_backend, chain_interface, block_callback=sync_progress_callback)
@@ -204,7 +222,12 @@ def main():
 
     syncer.add_filter(imp)
     syncer.loop(1.0, rpc)
+   
+    deferred_thread.join()
     
+    for w in workers:
+        w.join()
+
 
 if __name__ == '__main__':
     main()

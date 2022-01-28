@@ -296,6 +296,10 @@ class Importer:
 
 
     def process_address(self, i, u, address, tags=[]):
+        if address == None:
+            logg.debug('no address to process for user {}'.format(u))
+            return
+
         # add address to identities in person object
         set_chain_address(u, self.chain_spec, address)
 

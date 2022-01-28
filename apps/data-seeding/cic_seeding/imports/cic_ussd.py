@@ -57,16 +57,15 @@ class CicUssdConnectWorker(threading.Thread):
     delay = 1
     max_tries = 0
 
-    def __init__(self, importer, meta_url, user):
+    def __init__(self, importer, meta_url, user, throttle_queue=None):
         super(CicUssdConnectWorker, self).__init__()
         self.user = user 
         self.meta_url = meta_url
         self.imp = importer
+        self.q = throttle_queue
    
 
     def run(self):
-        logg.debug('starting')
-
         ph = phone_number_to_e164(self.user.phone, None)
         ph_bytes = ph.encode('utf-8')
         self.ptr = generate_metadata_pointer(ph_bytes, MetadataPointer.PHONE)
@@ -93,6 +92,9 @@ class CicUssdConnectWorker(threading.Thread):
         logg.debug('have address {} for phone {}'.format(address, ph))
 
         self.imp.add(address, v, 'new')
+        
+        if self.q:
+            self.q.put(None)
 
 
 class CicUssdImporter(Importer):
