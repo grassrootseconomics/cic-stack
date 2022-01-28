@@ -144,37 +144,6 @@ def main():
         if block_limit == 0:
             block_limit = block_latest
 
-#    dh = DirHandler(config.get('_USERDIR'), append=True, stores={'balances': balances})
-#    dh.initialize_dirs()
-#    dirs = dh.dirs
-#
-#    balances_path = dh.path(None, 'balances')
-#    balances.add_from_file(balances_path)
-#   
-#    conn = EthHTTPConnection(config.get('RPC_PROVIDER'))
-#    gas_oracle = OverrideGasOracle(conn=conn, limit=8000000)
-#    nonce_oracle = RPCNonceOracle(signer_address, conn)
-
-    # Get Token registry address
-#    registry = Registry(chain_spec)
-#    o = registry.address_of(config.get('CIC_REGISTRY_ADDRESS'), 'TokenRegistry')
-#    r = conn.do(o)
-#    token_index_address = registry.parse_address_of(r)
-#    token_index_address = to_checksum_address(token_index_address)
-#    logg.info('found token index address {}'.format(token_index_address))
-#    
-#    # Get Sarafu token address
-#    token_index = TokenUniqueSymbolIndex(chain_spec)
-#    o = token_index.address_of(token_index_address, token_symbol)
-#    r = conn.do(o)
-#    token_address = token_index.parse_address_of(r)
-#    try:
-#        token_address = to_checksum_address(token_address)
-#    except ValueError as e:
-#        logg.critical('lookup failed for token {}: {}'.format(token_symbol, e))
-#        sys.exit(1)
-#    logg.info('found token address {}'.format(token_address))
-
     syncer_backend = None
     if block_limit > 0:
         syncer_backend = MemBackend.custom(chain_str, block_limit, block_offset=block_offset)

@@ -226,7 +226,6 @@ class Importer:
         self.token_multiplier = 10 ** self.token.decimals
 
 
-
     def prepare(self):
         for k in [
                 'tags',
@@ -255,7 +254,7 @@ class Importer:
         logg.debug('[{}] register eth new address {} for {}'.format(i, address, u))
         return address
 
-
+        
     def process_src(self, tags=[], batch_size=100, batch_delay=0.2):
         srcdir = self.dh.dirs.get('src')
 
