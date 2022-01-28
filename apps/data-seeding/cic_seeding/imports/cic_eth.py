@@ -8,7 +8,7 @@ import celery
 from cic_eth.api.api_task import Api
 
 # local imports
-from cic_seeding.simple import SimpleImporter
+from cic_seeding.imports.simple import SimpleImporter
 
 logg = logging.getLogger(__name__)
 
