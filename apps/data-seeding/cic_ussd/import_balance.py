@@ -41,9 +41,7 @@ from cic_seeding.imports.cic_ussd import (
         CicUssdImporter,
         CicUssdConnectWorker,
         )
-from cic_seeding.imports.cic_eth import (
-        CicEthImporter,
-        )
+from cic_seeding.imports.simple import SimpleImporter
 from cic_seeding.index import (
         AddressQueue,
         SeedQueue,
@@ -136,8 +134,6 @@ if args.until > 0:
 rpc = EthHTTPConnection(args.p)
 
 
-
-
 def main():
     global block_offset, block_limit
 
@@ -191,7 +187,7 @@ def main():
         syncer_backend.set(block_offset, 0)
 
 
-    sync_imp = CicEthImporter(config, rpc, signer, signer_address)
+    sync_imp = SimpleImporter(config, rpc, signer, signer_address)
     syncer = DeferredSyncer(syncer_backend, imp, 'ussd_tx_src', block_callback=sync_progress_callback)
     syncer.add_filter(sync_imp)
     syncer.loop(1, rpc)

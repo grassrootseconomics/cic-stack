@@ -8,7 +8,7 @@ import celery
 from cic_eth.api.api_task import Api
 
 # local imports
-from cic_seeding.imports import Importer
+from cic_seeding.simple import SimpleImporter
 
 logg = logging.getLogger(__name__)
 
@@ -78,7 +78,7 @@ class CicEthRedisTransport:
         return address
 
 
-class CicEthImporter(Importer):
+class CicEthImporter(SimpleImporter):
 
     def __init__(self, config, rpc, signer, signer_address, result_transport=None, stores={}):
         super(CicEthImporter, self).__init__(config, rpc, signer, signer_address, stores=stores)
@@ -111,14 +111,3 @@ class CicEthImporter(Importer):
         logg.debug('register {} -> {}'.format(u, t))
 
         return address
-
-
-    def filter(self, conn, block, tx, db_session):
-        logg.debug('hey ho')
-        # get user if matching tx
-        u = self._user_by_tx(tx)
-        if u == None:
-            return
-
-        # transfer old balance
-        self._gift_tokens(conn, u)

@@ -461,7 +461,7 @@ class Importer:
         return v
 
 
-    def filter(self, conn, block, tx, db_session):
+    def filter(self, conn, block, tx, db_session=None):
         raise NotImplementedError()
 
 
