@@ -57,16 +57,23 @@ class CicUssdConnectWorker(threading.Thread):
     delay = 1
     max_tries = 0
 
-    def __init__(self, importer, meta_url, user, throttle_queue=None):
+    def __init__(self, importer, meta_url, job_queue):
         super(CicUssdConnectWorker, self).__init__()
-        self.user = user 
         self.meta_url = meta_url
         self.imp = importer
-        self.q = throttle_queue
+        self.q = job_queue
    
 
     def run(self):
-        ph = phone_number_to_e164(self.user.phone, None)
+        while True:
+            u = self.q.get()
+            if u == None:
+                return
+            self.process(u)
+
+
+    def process(self, u):
+        ph = phone_number_to_e164(u.phone, None)
         ph_bytes = ph.encode('utf-8')
         self.ptr = generate_metadata_pointer(ph_bytes, MetadataPointer.PHONE)
         self.req = CicUssdConnectWorker.req_factory(self.meta_url, self.ptr)
@@ -184,32 +191,3 @@ class CicUssdImporter(Importer):
 
         serialized_block = self._export_user_block(address, block, tx)
         self.dh.add(address, serialized_block, 'ussd_tx_src')
-        
-#
-#            s_person_metadata = celery.signature(
-#                'import_task.generate_person_metadata', [phone_number], queue=args.q
-#            )
-#
-#            s_ussd_data = celery.signature(
-#                'import_task.generate_ussd_data', [phone_number], queue=args.q
-#            )
-#
-#            s_preferences_metadata = celery.signature(
-#                'import_task.generate_preferences_data', [], queue=args.q
-#            )
-#
-#            s_pins_data = celery.signature(
-#                'import_task.generate_pins_data', [phone_number], queue=args.q
-#            )
-#            s_opening_balance = celery.signature(
-#                'import_task.opening_balance_tx', [phone_number, i], queue=args.q
-#            )
-#        celery.chain(s_resolve_phone,
-#                     s_person_metadata,
-#                     s_ussd_data,
-#                     s_preferences_metadata,
-#                     s_pins_data,
-#                     s_opening_balance).apply_async(countdown=7)
-#
-#
-#

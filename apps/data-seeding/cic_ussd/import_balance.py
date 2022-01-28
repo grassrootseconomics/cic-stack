@@ -4,6 +4,8 @@ import json
 import logging
 import os
 import sys
+import threading
+import queue
 
 # external imports
 import confini
@@ -105,6 +107,7 @@ config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
 config.add(args.user_dir, '_USERDIR', True) 
 config.add(args.timeout, '_TIMEOUT', True)
+config.add(8, '_THREADS', True)
 config.add(False, '_RESET', True)
 logg.debug('loaded config: \n{}'.format(config))
 
@@ -116,7 +119,6 @@ if args.y != None:
     logg.debug('now have key for signer address {}'.format(signer_address))
 signer = EIP155Signer(keystore)
 
-queue = args.q
 chain_str = config.get('CHAIN_SPEC')
 
 block_offset = 0
@@ -147,27 +149,27 @@ class DeferredImporter(threading.Thread):
         self.syncer.loop(self.delay, rpc)
 
 
-def spawn_connect_workers(imp, config, count):
-    workers = []
+class Spawner(threading.Thread):
 
-    throttle_queue = queue.SimpleQueue(maxsize=8)
-    i = count
-    while True:
-        throttle_queue.get()
-        phone = None
-        try:
-            address = imp.get(i, 'ussd_phone')
-        except FileNotFoundError as e:
-            break
-        u = imp.user_by_address(address, original=True)
+    def __init__(self, imp, queue, offset):
+        super(Spawner, self).__init__()
+        self.imp = imp
+        self.q = queue
+        self.offset = offset
 
-        w = CicUssdConnectWorker(imp, config.get('META_PROVIDER'), u, throttle_queue=throttle_queue)
-        i += 1
-        w.start()
-        workers.append(w)
 
-    return workers
-
+    def run(self):
+        i = self.offset
+        while True:
+            address = None
+            try:
+                address = self.imp.get(i, 'ussd_phone')
+            except FileNotFoundError as e:
+                break
+            u = imp.user_by_address(address, original=True)
+            self.q.put(u)
+            i += 1
+            
 
 def main():
     global block_offset, block_limit
@@ -186,7 +188,16 @@ def main():
     imp.prepare()
     
     offset = unconnected_phone_store.tell()
-    workers = spawn_connect_workers(imp, config, offset)
+
+    q = queue.Queue(maxsize=config.get('_THREADS'))
+    workers = []
+    for i in range(config.get('_THREADS')):
+        w = CicUssdConnectWorker(imp, config.get('META_PROVIDER'), q)
+        w.start()
+        workers.append(w)
+
+    spawner = Spawner(imp, q, offset)
+    spawner.start()
 
     o = block_latest_query()
     block_latest = rpc.do(o)
@@ -222,7 +233,9 @@ def main():
 
     syncer.add_filter(imp)
     syncer.loop(1.0, rpc)
-   
+  
+    spawner.join()
+
     deferred_thread.join()
     
     for w in workers:
