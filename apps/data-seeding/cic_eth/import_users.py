@@ -25,7 +25,10 @@ from chainlib.eth.connection import EthHTTPConnection
 
 # local imports
 #from common.dirs import initialize_dirs
-from cic_seeding.imports.cic_eth import CicEthImporter
+from cic_seeding.imports.cic_eth import (
+        CicEthImporter,
+        CicEthRedisTransport,
+        )
 from cic_seeding.index import AddressIndex
 from cic_seeding.chain import (
         set_chain_address,
@@ -105,6 +108,7 @@ rpc = EthHTTPConnection(config.get('RPC_PROVIDER'))
 
 
 if __name__ == '__main__':
-    imp = CicEthImporter(config, rpc)
+    redis_transport = CicEthRedisTransport(config)
+    imp = CicEthImporter(config, rpc, None, None, result_transport=redis_transport)
     imp.prepare()
     imp.process_src(tags=args.tag)

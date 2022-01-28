@@ -80,11 +80,9 @@ class CicEthRedisTransport:
 
 class CicEthImporter(Importer):
 
-    def __init__(self, config, rpc, result_transport=None, stores={}):
-        super(CicEthImporter, self).__init__(config, rpc, stores=stores)
+    def __init__(self, config, rpc, signer, signer_address, result_transport=None, stores={}):
+        super(CicEthImporter, self).__init__(config, rpc, signer, signer_address, stores=stores)
         self.res = result_transport
-        if self.res == None:
-            self.res = CicEthRedisTransport(config)
         self.queue = config.get('CELERY_QUEUE')
 
 
@@ -122,4 +120,4 @@ class CicEthImporter(Importer):
             return
 
         # transfer old balance
-        self.__gift_tokens(conn, u)
+        self._gift_tokens(conn, u)

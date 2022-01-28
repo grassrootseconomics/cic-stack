@@ -4,22 +4,16 @@ import json
 
 # external imports
 from chainlib.eth.address import to_checksum_address
-from hexathon import (
-        add_0x,
-        strip_0x,
-        )
+from hexathon import add_0x
 from funga.eth.keystore.keyfile import to_dict as to_keyfile_dict
 from funga.eth.keystore.dict import DictKeystore
 from chainlib.eth.gas import (
         RPCGasOracle,
         Gas,
         )
-from chainlib.eth.nonce import RPCNonceOracle
-from chainlib.status import Status as TxStatus
 from chainlib.hash import keccak256_string_to_hex
 from cic_types.models.person import Person
 from eth_erc20 import ERC20
-from chainlib.eth.error import RequestMismatchException
 from erc20_faucet import Faucet
 from eth_accounts_index import AccountsIndex
 
@@ -42,13 +36,8 @@ class EthImporter(Importer):
     account_index_add_signature = keccak256_string_to_hex('add(address)')[:8]
 
     def __init__(self, rpc, signer, signer_address, config, stores={}):
-        super(EthImporter, self).__init__(config, rpc, stores=stores)
+        super(EthImporter, self).__init__(config, rpc, signer, signer_address, stores=stores)
         self.keystore = DictKeystore()
-        self.signer = signer
-        self.signer_address = signer_address
-        self.nonce_oracle = RPCNonceOracle(signer_address, rpc)
-        self.token_address = None
-        self.token_symbol = None
         self.gas_gift_amount = int(config.get('ETH_GAS_AMOUNT'))
 
         self.token_decimals = None
@@ -63,7 +52,7 @@ class EthImporter(Importer):
         self.rpc.do(o)
 
         # export tx
-        self.__export_tx(tx_hash_hex, o['params'][0])
+        self._export_tx(tx_hash_hex, o['params'][0])
 
         return tx_hash_hex
 
@@ -76,7 +65,7 @@ class EthImporter(Importer):
         conn.do(o)
 
         # export tx
-        self.__export_tx(tx_hash_hex, o['params'][0])
+        self._export_tx(tx_hash_hex, o['params'][0])
 
         logg.info('gas gift value {} submitted for {} tx {}'.format(self.gas_gift_amount, user, tx_hash_hex))
 
@@ -92,12 +81,6 @@ class EthImporter(Importer):
         legacy_link_data(path)
 
         return path
-
-
-    def __export_tx(self, tx_hash, data):
-        tx_hash_hex = strip_0x(tx_hash)
-        tx_data = strip_0x(data)
-        self.dh.add(tx_hash_hex, tx_data, 'txs')
 
 
     def create_account(self, i, u):
@@ -125,28 +108,11 @@ class EthImporter(Importer):
         r = conn.do(o)
     
         # export tx
-        self.__export_tx(tx_hash_hex, o['params'][0])
+        self._export_tx(tx_hash_hex, o['params'][0])
 
         logg.info('faucet trigger submitted for {} tx {}'.format(user, tx_hash_hex))
 
         return tx_hash_hex
-
-
-    def __gift_tokens(self, conn, user):
-        balance_full = user.original_balance * self.token_multiplier
-
-        gas_oracle = RPCGasOracle(self.rpc, code_callback=self.get_max_gas)
-        erc20 = ERC20(self.chain_spec, signer=self.signer, gas_oracle=gas_oracle, nonce_oracle=self.nonce_oracle)
-        (tx_hash_hex, o) = erc20.transfer(self.token_address, self.signer_address, user.address, balance_full)
-        r = conn.do(o)
-
-        # export tx
-        self.__export_tx(tx_hash_hex, o['params'][0])
-
-        logg.info('token gift value {} submitted for {} tx {}'.format(balance_full, user, tx_hash_hex))
-
-        return tx_hash_hex
-
 
 
     def filter(self, conn, block, tx, db_session):
@@ -156,7 +122,7 @@ class EthImporter(Importer):
             return
         
         # transfer old balance
-        self.__gift_tokens(conn, u)
+        self._gift_tokens(conn, u)
         
         # run the faucet
         self.__trigger_faucet(conn, u)

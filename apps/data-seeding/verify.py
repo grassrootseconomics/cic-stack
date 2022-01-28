@@ -481,7 +481,7 @@ def main():
     conn = EthHTTPConnection(config.get('RPC_PROVIDER'))
     gas_oracle = OverrideGasOracle(conn=conn, limit=8000000)
  
-    imp = Importer(config, conn)
+    imp = Importer(config, conn, None, None)
     imp.prepare()
 
     verifier = Verifier(imp, conn, api, gas_oracle, chain_spec, exit_on_error=exit_on_error)

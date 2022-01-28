@@ -19,6 +19,10 @@ from chainlib.eth.gas import RPCGasOracle
 from eth_erc20 import ERC20
 from chainlib.eth.address import is_same_address
 from eth_contract_registry import Registry
+from chainlib.status import Status as TxStatus
+from chainlib.eth.nonce import RPCNonceOracle
+from chainlib.eth.error import RequestMismatchException
+from hexathon import strip_0x
 
 # local imports
 from cic_seeding import DirHandler
@@ -87,7 +91,7 @@ class Importer:
     max_gas = 8000000
     min_gas = 30000
 
-    def __init__(self, config, rpc, stores={}, default_tag=[]):
+    def __init__(self, config, rpc, signer, signer_address, stores={}, default_tag=[]):
         self.chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
         self.source_chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC_SOURCE'))
 
@@ -96,19 +100,28 @@ class Importer:
         self.stores['balances'] = AddressIndex(value_filter=remove_zeros_filter, name='balance index')
 
         for k in stores:
+            logg.info('adding auxiliary dirhandler store {}'.format(k))
             self.stores[k] = stores[k]
-       
+
         self.dh = DirHandler(config.get('_USERDIR'), stores=self.stores, exist_ok=True)
         try:
             reset = config.get('_RESET')
             self.dh.initialize_dirs(reset=config.true('_RESET'))
-        except KeyError:
-            logg.debug('whoa')
+        except KeyError as e:
+            logg.error('whoa {}'.format(e))
             pass
         self.default_tag = default_tag
 
         self.index_count = {}
 
+        self.signer = signer
+        self.aigner_address = None
+        self.nonce_oracle = None
+        if self.signer != None:
+            self.signer_address = signer_address
+            self.nonce_oracle = RPCNonceOracle(signer_address, rpc)
+        self.token_address = None
+        self.token_symbol = None
         self.registry = Registry(self.chain_spec)
         self.registry_address = config.get('CIC_REGISTRY_ADDRESS')
 
@@ -197,6 +210,7 @@ class Importer:
                 'balances',
                 ]:
             path = self.dh.path(None, k)
+            logg.info('store {} {}'.format(k, path))
             c = self.stores[k].add_from_file(path)
             self.index_count[k] = c
 
@@ -338,6 +352,31 @@ class Importer:
             return None
 
         logg.info('tx user match for ' + u.description)
+
+        return u
+
+
+    def _gift_tokens(self, conn, user):
+        logg.debug('foo')
+        balance_full = user.original_balance * self.token_multiplier
+
+        gas_oracle = RPCGasOracle(self.rpc, code_callback=self.get_max_gas)
+        erc20 = ERC20(self.chain_spec, signer=self.signer, gas_oracle=gas_oracle, nonce_oracle=self.nonce_oracle)
+        (tx_hash_hex, o) = erc20.transfer(self.token_address, self.signer_address, user.address, balance_full)
+        r = conn.do(o)
+
+        # export tx
+        self._export_tx(tx_hash_hex, o['params'][0])
+
+        logg.info('token gift value {} submitted for {} tx {}'.format(balance_full, user, tx_hash_hex))
+
+        return tx_hash_hex
+
+
+    def _export_tx(self, tx_hash, data):
+        tx_hash_hex = strip_0x(tx_hash)
+        tx_data = strip_0x(data)
+        self.dh.add(tx_hash_hex, tx_data, 'txs')
 
 
     def filter(self, conn, block, tx, db_session):

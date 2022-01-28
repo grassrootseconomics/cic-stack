@@ -33,12 +33,14 @@ from funga.eth.signer import EIP155Signer
 from hexathon import (
     strip_0x,
 )
+from chainlib.eth.block import block_latest as block_latest_query
 
 # local imports
 from cic_seeding.chain import get_chain_addresses
-from cic_seeding import DirHandler
+from cic_seeding.imports.cic_eth import CicEthImporter
 from cic_seeding.index import AddressIndex
 from cic_seeding.filter import remove_zeros_filter
+from cic_seeding.notify import sync_progress_callback
 
 
 logging.basicConfig(level=logging.WARNING)
@@ -63,6 +65,7 @@ argparser.add_argument('--offset', type=int, default=0, help='block offset to st
 argparser.add_argument('--until', type=int, default=0, help='block to terminate syncing at')
 argparser.add_argument('--keep-alive', dest='keep_alive', action='store_true', help='continue syncing after latest block reched')
 argparser.add_argument('--gas-amount', dest='gas_amount', type=int, help='amount of gas to gift to new accounts')
+argparser.add_argument('--timeout', default=60.0, type=float, help='Callback timeout')
 argparser.add_argument('-v', help='be verbose', action='store_true')
 argparser.add_argument('-vv', help='be more verbose', action='store_true')
 argparser.add_argument('user_dir', type=str, help='user export directory')
@@ -92,6 +95,8 @@ config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
 config.add(args.user_dir, '_USERDIR', True) 
+config.add(args.timeout, '_TIMEOUT', True)
+config.add(False, '_RESET', True)
 logg.debug('loaded config: \n{}'.format(config))
 
 signer_address = None
@@ -121,11 +126,11 @@ rpc = EthHTTPConnection(args.p)
 
 
 def main():
-    global chain_str, block_offset, user_dir
+    global block_offset, block_limit
  
     #balances = AddressIndex(value_filter=remove_zeros_filter, name='balance index')
 
-    imp = EthImporter(rpc, signer, signer_address, config)
+    imp = CicEthImporter(config, rpc, signer, signer_address)
     imp.prepare()
 
     o = block_latest_query()
@@ -180,14 +185,14 @@ def main():
     # TODO get decimals from token
     syncer = None
     if block_limit > 0:
-        syncer = HistorySyncer(syncer_backend, chain_interface, block_callback=progress_callback)
+        syncer = HistorySyncer(syncer_backend, chain_interface, block_callback=sync_progress_callback)
         logg.info('using historysyncer: {}'.format(syncer_backend))
     else:
-        syncer = HeadSyncer(syncer_backend, chain_interface, block_callback=progress_callback)
+        syncer = HeadSyncer(syncer_backend, chain_interface, block_callback=sync_progress_callback)
         logg.info('using headsyncer: {}'.format(syncer_backend))
 
     syncer.add_filter(imp)
-    syncer.loop(1, conn)
+    syncer.loop(1, rpc)
     
 
 if __name__ == '__main__':
