@@ -188,7 +188,7 @@ def main():
 
 
     sync_imp = SimpleImporter(config, rpc, signer, signer_address)
-    syncer = DeferredSyncer(syncer_backend, imp, 'ussd_tx_src', block_callback=sync_progress_callback)
+    syncer = DeferredSyncer(syncer_backend, chain_interface, imp, 'ussd_tx_src', block_callback=sync_progress_callback)
     syncer.add_filter(sync_imp)
     syncer.loop(1, rpc)
     sys.exit(0)    
