@@ -6,18 +6,28 @@ import uuid
 import os
 import json
 import threading
+import time
 
 # external imports
 from urlybird.host import url_apply_port_string
 import phonenumbers
+from cic_types.processor import (
+        generate_metadata_pointer,
+        phone_number_to_e164,
+        )
+from cic_types.condiments import MetadataPointer
 
 # local imports
 from cic_seeding.imports import (
         Importer,
         ImportUser,
         )
+from cic_seeding.chain import (
+        set_chain_address,
+        )
 
-logg = logging.getLogger(__name__)
+
+logg = logging.getLogger()
 
 
 def _ussd_url(config):
@@ -38,15 +48,10 @@ def _ussd_ssl(config):
     return False
 
 
-# TODO: is this really necessary, is it not already taken care of by cic-types?
-def _e164_phone_number(phone_number: str):
-    phone_object = phonenumbers.parse(phone_number)
-    return phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
-
-
 def default_req_factory(meta_url, ptr):
-    url = urllib.parse.urljoin(meta_url, ptr)
-    return urllib.request.Request(url=url)
+        url = urllib.parse.urljoin(meta_url, ptr)
+        return urllib.request.Request(url=url)
+
 
 
 class CicUssdConnectWorker(threading.Thread):
@@ -55,34 +60,47 @@ class CicUssdConnectWorker(threading.Thread):
     delay = 1
     max_tries = 0
 
-    def __init__(self, user, meta_url):
+    def __init__(self, importer, meta_url, user):
         super(CicUssdConnectWorker, self).__init__()
         self.user = user 
         self.meta_url = meta_url
-       
+        self.imp = importer
+   
 
     def run(self):
-        ph = phone_number_to_e164(user.tel, None)
-        self.phone = ph.encode('utf-8')
-        self.ptr = self.generate_metadata_pointer(self.phone, MetadataPointer.PHONE)
-        self.req = self.req_factory(meta_url, self.ptr)
+        logg.debug('starting')
+
+        ph = phone_number_to_e164(self.user.phone, None)
+        ph_bytes = ph.encode('utf-8')
+        self.ptr = generate_metadata_pointer(ph_bytes, MetadataPointer.PHONE)
+        self.req = CicUssdConnectWorker.req_factory(self.meta_url, self.ptr)
 
         tries = 0
+
+        address = None
         while True:
             r = None
             tries += 1
             try:
                 r = urllib.request.urlopen(self.req)
+                address = json.load(r)
                 break 
             except urllib.error.HTTPError:
-                if max_tries > 0 and max_tries == tries:
-                    raise RuntimeError('cannot find metadata resource {} -> {}'.format(self.phone, self.ptr))
+                if self.max_tries > 0 and self.max_tries == tries:
+                    raise RuntimeError('cannot find metadata resource {} -> {}'.format(ph, self.ptr))
                 time.sleep(self.delay)
-                continue
             
+            if r == None:
+                continue
+    
+        logg.debug('have address {} for phone {}'.format(address, ph))
 
-            logg.debug('have address!!!!! {}'.format(r.read()))
-            return
+        set_chain_address(self.user.person, self.imp.chain_spec, address)
+
+        o = self.user.person.serialize()
+        v = json.dumps(o)
+
+        self.imp.add(address, v, 'new')
 
 
 class CicUssdImporter(Importer):
@@ -118,13 +136,10 @@ class CicUssdImporter(Importer):
         return req
 
 
-    def _queue_user(self, i, u):
+    def _queue_user(self, i, u, tags=[]):
         iu = ImportUser(self.dh, u, self.chain_spec, self.source_chain_spec)
         self.dh.add(None, iu.original_address, 'ussd_phone')
 
-
-    def get(self, k):
-        return self.dh.get(k)
 
         
     def prepare(self):
@@ -142,7 +157,7 @@ class CicUssdImporter(Importer):
 
 
     def create_account(self, i, u):
-        phone_number = _e164_phone_number(u.tel)
+        phone_number = phone_number_to_e164(u.tel, None)
         req = self._build_ussd_request(
                              phone_number,
                              self.ussd_service_code,

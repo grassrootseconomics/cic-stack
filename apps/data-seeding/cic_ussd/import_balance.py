@@ -37,7 +37,10 @@ from chainlib.eth.block import block_latest as block_latest_query
 
 # local imports
 from cic_seeding.chain import get_chain_addresses
-from cic_seeding.imports.cic_ussd import CicUssdImporter
+from cic_seeding.imports.cic_ussd import (
+        CicUssdImporter,
+        CicUssdConnectWorker,
+        )
 from cic_seeding.index import AddressQueue
 from cic_seeding.filter import remove_zeros_filter
 from cic_seeding.notify import sync_progress_callback
@@ -130,7 +133,6 @@ def main():
 
     store_path = os.path.join(config.get('_USERDIR'), 'ussd_address')
     unconnected_address_store = AddressQueue(store_path)
-    ##unconnected_address_interface = QueueInterface(unconnected_address_store)
 
     store_path = os.path.join(config.get('_USERDIR'), 'ussd_phone')
     unconnected_phone_store = AddressQueue(store_path)
@@ -141,17 +143,26 @@ def main():
         },
         )
     imp.prepare()
-    sys.exit(0)
-
+    
+    workers = []
+    i = unconnected_phone_store.tell()
     while True:
         phone = None
         try:
-            phone = self.imp.get(None, 'ussd_phone')
-        except FileNotFoundError:
+            address = imp.get(i, 'ussd_phone')
+        except FileNotFoundError as e:
+            logg.debug('e {}'.format(e))
             break
+        u = imp.user_by_address(address, original=True)
 
-        CicUssdConnectWorker(config.get('META_PROVIDER', phone))
+        w = CicUssdConnectWorker(imp, config.get('META_PROVIDER'), u)
+        i += 1
+        w.start()
 
+    for w in workers:
+        w.join()
+
+    sys.exit(0)
 
     o = block_latest_query()
     block_latest = rpc.do(o)

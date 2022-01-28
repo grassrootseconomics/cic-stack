@@ -52,12 +52,13 @@ class ImportUser:
         self.person = person
         self.chain_spec = target_chain_spec
         self.source_chain_spec = source_chain_spec
+        self.phone = self.person.tel
 
         addresses = None
         try:
             addresses = get_chain_addresses(person, target_chain_spec)
         except AttributeError:
-            logg.debug('user has no valid target chain spec: {}'.format(target_chain_spec))
+            logg.debug('user has no address for target chain spec: {}'.format(target_chain_spec))
             pass
 
         self.address = None
@@ -161,12 +162,23 @@ class Importer:
         self.rpc = rpc
 
 
+    def add(self, k, v, dirkey):
+        return self.dh.add(k, v, dirkey)
+
+
+    def get(self, k, dirkey):
+        return self.dh.get(k, dirkey)
+
+
     def path(self, k):
         return self.dh.dirs.get(k)
 
 
-    def user_by_address(self, address):
-        j = self.dh.get(address, 'new')
+    def user_by_address(self, address, original=False):
+        k = 'new'
+        if original:
+            k = 'src'
+        j = self.dh.get(address, k)
         o = json.loads(j)
         person = Person.deserialize(o)
         return ImportUser(self.dh, person, self.chain_spec, self.source_chain_spec)
@@ -321,7 +333,7 @@ class Importer:
         legacy_link_data(custom_path)
 
 
-    def walk(self, callback, batch_size=100, batch_delay=0.2):
+    def walk(self, callback, tags=[], batch_size=100, batch_delay=0.2):
        srcdir = self.dh.dirs.get('src')
 
        i = 0
@@ -338,7 +350,7 @@ class Importer:
 
                logg.debug('person {}'.format(u))
 
-               callback(i, u)
+               callback(i, u, tags=tags)
 
                i += 1
                sys.stdout.write('processed {} {}'.format(i, u).ljust(200) + "\r")
@@ -348,14 +360,14 @@ class Importer:
                    time.sleep(batch_delay)
 
 
-    def process_sync(self, i, u):
+    def process_sync(self, i, u, tags=[]):
         # create new ethereum address (in custodial backend)
         new_address = self.process_user(i, u)
         self.process_address(i, u, new_address, tags=tags)
 
         
     def process_src(self, tags=[], batch_size=100, batch_delay=0.2):
-        self.walk(self.process_sync, batch_size=100, batch_delay=0.2)
+        self.walk(self.process_sync, tags=tags, batch_size=100, batch_delay=0.2)
 
 
     def _address_by_tx(self, tx):

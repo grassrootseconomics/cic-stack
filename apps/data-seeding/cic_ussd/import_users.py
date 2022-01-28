@@ -18,9 +18,8 @@ from cic_types.models.person import Person
 from chainlib.eth.connection import EthHTTPConnection
 
 # local imports
-#from common.dirs import initialize_dirs
-#from import_util import get_celery_worker_status
 from cic_seeding.imports.cic_ussd import CicUssdImporter
+from cic_seeding.index import AddressQueue
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -115,6 +114,16 @@ logg.debug(f'config loaded from {args.c}:\n{config}')
 
 
 if __name__ == '__main__':
-    imp = CicUssdImporter(config, None, None, None)
+    store_path = os.path.join(config.get('_USERDIR'), 'ussd_address')
+    unconnected_address_store = AddressQueue(store_path)
+
+    store_path = os.path.join(config.get('_USERDIR'), 'ussd_phone')
+    unconnected_phone_store = AddressQueue(store_path)
+
+    imp = CicUssdImporter(config, None, None, None, stores={
+        'ussd_address': unconnected_address_store,
+        'ussd_phone': unconnected_phone_store,
+        },
+        )
     imp.prepare()
     imp.process_src(tags=args.tag)

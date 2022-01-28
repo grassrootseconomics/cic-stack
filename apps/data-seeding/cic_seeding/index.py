@@ -100,6 +100,10 @@ class AddressQueue:
 
         logg.info('start queue index set to {}'.format(self.c))
 
+    
+    def tell(self):
+        return self.c
+
 
     def add(self, k, v):
         if k != None and k != self.c:
@@ -112,17 +116,18 @@ class AddressQueue:
 
 
     def get(self, k):
-        newd = os.path.join(self.newdir, k)
-        curd = os.path.join(self.curdir, k)
+        newd = os.path.join(self.newdir, str(k))
+        curd = os.path.join(self.curdir, str(k))
         shutil.move(newd, curd)
         f = open(curd, 'r')
         v = f.read()
         f.close()
+        return v
 
 
     def rm(self, k):
-        curd= os.path.join(self.curdir, k)
-        deld = os.path.join(self.curdir, k)
+        curd = os.path.join(self.curdir, k)
+        deld = os.path.join(self.deldir, k)
         shutil.move(curd, deld)
 
 
