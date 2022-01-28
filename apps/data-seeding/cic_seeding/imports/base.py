@@ -11,6 +11,14 @@ from cic_types.models.person import Person
 from cic_types.processor import generate_metadata_pointer
 from cic_types import MetadataPointer
 from chainlib.chain import ChainSpec
+from chainlib.eth.address import to_checksum_address
+from eth_token_index import TokenUniqueSymbolIndex
+from eth_accounts_index import AccountsIndex
+from erc20_faucet import Faucet
+from chainlib.eth.gas import RPCGasOracle
+from eth_erc20 import ERC20
+from chainlib.eth.address import is_same_address
+from eth_contract_registry import Registry
 
 # local imports
 from cic_seeding import DirHandler
@@ -76,7 +84,10 @@ class ImportUser:
 
 class Importer:
 
-    def __init__(self, config, stores={}, default_tag=[]):
+    max_gas = 8000000
+    min_gas = 30000
+
+    def __init__(self, config, rpc, stores={}, default_tag=[]):
         self.chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
         self.source_chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC_SOURCE'))
 
@@ -98,6 +109,17 @@ class Importer:
 
         self.index_count = {}
 
+        self.registry = Registry(self.chain_spec)
+        self.registry_address = config.get('CIC_REGISTRY_ADDRESS')
+
+        self.lookup = {
+            'account_registry': None,
+            'token_index': None,
+            'faucet': None,
+                }
+
+        self.rpc = rpc
+
 
     def user_by_address(self, address):
         j = self.dh.get(address, 'new')
@@ -110,6 +132,65 @@ class Importer:
         return self.index_count['balances']
 
 
+    def _token_index(self):
+        o = self.registry.address_of(self.registry_address, 'TokenRegistry')
+        r = self.rpc.do(o)
+        token_index_address = self.registry.parse_address_of(r)
+        self.lookup['token_index'] = to_checksum_address(token_index_address)
+        logg.info('found token index address {}'.format(token_index_address))
+
+    
+    def _account_registry(self):
+        o = self.registry.address_of(self.registry_address, 'AccountRegistry')
+        r = self.rpc.do(o)
+        account_registry = self.registry.parse_address_of(r)
+        self.lookup['account_registry'] = to_checksum_address(account_registry)
+        logg.info('using account registry {}'.format(self.lookup.get('account_registry')))
+
+
+    def _faucet(self):
+        o = self.registry.address_of(self.registry_address, 'Faucet')
+        r = self.rpc.do(o)
+        faucet_address = self.registry.parse_address_of(r)
+        self.lookup['faucet'] = to_checksum_address(faucet_address)
+        logg.info('found faucet {}'.format(faucet_address))
+
+
+    def _default_token(self, address, token_symbol='GFT'):
+        # TODO: in place of default value in arg, should get registry default token as fallback
+        token_index = TokenUniqueSymbolIndex(self.chain_spec)
+        o = token_index.address_of(address, token_symbol)
+        r = self.rpc.do(o)
+        token_address = token_index.parse_address_of(r)
+        try:
+            self.token_address = to_checksum_address(token_address)
+        except ValueError as e:
+            logg.critical('lookup failed for token {}: {}'.format(token_symbol, e))
+            sys.exit(1)
+        self.token_symbol = token_symbol
+        logg.info('found address {} for token {}'.format(token_address, token_symbol))
+
+
+    def __init_lookups(self):
+        for v in  [
+                'account_registry',
+                'token_index',
+                'faucet',
+                ]:
+            getattr(self, '_' + v)()
+        self.lookup['token'] = self._default_token(self.lookup.get('token_index'))
+
+
+    def __set_token_details(self):
+        gas_oracle = RPCGasOracle(self.rpc, code_callback=self.get_max_gas)
+        erc20 = ERC20(self.chain_spec)
+        o = erc20.decimals(self.token_address)
+        r = self.rpc.do(o)
+        logg.info('token {} has {} decimals'.format(self.token_symbol, r))
+        self.token_decimals = erc20.parse_decimals(r)
+        self.token_multiplier = 10 ** self.token_decimals
+
+
     def prepare(self):
         for k in [
                 'tags',
@@ -118,6 +199,10 @@ class Importer:
             path = self.dh.path(None, k)
             c = self.stores[k].add_from_file(path)
             self.index_count[k] = c
+
+        self.__init_lookups()
+
+        self.__set_token_details()
 
 
     def filter(self, conn, block, tx, db_session):
@@ -206,5 +291,10 @@ class Importer:
                 if j == batch_size:
                     time.sleep(batch_delay)
 
-    def process_target(self):
-        pass
+
+    def get_max_gas(self, v):
+        return self.max_gas
+
+
+    def get_min_gas(self, v):
+        return self.min_gas

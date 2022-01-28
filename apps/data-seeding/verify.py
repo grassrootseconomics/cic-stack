@@ -53,7 +53,7 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 base_config_dir = os.path.join(script_dir, 'config')
 
 custodial_tests = [
-        'local_key',
+        'custodial_key',
         'gas',
         'faucet',
         'ussd',
@@ -77,7 +77,7 @@ phone_tests = [
         ]
 
 admin_tests = [
-        'local_key',
+        'custodial_key',
         ]
 
 cache_tests = [
@@ -287,31 +287,30 @@ class VerifierError(Exception):
 
 class Verifier:
 
-    # TODO: what an awful function signature
-    def __init__(self, importer, conn, cic_eth_api, gas_oracle, chain_spec, index_address, token_address, faucet_address, data_dir, exit_on_error=False):
+    def __init__(self, importer, conn, cic_eth_api, gas_oracle, chain_spec, exit_on_error=False):
         self.conn = conn
         self.gas_oracle = gas_oracle
         self.chain_spec = chain_spec
-        self.index_address = index_address
-        self.token_address = token_address
-        self.faucet_address = faucet_address
         self.erc20_tx_factory = ERC20(chain_spec, gas_oracle=gas_oracle)
         self.tx_factory = TxFactory(chain_spec, gas_oracle=gas_oracle)
-        self.api = cic_eth_api
-        self.data_dir = data_dir
-        self.exit_on_error = exit_on_error
         self.faucet_tx_factory = Faucet(chain_spec, gas_oracle=gas_oracle)
+        self.api = cic_eth_api
+        self.exit_on_error = exit_on_error
         self.imp = importer
+        self.lookup = self.imp.lookup
+        self.faucet_amount = 0
 
         verifymethods = []
         for k in dir(self):
             if len(k) > 7 and k[:7] == 'verify_':
                 logg.debug('verifier has verify method {}'.format(k))
-                verifymethods.append(k[7:])
-        o = self.faucet_tx_factory.token_amount(self.faucet_address, sender_address=ZERO_ADDRESS)
-        r = self.conn.do(o)
-        self.faucet_amount = self.faucet_tx_factory.parse_token_amount(r)
-        logg.info('faucet amount set to {} at verify initialization time'.format(self.faucet_amount))
+                method = k[7:]
+                verifymethods.append(method)
+                if method == 'faucet':
+                    o = self.faucet_tx_factory.token_amount(self.lookup.get('faucet'), sender_address=ZERO_ADDRESS)
+                    r = self.conn.do(o)
+                    self.faucet_amount = self.faucet_tx_factory.parse_token_amount(r)
+                    logg.info('faucet amount set to {} at verify initialization time'.format(self.faucet_amount))
 
         self.state = VerifierState(verifymethods, len(self.imp), active_tests=active_tests)
 
@@ -320,16 +319,15 @@ class Verifier:
 
     def verify_accounts_index(self, address, balance=None):
         accounts_index = AccountsIndex(self.chain_spec)
-        o = accounts_index.have(self.index_address, address)
+        o = accounts_index.have(self.lookup.get('account_registry'), address)
         r = self.conn.do(o)
         n = accounts_index.parse_have(r)
-        logg.debug('index check for {}: {}'.format(address, n))
         if n != 1:
             raise VerifierError(n, 'accounts index')
 
 
     def verify_balance(self, address, balance):
-        o = self.erc20_tx_factory.balance(self.token_address, address)
+        o = self.erc20_tx_factory.balance(self.imp.token_address, address)
         r = self.conn.do(o)
         try:
             actual_balance = int(strip_0x(r), 16)
@@ -337,15 +335,13 @@ class Verifier:
             actual_balance = int(r)
         balance = int(balance) * 1000000
         balance += self.faucet_amount
-        logg.info('balance for {}: {}'.format(address, balance))
         if balance != actual_balance:
             raise VerifierError((actual_balance, balance), 'balance')
 
 
-    def verify_local_key(self, address, balance=None):
+    def verify_custodial_key(self, address, balance=None):
         t = self.api.have_account(address, self.chain_spec)
         r = t.get()
-        logg.debug('verify local key result {}'.format(r))
         if r != address:
             raise VerifierError((address, r), 'local key')
 
@@ -353,14 +349,13 @@ class Verifier:
     def verify_gas(self, address, balance_token=None):
         o = balance(add_0x(address))
         r = self.conn.do(o)
-        logg.debug('wtf {}'.format(r))
         actual_balance = int(strip_0x(r), 16)
         if actual_balance == 0:
             raise VerifierError((address, actual_balance), 'gas')
 
 
     def verify_faucet(self, address, balance_token=None):
-        o = self.faucet_tx_factory.usable_for(self.faucet_address, address)
+        o = self.faucet_tx_factory.usable_for(self.lookup.get('faucet'), address)
         r = self.conn.do(o)
         if self.faucet_tx_factory.parse_usable_for(r):
             raise VerifierError((address, r), 'faucet')
@@ -369,7 +364,6 @@ class Verifier:
     def verify_metadata(self, address, balance=None):
         k = generate_metadata_pointer(bytes.fromhex(strip_0x(address)), MetadataPointer.PERSON)
         url = os.path.join(config.get('META_PROVIDER'), k)
-        logg.debug('verify metadata url {}'.format(url))
         try:
             res = urllib.request.urlopen(url)
         except urllib.error.HTTPError as e:
@@ -486,46 +480,11 @@ def main():
     
     conn = EthHTTPConnection(config.get('RPC_PROVIDER'))
     gas_oracle = OverrideGasOracle(conn=conn, limit=8000000)
-
-    # TODO: replace with corresponding init in importer
-    # Get Token registry address
-    registry = Registry(chain_spec)
-    o = registry.address_of(config.get('CIC_REGISTRY_ADDRESS'), 'TokenRegistry')
-    r = conn.do(o)
-    token_index_address = registry.parse_address_of(r)
-    token_index_address = to_checksum_address(token_index_address)
-    logg.info('found token index address {}'.format(token_index_address))
-
-    # Get Account registry address
-    o = registry.address_of(config.get('CIC_REGISTRY_ADDRESS'), 'AccountRegistry')
-    r = conn.do(o)
-    account_index_address = registry.parse_address_of(r)
-    account_index_address = to_checksum_address(account_index_address)
-    logg.info('found account index address {}'.format(account_index_address))
-
-    # Get Faucet address
-    o = registry.address_of(config.get('CIC_REGISTRY_ADDRESS'), 'Faucet')
-    r = conn.do(o)
-    faucet_address = registry.parse_address_of(r)
-    faucet_index_address = to_checksum_address(token_index_address)
-    logg.info('found faucet {}'.format(faucet_address))
-
-    # Get Sarafu token address
-    token_index = TokenUniqueSymbolIndex(chain_spec)
-    o = token_index.address_of(token_index_address, token_symbol)
-    r = conn.do(o)
-    token_address = token_index.parse_address_of(r)
-    try:
-        token_address = to_checksum_address(token_address)
-    except ValueError as e:
-        logg.critical('lookup failed for token {}: {}'.format(token_symbol, e))
-        sys.exit(1)
-    logg.info('found token address {}'.format(token_address))
  
-    imp = Importer(config)
+    imp = Importer(config, conn)
     imp.prepare()
 
-    verifier = Verifier(imp, conn, api, gas_oracle, chain_spec, account_index_address, token_address, faucet_address, user_dir, exit_on_error)
+    verifier = Verifier(imp, conn, api, gas_oracle, chain_spec, exit_on_error=exit_on_error)
 
     user_new_dir = os.path.join(user_dir, 'new')
     i = 0
