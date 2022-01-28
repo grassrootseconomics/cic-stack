@@ -12,6 +12,7 @@ from cic_types.processor import generate_metadata_pointer
 from cic_types import MetadataPointer
 from chainlib.chain import ChainSpec
 from chainlib.eth.address import to_checksum_address
+from chainlib.eth.constant import ZERO_ADDRESS
 from eth_token_index import TokenUniqueSymbolIndex
 from eth_accounts_index import AccountsIndex
 from erc20_faucet import Faucet
@@ -23,6 +24,7 @@ from chainlib.status import Status as TxStatus
 from chainlib.eth.nonce import RPCNonceOracle
 from chainlib.eth.error import RequestMismatchException
 from hexathon import strip_0x
+from cic_eth_registry.erc20 import ERC20Token
 
 # local imports
 from cic_seeding import DirHandler
@@ -91,10 +93,8 @@ class Importer:
     max_gas = 8000000
     min_gas = 30000
 
-    def __init__(self, config, rpc, signer, signer_address, stores={}, default_tag=[]):
-        self.chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
-        self.source_chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC_SOURCE'))
-
+    def __init__(self, config, rpc, signer=None, signer_address=None, stores={}, default_tag=[]):
+        # set up import state backend
         self.stores = {}
         self.stores['tags'] = AddressIndex(value_filter=split_filter, name='tags index')
         self.stores['balances'] = AddressIndex(value_filter=remove_zeros_filter, name='balance index')
@@ -114,14 +114,21 @@ class Importer:
 
         self.index_count = {}
 
+        # chain stuff
+        self.chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
+        self.source_chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC_SOURCE'))
+
+        # signer is only needed if we are sending txs
         self.signer = signer
-        self.aigner_address = None
+        self.aigner_address = signer_address
         self.nonce_oracle = None
         if self.signer != None:
             self.signer_address = signer_address
             self.nonce_oracle = RPCNonceOracle(signer_address, rpc)
+
         self.token_address = None
-        self.token_symbol = None
+        self.token = None
+        self.token_multiplier = 1
         self.registry = Registry(self.chain_spec)
         self.registry_address = config.get('CIC_REGISTRY_ADDRESS')
 
@@ -169,19 +176,29 @@ class Importer:
         logg.info('found faucet {}'.format(faucet_address))
 
 
-    def _default_token(self, address, token_symbol='GFT'):
+    def _registry_default_token(self):
+        o = self.registry.address_of(self.registry_address, 'DefaultToken')
+        r = self.rpc.do(o)
+        token_address = self.registry.parse_address_of(r)
+        logg.info('found default token in registry {}'.format(address))
+        return token_address
+
+
+    def _default_token(self, token_index_address, token_symbol='GFT'):
         # TODO: in place of default value in arg, should get registry default token as fallback
         token_index = TokenUniqueSymbolIndex(self.chain_spec)
-        o = token_index.address_of(address, token_symbol)
+        o = token_index.address_of(token_index_address, token_symbol)
         r = self.rpc.do(o)
         token_address = token_index.parse_address_of(r)
+        if is_same_address(token_address, ZERO_ADDRESS):
+            raise FileNotFoundError()
         try:
             self.token_address = to_checksum_address(token_address)
         except ValueError as e:
             logg.critical('lookup failed for token {}: {}'.format(token_symbol, e))
             sys.exit(1)
-        self.token_symbol = token_symbol
-        logg.info('found address {} for token {}'.format(token_address, token_symbol))
+        #self.token_symbol = token_symbol
+        logg.info('token index {} resolved address {} for token {}'.format(token_index_address, token_address, token_symbol))
 
 
     def __init_lookups(self):
@@ -191,17 +208,16 @@ class Importer:
                 'faucet',
                 ]:
             getattr(self, '_' + v)()
-        self.lookup['token'] = self._default_token(self.lookup.get('token_index'))
+        try:
+            self.lookup['token'] = self._default_token(self.lookup.get('token_index'))
+        except FileNotFoundError:
+            self.lookup['token'] = self._registry_default_token()
 
 
     def __set_token_details(self):
-        gas_oracle = RPCGasOracle(self.rpc, code_callback=self.get_max_gas)
-        erc20 = ERC20(self.chain_spec)
-        o = erc20.decimals(self.token_address)
-        r = self.rpc.do(o)
-        logg.info('token {} has {} decimals'.format(self.token_symbol, r))
-        self.token_decimals = erc20.parse_decimals(r)
-        self.token_multiplier = 10 ** self.token_decimals
+        self.token = ERC20Token(self.chain_spec, self.rpc, self.token_address)
+        self.token_multiplier = 10 ** self.token.decimals
+
 
 
     def prepare(self):
