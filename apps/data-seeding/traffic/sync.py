@@ -120,7 +120,7 @@ class TrafficMaker(threading.Thread):
         self.pubsub = self.__connect_redis(self.redis_channel, self.config)
 
         traffic_provisioner = TrafficProvisioner(self.conn)
-        traffic_provisioner.add_aux('redis_channel', self.redis_channel)
+        traffic_provisioner.add_aux('REDIS_CHANNEL', self.redis_channel)
 
         refresh_accounts = None
         # Note! This call may be very expensive if there are a lot of accounts and/or tokens on the network
@@ -211,4 +211,5 @@ class TrafficMaker(threading.Thread):
                     logg.debug('got callback result: {}'.format(match_item))
 
 
+    def __del__(self):
         self.busyqueue.put(self.c)

@@ -36,6 +36,6 @@ def do(token_pair, sender, recipient, sender_balance, aux, block_number):
     See local.noop.do for details on parameters and return values.
     """
     logg.debug('running {} {} {}'.format(__name__, token_pair, sender, recipient))
-    t = create_user(aux['CHAIN_SPEC'], aux['REDIS_HOST_CALLBACK'], aux['REDIS_PORT_CALLBACK'], aux['REDIS_DB'], aux['REDIS_CHANNEL'])
+    t = create_user(aux['CHAIN_SPEC'], aux['_REDIS_HOST_CALLBACK'], aux['_REDIS_PORT_CALLBACK'], aux['_REDIS_DB_CALLBACK'], aux['REDIS_CHANNEL'])
 
     return (None, t, sender_balance, )

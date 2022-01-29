@@ -28,6 +28,7 @@ def do(token_pair, sender, recipient, sender_balance, aux, block_number):
 
     decimals = token_pair[0].decimals()
 
+    logg.debug('sender balacce {}'.format(sender_balance))
     sender_balance_value = sender_balance['balance_network'] - sender_balance['balance_outgoing']
 
     balance_units = int(sender_balance_value / decimals)
@@ -41,7 +42,7 @@ def do(token_pair, sender, recipient, sender_balance, aux, block_number):
     api = Api(
         str(aux['CHAIN_SPEC']),
         queue=queue,
-        callback_param='{}:{}:{}:{}'.format(aux['REDIS_HOST_CALLBACK'], aux['REDIS_PORT_CALLBACK'], aux['REDIS_DB'], aux['REDIS_CHANNEL']),
+        callback_param='{}:{}:{}:{}'.format(aux['_REDIS_HOST_CALLBACK'], aux['_REDIS_PORT_CALLBACK'], aux['_REDIS_DB_CALLBACK'], aux['REDIS_CHANNEL']),
         callback_task='cic_eth.callbacks.redis.redis',
         callback_queue=queue,
         )

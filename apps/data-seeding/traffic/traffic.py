@@ -181,7 +181,7 @@ class TrafficProvisioner:
             )
         t = api.balance(account, token.symbol())
         r = redis_transport.get(t)
-        return r
+        return r[0]
 
 
     def update_balance(self, account, token, value):
