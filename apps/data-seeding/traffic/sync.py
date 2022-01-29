@@ -12,6 +12,7 @@ import redis
 
 # local imports
 from .traffic import TrafficProvisioner
+from .mode import TaskMode
 
 logg = logging.getLogger(__name__)
 
@@ -89,6 +90,7 @@ class TrafficSyncHandler:
         :param db_session: Syncer backend database session
         :type db_session: SQLAlchemy.Session
         """
+        pass
 
 
 class TrafficMaker(threading.Thread):
@@ -170,7 +172,7 @@ class TrafficMaker(threading.Thread):
                 balance_full,
                 )
                 )
-            (e, t, balance_result,) = traffic_item.method(
+            (e, t, spend_value,) = traffic_item.method(
                     token_pair,
                     sender,
                     recipient,
@@ -178,8 +180,9 @@ class TrafficMaker(threading.Thread):
                     traffic_provisioner.aux,
                     self.block_number,
                     )
-            traffic_provisioner.update_balance(sender, token_pair[0], balance_result)
-            sender_indices.append(recipient_index)
+            traffic_provisioner.update_balance(sender, token_pair[0], balance_full['balance_outgoing'] + spend_value)
+            if traffic_item.mode & TaskMode.RECIPIENT_ACTIVE:
+                sender_indices.append(recipient_index)
 
             if e != None:
                 logg.info('failed {}: {}'.format(str(traffic_item), e))

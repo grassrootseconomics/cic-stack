@@ -5,11 +5,15 @@ import random
 # external imports
 from cic_eth.api.api_task import Api
 
+# local imports
+from traffic import TaskMode
+
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
 queue = 'cic-eth'
 name = 'erc20_transfer'
+task_mode = TaskMode.SENDER_ACTIVE | TaskMode.RECIPIENT_ACTIVE
 
 
 def do(token_pair, sender, recipient, sender_balance, aux, block_number):
@@ -49,4 +53,4 @@ def do(token_pair, sender, recipient, sender_balance, aux, block_number):
     t = api.transfer(sender, recipient, spend_value, token_pair[0].symbol())
 
     sender_balance['balance_outgoing'] += spend_value
-    return (None, t, sender_balance,)
+    return (None, t, spend_value, )

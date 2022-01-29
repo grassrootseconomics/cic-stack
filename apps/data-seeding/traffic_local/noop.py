@@ -4,6 +4,8 @@ import logging
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
+task_mode = 0
+
 
 def do(token_pair, sender, recipient, sender_balance, aux, block_number):
     """Defines the function signature for a traffic generator. The method itself only logs the input parameters.
@@ -27,9 +29,12 @@ def do(token_pair, sender, recipient, sender_balance, aux, block_number):
     :param block_number: Syncer block number position at time of method call
     :type block_number: number
     :raises KeyError: Missing required aux element
-    :returns: Exception|None, task_id|None and adjusted_sender_balance respectively
+    :returns: Exception|None, task_id|None and spend value respectively
     :rtype: tuple
     """
     logg.debug('running {} {} {} {} {} {} {}'.format(__name__, token_pair, sender, recipient, sender_balance, aux, block_number))
 
-    return (None, None, sender_balance, )
+    return (None, None, 0, )
+
+
+task_mode = 

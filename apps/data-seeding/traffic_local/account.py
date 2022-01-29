@@ -9,6 +9,7 @@ logg = logging.getLogger()
 
 queue = 'cic-eth'
 name = 'account'
+task_mode = 0
 
 
 def create_user(chain_spec, redis_host_callback, redis_port_callback, redis_db, redis_channel):
@@ -38,4 +39,4 @@ def do(token_pair, sender, recipient, sender_balance, aux, block_number):
     logg.debug('running {} {} {}'.format(__name__, token_pair, sender, recipient))
     t = create_user(aux['CHAIN_SPEC'], aux['_REDIS_HOST_CALLBACK'], aux['_REDIS_PORT_CALLBACK'], aux['_REDIS_DB_CALLBACK'], aux['REDIS_CHANNEL'])
 
-    return (None, t, sender_balance, )
+    return (None, t, 0, )

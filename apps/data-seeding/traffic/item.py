@@ -20,7 +20,7 @@ class TrafficItem:
         self.source_token = None
         self.destination_token = None
         self.source_value = 0
-
+        self.mode = item.task_mode
 
     def __str__(self):
         return 'traffic item method {} uuid {}'.format(self.method, self.uuid)
