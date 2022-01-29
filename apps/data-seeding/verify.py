@@ -439,6 +439,7 @@ class Verifier:
             raise VerifierError(address_recovered, 'metadata (phone)')
 
 
+    # TODO: should we check language preference when implemented.
     def verify_ussd(self, address, balance=None):
         response_data = send_ussd_request(address, self.data_dir)
         state = response_data[:3]
@@ -446,12 +447,6 @@ class Verifier:
         m = '{} {}'.format(state, out[:7])
         if m != 'CON Welcome':
             raise VerifierError(response_data, 'ussd')
-
-
-    def verify_ussd_pins(self, address, balance):
-        response_data = send_ussd_request(address, self.data_dir)
-        if response_data[:11] != 'CON Balance' and response_data[:9] != 'CON Salio':
-            raise VerifierError(response_data, 'pins')
 
 
     def verify(self, address, balance, debug_stem=None):

@@ -2,6 +2,11 @@
 
 This folder contains tools to generate and import test data.
 
+The steps outlines in this document assume you are running the services using the docker-compose orchestration provided.
+
+*A description of manual and service-agnostic steps for imports will be linked here when it becomes available.*
+
+
 ## OVERVIEW
 
 Three sets of tools are available, sorted by respective subdirectories.
@@ -40,6 +45,8 @@ If you are importing metadata, also do ye olde:
 
 `npm install`
 
+**wanna help remove this nodejs step from the recipe?** Then click [here](https://gitlab.com/grassrootseconomics/cic-internal-integration/-/issues/227)
+
 ## HOW TO USE
 
 ### Step 1 - Data creation
@@ -58,117 +65,67 @@ If you want to use a `import_balance.py` script to add to the user's balance fro
 
 ### Step 2 - Services
 
-Unless you know what you are doing, start with a clean slate, and execute (in the repository root):
+The different import modes and steps rely on different combinations of services to be running. 
 
-`docker-compose down -v`
+Listed below is a service dependency table with services referred to by names tha the root docker-compose uses.
 
-Then go through, in sequence:
 
-#### Base requirements
 
-If you are importing using `eth` and _not_ importing metadata, then the only service you need running in the cluster is:
+| import| services |
+|---|---|
+| eth | evm |
+| cic-eth | evm, postgres, redis, cic-eth-tasker, cic-eth-tracker, cic-eth-dispatcher |
+| cic-ussd | evm, postgres, redis, cic-eth-tasker, cic-eth-tracker, cic-eth-dispatcher, cic-user-tasker, cic-user-ussd-server, cic-meta-server |
+| cic-meta | cic-meta-server |
 
-- eth
-
-In all other cases you will _also_ need:
-
-- postgres
-- redis
-
-#### EVM provisions
-
-This step is needed in _all_ cases.
-
-`RUN_MASK=1 docker-compose up contract-migration`
-
-After this step is run, you can find top-level ethereum addresses (like the cic registry address, which you will need below) in `<repository_root>/service-configs/.env`
-
-#### Custodial provisions
-
-This step is _only_ needed if you are importing using `cic_eth` or `cic_ussd`
-
-`RUN_MASK=2 docker-compose up contract-migration`
-
-#### Custodial services
-
-If importing using `cic_eth` or `cic_ussd` also run:
-
-- cic-eth-tasker
-- cic-eth-dispatcher
-- cic-eth-tracker
-- cic-eth-retrier
-
-If importing using `cic_ussd` also run:
-
-- cic-user-tasker
-- cic-user-ussd-server
-- cic-notify-tasker
-
-If metadata is to be imported, also run:
-
-- cic-meta-server
 
 ### Step 3 - User imports
 
-If you did not change the docker-compose setup, your `eth_provider` the you need for the commands below will be `http://localhost:63545`.
-
-Only run _one_ of the alternatives.
+If you have not changed the docker-compose setup, your `eth_provider` the you need for the commands below will be `http://localhost:63545`.
 
 The keystore file used for transferring external opening balances tracker is relative to the directory you found this README in. Of course you can use a different wallet, but then you will have to provide it with tokens yourself (hint: `../reset.sh`)
 
-All external balance transactions are saved in raw wire format in `<datadir>/txs`, with transaction hash as file name.
+All external balance transactions are saved in raw wire format in `<datadir>/tx`, with transaction hash as file name.
 
-If the contract migrations have been executed with the default "giftable" token contract, then the `token_symbol` in the `import_balance` scripts should be set to `GFT`.
+If no token symbol is provided on the command line, the default token in the registry will be used.
+
+
+#### Running the syncer 
+
+It is recommended to run the `sync` script first. This script is responsible for detecting user registrations, and perform actions depending on the regsitration completing first.
+
+The invocation in each case will then be:
+
+`<module>/sync.py -i <chain_spec> -y <key_file> -p <eth_provider> -r <cic_registry_address> <users_dir>`
+
+**Wwant to help reducing the amount of arguments?** Then click [here](https://gitlab.com/grassrootseconomics/cic-internal-integration/-/issues/224)
+
+Now, only run _one_ of the following alternatives.
+
 
 #### Alternative 1 - Sovereign wallet import - `eth`
 
-First, make a note of the **block height** before running anything:
-
-`eth-info -p http://localhost:63545`
-
-To import, run to _completion_:
-
-`python eth/import_users.py -v -p <eth_provider> -r <cic_registry_address> -y ../contract-migration/keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c <datadir>`
+`python eth/seed.py -v -p <eth_provider> -r <cic_registry_address> -y <key_file> <user_dir>`
 
 After the script completes, keystore files for all generated accouts will be found in `<datadir>/keystore`, all with `foo` as password (would set it empty, but believe it or not some interfaces out there won't work unless you have one).
 
-Then run:
-
-`python eth/import_balance.py -v -r <cic_registry_address> -p <eth_provider> --token-symbol <token_symbol> --offset <block_height_at_start> -y ../keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c <datadir>`
-
 #### Alternative 2 - Custodial engine import - `cic_eth`
 
-Run in sequence, in first terminal:
+`python cic_eth/seed.py -v --redis-host-callback <redis_hostname_in_docker> <user_dir>`
 
-`python cic_eth/import_balance.py -v -p <eth_provider> -r <cic_registry_address> --token-symbol <token_symbol> -y ../contract-migration/keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c --head out`
+The `redis_hostname_in_docker` value is the hostname required to reach the redis server from within the docker cluster, and should be `redis` if you left the docker-compose unchanged.
 
-In another terminal:
-
-`python cic_eth/import_users.py -v --redis-host-callback <redis_hostname_in_docker> out`
-
-The `redis_hostname_in_docker` value is the hostname required to reach the redis server from within the docker cluster, and should be `redis` if you left the docker-compose unchanged. The `import_users` script will receive the address of each newly created custodial account on a redis subscription fed by a callback task in the `cic_eth` account creation task chain.
+The `seed.py` script will receive the address of each newly created custodial account on a redis subscription fed by a callback task in the `cic_eth` account creation task chain.
 
 #### Alternative 3 - USSD import - `cic_ussd`
 
-If you have previously run the `cic_ussd` import incompletely, it could be a good idea to purge the queue. If you have left docker-compose unchanged, `redis_url` should be `redis://localhost:63379`.
+`python cic_ussd/ssed.py -v --ussd-provider <ussd_endpoint> <user_dir>`
 
-`celery -A cic_ussd.import_task purge -Q cic-import-ussd --broker <redis_url>`
-
-Then, in sequence, run in first terminal:
-
-`python cic_ussd/import_balance.py -v -c config -p <eth_provider> -r <cic_registry_address> --token-symbol <token_symbol> -y ../contract-migration/keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c out`
-
-In second terminal:
-
-`python cic_ussd/import_users.py -v --ussd-host <user_ussd_server_host> --ussd-port <user_ussd_server_port> -c config out`
-
-In the event that you are running the command in a local environment you may want to consider passing the `--ussd-no-ssl` flag i.e:
-
-`python cic_ussd/import_users.py -v --ussd-host <user_ussd_server_host> --ussd-port <user_ussd_server_port> --ussd-no-ssl -c config out`
 
 ### Step 4 - Metadata import (optional)
 
 The metadata import scripts can be run at any time after step 1 has been completed.
+
 
 #### Importing user metadata
 
