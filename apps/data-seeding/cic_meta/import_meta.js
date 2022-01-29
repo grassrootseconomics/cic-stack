@@ -7,9 +7,15 @@ const crdt = require('@cicnet/crdt-meta');
 
 //const conf = JSON.parse(fs.readFileSync('./cic.conf'));
 
-const config = new crdt.Config('./config');
+let config_dir = process.env.CONFINI_DIR;
+if (config_dir === undefined) {
+	config_dir = './config';
+}
+
+const config = new crdt.Config(config_dir);
 config.process();
 console.log(config);
+
 
 function sendit(uid, envelope) {
 	const d = envelope.toJSON();

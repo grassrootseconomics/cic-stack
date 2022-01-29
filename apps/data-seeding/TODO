@@ -1,0 +1,2 @@
+* seedqueue users must rm on successful process
+* check deferredsync tx with target import new, postpone if not (optional)

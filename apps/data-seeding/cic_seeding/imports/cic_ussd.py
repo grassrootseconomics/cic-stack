@@ -71,22 +71,25 @@ class CicUssdConnectWorker(threading.Thread):
     max_tries = 0
 
     # The side of the job_queue will throttle the resource usage
-    def __init__(self, importer, meta_url, job_queue):
+    def __init__(self, idx, importer, meta_url, job_queue):
         super(CicUssdConnectWorker, self).__init__()
         self.meta_url = meta_url
         self.imp = importer
         self.q = job_queue
+        self.idx = idx
    
 
     def run(self):
+        i = 0
         while True:
             u = self.q.get()
             if u == None:
                 return
-            self.process(u)
+            self.process(i, u)
+            i += 1
 
 
-    def process(self, u):
+    def process(self, i, u):
         ph = phone_number_to_e164(u.phone, None)
         ph_bytes = ph.encode('utf-8')
         self.ptr = generate_metadata_pointer(ph_bytes, MetadataPointer.PHONE)
@@ -112,7 +115,8 @@ class CicUssdConnectWorker(threading.Thread):
     
         logg.debug('have address {} for phone {}'.format(address, ph))
 
-        self.imp.add(address, v, 'new')
+        idx = float('{}.{}'.format(self.idx, i))
+        self.imp.process_address(idx, u, address)
 
 
 def apply_default_stores(stores={}):
@@ -168,7 +172,9 @@ class CicUssdImporter(Importer):
         self.dh.add(None, iu.original_address, 'ussd_phone')
 
 
-    # add all source users to lookup processing directory.
+    # Add all source users to lookup processing directory.
+    # It is the responsiblity of the importer in the deferred syncer to call the parent prepare.
+    # The parent prepare is not needed for this phase since we are only using src and custom stores.
     def prepare(self):
         need_init = False
         try:

@@ -80,9 +80,6 @@ else:
 config.process()
 args_override = {
     'CIC_CHAIN_SPEC': getattr(args, 'i'),
-    #'REDIS_HOST': getattr(args, 'redis_host'),
-    #'REDIS_PORT': getattr(args, 'redis_port'),
-    #'REDIS_DB': getattr(args, 'redis_db'),
     'CHAIN_SPEC_SOURCE': getattr(args, 'old_chain_spec'),
     'RPC_PROVIDER': getattr(args, 'p'),
     'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
@@ -95,22 +92,6 @@ config.add(args.user_dir, '_USERDIR', True)
 config.add(args.timeout, '_TIMEOUT', True)
 config.add(False, '_RESET', True)
 logg.debug(f'config loaded from {args.c}:\n{config}')
-
-#dirs = initialize_dirs(args.user_dir)
-
-#valid_service_codes = config.get('USSD_SERVICE_CODE').split(",")
-
-#ussd_no_ssl = args.ussd_no_ssl
-#if ussd_no_ssl is True:
-#    ussd_ssl = False
-#else:
-#    ussd_ssl = True
-
-
-#celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
-#get_celery_worker_status(celery_app)
-
-#rpc = EthHTTPConnection(args.p)
 
 
 if __name__ == '__main__':

@@ -321,7 +321,48 @@ class Importer:
         return address
 
 
-    # TODO: split up, too long
+    # Default processing for queueing metadata person import
+    def process_meta_person(self, i, u, address):
+        address_clean = legacy_normalize_address(address)
+        meta_key = generate_metadata_pointer(bytes.fromhex(address_clean), MetadataPointer.PERSON)
+        self.dh.alias('new', 'meta', address_clean, alias_filename=address_clean + '.json', use_interface=False)
+
+
+    # Default processing for queueing metadata phone pointer import
+    def process_meta_phone(self, i, u, address):
+        phone_object = phonenumbers.parse(u.tel)
+        phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
+        meta_phone_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.PHONE)
+
+        self.dh.add(meta_phone_key, address_clean, 'phone')
+        entry_path = self.dh.path(meta_phone_key, 'phone')
+        legacy_link_data(entry_path)
+
+
+    # Default processing for queueing metadata custom data import
+    def process_meta_custom(self, i, u, address, tags=[]):
+        custom_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.CUSTOM)
+        
+        old_addresses = get_chain_addresses(u, self.source_chain_spec)
+        old_address = legacy_normalize_address(old_addresses[0])
+
+        tag_data = self.dh.get(old_address, 'tags')
+
+        if tag_data == None or len(tag_data) == 0:
+            for tag in self.default_tag:
+                tag_data.append(tag)
+
+        for tag in tags:
+            tag_data.append(tag)
+
+        self.dh.add(custom_key, json.dumps({'tags': tag_data}), 'custom')
+        custom_path = self.dh.path(custom_key, 'custom')
+        legacy_link_data(custom_path)
+
+
+    # Default processing per-address.
+    # Create target import user record.
+    # Queue metadata items for external metadata import processing.
     def process_address(self, i, u, address, tags=[]):
         if address == None:
             logg.debug('no address to process for user {}'.format(u))
@@ -334,35 +375,10 @@ class Importer:
         o = u.serialize()
         self.dh.add(address, json.dumps(o), 'new')
 
-        address_clean = legacy_normalize_address(address)
-        meta_key = generate_metadata_pointer(bytes.fromhex(address_clean), MetadataPointer.PERSON)
-        self.dh.alias('new', 'meta', address_clean, alias_filename=address_clean + '.json', use_interface=False)
-
-        phone_object = phonenumbers.parse(u.tel)
-        phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
-        meta_phone_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.PHONE)
-
-        self.dh.add(meta_phone_key, address_clean, 'phone')
-        entry_path = self.dh.path(meta_phone_key, 'phone')
-        legacy_link_data(entry_path)
-
-        # custom data
-        custom_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.CUSTOM)
-        
-        old_addresses = get_chain_addresses(u, self.source_chain_spec)
-        old_address = legacy_normalize_address(old_addresses[0])
-
-        tag_data = self.dh.get(old_address, 'tags')
-
-        for tag in self.default_tag:
-            tag_data.append(tag)
-
-        for tag in tags:
-            tag_data.append(tag)
-
-        self.dh.add(custom_key, json.dumps({'tags': tag_data}), 'custom')
-        custom_path = self.dh.path(custom_key, 'custom')
-        legacy_link_data(custom_path)
+        self.process_meta_person(i, u, address)
+        self.process_meta_custom(i, u, address, tags=tags)
+        # TODO: evaluate whether this is at all needed, as phone is only concept for ussd, and it handles it itself
+        #self.process_meta_phone(i, u, address) 
 
 
     # TODO: change if leveldir should implement a built-in walk/visitor 

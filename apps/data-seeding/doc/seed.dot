@@ -1,0 +1,213 @@
+digraph {
+	ETH [
+		color = "red";
+		shape="rectangle";
+	];
+	CIC_ETH [ 
+		label="CIC-ETH";
+		color = "blue";
+		shape="rectangle";
+	];
+	CIC_USSD [
+		label="CIC-USSD";
+		color = "green";
+		shape="rectangle";
+	];
+	CORE [];
+
+	META_IMPORT [
+		label="META IMPORTER";
+		shape="rectangle";
+		color="purple";
+	];	
+
+	cic_ussd_phone [
+		label="queue phones";
+	];
+
+	SEED [
+		shape="rectangle";
+	];
+	
+	cic_eth_celery [
+		label="init celery";
+	];	
+
+	core_dirhandler [
+		label="init dirhandler";
+	];
+
+	core_index [
+		label="load indices";
+	];
+
+	core_chain [
+		label="load chain cache";
+	];
+
+	core_create [
+		label="create account";
+	];
+
+	eth_create_key [
+		label="create keypair";
+	];
+
+	eth_create_keystore [
+		label="save keyfile";
+	];
+
+	cic_eth_create_api [
+		label="call celery api";
+	];
+
+	cic_eth_create_get [
+		label="retrieve address";
+	];
+
+	cic_ussd_create_poke [
+		label="poke ussd endpoint";
+	];
+
+	core_address [
+		label="process address";
+	];
+
+	core_meta_person [
+		label="queue person meta";
+	];
+
+	core_meta_custom [
+		label="queue custom meta";
+	];
+
+	core_end [
+		label="END";
+		shape="rectangle";
+	];
+
+
+	cic_ussd_worker [
+		label="WORKER";
+		shape="rectangle";
+		color="green";
+	];
+
+	cic_ussd_thread_read [
+		label="process phone entry";
+	];
+
+	cic_ussd_thread_resolve [
+		label="resolve phone pointer";
+	];
+
+
+	EVM_SYNCER [
+		label = "EVM SYNCER";
+		shape = "rectangle";
+	];
+
+	DEFERRED_SYNCER [
+		label = "DEFERRED SYNCER";
+		shape = "rectangle";
+	];
+
+	block [
+	];
+
+	core_send_tx [
+		label="send balance";
+	];
+
+	eth_faucet [
+		label="trigger faucet";
+	];
+
+	eth_gas [
+		label="gift gas";
+	];
+
+	cic_ussd_tamper [
+		label="save tamperblock";
+	];
+
+	cic_ussd_block [
+		label="block";
+	];
+	
+
+	ETH -> SEED -> core_dirhandler [ color = "red" ];
+
+	CIC_ETH -> SEED -> cic_eth_celery -> core_dirhandler [ color = "blue" ];
+
+	CORE -> core_dirhandler;
+
+	core_dirhandler -> core_index -> core_chain -> core_create [ color = "blue" ];
+
+	core_dirhandler -> core_index -> core_chain -> core_create [ color = "red" ];
+
+	core_dirhandler -> core_index -> core_chain -> core_create [ color = "black" ];
+
+	CIC_USSD -> SEED -> cic_ussd_phone -> core_create [ color = "green" ];
+
+	core_create -> eth_create_key [ color = "red" ];
+	
+	eth_create_key -> eth_create_keystore -> core_address [ color = "red" ];
+
+	core_create -> cic_eth_create_api [ color = "blue" ];
+
+	cic_eth_create_api -> cic_eth_create_get -> core_address [ color = "blue" ];
+
+	core_create -> cic_ussd_create_poke [ color = "green" ];
+
+	core_address -> core_meta_person -> core_meta_custom -> core_end [ color = "blue" ];
+
+	core_address -> core_meta_person -> core_meta_custom -> core_end [ color = "red" ];
+
+	core_address -> core_meta_person -> core_meta_custom -> core_end [ color = "black" ];
+
+	core_meta_custom -> core_create	[ color = "blue" ];
+
+	core_meta_custom -> core_create [ color = "red" ];	
+
+	core_meta_custom -> core_create [ color = "black" ];	
+
+	cic_ussd_phone -> cic_ussd_worker [ style = "dotted"; color = "green" ];
+
+	cic_ussd_worker -> cic_ussd_thread_read -> cic_ussd_thread_resolve -> core_address [ color = "green" ];
+
+	core_address -> core_meta_person -> core_meta_custom  -> cic_ussd_thread_read [ color = "green" ];
+
+	EVM_SYNCER -> block;
+
+	ETH -> EVM_SYNCER [ color = "red" ];
+
+	CIC_ETH -> EVM_SYNCER [ color = "blue" ];
+
+	CIC_USSD -> EVM_SYNCER [ color = "green" ];
+
+	CORE -> DEFERRED_SYNCER;
+
+	block -> core_send_tx [ color = "red" ];
+
+	block -> core_send_tx [ color = "blue" ];
+
+	block -> cic_ussd_tamper [ color = "green" ];
+
+	core_send_tx -> eth_faucet [ color = "red" ];
+	
+	eth_faucet -> eth_gas -> block [ color = "red" ];
+
+	core_send_tx -> block [ color = "blue" ];
+
+	cic_ussd_tamper -> block [ color = "green" ];
+
+	cic_ussd_tamper -> DEFERRED_SYNCER [ style = "dotted"; color = "green" ];
+
+	DEFERRED_SYNCER -> cic_ussd_block -> core_send_tx -> cic_ussd_block;
+
+	core_meta_person -> META_IMPORT [ style = "dashed"; color = "purple" ];
+
+	core_meta_custom -> META_IMPORT [ style = "dashed"; color = "purple" ];
+
+}

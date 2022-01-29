@@ -34,6 +34,7 @@ class DeferredSyncer(BlockPollSyncer):
 
 
     # Visited by chainsyncer.BlockPollSyncer
+    # TODO: Needs to double-check whether we have a matching account in the target import. Otherwise we are blindly sending to anyone registering. Mind to re-insert the entry if fail. Filename should maybe be indexed with number.
     def get(self, conn):
         for k in os.listdir(self.path):
             o = self.imp.get(k, self.dirkey)
