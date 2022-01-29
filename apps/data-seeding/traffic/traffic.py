@@ -10,7 +10,8 @@ from erc20_faucet import Faucet
 from cic_eth_registry.registry import CICRegistry
 from chainlib.chain import ChainSpec
 
-# internal imports
+# local imports
+from cic_seeding.imports.cic_eth import CicEthRedisTransport
 from traffic.cache import (
         AccountRegistryCache,
         TokenRegistryCache,
@@ -169,20 +170,18 @@ class TrafficProvisioner:
         :returns: Updated balance
         :rtype: complex balance dict
         """
+        redis_transport = CicEthRedisTransport(self.aux)
+        redis_transport.prepare()
         api = Api(
-            str(self.aux['chain_spec']),
-            queue=self.aux['api_queue'],
-            #callback_param='{}:{}:{}:{}'.format(aux['redis_host_callback'], aux['redis_port_callback'], aux['redis_db'], aux['redis_channel']),
-            #callback_task='cic_eth.callbacks.redis.redis',
-            #callback_queue=queue,
+            str(self.aux['CHAIN_SPEC']),
+            queue=self.aux['CELERY_QUEUE'],
+            callback_param=redis_transport.params,
+            callback_task=redis_transport.task,
+            callback_queue=redis_transport.queue,
             )
         t = api.balance(account, token.symbol())
-        r = t.get()
-        for c in t.collect():
-            r = c[1]
-        assert t.successful()
-        #return r[0]['balance_network'] - r[0]['balance_outgoing']
-        return r[0]
+        r = redis_transport.get(t)
+        return r
 
 
     def update_balance(self, account, token, value):
@@ -207,11 +206,15 @@ def prepare_for_traffic(config, conn):
 
     # default aux parameters that will be sent to every invoked trafficitem
     TrafficProvisioner.default_aux = {
-            'chain_spec': config.get('CHAIN_SPEC'),
-            'redis_host_callback': config.get('_REDIS_HOST_CALLBACK'),
-            'redis_port_callback': config.get('_REDIS_PORT_CALLBACK'),
-            'redis_db': config.get('REDIS_DB'),
-            'api_queue': config.get('CELERY_QUEUE'),
+            'CHAIN_SPEC': config.get('CHAIN_SPEC'),
+            'REDIS_HOST': config.get('REDIS_HOST'),
+            'REDIS_PORT': config.get('REDIS_PORT'),
+            'REDIS_DB': config.get('REDIS_DB'),
+            '_REDIS_HOST_CALLBACK': config.get('_REDIS_HOST_CALLBACK'),
+            '_REDIS_PORT_CALLBACK': config.get('_REDIS_PORT_CALLBACK'),
+            '_REDIS_DB_CALLBACK': config.get('REDIS_DB'),
+            'CELERY_QUEUE': config.get('CELERY_QUEUE'),
+            '_TIMEOUT': 10.0,
             }
 
     chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))

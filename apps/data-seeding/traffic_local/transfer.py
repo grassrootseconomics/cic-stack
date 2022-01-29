@@ -39,9 +39,9 @@ def do(token_pair, sender, recipient, sender_balance, aux, block_number):
     spend_value = spend_units * decimals
 
     api = Api(
-        str(aux['chain_spec']),
+        str(aux['CHAIN_SPEC']),
         queue=queue,
-        callback_param='{}:{}:{}:{}'.format(aux['redis_host_callback'], aux['redis_port_callback'], aux['redis_db'], aux['redis_channel']),
+        callback_param='{}:{}:{}:{}'.format(aux['REDIS_HOST_CALLBACK'], aux['REDIS_PORT_CALLBACK'], aux['REDIS_DB'], aux['REDIS_CHANNEL']),
         callback_task='cic_eth.callbacks.redis.redis',
         callback_queue=queue,
         )

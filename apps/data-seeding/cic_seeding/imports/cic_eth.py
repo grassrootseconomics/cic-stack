@@ -30,8 +30,6 @@ class ResultTransport:
 class CicEthRedisTransport(ResultTransport):
    
     def __init__(self, config):
-        global celery_app
-
         import redis
         self.redis_host = config.get('REDIS_HOST')
         self.redis_port = config.get('REDIS_PORT')
@@ -51,7 +49,7 @@ class CicEthRedisTransport(ResultTransport):
         self.params = self.base_params
 
         self.task='cic_eth.callbacks.redis.redis'
-        self.queue='cic-eth'
+        self.queue=config.get('CELERY_QUEUE')
 
 
     def prepare(self):
@@ -61,6 +59,7 @@ class CicEthRedisTransport(ResultTransport):
                 self.base_params,
                 redis_channel,
                 )
+        return redis_channel
 
 
     def get(self, k):

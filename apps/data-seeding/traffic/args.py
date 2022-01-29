@@ -16,5 +16,3 @@ def add_args(argparser):
 
 """
     return argparser
-
-
