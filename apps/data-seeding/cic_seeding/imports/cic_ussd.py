@@ -213,6 +213,16 @@ class CicUssdImporter(Importer):
         logg.debug('ussd response: {}'.format(responsee_data))
 
 
+    def process_meta_custom_tags(self, i, u):
+        super(CicUssdImporter, self).process_meta_custom_tags(i, u)
+        phone = phonenumbers.format_number(u.phone, phonenumbers.PhoneNumberFormat.E164)
+        custom_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.CUSTOM)
+        
+        self.dh.add(custom_key, json.dumps({'tags': u.extra['tags']}), 'custom_phone')
+        custom_path = self.dh.path(custom_key, 'custom')
+        legacy_link_data(custom_path)
+
+
     # Retrieves user account registrations.
     # Creates and stores (queues) single-tx block records for each one.
     # Note that it will store ANY account registration, whether or not it belongs to this import session.

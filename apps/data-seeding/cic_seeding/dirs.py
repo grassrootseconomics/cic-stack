@@ -30,6 +30,7 @@ class DirHandler:
         'phone': 32,
         'meta': 32,
         'custom': 32,
+        'custom_phone': 32,
         'tx': 32,
         }
 
@@ -114,6 +115,7 @@ class DirHandler:
         self.dirs['meta'] = os.path.join(self.user_dir, 'meta')
         self.dirs['custom'] = os.path.join(self.user_dir, 'custom')
         self.dirs['phone'] = os.path.join(self.user_dir, 'phone')
+        self.dirs['custom_phone'] = os.path.join(self.dirs['custom'], 'phone')
         self.dirs['tx'] = os.path.join(self.user_dir, 'tx')
         self.dirs['keystore'] = os.path.join(self.user_dir, 'keystore')
         self.dirs['user_block'] = os.path.join(self.user_dir, 'user_block')

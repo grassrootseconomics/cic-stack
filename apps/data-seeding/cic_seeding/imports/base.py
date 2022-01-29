@@ -3,7 +3,6 @@ import os
 import logging
 import json
 import time
-import phonenumbers
 import sys
 
 # external imports
@@ -56,7 +55,8 @@ class ImportUser:
         self.person = person
         self.chain_spec = target_chain_spec
         self.source_chain_spec = source_chain_spec
-        self.phone = self.person.tel
+        self.phone = person.tel
+        self.custom = {}
 
         addresses = None
         try:
@@ -106,6 +106,15 @@ class ImportUser:
             logg.error('balance get fail for {}'.format(self))
             return
         return balance
+
+
+    def add_address(self, address):
+        set_chain_address(self.person, self.chain_spec, address)
+        self.address = address
+
+
+    def serialize(self):
+        return self.person.serialize()
 
 
     def __str__(self):
@@ -317,68 +326,62 @@ class Importer:
     # Default processing for source import user.
     def process_user(self, i, u):
         address = self.create_account(i, u)
+
+        # add address to identities in person object
+        #set_chain_address(u.person, self.chain_spec, address)
+        u.add_address(address)
+
         logg.debug('[{}] register eth new address {} for {}'.format(i, address, u))
+
         return address
 
 
     # Default processing for queueing metadata person import
-    def process_meta_person(self, i, u, address):
-        address_clean = legacy_normalize_address(address)
+    def process_meta_person(self, i, u):
+        address_clean = legacy_normalize_address(u.address)
         meta_key = generate_metadata_pointer(bytes.fromhex(address_clean), MetadataPointer.PERSON)
         self.dh.alias('new', 'meta', address_clean, alias_filename=address_clean + '.json', use_interface=False)
 
 
-    # Default processing for queueing metadata phone pointer import
-    def process_meta_phone(self, i, u, address):
-        phone_object = phonenumbers.parse(u.tel)
-        phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
-        meta_phone_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.PHONE)
-
-        self.dh.add(meta_phone_key, address_clean, 'phone')
-        entry_path = self.dh.path(meta_phone_key, 'phone')
-        legacy_link_data(entry_path)
-
-
-    # Default processing for queueing metadata custom data import
-    def process_meta_custom(self, i, u, address, tags=[]):
-        custom_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.CUSTOM)
-        
-        old_addresses = get_chain_addresses(u, self.source_chain_spec)
-        old_address = legacy_normalize_address(old_addresses[0])
-
-        tag_data = self.dh.get(old_address, 'tags')
-
+    def process_meta_custom_tags(self, i, u):
+        tag_data = self.dh.get(u.original_address, 'tags')
         if tag_data == None or len(tag_data) == 0:
             for tag in self.default_tag:
                 tag_data.append(tag)
 
-        for tag in tags:
+        for tag in u.custom['tags']:
             tag_data.append(tag)
 
+        address_clean = legacy_normalize_address(u.address)
+        custom_key = generate_metadata_pointer(bytes.fromhex(address_clean), MetadataPointer.CUSTOM)
         self.dh.add(custom_key, json.dumps({'tags': tag_data}), 'custom')
         custom_path = self.dh.path(custom_key, 'custom')
         legacy_link_data(custom_path)
 
+        u.custom['tags'] = tag_data
 
+
+    # Default processing for queueing metadata custom data import
+    def process_meta_custom(self, i, u):
+        for v in u.custom.keys():
+            m = getattr(self, 'process_meta_custom_' + v)
+            m(i, u)
+        
+        
     # Default processing per-address.
     # Create target import user record.
     # Queue metadata items for external metadata import processing.
-    def process_address(self, i, u, address, tags=[]):
-        if address == None:
+    def process_address(self, i, u):
+        if u.address == None:
             logg.debug('no address to process for user {}'.format(u))
             return
 
-        # add address to identities in person object
-        set_chain_address(u, self.chain_spec, address)
-
         # add updated person record to the migration data folder
         o = u.serialize()
-        self.dh.add(address, json.dumps(o), 'new')
+        self.dh.add(u.address, json.dumps(o), 'new')
 
-        self.process_meta_person(i, u, address)
-        self.process_meta_custom(i, u, address, tags=tags)
-        # TODO: evaluate whether this is at all needed, as phone is only concept for ussd, and it handles it itself
-        #self.process_meta_phone(i, u, address) 
+        self.process_meta_person(i, u)
+        self.process_meta_custom(i, u)
 
 
     # TODO: change if leveldir should implement a built-in walk/visitor 
@@ -398,9 +401,12 @@ class Importer:
                except ValueError:
                    continue
                o = json.loads(s)
-               u = Person.deserialize(o)
+               p = Person.deserialize(o)
 
-               callback(i, u, tags=tags)
+               u = ImportUser(self.dh, p, self.chain_spec, self.source_chain_spec)
+               u.custom['tags'] = tags
+
+               callback(i, u)
 
                i += 1
                sys.stdout.write('processed {} {}'.format(i, u).ljust(200) + "\r")
@@ -415,9 +421,9 @@ class Importer:
 
     # Default callback for processing of the source import user store.
     # Runs process_user and process_address on each user.
-    def process_sync(self, i, u, tags=[]):
+    def process_sync(self, i, u):
         new_address = self.process_user(i, u)
-        self.process_address(i, u, new_address, tags=tags)
+        self.process_address(i, u)
 
        
     # Default source import user store processor.
