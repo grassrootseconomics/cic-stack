@@ -15,6 +15,8 @@ from cic_seeding.index import AddressIndex
 logg = logging.getLogger(__name__)
 
 
+# Manages the import state and data store.
+# Provides a unified interface to operate on different store file and directory structures.
 class DirHandler:
 
     __address_dirs = {
@@ -26,8 +28,8 @@ class DirHandler:
 
     __hash_dirs = {
         'phone': 32,
-        'meta': 32,   # pointers to entries in "
-        'custom': 32, # tags
+        'meta': 32,
+        'custom': 32,
         'tx': 32,
         }
 
@@ -42,8 +44,12 @@ class DirHandler:
         'phone': 'phone number content address to blockchain address association',
         'meta': 'blockchain address content address to metadata association',
         'custom': 'blockchain address content address to extended metadata association',
+        'user_block': 'archive of blocks that contain transactions of user account registration',
+        'tx': 'archive of all chain transactions directly broadcasted from the import processes',
+        'keystore': 'keystore files for all private keys generated for non-custodial imports',
+        'balances': 'A csv index of all original balances',
+        'tags': 'A csv index of all original tags',
             }
-
 
     hexdir_level = 2
 
@@ -54,6 +60,7 @@ class DirHandler:
         self.dirs['src'] = os.path.join(self.user_dir, 'src')
         os.makedirs(self.dirs['src'], exist_ok=True)
         self.interfaces = {}
+        self.__inited = False
 
         self.__define_dirs()
 
@@ -67,7 +74,11 @@ class DirHandler:
             self.add_interface(k, stores[k])
 
 
+    # Add an interface to the backend.
     def add_interface(self, k, v):
+        if self.__inited:
+            raise RuntimeError('interface cannot be added after initialization')
+
         self.interfaces[k] = v
         path = v.path(None)
         logg.info('added store {} -> {}'.format(k, v))
@@ -77,10 +88,13 @@ class DirHandler:
         os.makedirs(self.dirs[k], exist_ok=True)
 
 
-    # TODO: which of these are obsolete?
-    # TODO: should they all perhaps |
+    # Initialize all state. Must always be called (once) before use.
     def initialize_dirs(self, reset=False, remove_src=False):
-        
+        if self.__inited:
+            raise RuntimeError('already initialized')
+
+        self.__inited = True
+
         if reset:
             self.__reset(remove_src=remove_src)
 
@@ -93,6 +107,8 @@ class DirHandler:
         self.__register_indices()
 
 
+
+    # Define all directories to be created.
     def __define_dirs(self):
         self.dirs['new'] = os.path.join(self.user_dir, 'new')
         self.dirs['meta'] = os.path.join(self.user_dir, 'meta')
@@ -103,6 +119,7 @@ class DirHandler:
         self.dirs['user_block'] = os.path.join(self.user_dir, 'user_block')
 
 
+    # Disallow existing state if append mode is not set.
     def __check(self):
         if not self.append:
             try:
@@ -112,6 +129,8 @@ class DirHandler:
                 pass 
 
 
+    # Delete state and import data.
+    # Optionally also delete source data. After this, the source user generation must be run again.
     def __reset(self, remove_src=False):
         for k in self.dirs:
             d = self.dirs[k]
@@ -138,6 +157,7 @@ class DirHandler:
             pass
 
 
+    # Create a symbolic link from one entry to another.
     def alias(self, source, alias, source_filename, alias_filename=None, use_interface=True):
         if source not in self.dirs:
             raise ValueError('source "{}" not found'.format(source))
@@ -160,6 +180,8 @@ class DirHandler:
         logg.debug('added alias {} -> {}: {} -> {}'.format(alias, source, alias_filename, source_filename))
 
 
+    # Create all necessary index files.
+    # Do not touch existing index files.
     def __build_indices(self):
         for idx in self.__csv_indices:
             idx_path = os.path.join(self.user_dir, idx + '.csv')
@@ -173,6 +195,8 @@ class DirHandler:
             f.close()
 
 
+    # Create all necessary directories.
+    # Do not touch existing directories.
     def __build_dirs(self):
         try:
             os.stat(self.dirs['src'])
@@ -185,6 +209,7 @@ class DirHandler:
             os.makedirs(self.dirs[d], exist_ok=True)
 
 
+    # Wrap all hex leveldir backends into the hexdir interface.
     def __register_hex_dirs(self):
         for dirkey in self.__address_dirs:
             d = HexDirInterface(self.dirs[dirkey], 20)
@@ -195,6 +220,7 @@ class DirHandler:
             self.interfaces[dirkey] = d
 
 
+    # Wrap all csv backends into the index interface.
     def __register_indices(self):
         for k in self.__csv_indices:
             fp = os.path.join(self.user_dir, k + '.csv')
@@ -202,22 +228,25 @@ class DirHandler:
         logg.debug('added index {}'.format(self.interfaces[k]))
 
 
+    # Relay to DirHandlerInterface.
     def add(self, k, v, dirkey):
-        logg.debug('dh add {} {} {}'.format(k, v, dirkey))
         ifc = self.interfaces[dirkey]
         return ifc.add(k, v)
 
 
+    # Relay to DirHandlerInterface.
     def get(self, k, dirkey):
         ifc = self.interfaces[dirkey]
         return ifc.get(k)
 
 
+    # Relay to DirHandlerInterface.
     def path(self, k, dirkey):
         ifc = self.interfaces[dirkey]
         return ifc.path(k)
 
 
+    # Relay to DirHandlerInterface.
     def flush(self, interface=None):
         if interface != None:
             self.interfaces[interface].flush()
@@ -225,12 +254,36 @@ class DirHandler:
         for ifc in self.interfaces.keys():
             self.interfaces[ifc].flush()
 
+    # Relay to DirHandlerInterface.
     def rm(self, k, dirkey):
         ifc = self.interfaces[dirkey]
         return ifc.rm(k)
 
 
-class HexDirInterface:
+# Define the interface that the dirhandler expects for relaying file access to a backend.
+class DirHandlerInterface:
+
+    def add(self, k, v):
+        raise NotImplementedError()
+
+
+    def get(self, k):
+        raise NotImplementedError()
+
+
+    def path(self, k): 
+        raise NotImplementedError()
+
+
+    def rm(self):
+        raise NotImplementedError()
+
+
+    def flush(self):
+        raise NotImplementedError()
+
+
+class HexDirInterface(DirHandlerInterface):
 
     levels = 2
 
@@ -284,7 +337,6 @@ class IndexInterface:
 
     def get(self, k):
         v = self.store.get(k)
-        logg.debug('get {} {}'.format(k, v))
         return v
 
 

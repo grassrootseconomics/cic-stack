@@ -38,10 +38,8 @@ class AddressIndex:
 
 
     def get(self, k):
-        logg.debug('get from {}'.format(id(self)))
         k = normalize_key(k)
         v = self.store.get(k)
-        logg.debug('vZ>>ZZZZZZZZZZZZZZZZZZZ {}'.format(v))
         if self.value_filter != None:
             v = self.value_filter(v)
         return v

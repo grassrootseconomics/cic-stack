@@ -18,7 +18,7 @@ class TestCommon(unittest.TestCase):
     def setUp(self):
         self.d = tempfile.mkdtemp()
         self.dh = DirHandler(self.d)
-        self.dh.initialize_dirs()
+        #self.dh.initialize_dirs()
 
     def tearDown(self):
         shutil.rmtree(self.d)
