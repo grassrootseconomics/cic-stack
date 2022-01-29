@@ -1,2 +1,3 @@
 * seedqueue users must rm on successful process
 * check deferredsync tx with target import new, postpone if not (optional)
+* swap manual registry cache with registry itself in importer base

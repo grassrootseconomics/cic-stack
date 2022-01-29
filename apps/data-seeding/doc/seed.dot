@@ -158,7 +158,9 @@ digraph {
 
 	cic_eth_create_api -> cic_eth_create_get -> core_address [ color = "blue" ];
 
-	core_create -> cic_ussd_create_poke [ color = "green" ];
+	core_create -> cic_ussd_create_poke -> core_create [ color = "green" ];
+
+	cic_ussd_create_poke -> core_end [ color = "green" ];
 
 	core_address -> core_meta_person -> core_meta_custom -> core_end [ color = "blue" ];
 
