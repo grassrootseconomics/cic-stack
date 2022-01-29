@@ -33,6 +33,7 @@ class DeferredSyncer(BlockPollSyncer):
         self.count = 0
 
 
+    # Visited by chainsyncer.BlockPollSyncer
     def get(self, conn):
         for k in os.listdir(self.path):
             o = self.imp.get(k, self.dirkey)
@@ -41,6 +42,7 @@ class DeferredSyncer(BlockPollSyncer):
         raise NoBlockForYou()
 
 
+    # Visited by chainsyncer.BlockPollSyncer
     def process(self, conn, block):
         for tx in block.txs:
             self.process_single(conn, block, tx)

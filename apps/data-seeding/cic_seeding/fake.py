@@ -1,3 +1,6 @@
+# Used by the create_import_users script.
+# This code is largely in the same form as the initial data seeding implementation.
+
 # standard imports
 import random
 import hashlib
@@ -14,6 +17,9 @@ from cic_types.models.person import (
 from chainlib.eth.address import to_checksum_address, strip_0x
 import phonenumbers
 from faker import Faker
+
+# local imports
+from cic_seeding.chain import set_chain_address
 
 
 categories = [
@@ -92,7 +98,7 @@ def genDob():
     return dob
 
 
-def genEntry():
+def genEntry(chain_spec):
     old_blockchain_address = os.urandom(20).hex()
     gender = random.choice(['female', 'male', 'other'])
     phone = genPhone()
@@ -105,13 +111,7 @@ def genEntry():
     p.date_registered = genDate()
     p.date_of_birth = genDob()
     p.gender = gender
-    p.identities = {
-        'evm': {
-            'foo': {
-                '1:oldchain': [old_blockchain_address],
-            },
-        },
-    }
+    set_chain_address(p, chain_spec, old_blockchain_address)
     p.products = [fake.random_element(elements=OrderedDict(
         [('fruit', 0.25),
          ('maji', 0.05),

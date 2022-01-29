@@ -1,3 +1,6 @@
+# Helpers for making the new implementation work with legacy data structures.
+# When refactor is complete this file should be no more.
+
 # standard imports
 import os
 import logging

@@ -1,3 +1,5 @@
+# Default output stream.
+
 # standard imports
 import sys
 
