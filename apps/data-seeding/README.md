@@ -119,12 +119,14 @@ The `seed.py` script will receive the address of each newly created custodial ac
 
 #### Alternative 3 - USSD import - `cic_ussd`
 
-`python cic_ussd/ssed.py -v --ussd-provider <ussd_endpoint> <user_dir>`
+`python cic_ussd/seed.py -v --ussd-provider <ussd_endpoint> <user_dir>`
+
+The script interacts with the ussd endpoint, triggering an account creation.
 
 
 ### Step 4 - Metadata import (optional)
 
-The metadata import scripts can be run at any time after step 1 has been completed.
+The metadata imports in `./cic_meta/` can be run at any time after step 1 has been completed.
 
 
 #### Importing user metadata
@@ -137,68 +139,35 @@ Monitors a folder for output from the `import_users.py` script, adding the metad
 
 If _number of users_ is omitted the script will run until manually interrupted.
 
-#### Importing phone pointer
-
-`node cic_meta/import_meta_phone.js <datadir> <number_of_users>`
-
-If you imported using `cic_ussd`, the phone pointer is _already added_ and this script will do nothing.
-
-### Importing preferences metadata
-
-`node cic_meta/import_meta_preferences.js <datadir> <number_of_users>`
-
-If you used the `cic_ussd/import_user.py` script to import your users, preferences metadata is generated and will be imported.
-
-##### Importing pins and ussd data (optional)
-
-Once the user imports are complete the next step should be importing the user's pins and auxiliary ussd data. This can be done in 3 steps:
-
-In one terminal run:
-
-`python create_import_pins.py -c config -v --userdir <path to the users export dir tree> pinsdir <path to pin export dir tree>`
-
-This script will recursively walk through all the directories defining user data in the users export directory and generate a csv file containing phone numbers and password hashes generated using fernet in a manner reflecting the nature of said hashes in the old system.
-This csv file will be stored in the pins export dir defined as the positional argument.
-
-Once the creation of the pins file is complete, proceed to import the pins and ussd data as follows:
-
-- To import the pins:
-
-`python cic_ussd/import_pins.py -c config -v pinsdir <path to pin export dir tree>`
-
-- To import ussd data:
-  `python cic_ussd/import_ussd_data.py -c config -v userdir <path to the users export dir tree>`
-
-The balance script is a celery task worker, and will not exit by itself in its current version. However, after it's done doing its job, you will find "reached nonce ... exiting" among the last lines of the log.
-
-The connection parameters for the `cic-ussd-server` is currently _hardcoded_ in the `import_users.py` script file.
 
 ### Step 5 - Verify
 
 `python verify.py -v -c config -r <cic_registry_address> -p <eth_provider> --token-symbol <token_symbol> <datadir>`
 
-Included checks:
+Certain checks are relevant only in certain cases. Here is an overview of which ones apply:
 
-- Private key is in cic-eth keystore
-- Address is in accounts index
-- Address has gas balance
-- Address has triggered the token faucet
-- Address has token balance matching the gift threshold
-- Personal metadata can be retrieved and has exact match
-- Phone pointer metadata can be retrieved and matches address
-- USSD menu response is initial state after registration
+| test | mode | check performed |
+|---|---|---|
+| local_key | cic_eth |  Private key is in cic-eth keystore |
+| accounts_index | all | Address is in accounts index |
+| gas | all | Address has gas balance |
+| faucet | all | Address has triggered the token faucet |
+| balance | all | Address has token balance matching the gift threshold |
+| metadata | cic_meta | Personal metadata can be retrieved and has exact match |
+| metadata_custom | cic_meta | Custom metadata can be retrieved and has exact match |
+| metadata_phone | cic_ussd |  Phone pointer metadata can be retrieved and matches address |
+| ussd | cic_ussd | menu response is initial state after registration |
 
 Checks can be selectively included and excluded. See `--help` for details.
 
-Will output one line for each check, with name of check and number of errors found per check.
+Will output one line for each check, with name of check and number of accounts successfully checked for each one.
 
 Should exit with code 0 if all input data is found in the respective services.
 
+
 ## KNOWN ISSUES
 
-- If the faucet disbursement is set to a non-zero amount, the balances will be off. The verify script needs to be improved to check the faucet amount.
-
-- When the account callback in `cic_eth` fails, the `cic_eth/import_users.py` script will exit with a cryptic complaint concerning a `None` value.
+- When the account callback in `cic_eth` fails, the `cic_eth/seed.py` script will exit with a cryptic complaint concerning a `None` value.
 
 - Sovereign import scripts use the same keystore, and running them simultaneously will mess up the transaction nonce sequence. Better would be to use two different keystore wallets so balance and users scripts can be run simultaneously.
 
@@ -206,10 +175,6 @@ Should exit with code 0 if all input data is found in the respective services.
 
 - Sovereign import script is very slow because it's scrypt'ing keystore files for the accounts that it creates. An improvement would be optional and/or asynchronous keyfile generation.
 
-- Running the balance script should be _optional_ in all cases, but is currently required in the case of `cic_ussd` because it is needed to generate the metadata. An improvement would be moving the task to `import_users.py`, for a different queue than the balance tx handler.
-
 - MacOS BigSur issue when installing psycopg2: ld: library not found for -lssl -> https://github.com/psycopg/psycopg2/issues/1115#issuecomment-831498953
 
-- `cic_ussd` imports is poorly implemented, and consumes a lot of resources. Therefore it takes a long time to complete. Reducing the amount of polls for the phone pointer would go a long way to improve it.
-
-- A strict constraint is maintained insistin the use of postgresql-12.
+- A strict constraint is maintained insisting the use of postgresql-12.

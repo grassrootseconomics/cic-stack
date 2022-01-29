@@ -72,7 +72,6 @@ eth_tests = [
 
 phone_tests = [
         'ussd',
-        'ussd_pins',
         'metadata_phone',
         ]
 
@@ -81,8 +80,19 @@ admin_tests = [
         ]
 
 cache_tests = [
-        'cache_tx_user',
+        'cache_tx',
         ]
+
+test_descriptions = {
+    'custodial_key': 'Private key is in cic-eth keystore',
+    'accounts_index': 'Address is in accounts index |',
+    'gas': 'Address has gas balance',
+    'faucet': 'Address has triggered the token faucet',
+    'balance': 'Address has token balance matching the gift threshold',
+    'metadata': 'Personal metadata can be retrieved and has exact match',
+    'metadata_custom': 'Custom metadata can be retrieved and has exact match',
+    'metadata_phone': 'Phone pointer metadata can be retrieved and matches address',
+        }
 
 all_tests = eth_tests + custodial_tests + metadata_tests + phone_tests + cache_tests
 
@@ -101,15 +111,25 @@ argparser.add_argument('--skip-cache', dest='skip_cache', action='store_true', h
 argparser.add_argument('--skip-all', dest='skip_all', action='store_true', help='skip all verifications (only verifies outdir validity)')
 argparser.add_argument('--exclude', action='append', type=str, default=[], help='skip specified verification')
 argparser.add_argument('--include', action='append', type=str, help='include specified verification')
-argparser.add_argument('--list-verifications', action='store_true', help='print a list of verification check identifiers')
+argparser.add_argument('--list-verifications', dest='list_verifications', action='store_true', help='print a list of verification check identifiers')
 argparser.add_argument('--token-symbol', default='GFT', type=str, dest='token_symbol', help='Token symbol to use for trnsactions')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-x', '--exit-on-error', dest='x', action='store_true', help='Halt exection on error')
 argparser.add_argument('-v', help='be verbose', action='store_true')
 argparser.add_argument('-vv', help='be more verbose', action='store_true')
-argparser.add_argument('user_dir', type=str, help='user export directory')
+argparser.add_argument('user_dir', type=str, nargs='?', help='user export directory')
 args = argparser.parse_args(sys.argv[1:])
+
+if args.list_verifications:
+    unique_tests = sorted(set(all_tests))
+    for t in unique_tests:
+        print(t)
+    sys.exit(0)
+
+if not args.user_dir:
+    argparser.error('user_dir is required')
+    sys.exit(1)
 
 if args.v == True:
     logging.getLogger().setLevel(logging.INFO)
