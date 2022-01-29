@@ -22,11 +22,18 @@ from cic_seeding.imports import (
         Importer,
         ImportUser,
         )
-
+from cic_seeding.index import (
+        AddressQueue,
+        SeedQueue,
+        )
+from cic_seeding.chain import (
+        TamperedBlock,
+        )
 
 logg = logging.getLogger()
 
 
+# Assemble the USSD provider url from the given configuration.
 def _ussd_url(config):
     url_parts = urllib.parse.urlsplit(config.get('USSD_PROVIDER'))
     qs = urllib.parse.urlencode([
@@ -38,6 +45,7 @@ def _ussd_url(config):
     return str(url)
 
 
+# Return True if config defines an SSL connection to the USSD provider.
 def _ussd_ssl(config):
     url_parts = urllib.parse.urlsplit(config.get('USSD_PROVIDER'))
     if url_parts[0] == 'https':
@@ -45,18 +53,24 @@ def _ussd_ssl(config):
     return False
 
 
+# A simple urllib request factory
+# Should be enough unless fancy stuff is needed for authentication etc.
 def default_req_factory(meta_url, ptr):
         url = urllib.parse.urljoin(meta_url, ptr)
         return urllib.request.Request(url=url)
 
 
 
+# Worker thread that receives user objects for import.
+# It polls for the associated blockchain address (the "phone pointer").
+# Once retrieved it adds the identity entry to the user object, and adds it to the data folder for new user processing.
 class CicUssdConnectWorker(threading.Thread):
 
     req_factory = default_req_factory
     delay = 1
     max_tries = 0
 
+    # The side of the job_queue will throttle the resource usage
     def __init__(self, importer, meta_url, job_queue):
         super(CicUssdConnectWorker, self).__init__()
         self.meta_url = meta_url
@@ -99,15 +113,28 @@ class CicUssdConnectWorker(threading.Thread):
         logg.debug('have address {} for phone {}'.format(address, ph))
 
         self.imp.add(address, v, 'new')
-        
-        if self.q:
-            self.q.put(None)
 
 
+def apply_default_stores(stores={}):
+    store_path = os.path.join(config.get('_USERDIR'), 'ussd_tx_src')
+    blocktx_store = SeedQueue(store_path, key_normalizer=normalize_key)
+
+    store_path = os.path.join(config.get('_USERDIR'), 'ussd_phone')
+    unconnected_phone_store = AddressQueue(store_path)
+
+    stores['ussd_tx_src'] = blocktx_store
+    stores['ussd_phone'] =unconnected_phone_store
+
+    return stores
+
+
+# Links the user data in a separate directory for separate processing. (e.g. by CicUssdConnectWorker).
+# Also provides the sync filter that stores block transactions for deferred processing.
 class CicUssdImporter(Importer):
 
     def __init__(self, config, rpc, signer, signer_address, stores={}, default_tag=[]):
         super(CicUssdImporter, self).__init__(config, rpc, signer, signer_address, stores=stores, default_tag=default_tag)
+
         self.ussd_provider = config.get('USSD_PROVIDER')
         self.ussd_valid_service_codes = config.get('USSD_SERVICE_CODE').split(',')
         self.ussd_service_code = self.ussd_valid_service_codes[0]
@@ -141,7 +168,7 @@ class CicUssdImporter(Importer):
         self.dh.add(None, iu.original_address, 'ussd_phone')
 
 
-        
+    # add all source users to lookup processing directory.
     def prepare(self):
         need_init = False
         try:
@@ -156,38 +183,38 @@ class CicUssdImporter(Importer):
             f.close()
 
 
+    # create account is simply a matter of selecting the language on the menu.
+    # TODO: add language preference data to imports generation, and already "import" the language in this step.
     def create_account(self, i, u):
         phone_number = phone_number_to_e164(u.tel, None)
         req = self._build_ussd_request(
                              phone_number,
                              self.ussd_service_code,
                              )
-        logg.debug('sending to ussd endpoint {} {}'.format(req.full_url, req.data))
+        logg.debug('ussd request: {} {}'.format(req.full_url, req.data))
         response = urllib.request.urlopen(req)
         response_data = response.read().decode('utf-8')
-        logg.debug(f'ussd response: {response_data[4:]}')
+        logg.debug('ussd response: {}'.format(responsee_data))
 
         req = self._build_ussd_request(
                              phone_number,
                              self.ussd_service_code,
                              txt='1',
                              )
-        logg.debug('sending to ussd endpoint {} {}'.format(req.full_url, req.data))
+        logg.debug('ussd request: {} {}'.format(req.full_url, req.data))
         response = urllib.request.urlopen(req)
         response_data = response.read().decode('utf-8')
-        logg.debug(f'ussd response: {response_data[4:]}')
+        logg.debug('ussd response: {}'.format(responsee_data))
 
 
-    def process_user(self, i, u):
-        self.create_account(i, u)
-        return None
-
-
+    # Retrieves user account registrations.
+    # Creates and stores (queues) single-tx block records for each one.
+    # Note that it will store ANY account registration, whether or not it belongs to this import session.
     def filter(self, conn, block, tx, db_session):
         # get user if matching tx
         address = self._address_by_tx(tx)
         if address == None:
             return
 
-        serialized_block = self._export_user_block(address, block, tx)
-        self.dh.add(address, serialized_block, 'ussd_tx_src')
+        tampered_block = TamperedBlock(block.src(), tx)
+        self.dh.add(address, tampered_block.src(), 'ussd_tx_src')

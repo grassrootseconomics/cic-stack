@@ -31,12 +31,14 @@ from cic_seeding.legacy import (
 logg = logging.getLogger(__name__)
 
 
+# Implement the non-custodial account creation
 class EthImporter(Importer):
 
+    # TODO: cic-contracts should be providing this
     account_index_add_signature = keccak256_string_to_hex('add(address)')[:8]
 
-    def __init__(self, rpc, signer, signer_address, config, stores={}):
-        super(EthImporter, self).__init__(config, rpc, signer, signer_address, stores=stores)
+    def __init__(self, rpc, signer, signer_address, config, stores={}, default_tag=[]):
+        super(EthImporter, self).__init__(config, rpc, signer, signer_address, stores=stores, default_tag=default_tag)
         self.keystore = DictKeystore()
         self.gas_gift_amount = int(config.get('ETH_GAS_AMOUNT'))
 
@@ -44,10 +46,10 @@ class EthImporter(Importer):
         self.token_multiplier = None
 
 
+    # Execute the evm transaction for account registration.
     def __register_account(self, address):
         gas_oracle = RPCGasOracle(self.rpc, code_callback=self.get_max_gas)
         c = AccountsIndex(self.chain_spec, signer=self.signer, nonce_oracle=self.nonce_oracle, gas_oracle=gas_oracle)
-        #c = AccountsIndexAddressDeclarator(self.chain_spec, signer=self.signer, nonce_oracle=self.nonce_oracle, gas_oracle=gas_oracle)
         (tx_hash_hex, o) = c.add(self.lookup.get('account_registry'), self.signer_address, address)
         self.rpc.do(o)
 
@@ -57,32 +59,8 @@ class EthImporter(Importer):
         return tx_hash_hex
 
 
-    def __gift_gas(self, conn, user):
-        gas_oracle = RPCGasOracle(self.rpc, code_callback=self.get_min_gas)
-        c = Gas(self.chain_spec, signer=self.signer, nonce_oracle=self.nonce_oracle, gas_oracle=gas_oracle)
-        (tx_hash_hex, o) = c.create(self.signer_address, user.address, self.gas_gift_amount)
-
-        conn.do(o)
-
-        # export tx
-        self._export_tx(tx_hash_hex, o['params'][0])
-
-        logg.info('gas gift value {} submitted for {} tx {}'.format(self.gas_gift_amount, user, tx_hash_hex))
-
-        return tx_hash_hex
-
-
-    def __export_key(self, address):
-        pk = self.keystore.get(address)
-        keyfile_content = to_keyfile_dict(pk, 'foo')
-        address_index = legacy_normalize_file_key(address)
-        self.dh.add(address_index, json.dumps(keyfile_content), 'keystore')
-        path = self.dh.path(address_index, 'keystore')
-        legacy_link_data(path)
-
-        return path
-
-
+    # Execute the custodial account creation.
+    # Visited by default by Importer.process_user
     def create_account(self, i, u):
         # create new keypair
         address_hex = self.keystore.new()
@@ -99,6 +77,36 @@ class EthImporter(Importer):
         return address
 
 
+    # Execute a gas transfer.
+    def __gift_gas(self, conn, user):
+        gas_oracle = RPCGasOracle(self.rpc, code_callback=self.get_min_gas)
+        c = Gas(self.chain_spec, signer=self.signer, nonce_oracle=self.nonce_oracle, gas_oracle=gas_oracle)
+        (tx_hash_hex, o) = c.create(self.signer_address, user.address, self.gas_gift_amount)
+
+        conn.do(o)
+
+        # export tx
+        self._export_tx(tx_hash_hex, o['params'][0])
+
+        logg.info('gas gift value {} submitted for {} tx {}'.format(self.gas_gift_amount, user, tx_hash_hex))
+
+        return tx_hash_hex
+
+
+    # Export the newly created private key to an ethereum keystore file.
+    def __export_key(self, address):
+        pk = self.keystore.get(address)
+        keyfile_content = to_keyfile_dict(pk, 'foo')
+        address_index = legacy_normalize_file_key(address)
+        self.dh.add(address_index, json.dumps(keyfile_content), 'keystore')
+        path = self.dh.path(address_index, 'keystore')
+        legacy_link_data(path)
+
+        return path
+
+
+
+    # Execute the evm transaction for triggering the token faucet.
     def __trigger_faucet(self, conn, user):
         #gas_oracle = RPCGasOracle(self.rpc, code_callback=Faucet.gas)
         gas_oracle = RPCGasOracle(self.rpc, code_callback=self.get_max_gas)
@@ -115,6 +123,11 @@ class EthImporter(Importer):
         return tx_hash_hex
 
 
+    # Trigger for every account registration transaction matching an import user.
+    # Send balance transaction.
+    # Trigger the faucet.
+    # Send an initial gas allowance.
+    # Visited by chainsyncer.filter.SyncFilter.
     def filter(self, conn, block, tx, db_session):
         # get user if matching tx
         u = self._user_by_tx(tx)

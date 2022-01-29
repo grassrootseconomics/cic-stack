@@ -42,11 +42,14 @@ from cic_seeding.legacy import (
         legacy_link_data,
         )
 from cic_seeding.error import UnknownTokenError
-from cic_seeding.chain import serialize_block_tx
 
 logg = logging.getLogger(__name__)
 
 
+# Convenience class to make commonly used data fields more accessible than in the Person object:
+# - address
+# - original address
+# - original balance
 class ImportUser:
 
     def __init__(self, dirhandler, person, target_chain_spec, source_chain_spec, verify_address=None):
@@ -109,6 +112,10 @@ class ImportUser:
         return str(self.person)
 
 
+# Contains routines common to all import interfaces.
+# Proxies an underlying dirhandler that carries all state and data for the import session.
+# Importer must be extended to implement the create_account method.
+# Any initialization producing side-effects are defined in prepare(). The same should be the case for any child class.
 class Importer:
 
     max_gas = 8000000
@@ -124,12 +131,7 @@ class Importer:
             self.stores[k] = stores[k]
 
         self.dh = DirHandler(config.get('_USERDIR'), stores=self.stores, exist_ok=True)
-        try:
-            reset = config.get('_RESET')
-            self.dh.initialize_dirs(reset=config.true('_RESET'))
-        except KeyError as e:
-            logg.error('whoa {}'.format(e))
-            pass
+        self.dir_reset = config.get('_RESET')
         self.default_tag = default_tag
 
         self.index_count = {}
@@ -162,22 +164,22 @@ class Importer:
         self.rpc = rpc
 
 
+    # Dirhandler proxy
     def add(self, k, v, dirkey):
         return self.dh.add(k, v, dirkey)
 
 
+    # Dirhandler proxy
     def get(self, k, dirkey):
         return self.dh.get(k, dirkey)
 
 
+    # Dirhandler proxy
     def path(self, k):
         return self.dh.dirs.get(k)
 
 
-    def to_user(self, person):
-        return ImportUser(self.dh, person, self.chain_spec, self.source_chain_spec)
-
-
+    # Look up import user or original user by address.
     def user_by_address(self, address, original=False):
         k = 'new'
         if original:
@@ -188,10 +190,13 @@ class Importer:
         return ImportUser(self.dh, person, self.chain_spec, self.source_chain_spec)
 
 
+    # Total number of records this import is processing
     def __len__(self):
         return self.index_count['balances']
 
 
+    # Chain registry caching.
+    # TODO: Trigger in registry instead and wrap the function.
     def _token_index(self):
         o = self.registry.address_of(self.registry_address, 'TokenRegistry')
         r = self.rpc.do(o)
@@ -200,6 +205,8 @@ class Importer:
         logg.info('found token index address {}'.format(token_index_address))
 
     
+    # Chain registry caching.
+    # TODO: Trigger in registry instead and wrap the function.
     def _account_registry(self):
         o = self.registry.address_of(self.registry_address, 'AccountRegistry')
         r = self.rpc.do(o)
@@ -208,6 +215,8 @@ class Importer:
         logg.info('using account registry {}'.format(self.lookup.get('account_registry')))
 
 
+    # Chain registry caching.
+    # TODO: Trigger in registry instead and wrap the function.
     def _faucet(self):
         o = self.registry.address_of(self.registry_address, 'Faucet')
         r = self.rpc.do(o)
@@ -216,6 +225,8 @@ class Importer:
         logg.info('found faucet {}'.format(faucet_address))
 
 
+    # Chain registry caching.
+    # TODO: Trigger in registry instead and wrap the function.
     def _registry_default_token(self):
         o = self.registry.address_of(self.registry_address, 'DefaultToken')
         r = self.rpc.do(o)
@@ -224,47 +235,65 @@ class Importer:
         return token_address
 
 
+    # Attempt to resolve the requested token symbol to an address with the given token index.
     def _default_token(self, token_index_address, token_symbol):
-        # TODO: in place of default value in arg, should get registry default token as fallback
         if token_symbol == None:
             raise ValueError('no token symbol given')
         token_index = TokenUniqueSymbolIndex(self.chain_spec)
         o = token_index.address_of(token_index_address, token_symbol)
         r = self.rpc.do(o)
         token_address = token_index.parse_address_of(r)
+
         if is_same_address(token_address, ZERO_ADDRESS):
             raise FileNotFoundError('token index {} doesn\'t know token "{}"'.format(token_index_address, token_symbol))
+
         try:
             token_address = to_checksum_address(token_address)
         except ValueError as e:
             logg.critical('lookup failed for token {}: {}'.format(token_symbol, e))
             raise UnknownTokenError('token index {} token symbol {}'.format(token_index_address, token_symbol))
+
         logg.info('token index {} resolved address {} for token {}'.format(token_index_address, token_address, token_symbol))
         
         return token_address
 
 
-    def __init_lookups(self):
+    # Trigger all chain registry caching and set default token.
+    def __init_lookups(self, use_registry_fallback=True):
         for v in  [
                 'account_registry',
                 'token_index',
                 'faucet',
                 ]:
             getattr(self, '_' + v)()
+
+        err = None
         try:
             self.lookup['token'] = self._default_token(self.lookup.get('token_index'), self.__preferred_token_symbol)
-        except ValueError:
+            r = True
+        except ValueError as e:
+            err = e
+
+        if err:
+            if not use_registry_fallback:
+                raise err
             self.lookup['token'] = self._registry_default_token()
 
         self.token_address = self.lookup['token']
 
 
+    # Chain registry caching.
     def __set_token_details(self):
         self.token = ERC20Token(self.chain_spec, self.rpc, self.token_address)
         self.token_multiplier = 10 ** self.token.decimals
 
 
+    # Initializations with side-effects.
+    # Initialize the dirhandler., and triggers chain caching.
+    # Load data for the special balances and tags indices from file.
     def prepare(self):
+        self.dh.initialize_dirs(reset=self.dir_reset)
+
         for k in [
                 'tags',
                 'balances',
@@ -281,20 +310,18 @@ class Importer:
             logg.warning('no blockchain rpc defined, so will not look up anything from there')
 
 
-    def process_user(self, i, u):
-        raise NotImplementedError()
-
-
     def create_account(self, i, u):
         raise NotImplementedError()
 
 
+    # Default processing for source import user.
     def process_user(self, i, u):
         address = self.create_account(i, u)
         logg.debug('[{}] register eth new address {} for {}'.format(i, address, u))
         return address
 
 
+    # TODO: split up, too long
     def process_address(self, i, u, address, tags=[]):
         if address == None:
             logg.debug('no address to process for user {}'.format(u))
@@ -302,7 +329,6 @@ class Importer:
 
         # add address to identities in person object
         set_chain_address(u, self.chain_spec, address)
-
 
         # add updated person record to the migration data folder
         o = u.serialize()
@@ -315,7 +341,6 @@ class Importer:
         phone_object = phonenumbers.parse(u.tel)
         phone = phonenumbers.format_number(phone_object, phonenumbers.PhoneNumberFormat.E164)
         meta_phone_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.PHONE)
-
 
         self.dh.add(meta_phone_key, address_clean, 'phone')
         entry_path = self.dh.path(meta_phone_key, 'phone')
@@ -340,6 +365,10 @@ class Importer:
         legacy_link_data(custom_path)
 
 
+    # TODO: change if leveldir should implement a built-in walk/visitor 
+    # Visits callback with every user from the given import store.
+    # Expects valid Person object serializations, and will fail hard on any invalid ones encountered.
+    # Depending on the store implmentation, records may disappear once retrieved.
     def walk(self, callback, tags=[], batch_size=100, batch_delay=0.2, dirkey='src'):
        srcdir = self.dh.dirs.get(dirkey)
 
@@ -355,8 +384,6 @@ class Importer:
                o = json.loads(s)
                u = Person.deserialize(o)
 
-               logg.debug('person {}'.format(u))
-
                callback(i, u, tags=tags)
 
                i += 1
@@ -370,16 +397,19 @@ class Importer:
        return i
             
 
+    # Default callback for processing of the source import user store.
+    # Runs process_user and process_address on each user.
     def process_sync(self, i, u, tags=[]):
-        # create new ethereum address (in custodial backend)
         new_address = self.process_user(i, u)
         self.process_address(i, u, new_address, tags=tags)
 
-        
+       
+    # Default source import user store processor.
     def process_src(self, tags=[], batch_size=100, batch_delay=0.2):
         self.walk(self.process_sync, tags=tags, batch_size=100, batch_delay=0.2)
 
 
+    # Check the tx for a valid account registration and return the registered address.
     def _address_by_tx(self, tx):
         if tx.payload == None or len(tx.payload) == 0:
             return None
@@ -400,6 +430,8 @@ class Importer:
         return address
 
 
+    # Instantiate an ImportUser object from an address.
+    # The address must be a valid record for the import target.
     def _user_by_address(self, address):
         try:
             j = self.dh.get(address, 'new')
@@ -416,6 +448,7 @@ class Importer:
         return u
 
 
+    # Combine _address_by_tx and _user_by_address
     def _user_by_tx(self, tx):
         if tx.payload == None or len(tx.payload) == 0:
             logg.debug('no payload, skipping {}'.format(tx))
@@ -434,7 +467,9 @@ class Importer:
 
         return u
 
-
+    
+    # Send the token transaction for the user's original balance.
+    # TODO: There is nothing preventing this from being repeated.
     def _gift_tokens(self, conn, user):
         balance_full = user.original_balance * self.token_multiplier
 
@@ -451,6 +486,7 @@ class Importer:
         return tx_hash_hex
 
 
+    # Archive raw transaction data.
     def _export_tx(self, tx_hash, data):
         tx_hash_hex = strip_0x(tx_hash)
         tx_data = strip_0x(data)
@@ -458,19 +494,24 @@ class Importer:
         return tx_data
 
 
-    def _export_user_block(self, address, block, tx):
-        v = serialize_block_tx(block, tx)
-        self.dh.add(address, v, 'user_block')
-        return v
-
-
+    # Trigger for every account registration transaction matching an import user.
+    # Only invokes _gift_tokens.
+    # Visited by chainsyncer.filter.SyncFilter.
     def filter(self, conn, block, tx, db_session=None):
-        raise NotImplementedError()
+        # get user if matching tx
+        u = self._user_by_tx(tx)
+        if u == None:
+            return
 
+        # transfer old balance
+        self._gift_tokens(conn, u)
 
+    
+    # Temporary replacement for better gas handling.
     def get_max_gas(self, v):
         return self.max_gas
 
 
+    # Temporary replacement for better gas handling.
     def get_min_gas(self, v):
         return self.min_gas

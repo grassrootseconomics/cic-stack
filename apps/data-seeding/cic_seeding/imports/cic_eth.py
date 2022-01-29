@@ -8,12 +8,26 @@ import celery
 from cic_eth.api.api_task import Api
 
 # local imports
-from cic_seeding.imports.simple import SimpleImporter
+from cic_seeding.imports import Importer
 
 logg = logging.getLogger(__name__)
 
 
-class CicEthRedisTransport:
+# Define the result transport interface.
+class ResultTransport:
+
+    # Return a channel to get result from.
+    def prepare(self):
+        raise NotImplementedError()
+
+
+    # Get result from channel.
+    def get(self, channel):
+        raise NotImplementedError()
+
+
+# Redis implementation of ResultTransport.
+class CicEthRedisTransport(ResultTransport):
    
     def __init__(self, config):
         global celery_app
@@ -38,8 +52,6 @@ class CicEthRedisTransport:
 
         self.task='cic_eth.callbacks.redis.redis'
         self.queue='cic-eth'
-
-        celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
 
     def prepare(self):
@@ -78,25 +90,29 @@ class CicEthRedisTransport:
         return address
 
 
-class CicEthImporter(SimpleImporter):
+# Implement the cic-eth account creation process.
+# The caller must provide the transport for the retrieval of the account creation result.
+# Does not implement own sync filter.
+class CicEthImporter(Importer):
 
-    def __init__(self, config, rpc, signer, signer_address, result_transport=None, stores={}):
-        super(CicEthImporter, self).__init__(config, rpc, signer, signer_address, stores=stores)
+    def __init__(self, config, rpc, signer, signer_address, result_transport=None, stores={}, default_tag=[]):
+        super(CicEthImporter, self).__init__(config, rpc, signer, signer_address, stores=stores, default_tag=default_tag)
         self.res = result_transport
         self.queue = config.get('CELERY_QUEUE')
+        self.celery_broker_url = config.get('CELERY_BROKER_URL')
+        self.celery_result_url = config.get('CELERY_RESULT_URL')
 
 
+    def prepare(self):
+        super(CicEthImporter, self).prepare()
+        celery.Celery(broker=self.celery_broker_url, backend=self.celery_result_url)
+
+
+    # Execute the cic-eth account creation.
+    # Visited by default by Importer.process_user
     def create_account(self, i, u):
         ch = self.res.prepare()
 
-        logg.debug('foo {} {} {} {} {}'.format(
-            str(self.chain_spec),
-            self.queue,
-            self.res.params,
-            self.res.task,
-            self.res.queue,
-                )
-                )
         api = Api(
             str(self.chain_spec),
             queue=self.queue,

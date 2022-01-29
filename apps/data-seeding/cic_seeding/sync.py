@@ -17,6 +17,8 @@ from cic_seeding.chain import deserialize_block_tx
 logg = logging.getLogger(__name__)
 
 
+# A syncer implementation that scans a directory for files, parses them as blocks and processes them as transactions.
+# Blocks may be randomly accessed.
 class DeferredSyncer(BlockPollSyncer):
 
     def __init__(self, backend, chain_interface, importer, dirkey, target_count=0, tags=[], pre_callback=None, block_callback=None, post_callback=None):
@@ -34,8 +36,7 @@ class DeferredSyncer(BlockPollSyncer):
     def get(self, conn):
         for k in os.listdir(self.path):
             o = self.imp.get(k, self.dirkey)
-            (block, tx) = deserialize_block_tx(o)
-            block.txs = [tx]
+            block = Block(o)
             return block
         raise NoBlockForYou()
 
@@ -43,4 +44,4 @@ class DeferredSyncer(BlockPollSyncer):
     def process(self, conn, block):
         for tx in block.txs:
             self.process_single(conn, block, tx)
-            self.backend.reset_filter()
+        self.backend.reset_filter()

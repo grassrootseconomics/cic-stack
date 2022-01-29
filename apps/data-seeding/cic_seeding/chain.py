@@ -6,6 +6,7 @@ from chainlib.eth.block import Block
 from chainlib.eth.tx import Tx
 
 
+# Walk the given identities path and return the list object holding addresses for it.
 def __process_chain(person, chain_spec, create_path=False):
     engine = person.identities.get(chain_spec.engine())
     if engine == None:
@@ -32,25 +33,22 @@ def __process_chain(person, chain_spec, create_path=False):
     return chain
 
 
+# Get all addresses from a particular chain identity.
 def get_chain_addresses(person, chain_spec):
     return __process_chain(person, chain_spec)
 
 
+# Set an address for a particular chain identity on a person.
+# The chain identity path will be created if it does not exist.
 def set_chain_address(person, chain_spec, address):
     chain = __process_chain(person, chain_spec, create_path=True)
     chain.append(address)
 
 
-def serialize_block_tx(block, tx):
-    o = {
-            'block': block.src(),
-            'tx': tx.src(),
-            }
-    return json.dumps(o)
+# Replace the transaction list in a block with exactly one transaction of interest.
+# This block record cannot be used for validation.
+class TamperedBlock(Block):
 
-
-def deserialize_block_tx(v):
-    o = json.loads(v)
-    block = Block(o['block'])
-    tx = Tx(o['tx'])
-    return (block, tx,)
+    def __init__(self, src, tx):
+        super(TamperedBlock, self).__init__(src)
+        self.txs = [tx.src()]

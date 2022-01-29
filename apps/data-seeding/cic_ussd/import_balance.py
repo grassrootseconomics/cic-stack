@@ -42,14 +42,9 @@ from cic_seeding.chain import get_chain_addresses
 from cic_seeding.imports.cic_ussd import (
         CicUssdImporter,
         CicUssdConnectWorker,
+        apply_default_stores,
         )
-from cic_seeding.imports.simple import SimpleImporter
-from cic_seeding.index import (
-        AddressQueue,
-        SeedQueue,
-        normalize_key,
-        )
-from cic_seeding.filter import remove_zeros_filter
+from cic_seeding.imports import Importer
 from cic_seeding.notify import sync_progress_callback
 from cic_seeding.sync import DeferredSyncer
 
@@ -136,23 +131,37 @@ if args.until > 0:
 rpc = EthHTTPConnection(args.p)
 
 
-class DeferredImporter(threading.Thread):
+# Syncer being fed the saved single-tx blocks from AccountConnectSpawner process.
+# The associated importer resumes the normal import routine on this transaction
+class DeferredImportThread(threading.Thread):
 
-    def __init__(self, syncer, eth_endpoint, delay=1):
+    def __init__(self, config, chain_spec, signer, signer_address, delay=1):
         super(DeferredImporter, self).__init__()
+
+        self.rpc = EthHTTPConnection(config.get('RPC_PROVIDER'))
+        deferred_imp = Importer(config, self.rpc, signer_address)
+
+        deferred_syncer_backend = MemBackend(str(chain_spec), 0)
+        deferred_syncer_backend.set(0, 0)
+
+        syncer = DeferredSyncer(deferered_syncer_backend, chain_interface, deferred_imp, 'ussd_tx_src', block_callback=sync_progress_callback)
+        syncer.add_filter(imp)
+
         self.syncer = syncer
         self.delay = delay
-        self.rpc = EthHTTPConnection(eth_endpoint)
 
 
     def run(self):
-        self.syncer.loop(self.delay, rpc)
+        self.syncer.loop(self.delay, self.rpc)
 
 
-class Spawner(threading.Thread):
+# Processes all phone number records queued by the main thread CicUssdImporter.
+# The queue listener will connect the records are to be connected with blockchain address.
+# TODO: need a channel for closing down the workers.
+class AccountConnectThread(threading.Thread):
 
     def __init__(self, imp, queue, offset):
-        super(Spawner, self).__init__()
+        super(AccountConnectSpawner, self).__init__()
         self.imp = imp
         self.q = queue
         self.offset = offset
@@ -169,26 +178,19 @@ class Spawner(threading.Thread):
             u = imp.user_by_address(address, original=True)
             self.q.put(u)
             i += 1
-            
+           
 
 def main():
     global block_offset, block_limit
 
-    store_path = os.path.join(config.get('_USERDIR'), 'ussd_tx_src')
-    blocktx_store = SeedQueue(store_path, key_normalizer=normalize_key)
-
-    store_path = os.path.join(config.get('_USERDIR'), 'ussd_phone')
-    unconnected_phone_store = AddressQueue(store_path)
-
-    imp = CicUssdImporter(config, rpc, signer, signer_address, stores={
-        'ussd_tx_src': blocktx_store,
-        'ussd_phone': unconnected_phone_store,
-        },
-        )
+    # Create the main thread processor
+    stores = apply_default_stores()
+    imp = CicUssdImporter(config, rpc, signer, signer_address, stores=stores)
     imp.prepare()
     
     offset = unconnected_phone_store.tell()
 
+    # Spawn account connection workers
     q = queue.Queue(maxsize=config.get('_THREADS'))
     workers = []
     for i in range(config.get('_THREADS')):
@@ -196,9 +198,17 @@ def main():
         w.start()
         workers.append(w)
 
-    spawner = Spawner(imp, q, offset)
-    spawner.start()
+    # Spawn thread to scan phone number records added by CicUssdImporter for processing.
+    # This thread will feed the already spawned account connection workers.
+    th_account = AccountConnectThread(imp, q, offset)
+    th_account.start()
 
+    # Spawn thread to receive the block data saved by the main thread syncer (below) for deferred processing.
+    # The syncer
+    deferred_thread = DeferredImporter(config, chain_spec, signer, signer_address)
+    deferred_thread.start()
+
+    # Set up the regular syncer, equal to the other import modes.
     o = block_latest_query()
     block_latest = rpc.do(o)
     block_latest = int(strip_0x(block_latest), 16) + 1
@@ -210,18 +220,12 @@ def main():
         if block_limit == 0:
             block_limit = block_latest
 
-    syncer_backend = None
+        syncer_backend = None
     if block_limit > 0:
         syncer_backend = MemBackend.custom(chain_str, block_limit, block_offset=block_offset)
     else:
         syncer_backend = MemBackend(chain_str, 0)
         syncer_backend.set(block_offset, 0)
-
-    sync_imp = SimpleImporter(config, rpc, signer, signer_address)
-    syncer = DeferredSyncer(syncer_backend, chain_interface, imp, 'ussd_tx_src', block_callback=sync_progress_callback)
-    syncer.add_filter(sync_imp)
-    deferred_thread = DeferredImporter(syncer, config.get('RPC_PROVIDER'))
-    deferred_thread.start()
 
     syncer = None
     if block_limit > 0:
