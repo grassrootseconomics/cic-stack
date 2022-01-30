@@ -25,6 +25,8 @@ from cic_seeding.imports import (
 from cic_seeding.index import (
         AddressQueue,
         SeedQueue,
+        normalize_key,
+>>>>>>> origin/master
         )
 from cic_seeding.chain import (
         TamperedBlock,
@@ -114,12 +116,13 @@ class CicUssdConnectWorker(threading.Thread):
                 continue
     
         logg.debug('have address {} for phone {}'.format(address, ph))
+        u.add_address(address)
 
         idx = float('{}.{}'.format(self.idx, i))
-        self.imp.process_address(idx, u, address)
+        self.imp.process_address(idx, u)
 
 
-def apply_default_stores(stores={}):
+def apply_default_stores(config, stores={}):
     store_path = os.path.join(config.get('_USERDIR'), 'ussd_tx_src')
     blocktx_store = SeedQueue(store_path, key_normalizer=normalize_key)
 
@@ -127,7 +130,7 @@ def apply_default_stores(stores={}):
     unconnected_phone_store = AddressQueue(store_path)
 
     stores['ussd_tx_src'] = blocktx_store
-    stores['ussd_phone'] =unconnected_phone_store
+    stores['ussd_phone'] = unconnected_phone_store
 
     return stores
 
@@ -137,7 +140,7 @@ def apply_default_stores(stores={}):
 class CicUssdImporter(Importer):
 
     def __init__(self, config, rpc, signer, signer_address, stores={}, default_tag=[]):
-        super(CicUssdImporter, self).__init__(config, rpc, signer, signer_address, stores=stores, default_tag=default_tag)
+        super(CicUssdImporter, self).__init__(config, rpc, signer=signer, signer_address=signer_address, stores=stores, default_tag=default_tag)
 
         self.ussd_provider = config.get('USSD_PROVIDER')
         self.ussd_valid_service_codes = config.get('USSD_SERVICE_CODE').split(',')
@@ -168,14 +171,14 @@ class CicUssdImporter(Importer):
 
 
     def _queue_user(self, i, u, tags=[]):
-        iu = ImportUser(self.dh, u, self.chain_spec, self.source_chain_spec)
-        self.dh.add(None, iu.original_address, 'ussd_phone')
+        self.dh.add(None, u.original_address, 'ussd_phone')
 
 
     # Add all source users to lookup processing directory.
     # It is the responsiblity of the importer in the deferred syncer to call the parent prepare.
     # The parent prepare is not needed for this phase since we are only using src and custom stores.
     def prepare(self):
+        super(CicUssdImporter, self).prepare()
         need_init = False
         try:
             os.stat(self.dh.path('.complete', 'ussd_phone'))
@@ -192,7 +195,7 @@ class CicUssdImporter(Importer):
     # create account is simply a matter of selecting the language on the menu.
     # TODO: add language preference data to imports generation, and already "import" the language in this step.
     def create_account(self, i, u):
-        phone_number = phone_number_to_e164(u.tel, None)
+        phone_number = phone_number_to_e164(u.phone, None)
         req = self._build_ussd_request(
                              phone_number,
                              self.ussd_service_code,
@@ -200,7 +203,7 @@ class CicUssdImporter(Importer):
         logg.debug('ussd request: {} {}'.format(req.full_url, req.data))
         response = urllib.request.urlopen(req)
         response_data = response.read().decode('utf-8')
-        logg.debug('ussd response: {}'.format(responsee_data))
+        logg.debug('ussd response: {}'.format(response_data))
 
         req = self._build_ussd_request(
                              phone_number,
@@ -210,7 +213,7 @@ class CicUssdImporter(Importer):
         logg.debug('ussd request: {} {}'.format(req.full_url, req.data))
         response = urllib.request.urlopen(req)
         response_data = response.read().decode('utf-8')
-        logg.debug('ussd response: {}'.format(responsee_data))
+        logg.debug('ussd response: {}'.format(response_data))
 
 
     def process_meta_custom_tags(self, i, u):
@@ -233,4 +236,4 @@ class CicUssdImporter(Importer):
             return
 
         tampered_block = TamperedBlock(block.src(), tx)
-        self.dh.add(address, tampered_block.src(), 'ussd_tx_src')
+        self.dh.add(address, json.dumps(tampered_block.src()), 'ussd_tx_src')

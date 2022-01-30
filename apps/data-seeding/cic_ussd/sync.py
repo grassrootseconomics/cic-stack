@@ -72,6 +72,7 @@ argparser.add_argument('--until', type=int, default=0, help='block to terminate 
 argparser.add_argument('--keep-alive', dest='keep_alive', action='store_true', help='continue syncing after latest block reched')
 argparser.add_argument('--gas-amount', dest='gas_amount', type=int, help='amount of gas to gift to new accounts')
 argparser.add_argument('--timeout', default=60.0, type=float, help='Callback timeout')
+argparser.add_argument('--sync', type=str, choices=['all', 'deferred', 'evm', 'none'], default='all', help='Block sync mode')
 argparser.add_argument('-v', help='be verbose', action='store_true')
 argparser.add_argument('-vv', help='be more verbose', action='store_true')
 argparser.add_argument('user_dir', type=str, help='user export directory')
@@ -114,8 +115,6 @@ if args.y != None:
     logg.debug('now have key for signer address {}'.format(signer_address))
 signer = EIP155Signer(keystore)
 
-chain_str = config.get('CHAIN_SPEC')
-
 block_offset = 0
 if args.head:
     block_offset = -1
@@ -133,25 +132,28 @@ rpc = EthHTTPConnection(args.p)
 
 # Syncer being fed the saved single-tx blocks from AccountConnectSpawner process.
 # The associated importer resumes the normal import routine on this transaction
+# TODO: need a channel for closing down this thread
 class DeferredImportThread(threading.Thread):
 
-    def __init__(self, config, chain_spec, signer, signer_address, delay=1):
-        super(DeferredImporter, self).__init__()
+    def __init__(self, config, chain_spec, signer, signer_address, stores, delay=1):
+        super(DeferredImportThread, self).__init__()
 
         self.rpc = EthHTTPConnection(config.get('RPC_PROVIDER'))
-        deferred_imp = Importer(config, self.rpc, signer_address)
+        deferred_imp = Importer(config, self.rpc, signer=signer, signer_address=signer_address, stores=stores)
+        deferred_imp.prepare()
 
         deferred_syncer_backend = MemBackend(str(chain_spec), 0)
         deferred_syncer_backend.set(0, 0)
 
-        syncer = DeferredSyncer(deferered_syncer_backend, chain_interface, deferred_imp, 'ussd_tx_src', block_callback=sync_progress_callback)
-        syncer.add_filter(imp)
+        syncer = DeferredSyncer(deferred_syncer_backend, chain_interface, deferred_imp, 'ussd_tx_src', block_callback=sync_progress_callback)
+        syncer.add_filter(deferred_imp)
 
         self.syncer = syncer
         self.delay = delay
 
 
     def run(self):
+        logg.info('deferred syncer thread started')
         self.syncer.loop(self.delay, self.rpc)
 
 
@@ -161,13 +163,14 @@ class DeferredImportThread(threading.Thread):
 class AccountConnectThread(threading.Thread):
 
     def __init__(self, imp, queue, offset):
-        super(AccountConnectSpawner, self).__init__()
+        super(AccountConnectThread, self).__init__()
         self.imp = imp
         self.q = queue
         self.offset = offset
 
 
     def run(self):
+        logg.info('account connect thread started')
         i = self.offset
         while True:
             address = None
@@ -175,44 +178,54 @@ class AccountConnectThread(threading.Thread):
                 address = self.imp.get(i, 'ussd_phone')
             except FileNotFoundError as e:
                 break
-            u = imp.user_by_address(address, original=True)
+            u = self.imp.user_by_address(address, original=True)
             self.q.put(u)
             i += 1
-           
+          
 
-def main():
-    global block_offset, block_limit
-
-    # Create the main thread processor
-    stores = apply_default_stores()
-    imp = CicUssdImporter(config, rpc, signer, signer_address, stores=stores)
-    imp.prepare()
-    
-    offset = unconnected_phone_store.tell()
-
+def run_account_connect(config, imp, offset):
     # Spawn account connection workers
     q = queue.Queue(maxsize=config.get('_THREADS'))
     workers = []
     for i in range(config.get('_THREADS')):
-        w = CicUssdConnectWorker(imp, config.get('META_PROVIDER'), q)
+        w = CicUssdConnectWorker(i, imp, config.get('META_PROVIDER'), q)
         w.start()
         workers.append(w)
+
 
     # Spawn thread to scan phone number records added by CicUssdImporter for processing.
     # This thread will feed the already spawned account connection workers.
     th_account = AccountConnectThread(imp, q, offset)
     th_account.start()
 
+    def stop():
+        logg.info('stopping account connect')
+        th_account.join()
+        for w in workers:
+            w.join()
+
+    return stop
+
+
+def run_deferred_syncer(config, chain_spec, signer, signer_address, stores):
     # Spawn thread to receive the block data saved by the main thread syncer (below) for deferred processing.
     # The syncer
-    deferred_thread = DeferredImporter(config, chain_spec, signer, signer_address)
+    deferred_thread = DeferredImportThread(config, chain_spec, signer, signer_address, stores)
     deferred_thread.start()
 
+    def stop():
+        logg.info('stopping deferred syncer')
+        deferred_thread.join()
+    
+    return stop
+
+
+def run_main_syncer(config, rpc, imp, block_offset, block_limit):
     # Set up the regular syncer, equal to the other import modes.
     o = block_latest_query()
     block_latest = rpc.do(o)
     block_latest = int(strip_0x(block_latest), 16) + 1
-    logg.info('block number at start of execution is {}'.format(block_latest))
+    logg.info('network block height at start of evm syncer execution is {}'.format(block_latest))
 
     if block_offset == -1:
         block_offset = block_latest
@@ -222,9 +235,9 @@ def main():
 
         syncer_backend = None
     if block_limit > 0:
-        syncer_backend = MemBackend.custom(chain_str, block_limit, block_offset=block_offset)
+        syncer_backend = MemBackend.custom(config.get('CHAIN_SPEC'), block_limit, block_offset=block_offset)
     else:
-        syncer_backend = MemBackend(chain_str, 0)
+        syncer_backend = MemBackend(config.get('CHAIN_SPEC'), 0)
         syncer_backend.set(block_offset, 0)
 
     syncer = None
@@ -237,14 +250,51 @@ def main():
 
     syncer.add_filter(imp)
     syncer.loop(1.0, rpc)
-  
-    spawner.join()
 
-    deferred_thread.join()
-    
-    for w in workers:
-        w.join()
+    def stop():
+        pass
 
+    return stop
+
+
+def main():
+    global block_offset, block_limit
+
+    # Create the main thread processor
+    stores = apply_default_stores(config)
+    imp = CicUssdImporter(config, rpc, signer, signer_address, stores=stores)
+    imp.prepare()
+    offset = stores['ussd_phone'].tell()
+
+    chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
+
+    stoppers = []
+
+    stopper = run_account_connect(config, imp, offset)
+    stoppers.append(stopper)
+
+    sync_deferred = True
+    sync_evm = True
+
+    if args.sync != 'all':
+        sync_evm = args.sync == 'evm'
+        sync_deferred = args.sync == 'deferred'
+
+    if sync_deferred:
+        stopper = run_deferred_syncer(config, chain_spec, signer, signer_address, stores)
+        stoppers.append(stopper)
+    else:
+        logg.info('skipping deferred syncer')
+
+    if sync_evm:
+        stopper = run_main_syncer(config, rpc, imp, block_offset, block_limit)
+        stoppers.append(stopper)
+    else:
+        logg.info('skipping evm syncer')
+
+    for stopper in stoppers:
+        stopper()
+   
 
 if __name__ == '__main__':
     main()

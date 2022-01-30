@@ -10,9 +10,11 @@ from chainsyncer.error import (
         NoBlockForYou,
         )
 from chainsyncer.driver.poll import BlockPollSyncer
-
-# local imports
-from cic_seeding.chain import deserialize_block_tx
+from chainlib.eth.block import Block
+from chainlib.eth.tx import (
+        Tx,
+        receipt,
+        )
 
 logg = logging.getLogger(__name__)
 
@@ -38,7 +40,13 @@ class DeferredSyncer(BlockPollSyncer):
     def get(self, conn):
         for k in os.listdir(self.path):
             o = self.imp.get(k, self.dirkey)
-            block = Block(o)
+            block = Block(json.loads(o))
+            tx = Tx(block.txs[0], block=block)
+            # TODO: avoid this extra lookup
+            o = receipt(tx.hash)
+            rcpt = conn.do(o)
+            tx.apply_receipt(rcpt)
+            block.txs = [tx]
             return block
         raise NoBlockForYou()
 

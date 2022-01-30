@@ -50,5 +50,6 @@ def set_chain_address(person, chain_spec, address):
 class TamperedBlock(Block):
 
     def __init__(self, src, tx):
+        src['transactions'] = [tx.src()]
         super(TamperedBlock, self).__init__(src)
-        self.txs = [tx.src()]
+        self.txs = [tx]
