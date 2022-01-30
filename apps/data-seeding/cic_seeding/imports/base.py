@@ -108,16 +108,11 @@ class ImportUser:
         return balance
 
 
-<<<<<<< HEAD
-    def add_address(self, address):
-        set_chain_address(self.person, self.chain_spec, address)
-=======
     def add_address(self, address, original=False):
         if original:
             set_chain_address(self.person, self.source_chain_spec, address)
         else:
             set_chain_address(self.person, self.chain_spec, address)
->>>>>>> origin/master
         self.address = address
 
 
@@ -451,10 +446,6 @@ class Importer:
             return None
         address = r[0]
 
-<<<<<<< HEAD
-        logg.debug('looking at tx {}'.format(tx))
-=======
->>>>>>> origin/master
         if tx.status != TxStatus.SUCCESS:
             logg.warning('failed accounts index transaction for {}: {}'.format(address, tx.hash))
             return None
