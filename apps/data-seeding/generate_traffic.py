@@ -4,6 +4,7 @@ import logging
 import re
 import sys
 import json
+import time
 
 # external imports
 import redis
@@ -62,6 +63,25 @@ if config.get('_REDIS_PORT_CALLBACK') == None:
     config.add(config.get('REDIS_PORT'), '_REDIS_PORT_CALLBACK')
 
 
+class RpcIdler:
+
+    def __init__(self, handler):
+        self.ctrl = Ctrl()
+        self.ctrl.set_handler(handler)
+        self.ctrl.start()
+
+
+    def process(self, remaining_time):
+        self.ctrl.process()
+        time.sleep(0.001)
+        return True
+
+
+    def quit(self):
+        self.ctrl.quit()
+
+ 
+
 def main():
     # load configurations into the traffic module
     prepare_for_traffic(config, conn)
@@ -69,12 +89,12 @@ def main():
     # Set up magic traffic handler, run by the syncer
     traffic_router = TrafficRouter()
     traffic_router.apply_import_dict(config.all(), config)
+    handler = TrafficSyncHandler(config, traffic_router, conn)
 
     # Set up rpc controller
-    ctrl = None
+    idle_ctrl = None
     if args.rpc:
-        ctrl = Ctrl()
-    handler = TrafficSyncHandler(config, traffic_router, conn, ctrl=ctrl)
+        idle_ctrl = RpcIdler(handler)
 
     # Set up syncer
     syncer_backend = MemBackend(config.get('CHAIN_SPEC'), 0)
@@ -83,14 +103,21 @@ def main():
     block_offset = int(strip_0x(r), 16) + 1
     syncer_backend.set(block_offset, 0)
 
-    syncer = HeadSyncer(syncer_backend, chain_interface, block_callback=handler.refresh)
+    idle_callback = None
+    if idle_ctrl != None:
+        idle_callback=idle_ctrl.proces
+    syncer = HeadSyncer(syncer_backend, chain_interface, block_callback=handler.refresh, idle_callback=idle_callback)
     syncer.add_filter(handler)
 
     syncer.loop(1, conn)
 
-    if ctrl != None:
+    if idle_ctrl != None:
         logg.debug('waiting for rpc to shut down')
-        ctrl.quit()
+        idle_ctrl.quit()
+
+    logg.debug('waiting for handler to finish')
+    handler.quit()
+
 
 if __name__ == '__main__':
     main()

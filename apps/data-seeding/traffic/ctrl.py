@@ -75,9 +75,12 @@ class Ctrl(threading.Thread):
                 continue
 
             if msg[1] != None:
-                conn.sendall(msg[1].encode('utf-8'))
+                try:
+                    conn.sendall(msg[1].encode('utf-8'))
+                    conn.close()
+                except BrokenPipeError:
+                    logg.error('client {} went away and missed the response: {}'.format(msg[0], msg[1]))
 
-            conn.close()
             del self.req[msg[0]]
 
 
@@ -107,7 +110,7 @@ class Ctrl(threading.Thread):
             try:
                 getattr(self, 'rpc_' + cmd)
             except AttributeError:
-                logg.error('unknown rpc command {}'.format())
+                logg.error('unknown rpc command {}'.format(cmd))
                 continue
 
             if arg != None:

@@ -30,7 +30,7 @@ class TrafficSyncHandler:
     :type traffic_router: TrafficRouter
     :raises Exception: Any Exception redis may raise on connection attempt.
     """
-    def __init__(self, config, traffic_router, conn, ctrl=None):
+    def __init__(self, config, traffic_router, conn):
         self.traffic_router = traffic_router
         self.traffic_items = {}
         self.config = config
@@ -39,13 +39,9 @@ class TrafficSyncHandler:
         self.busyqueue = queue.Queue(1)
         self.c = 0
         self.busyqueue.put(self.c)
-        self.ctrl = ctrl
-    
-        if self.ctrl != None:
-            self.ctrl.set_handler(self)
-            self.ctrl.start()
+        self.th = None
 
-
+        
     # TODO: This method is too long, split up
     # TODO: This method will not yet cache balances for newly created accounts
     def refresh(self, block_number, tx_index):
@@ -58,9 +54,6 @@ class TrafficSyncHandler:
         :param tx_index: Syncer block transaction index at time of call.
         :type tx_index: number
         """
-        if self.ctrl != None:
-            self.ctrl.process()
-        
         try:
             v = self.busyqueue.get_nowait()
         except queue.Empty:
@@ -68,11 +61,14 @@ class TrafficSyncHandler:
 
         self.init = True
 
-        th = TrafficMaker(self, block_number)
-        th.start()
+        self.th = TrafficMaker(self, block_number)
+        self.th.start()
     
         self.c += 1
 
+
+    def quit(self):
+        self.th.join()
 
 
     def name(self):
@@ -164,8 +160,12 @@ class TrafficMaker(threading.Thread):
             if len(sender_indices) == 1:
                 sender_indices[sender_index] = sender_indices[len(sender_indices)-1]
             sender_indices = sender_indices[:len(sender_indices)-1]
-
-            balance_full = self.traffic_provisioner.balance(sender, token_pair[0])
+    
+            try:
+                balance_full = self.traffic_provisioner.balance(sender, token_pair[0])
+            except TimeoutError:
+                logg.error('could not retreive balance for sender {} tokens {}'.format(sender, token_pair))
+                return
 
             recipient_index = random.randint(0, len(self.traffic_provisioner.accounts)-1)
             recipient = self.traffic_provisioner.accounts[recipient_index]

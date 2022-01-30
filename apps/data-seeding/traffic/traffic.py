@@ -217,7 +217,7 @@ def prepare_for_traffic(config, conn):
             '_REDIS_PORT_CALLBACK': config.get('_REDIS_PORT_CALLBACK'),
             '_REDIS_DB_CALLBACK': config.get('REDIS_DB'),
             'CELERY_QUEUE': config.get('CELERY_QUEUE'),
-            '_TIMEOUT': 10.0,
+            '_TIMEOUT': 1.0,
             }
 
     chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
