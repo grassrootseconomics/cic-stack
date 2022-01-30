@@ -26,7 +26,6 @@ from cic_seeding.index import (
         AddressQueue,
         SeedQueue,
         normalize_key,
->>>>>>> origin/master
         )
 from cic_seeding.chain import (
         TamperedBlock,
