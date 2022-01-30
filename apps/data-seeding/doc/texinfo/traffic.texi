@@ -1,0 +1,77 @@
+@section Overview
+
+The traffic generator is a routine that enables random execution of user-defined tasks against the cic-eth custodial services.
+
+
+@subsection Defining tasks
+
+Tasks are included by specifying python module paths under the @code{traffic} section in the configuration.
+
+The value of configuration is the task's @emph{random selection weight}. This is used to control how likely each task is to be executed at any given time.
+
+
+@subsubsection Task signature
+
+The module must define a function @code{do} with the following signature:
+
+@example
+def do(token_pair, sender, recipient, sender_balance, aux, block_number)
+@end example
+
+The funnction must return a 3-element tuple:
+
+@enumerate
+@item
+Error description, or @code{None} if no error occurred.
+@item
+Task id to use for retrieval from the responses channel. @code{None} if no response is expected (or is to be discarded).
+@item
+The effective @emph{spend value} of the task. A positive value defines how much the @emph{sender's} balance was @emph{reduced}.
+@end enumerate
+
+Refer to the code documentation in @code{traffic_local.noop} for further details.
+
+
+@subsubsection Configuration example
+
+Consider the following configuration:
+
+@example
+[traffic]
+foo.item = 9
+traffic_local.account = 1
+@end example
+
+Here, the task defined in python module @code{foo.item} will be chosen 9 out of 10 times, whereas the one in @code{traffic_local.account} will be chosen 1 out of 10 times.
+
+
+@section Architecture
+
+
+@subsection Components
+
+The traffic module components are:
+
+@table @code
+@item TrafficRouter
+Holds all defined tasks, and uses their @emph{weights} to randomly chooses from them.
+@item TrafficItem
+Encapsulates a task item returned by the @code{TrafficRouter} as a task to be executed.
+@item TrafficProvisioner
+Maintains indicies of @emph{accounts}, @emph{tokens} and @emph{balances}. It is consulted as reference when generating token transfer details.
+@item TrafficSyncHandler
+Contains the callbacks executed by the @code{chainsyncer}.
+@item TrafficMaker
+A single thread, combining the @code{TrafficRouter} and @code{TrafficProvisioner} to generate a batch of @code{TrafficItem} objects for execution.
+@end table
+
+
+@subsection Execution logic
+
+The event loop is driven by a @code{chainsyncer} driver instance. This instance polls the blockchain for new blocks, and calls into @code{TrafficSyncHandler} for every retrieved block.
+
+This will start a thread with a new @code{TrafficProvisioner} instance, refreshing its caches. If a thread is already executing, the call will return control to the @code{chainsyncer} immediately.
+
+Within the thread, @code{TrafficSyncHandler} will ask the @code{TrafficRouter} for a @code{TrafficItem} to execute, and continue to do so until all the execution slots are filled. It will then retrieve all pending asynchronous responses from each task, freeing up each slot as they are received. It resposne retrieval times out, control is handed back to the chainsyncer.
+
+
