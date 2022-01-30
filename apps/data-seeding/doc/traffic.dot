@@ -155,15 +155,11 @@ digraph {
 
 	is_spend -> balance_update [ label = "yes"; ];
 
-	is_interact -> 
-
 	balance_update -> sender_cache -> call_release;
 
 	call_release -> call_log -> is_reserve;
 
 	cic_eth_task -> get_api_result [ style = "dotted"; ];
-
-	sender_cache -> is_reserve;
 
 	is_reserve -> get_api_result [ label = "no"; ];
 
