@@ -6,6 +6,7 @@ import random
 import queue
 import threading
 import celery
+import time
 
 # external imports
 import redis
@@ -29,7 +30,7 @@ class TrafficSyncHandler:
     :type traffic_router: TrafficRouter
     :raises Exception: Any Exception redis may raise on connection attempt.
     """
-    def __init__(self, config, traffic_router, conn):
+    def __init__(self, config, traffic_router, conn, ctrl=None):
         self.traffic_router = traffic_router
         self.traffic_items = {}
         self.config = config
@@ -38,7 +39,11 @@ class TrafficSyncHandler:
         self.busyqueue = queue.Queue(1)
         self.c = 0
         self.busyqueue.put(self.c)
-
+        self.ctrl = ctrl
+    
+        if self.ctrl != None:
+            self.ctrl.set_handler(self)
+            self.ctrl.start()
 
 
     # TODO: This method is too long, split up
@@ -53,12 +58,13 @@ class TrafficSyncHandler:
         :param tx_index: Syncer block transaction index at time of call.
         :type tx_index: number
         """
+        if self.ctrl != None:
+            self.ctrl.process()
+        
         try:
             v = self.busyqueue.get_nowait()
         except queue.Empty:
             return
-
-        logg.debug('I made it here')
 
         self.init = True
 
@@ -106,6 +112,7 @@ class TrafficMaker(threading.Thread):
         self.init = h.init
         self.block_number = block_number
         self.redis_channel = str(uuid.uuid4())
+        self.traffic_provisioner = TrafficProvisioner(self.conn)
 
 
     # connects to redis
@@ -121,23 +128,22 @@ class TrafficMaker(threading.Thread):
         celery.Celery(broker=self.config.get('CELERY_BROKER_URL'), backend=self.config.get('CELERY_RESULT_URL'))
         self.pubsub = self.__connect_redis(self.redis_channel, self.config)
 
-        traffic_provisioner = TrafficProvisioner(self.conn)
-        traffic_provisioner.add_aux('REDIS_CHANNEL', self.redis_channel)
+        self.traffic_provisioner.add_aux('REDIS_CHANNEL', self.redis_channel)
 
         refresh_accounts = None
         # Note! This call may be very expensive if there are a lot of accounts and/or tokens on the network
         if not self.init:
-            refresh_accounts = traffic_provisioner.accounts
-        balances = traffic_provisioner.balances(refresh_accounts=refresh_accounts)
+            refresh_accounts = self.traffic_provisioner.accounts
+        balances = self.traffic_provisioner.balances(refresh_accounts=refresh_accounts)
 
-        if len(traffic_provisioner.tokens) == 0:
+        if len(self.traffic_provisioner.tokens) == 0:
             logg.error('patiently waiting for at least one registered token...')
             return
 
-        logg.debug('executing handler refresh with accounts {}'.format(traffic_provisioner.accounts))
-        logg.debug('executing handler refresh with tokens {}'.format(traffic_provisioner.tokens))
+        logg.debug('executing handler refresh with accounts {}'.format(self.traffic_provisioner.accounts))
+        logg.debug('executing handler refresh with tokens {}'.format(self.traffic_provisioner.tokens))
 
-        sender_indices = [*range(0, len(traffic_provisioner.accounts))]
+        sender_indices = [*range(0, len(self.traffic_provisioner.accounts))]
         # TODO: only get balances for the selection that we will be generating for
 
         while True:
@@ -148,21 +154,21 @@ class TrafficMaker(threading.Thread):
 
             # TODO: temporary selection
             token_pair = (
-                    traffic_provisioner.tokens[0],
-                    traffic_provisioner.tokens[0],
+                    self.traffic_provisioner.tokens[0],
+                    self.traffic_provisioner.tokens[0],
                     )
             sender_index_index = random.randint(0, len(sender_indices)-1)
             sender_index = sender_indices[sender_index_index]
-            sender = traffic_provisioner.accounts[sender_index]
+            sender = self.traffic_provisioner.accounts[sender_index]
             #balance_full = balances[sender][token_pair[0].symbol()]
             if len(sender_indices) == 1:
                 sender_indices[sender_index] = sender_indices[len(sender_indices)-1]
             sender_indices = sender_indices[:len(sender_indices)-1]
 
-            balance_full = traffic_provisioner.balance(sender, token_pair[0])
+            balance_full = self.traffic_provisioner.balance(sender, token_pair[0])
 
-            recipient_index = random.randint(0, len(traffic_provisioner.accounts)-1)
-            recipient = traffic_provisioner.accounts[recipient_index]
+            recipient_index = random.randint(0, len(self.traffic_provisioner.accounts)-1)
+            recipient = self.traffic_provisioner.accounts[recipient_index]
           
             logg.debug('trigger item {} tokens {} sender {} recipient {} balance {}'.format(
                 traffic_item,
@@ -177,10 +183,10 @@ class TrafficMaker(threading.Thread):
                     sender,
                     recipient,
                     balance_full,
-                    traffic_provisioner.aux,
+                    self.traffic_provisioner.aux,
                     self.block_number,
                     )
-            traffic_provisioner.update_balance(sender, token_pair[0], balance_full['balance_outgoing'] + spend_value)
+            self.traffic_provisioner.update_balance(sender, token_pair[0], balance_full['balance_outgoing'] + spend_value)
             if traffic_item.mode & TaskMode.RECIPIENT_ACTIVE:
                 sender_indices.append(recipient_index)
 

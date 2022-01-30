@@ -36,6 +36,7 @@ class IndexCache:
     def __init__(self, chain_spec, address):
         self.address = address
         self.chain_spec = chain_spec
+        self.idx = 0
 
     
     def parse(self, r):
@@ -44,16 +45,15 @@ class IndexCache:
 
     def get(self, conn):
         entries = []
-        i = 0
         while True:
-            o = self.o.entry(self.address, i)
+            o = self.o.entry(self.address, self.idx)
             try:
                 r = conn.do(o)
                 entries.append(self.parse(r, conn))
             except JSONRPCException as e:
                 logg.debug('foo {}'.format(e))
                 return entries
-            i += 1
+            self.idx += 1
 
 
 class AccountRegistryCache(IndexCache):

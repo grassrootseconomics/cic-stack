@@ -20,6 +20,7 @@ class TrafficRouter:
         if batch_size < 1:
             raise ValueError('batch size cannot be 0')
         self.items = []
+        self.item_weights = []
         self.weights = []
         self.total_weights = 0
         self.batch_size = batch_size
@@ -45,6 +46,7 @@ class TrafficRouter:
         self.total_weights += weight
         m = importlib.import_module(item)
         self.items.append(m)
+        self.item_weights.append(weight)
         
 
     def reserve(self):

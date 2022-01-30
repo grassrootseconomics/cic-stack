@@ -22,6 +22,7 @@ from cic_eth.cli.chain import chain_interface
 from traffic.args import add_args as add_traffic_args
 from traffic.route import TrafficRouter
 from traffic.sync import TrafficSyncHandler
+from traffic.ctrl import Ctrl
 from traffic import prepare_for_traffic
 
 # common basics
@@ -33,7 +34,8 @@ logg = logging.getLogger()
 arg_flags = cic_eth.cli.argflag_std_read | cic_eth.cli.Flag.WALLET
 local_arg_flags = cic_eth.cli.argflag_local_taskcallback | cic_eth.cli.argflag_local_chain
 argparser = cic_eth.cli.ArgumentParser(arg_flags)
-argparser.add_argument('--batch-size', default=10, type=int, help='number of events to process simultaneously')
+argparser.add_argument('--batch-size', default=10, type=int, help='Number of events to process simultaneously')
+argparser.add_argument('--rpc', action='store_true', help='Enable RPC socket')
 argparser.process_local_flags(local_arg_flags)
 args = argparser.parse_args()
 
@@ -67,7 +69,12 @@ def main():
     # Set up magic traffic handler, run by the syncer
     traffic_router = TrafficRouter()
     traffic_router.apply_import_dict(config.all(), config)
-    handler = TrafficSyncHandler(config, traffic_router, conn)
+
+    # Set up rpc controller
+    ctrl = None
+    if args.rpc:
+        ctrl = Ctrl()
+    handler = TrafficSyncHandler(config, traffic_router, conn, ctrl=ctrl)
 
     # Set up syncer
     syncer_backend = MemBackend(config.get('CHAIN_SPEC'), 0)
@@ -81,6 +88,9 @@ def main():
 
     syncer.loop(1, conn)
 
+    if ctrl != None:
+        logg.debug('waiting for rpc to shut down')
+        ctrl.quit()
 
 if __name__ == '__main__':
     main()

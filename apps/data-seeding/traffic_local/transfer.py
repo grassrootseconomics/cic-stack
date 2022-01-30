@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
 queue = 'cic-eth'
-name = 'erc20_transfer'
+task_name = 'erc20_transfer'
 task_mode = TaskMode.SENDER_ACTIVE | TaskMode.RECIPIENT_ACTIVE
 
 

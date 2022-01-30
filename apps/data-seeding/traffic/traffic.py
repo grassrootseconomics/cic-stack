@@ -42,11 +42,14 @@ class TrafficProvisioner:
 
     def __init__(self, conn):
         self.aux = copy.copy(self.default_aux)
+        self.tokens = None
+        self.accounts = None
         self.__balances = {}
-        self.tokens = self.oracles['token'].get_tokens(conn)
-        self.accounts = self.oracles['account'].get_accounts(conn)
+        self.tokens = TrafficProvisioner.oracles['token'].get_tokens(conn)
+        self.accounts = TrafficProvisioner.oracles['account'].get_accounts(conn)
         for a in self.accounts:
             self.__balances[a] = {}
+
 
     @staticmethod
     def __init_chain(registry):

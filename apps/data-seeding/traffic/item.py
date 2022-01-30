@@ -12,6 +12,7 @@ class TrafficItem:
     """
     def __init__(self, item):
         self.method = item.do
+        self.name = item.__name__
         self.uuid = uuid.uuid4()
         self.ext = None
         self.result = None
@@ -21,6 +22,7 @@ class TrafficItem:
         self.destination_token = None
         self.source_value = 0
         self.mode = item.task_mode
+
 
     def __str__(self):
         return 'traffic item method {} uuid {}'.format(self.method, self.uuid)
