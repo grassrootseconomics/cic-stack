@@ -683,4 +683,3 @@ class Api(ApiBase):
 
         t = self.callback_success.apply_async([r])
         return t
-

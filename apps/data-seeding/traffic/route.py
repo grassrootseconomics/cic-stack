@@ -25,7 +25,6 @@ class TrafficRouter:
         self.total_weights = 0
         self.batch_size = batch_size
         self.reserved = {}
-        self.reserved_count = 0
         self.traffic = {}
 
 
@@ -42,8 +41,8 @@ class TrafficRouter:
         :type weight: number
         :raises ModuleNotFound: Invalid item argument
         """
-        self.weights.append(self.total_weights)
         self.total_weights += weight
+        self.weights.append(self.total_weights)
         m = importlib.import_module(item)
         self.items.append(m)
         self.item_weights.append(weight)
@@ -76,7 +75,7 @@ class TrafficRouter:
 
 
     def count(self):
-        return (self.reserved_count, self.batch_size,)
+        return (len(self.reserved), self.batch_size,)
 
 
     def release(self, traffic_item):

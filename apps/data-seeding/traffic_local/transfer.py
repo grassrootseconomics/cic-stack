@@ -5,6 +5,7 @@ import random
 # external imports
 from cic_eth.api.api_task import Api
 from chainlib.eth.constant import ZERO_ADDRESS
+from cic_seeding.imports.cic_eth import CicEthRedisTransport
 
 # local imports
 from traffic import TaskMode
@@ -47,14 +48,29 @@ def do(token_pair, sender, recipient, sender_balance, aux, block_number):
 
     spend_units = random.randint(1, balance_units)
     spend_value = spend_units * decimals
+    
+    callback_param = '{}:{}:{}:{}'.format(
+            aux.get('_REDIS_HOST_CALLBACK'),
+            aux.get('_REDIS_PORT_CALLBACK'),
+            aux.get('_REDIS_DB_CALLBACK'),
+            aux.get('_REDIS_CHANNEL'),
+            )
 
     api = Api(
-        str(aux['CHAIN_SPEC']),
-        queue=queue,
-        callback_param='{}:{}:{}:{}'.format(aux['_REDIS_HOST_CALLBACK'], aux['_REDIS_PORT_CALLBACK'], aux['_REDIS_DB_CALLBACK'], aux['REDIS_CHANNEL']),
+        aux['CHAIN_SPEC'],
+        queue=aux['CELERY_QUEUE'],
+        callback_param=callback_param,
         callback_task='cic_eth.callbacks.redis.redis',
-        callback_queue=queue,
+        callback_queue=aux.get('CELERY_QUEUE'),
         )
+        
+#    api = Api(
+#        str(aux['CHAIN_SPEC']),
+#        queue=queue,
+#        callback_param='{}:{}:{}:{}'.format(aux['_REDIS_HOST_CALLBACK'], aux['_REDIS_PORT_CALLBACK'], aux['_REDIS_DB_CALLBACK'], aux['REDIS_CHANNEL']),
+#        callback_task='cic_eth.callbacks.redis.redis',
+#        callback_queue=queue,
+#        )
     t = api.transfer(sender, recipient, spend_value, token_pair[0].symbol())
 
     sender_balance['balance_outgoing'] += spend_value

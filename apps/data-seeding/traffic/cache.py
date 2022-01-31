@@ -31,6 +31,14 @@ class ERC20Token:
         return self.__decimals
 
 
+    def __str__(self):
+        return self.__symbol
+
+
+    def __repr__(self):
+        return self.__str__()
+
+
 class IndexCache:
 
     def __init__(self, chain_spec, address):

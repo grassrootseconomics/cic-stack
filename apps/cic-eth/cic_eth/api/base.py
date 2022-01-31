@@ -50,3 +50,10 @@ class ApiBase:
                     )       
 
 
+    def __str__(self):
+        return 'cic-eth api task chain {} queue {} callback: task {} param {}'.format(
+            self.chain_str,
+            self.queue,
+            self.callback_param,
+            self.callback_task,
+                )

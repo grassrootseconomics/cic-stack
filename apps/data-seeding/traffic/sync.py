@@ -42,6 +42,8 @@ class TrafficSyncHandler:
         self.c = 0
         self.busyqueue.put(self.c)
         self.th = None
+        self.redis_channel = str(uuid.uuid4())
+        self.pubsub = self.__connect_redis(self.redis_channel, self.config)
 
         
     # TODO: This method is too long, split up
@@ -97,6 +99,15 @@ class TrafficSyncHandler:
         pass
 
 
+    # connects to redis
+    def __connect_redis(self, redis_channel, config):
+        r = redis.Redis(config.get('REDIS_HOST'), config.get('REDIS_PORT'), config.get('REDIS_DB'))
+        redis_pubsub = r.pubsub()
+        redis_pubsub.subscribe(redis_channel)
+        logg.debug('redis connected on channel {}'.format(redis_channel))
+        return redis_pubsub
+
+
 class TrafficMaker(threading.Thread):
 
     max_strikes = 3
@@ -111,26 +122,18 @@ class TrafficMaker(threading.Thread):
         self.config = h.config
         self.init = h.init
         self.block_number = block_number
-        self.redis_channel = str(uuid.uuid4())
         self.traffic_provisioner = TrafficProvisioner(self.conn)
+        self.redis_channel = h.redis_channel
+        self.pubsub = h.pubsub
 
-
-    # connects to redis
-    def __connect_redis(self, redis_channel, config):
-        r = redis.Redis(config.get('REDIS_HOST'), config.get('REDIS_PORT'), config.get('REDIS_DB'))
-        redis_pubsub = r.pubsub()
-        redis_pubsub.subscribe(redis_channel)
-        logg.debug('redis connected on channel {}'.format(redis_channel))
-        return redis_pubsub
 
 
     def run(self):
         (batch_reserved, batch_capacity,) = self.traffic_router.count()
-        logg.info('starting traffikmaker with {} of {} reserved slots in router batch'.format(batch_reserved, batch_capacity,))
-        celery.Celery(broker=self.config.get('CELERY_BROKER_URL'), backend=self.config.get('CELERY_RESULT_URL'))
-        self.pubsub = self.__connect_redis(self.redis_channel, self.config)
 
-        self.traffic_provisioner.add_aux('REDIS_CHANNEL', self.redis_channel)
+        celery.Celery(broker=self.config.get('CELERY_BROKER_URL'), backend=self.config.get('CELERY_RESULT_URL'))
+
+        self.traffic_provisioner.add_aux('_REDIS_CHANNEL', self.redis_channel)
 
         refresh_accounts = None
         # Note! This call may be very expensive if there are a lot of accounts and/or tokens on the network
@@ -138,15 +141,16 @@ class TrafficMaker(threading.Thread):
             refresh_accounts = self.traffic_provisioner.accounts
         balances = self.traffic_provisioner.balances(refresh_accounts=refresh_accounts)
 
-
-        logg.info('provisioner tokens {}'.format(self.traffic_provisioner.tokens))
-        if len(self.traffic_provisioner.tokens) == 0:
+        token_count = len(self.traffic_provisioner.tokens)
+        if token_count == 0:
             logg.error('patiently waiting for at least one registered token...')
             self.busyqueue.put(self.c)
             return
 
-        logg.debug('executing handler refresh with accounts {}'.format(self.traffic_provisioner.accounts))
-        logg.debug('executing handler refresh with tokens {}'.format(self.traffic_provisioner.tokens))
+        account_count = len(self.traffic_provisioner.accounts)
+        logg.info('trafficmaker reserved {}/{} tokens {} accounts {}'.format(batch_reserved, batch_capacity, token_count, account_count))
+        logg.debug('trafficmaker accounts {}'.format(self.traffic_provisioner.accounts))
+        logg.debug('trafficmaker tokens {}'.format(self.traffic_provisioner.tokens))
 
         sender_indices = [*range(0, len(self.traffic_provisioner.accounts))]
         # TODO: only get balances for the selection that we will be generating for
@@ -190,6 +194,7 @@ class TrafficMaker(threading.Thread):
                     balance_full = self.traffic_provisioner.balance(sender, token_pair[0])
                 except TimeoutError:
                     logg.error('could not retreive balance for sender {} tokens {}'.format(sender, token_pair))
+                    self.traffic_router.release(traffic_item)
                     self.busyqueue.put(self.c)
                     return
 
@@ -207,7 +212,7 @@ class TrafficMaker(threading.Thread):
                         )
             except NoActionTaken as e:
                 self.traffic_router.release(traffic_item)
-                logg.error('task {} has taken no action ({}/{}): {}'.format(traffic_item, strikes, self.max_strikes, e))
+                logg.error('task {} has taken no action ({}/{}): {}'.format(traffic_item.__name__, strikes, self.max_strikes, e))
                 strikes += 1
                 if strikes == self.max_strikes:
                     logg.error('too many strikes, bailing!')
@@ -233,32 +238,30 @@ class TrafficMaker(threading.Thread):
                 sender_indices.append(recipient_index)
 
             if e != None:
-                logg.info('failed {}: {}'.format(str(traffic_item), e))
+                logg.info('API FAIL {}: {}'.format(str(traffic_item), e))
                 self.traffic_router.release(traffic_item)
                 continue
 
             if t == None:
-                logg.info('traffic method {} completed immediately')
-                self.traffic_router.release(traffic_item)
+                logg.info('API item {} completed immediately'.format(traffic_item.__name__))
+                self.traffic_router.release(traffic_item.__name__)
             traffic_item.ext = t
             self.traffic_items[traffic_item.ext] = traffic_item
 
 
         while True:
-            m = self.pubsub.get_message(timeout=0.1)
+            m = self.pubsub.get_message(timeout=0.2)
             if m == None:
                 break
-            logg.debug('redis message {}'.format(m))
             if m['type'] == 'message':
                 message_data = json.loads(m['data'])
                 uu = message_data['root_id']
                 match_item = self.traffic_items[uu]
                 self.traffic_router.release(match_item)
-                logg.debug('match item {} {} {}'.format(match_item, match_item.result, dir(match_item)))
                 if message_data['status'] != 0:
-                    logg.error('task item {} failed with error code {}'.format(match_item, message_data['status']))
+                    logg.error('API ERROR (error code {}): {}'.format(message_data['status'], match_item))
                 else:
                     match_item.result = message_data['result']
-                    logg.info('api callback result: {}'.format(match_item))
+                    logg.info('APT SUCCESS: {}'.format(match_item))
 
         self.busyqueue.put(self.c)
