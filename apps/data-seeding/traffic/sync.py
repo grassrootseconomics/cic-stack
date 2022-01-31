@@ -181,7 +181,7 @@ class TrafficMaker(threading.Thread):
                 logg.error(e)
                 return
 
-        r = False
+        r = True
         while r:
             r = self.sync_api()
 
@@ -322,19 +322,31 @@ class TrafficMaker(threading.Thread):
             traffic_item.ext = task_id
             self.traffic_items[traffic_item.ext] = traffic_item
 
+            return True
 
-    def sync_tasks(self):
+
+    def release_task(self, task_id):
+        match_item = self.traffic_items[task_id]
+        self.traffic_router.release(match_item)
+        return match_item
+
+
+    def sync_api(self):
         m = self.pubsub.get_message(timeout=0.2)
         if m == None:
             return False
-        if m['type'] == 'message':
-            message_data = json.loads(m['data'])
-            uu = message_data['root_id']
-            match_item = self.traffic_items[uu]
-            self.traffic_router.release(match_item)
-            if message_data['status'] != 0:
-                logg.error('API ERROR (error code {}): {}'.format(message_data['status'], match_item))
-            else:
-                match_item.result = message_data['result']
-                logg.info('APT SUCCESS: {}'.format(match_item))
+
+        if m['type'] != 'message':
+            return True
+
+        message_data = json.loads(m['data'])
+
+        match_item = self.release_task(message_data['root_id'])
+
+        if message_data['status'] != 0:
+            logg.error('API ERROR (error code {}): {}'.format(message_data['status'], match_item))
+        else:
+            match_item.result = message_data['result']
+            logg.info('APT SUCCESS: {}'.format(match_item))
+
         return True
