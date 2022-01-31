@@ -12,7 +12,7 @@ services:
     build:
       context: apps/bloxbergValidatorSetup
       args:
-          DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+          DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-docker.io}
     restart: unless-stopped
     ports:
       - ${DEV_ETH_PORT_HTTP:-63545}:8545

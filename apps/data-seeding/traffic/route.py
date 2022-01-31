@@ -75,6 +75,10 @@ class TrafficRouter:
         return ti
 
 
+    def count(self):
+        return (self.reserved_count, self.batch_size,)
+
+
     def release(self, traffic_item):
         """Releases the traffic item from the list of simultaneous traffic items in flight.
 

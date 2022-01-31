@@ -10,10 +10,12 @@ import time
 
 # external imports
 import redis
+from chainlib.eth.constant import ZERO_ADDRESS
 
 # local imports
 from .traffic import TrafficProvisioner
 from .mode import TaskMode
+from .error import NoActionTaken
 
 logg = logging.getLogger(__name__)
 
@@ -97,6 +99,8 @@ class TrafficSyncHandler:
 
 class TrafficMaker(threading.Thread):
 
+    max_strikes = 3
+
     def __init__(self, h, block_number):
         super(TrafficMaker, self).__init__()
         self.conn = h.conn
@@ -121,6 +125,8 @@ class TrafficMaker(threading.Thread):
 
 
     def run(self):
+        (batch_reserved, batch_capacity,) = self.traffic_router.count()
+        logg.info('starting traffikmaker with {} of {} reserved slots in router batch'.format(batch_reserved, batch_capacity,))
         celery.Celery(broker=self.config.get('CELERY_BROKER_URL'), backend=self.config.get('CELERY_RESULT_URL'))
         self.pubsub = self.__connect_redis(self.redis_channel, self.config)
 
@@ -132,8 +138,11 @@ class TrafficMaker(threading.Thread):
             refresh_accounts = self.traffic_provisioner.accounts
         balances = self.traffic_provisioner.balances(refresh_accounts=refresh_accounts)
 
+
+        logg.info('provisioner tokens {}'.format(self.traffic_provisioner.tokens))
         if len(self.traffic_provisioner.tokens) == 0:
             logg.error('patiently waiting for at least one registered token...')
+            self.busyqueue.put(self.c)
             return
 
         logg.debug('executing handler refresh with accounts {}'.format(self.traffic_provisioner.accounts))
@@ -141,6 +150,11 @@ class TrafficMaker(threading.Thread):
 
         sender_indices = [*range(0, len(self.traffic_provisioner.accounts))]
         # TODO: only get balances for the selection that we will be generating for
+
+        if len(sender_indices) == 0:
+            logg.warning('no senders yet. unless of the tasks configured add accounts, nothing will ever happen!')
+
+        strikes = 0
 
         while True:
             traffic_item = self.traffic_router.reserve()
@@ -153,39 +167,67 @@ class TrafficMaker(threading.Thread):
                     self.traffic_provisioner.tokens[0],
                     self.traffic_provisioner.tokens[0],
                     )
-            sender_index_index = random.randint(0, len(sender_indices)-1)
-            sender_index = sender_indices[sender_index_index]
-            sender = self.traffic_provisioner.accounts[sender_index]
-            #balance_full = balances[sender][token_pair[0].symbol()]
-            if len(sender_indices) == 1:
-                sender_indices[sender_index] = sender_indices[len(sender_indices)-1]
-            sender_indices = sender_indices[:len(sender_indices)-1]
-    
-            try:
-                balance_full = self.traffic_provisioner.balance(sender, token_pair[0])
-            except TimeoutError:
-                logg.error('could not retreive balance for sender {} tokens {}'.format(sender, token_pair))
-                return
 
-            recipient_index = random.randint(0, len(self.traffic_provisioner.accounts)-1)
-            recipient = self.traffic_provisioner.accounts[recipient_index]
+            sender = ZERO_ADDRESS
+            recipient = ZERO_ADDRESS
+            balance_full = {
+                    'balance_outgoing': 0,
+                    'balance_incoming': 0,
+                    'balance_network': 0,
+                    }
+            if len(sender_indices) == 0:
+                sender_address = ZERO_ADDRESS
+            else:
+                sender_index_index = random.randint(0, len(sender_indices)-1)
+                sender_index = sender_indices[sender_index_index]
+                sender = self.traffic_provisioner.accounts[sender_index]
+                #balance_full = balances[sender][token_pair[0].symbol()]
+                if len(sender_indices) == 1:
+                    sender_indices[sender_index] = sender_indices[len(sender_indices)-1]
+                sender_indices = sender_indices[:len(sender_indices)-1]
+        
+                try:
+                    balance_full = self.traffic_provisioner.balance(sender, token_pair[0])
+                except TimeoutError:
+                    logg.error('could not retreive balance for sender {} tokens {}'.format(sender, token_pair))
+                    self.busyqueue.put(self.c)
+                    return
+
+                recipient_index = random.randint(0, len(self.traffic_provisioner.accounts)-1)
+                recipient = self.traffic_provisioner.accounts[recipient_index]
           
-            logg.debug('trigger item {} tokens {} sender {} recipient {} balance {}'.format(
-                traffic_item,
+            try:
+                (e, t, spend_value,) = traffic_item.method(
+                        token_pair,
+                        sender,
+                        recipient,
+                        balance_full,
+                        self.traffic_provisioner.aux,
+                        self.block_number,
+                        )
+            except NoActionTaken as e:
+                self.traffic_router.release(traffic_item)
+                logg.error('task {} has taken no action ({}/{}): {}'.format(traffic_item, strikes, self.max_strikes, e))
+                strikes += 1
+                if strikes == self.max_strikes:
+                    logg.error('too many strikes, bailing!')
+                    self.busyqueue.put(self.c)
+                    return
+                continue
+            
+            logg.info('trigger item {} tokens {} sender {} recipient {} balance {} >>\n\te {} t {} v {}'.format(
+                traffic_item.name,
                 token_pair,
                 sender,
                 recipient,
                 balance_full,
+                e, 
+                t,
+                spend_value,
                 )
                 )
-            (e, t, spend_value,) = traffic_item.method(
-                    token_pair,
-                    sender,
-                    recipient,
-                    balance_full,
-                    self.traffic_provisioner.aux,
-                    self.block_number,
-                    )
+            strikes = 0
+
             self.traffic_provisioner.update_balance(sender, token_pair[0], balance_full['balance_outgoing'] + spend_value)
             if traffic_item.mode & TaskMode.RECIPIENT_ACTIVE:
                 sender_indices.append(recipient_index)
@@ -217,8 +259,6 @@ class TrafficMaker(threading.Thread):
                     logg.error('task item {} failed with error code {}'.format(match_item, message_data['status']))
                 else:
                     match_item.result = message_data['result']
-                    logg.debug('got callback result: {}'.format(match_item))
+                    logg.info('api callback result: {}'.format(match_item))
 
-
-    def __del__(self):
         self.busyqueue.put(self.c)

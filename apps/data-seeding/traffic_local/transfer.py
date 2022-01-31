@@ -4,9 +4,11 @@ import random
 
 # external imports
 from cic_eth.api.api_task import Api
+from chainlib.eth.constant import ZERO_ADDRESS
 
 # local imports
 from traffic import TaskMode
+from traffic.error import NoActionTaken
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -29,6 +31,9 @@ def do(token_pair, sender, recipient, sender_balance, aux, block_number):
     See local.noop.do for details on parameters and return values.
     """
     logg.debug('running {} {} {} {}'.format(__name__, token_pair, sender, recipient))
+
+    if sender == ZERO_ADDRESS:
+        raise NoActionTaken('cannot send from zero address')
 
     decimals = token_pair[0].decimals()
 

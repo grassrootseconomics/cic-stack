@@ -54,14 +54,6 @@ conn = rpc.connect_by_config(config)
 # connect to celery
 celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
 
-config.add(args.redis_host_callback, '_REDIS_HOST_CALLBACK')
-if config.get('_REDIS_HOST_CALLBACK') == None:
-    config.add(config.get('REDIS_HOST'), '_REDIS_HOST_CALLBACK')
-
-config.add(args.redis_port_callback, '_REDIS_PORT_CALLBACK')
-if config.get('_REDIS_PORT_CALLBACK') == None:
-    config.add(config.get('REDIS_PORT'), '_REDIS_PORT_CALLBACK')
-
 
 class RpcIdler:
 

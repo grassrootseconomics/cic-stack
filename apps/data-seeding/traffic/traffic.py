@@ -42,8 +42,6 @@ class TrafficProvisioner:
 
     def __init__(self, conn):
         self.aux = copy.copy(self.default_aux)
-        self.tokens = None
-        self.accounts = None
         self.__balances = {}
         self.tokens = TrafficProvisioner.oracles['token'].get_tokens(conn)
         self.accounts = TrafficProvisioner.oracles['account'].get_accounts(conn)
@@ -52,7 +50,7 @@ class TrafficProvisioner:
 
 
     @staticmethod
-    def __init_chain(registry):
+    def __init_chain(config, registry):
         # get relevant registry entries
         token_registry = registry.lookup('TokenRegistry')
         if token_registry == ZERO_ADDRESS:
@@ -78,22 +76,23 @@ class TrafficProvisioner:
 
 
     @staticmethod
-    def __bootstrap_accounts(registry):
+    def __bootstrap_accounts(config, registry):
+        faucet = registry.lookup('Faucet')
         if faucet == ZERO_ADDRESS:
             raise ValueError('No accounts exist in network and no faucet exists. It will be impossible for any created accounts to trade.')
-        c = Faucet(chain_spec)
+        c = Faucet(registry.chain_spec)
         o = c.token_amount(faucet)
         r = registry.rpc.do(o)
         if c.parse_token_amount(r) == 0:
             raise ValueError('No accounts exist in network and faucet amount is set to 0. It will be impossible for any created accounts to trade.')
 
-        api = Api(str(chain_spec), queue=config.get('CELERY_QUEUE'))
+        api = Api(str(registry.chain_spec), queue=config.get('CELERY_QUEUE'))
         api.create_account(register=True)
         api.create_account(register=True)
 
 
     @staticmethod
-    def __check_sanity(registry):
+    def __check_sanity(config, registry):
         # bootstrap two accounts if starting from scratch
         account_registry = registry.lookup('AccountRegistry')
         c = AccountsIndex(registry.chain_spec)
@@ -103,13 +102,13 @@ class TrafficProvisioner:
         logg.debug('entry count {}'.format(count))
 
         if c.parse_entry_count(r) == 0:
-            TrafficProvisioner.__bootstrap_accounts()
+            TrafficProvisioner.__bootstrap_accounts(config, registry)
 
 
     @staticmethod
-    def prepare(registry):
-        TrafficProvisioner.__init_chain(registry)
-        TrafficProvisioner.__check_sanity(registry)
+    def prepare(config, registry):
+        TrafficProvisioner.__init_chain(config, registry)
+        TrafficProvisioner.__check_sanity(config, registry)
 
 
     # Caches a single address' balance of a single token
@@ -222,4 +221,4 @@ def prepare_for_traffic(config, conn):
 
     chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
     registry = CICRegistry(chain_spec, conn)
-    TrafficProvisioner.prepare(registry)
+    TrafficProvisioner.prepare(config, registry)
