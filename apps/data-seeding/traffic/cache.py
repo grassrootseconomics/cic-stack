@@ -60,8 +60,8 @@ class IndexCache:
                 r = conn.do(o)
                 new_entries.append(self.parse(r, conn))
             except JSONRPCException as e:
-                logg.debug('foo {}'.format(e))
-                return (self.entries + new_entries, new_entries,)
+                self.entries += new_entries
+                return (self.entries, new_entries,)
             self.idx += 1
 
 

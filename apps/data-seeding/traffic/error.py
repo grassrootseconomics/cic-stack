@@ -4,3 +4,7 @@ class NetworkError(Exception):
 
 class NoActionTaken(Exception):
     pass
+
+
+class TaskError(Exception):
+    pass

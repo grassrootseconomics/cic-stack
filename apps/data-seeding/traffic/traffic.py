@@ -1,6 +1,7 @@
 # standard imports
 import logging
 import copy
+import random
 
 # external imports
 from cic_eth.api.api_task import Api
@@ -210,6 +211,12 @@ class TrafficProvisioner:
         """
         self.__cache_balance(account, token.symbol(), value)
         return value
+
+
+    def select_token_pair(self):
+        i = random.randint(0, len(self.tokens) - 1)
+        return (self.tokens[i], self.tokens[i],)
+
 
 
 def prepare_for_traffic(config, conn):
