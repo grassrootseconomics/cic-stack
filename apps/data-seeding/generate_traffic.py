@@ -79,7 +79,7 @@ def main():
     prepare_for_traffic(config, conn)
 
     # Set up magic traffic handler, run by the syncer
-    traffic_router = TrafficRouter()
+    traffic_router = TrafficRouter(batch_size=config.get('_BATCH_SIZE'))
     traffic_router.apply_import_dict(config.all(), config)
     handler = TrafficSyncHandler(config, traffic_router, conn)
 

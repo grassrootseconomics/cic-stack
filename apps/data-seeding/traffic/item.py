@@ -25,7 +25,7 @@ class TrafficItem:
 
 
     def __str__(self):
-        s = 'traffic item method {} uuid {}'.format(self.method, self.uuid)
+        s = 'traffic item method {} uuid {}'.format(self.name, self.uuid)
         if self.result == None:
             s += ' PENDING'
         else:

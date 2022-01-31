@@ -64,13 +64,6 @@ def do(token_pair, sender, recipient, sender_balance, aux, block_number):
         callback_queue=aux.get('CELERY_QUEUE'),
         )
         
-#    api = Api(
-#        str(aux['CHAIN_SPEC']),
-#        queue=queue,
-#        callback_param='{}:{}:{}:{}'.format(aux['_REDIS_HOST_CALLBACK'], aux['_REDIS_PORT_CALLBACK'], aux['_REDIS_DB_CALLBACK'], aux['REDIS_CHANNEL']),
-#        callback_task='cic_eth.callbacks.redis.redis',
-#        callback_queue=queue,
-#        )
     t = api.transfer(sender, recipient, spend_value, token_pair[0].symbol())
 
     sender_balance['balance_outgoing'] += spend_value

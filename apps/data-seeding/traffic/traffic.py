@@ -40,13 +40,25 @@ class TrafficProvisioner:
     """Aux parameter template to be passed to the traffic generator module"""
 
 
-    def __init__(self, conn):
+    def __init__(self):
         self.aux = copy.copy(self.default_aux)
-        self.__balances = {}
-        self.tokens = TrafficProvisioner.oracles['token'].get_tokens(conn)
-        self.accounts = TrafficProvisioner.oracles['account'].get_accounts(conn)
+        self.balances = {}
+        self.tokens = None
+        self.accounts = None
+        self.new_tokens = None
+        self.new_accounts = None
+        self.token_count = 0
+        self.account_count = 0
+        
+
+    def load(self, conn):
+        (self.tokens, self.new_tokens) = TrafficProvisioner.oracles['token'].get_tokens(conn)
+        (self.accounts, self.new_accounts) = TrafficProvisioner.oracles['account'].get_accounts(conn)
+        self.token_count = len(self.tokens)
+        self.account_count = len(self.accounts)
         for a in self.accounts:
-            self.__balances[a] = {}
+            self.balances[a] = {}
+        self.load_balances(refresh_accounts=self.new_accounts)
 
 
     @staticmethod
@@ -113,9 +125,9 @@ class TrafficProvisioner:
 
     # Caches a single address' balance of a single token
     def __cache_balance(self, holder_address, token, value):
-        if self.__balances.get(holder_address) == None:
-            self.__balances[holder_address] = {}
-        self.__balances[holder_address][token] = value
+        if self.balances.get(holder_address) == None:
+            self.balances[holder_address] = {}
+        self.balances[holder_address][token] = value
         logg.debug('setting cached balance of {} token {} to {}'.format(holder_address, token, value))
 
 
@@ -133,8 +145,7 @@ class TrafficProvisioner:
         self.aux[k] = v
 
 
-    # TODO: Balance list type should perhaps be a class (provided by cic-eth package) due to its complexity.
-    def balances(self, refresh_accounts=None):
+    def load_balances(self, refresh_accounts=None):
         """Retrieves all token balances for the given account list.
 
         If refresh_accounts is not None, the balance values for the given accounts will be retrieved from upstream. If the argument is an empty list, the balances will be updated for all tokens of all ccounts. If there are many accounts and/or tokens, this may be a VERY EXPENSIVE OPERATION. The "balance" method can be used instead to update individual account/token pair balances.
@@ -156,10 +167,9 @@ class TrafficProvisioner:
         else:
             logg.debug('returning cached balances')
 
-        return self.__balances
+        return self.balances
 
 
-    # TODO: use proper redis callback 
     def balance(self, account, token):
         """Update balance for a single token of a single account from upstream.
         
