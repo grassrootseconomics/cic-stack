@@ -9,7 +9,7 @@ set -e
 #python /usr/local/bin/crypto-dev-daemon -c /usr/local/etc/crypto-dev-signer -vv 2> /tmp/signer.log &
 
 echo "!!! starting taskerd"
-/usr/local/bin/cic-eth-taskerd $@
+exec /usr/local/bin/cic-eth-taskerd
 
 # thanks! https://docs.docker.com/config/containers/multi-service_container/
 #sleep 1;
@@ -28,4 +28,3 @@ echo "!!! starting taskerd"
 #  sleep 15;
 #done
 #
-set +e
