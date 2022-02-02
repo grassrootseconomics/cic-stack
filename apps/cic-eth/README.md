@@ -13,7 +13,7 @@ Uses Gunicorn + UnicornWorkers + FastAPI
 ```bash
 docker-compose up --build cic-eth-server
 ```
-
+Once this is up and running head over to http://0.0.0.0:5000/docs 
 #### CLI Usage
 Ensure dependencies and services are installed/running
 
