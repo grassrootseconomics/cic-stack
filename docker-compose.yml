@@ -12,7 +12,7 @@ services:
     build:
       context: apps/bloxbergValidatorSetup
       args:
-          DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+          DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-docker.io}
     restart: unless-stopped
     ports:
       - ${DEV_ETH_PORT_HTTP:-63545}:8545
@@ -81,6 +81,7 @@ services:
       WALLET_KEY_FILE: ${WALLET_KEY_FILE:-/root/keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c}
       PGP_PASSPHRASE: merman
       META_URL: http://meta:8000
+      LOGLEVEL: ${LOGLEVEL:-info}
     command: ["./run_job.sh"]
     depends_on:
       - evm
@@ -116,6 +117,7 @@ services:
       DATABASE_POOL_SIZE: 0
       SIGNER_SOCKET_PATH: ${SIGNER_SOCKET_PATH:-http://0.0.0.0:8000}
       SIGNER_SECRET: ${SIGNER_SECRET:-deadbeef}
+      LOGLEVEL: ${LOGLEVEL:-info}
     depends_on:
       - postgres
     volumes:
@@ -156,6 +158,7 @@ services:
       SIGNER_SECRET: ${SIGNER_SECRET:-deadbeef}
       TASKS_TRACE_QUEUE_STATUS: ${TASKS_TRACE_QUEUE_STATUS:-1}
       ETH_MIN_FEE_PRICE: ${ETH_MIN_FEE_PRICE:-1000000000}
+      LOGLEVEL: ${LOGLEVEL:-info}
     restart: unless-stopped 
     depends_on:
       - evm
@@ -241,6 +244,7 @@ services:
       SYNCER_NO_HISTORY: ${SYNCER_NO_HISTORY:-1}
       SYNCER_OFFSET: ${SYNCER_OFFSET:-0}
       TASKS_TRANSFER_CALLBACKS: ${TASKS_TRANSFER_CALLBACKS:-cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback}
+      LOGLEVEL: ${LOGLEVEL:-info}
     restart: unless-stopped 
     depends_on:
       - evm
@@ -285,6 +289,7 @@ services:
       CELERY_DEBUG: ${CELERY_DEBUG:-1}
       CELERY_QUEUE: ${CELERY_QUEUE:-cic-eth}
       DISPATCHER_LOOP_INTERVAL: ${DISPATCHER_LOOP_INTERVAL:-1}
+      LOGLEVEL: ${LOGLEVEL:-info}
     restart: unless-stopped 
     depends_on:
       - evm
@@ -331,6 +336,7 @@ services:
       SYNCER_LOOP_INTERVAL: ${SYNCER_LOOP_INTERVAL:-20}
       RETRY_DELAY: ${RETRY_DELAY:-60}
       RETRY_BATCH_SIZE: ${RETRY_BATCH_SIZE:-100}
+      LOGLEVEL: ${LOGLEVEL:-info}
     restart: unless-stopped 
     depends_on:
       - evm
@@ -380,6 +386,7 @@ services:
       SYNCER_OFFSET: ${SYNCER_OFFSET:-0}
       SYNCER_NO_HISTORY: ${SYNCER_NO_HISTORY:-1}
       TASKS_TRANSFER_CALLBACKS: ${TASKS_TRANSFER_CALLBACKS:-cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback}
+      LOGLEVEL: ${LOGLEVEL:-info}
     restart: unless-stopped 
     depends_on:
       - evm
@@ -424,6 +431,7 @@ services:
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
       CELERY_DEBUG: ${CELERY_DEBUG:-1}
       CELERY_QUEUE: ${CELERY_QUEUE:-cic-eth}
+      LOGLEVEL: ${LOGLEVEL:-info}
     restart: unless-stopped 
     depends_on:
       - evm
@@ -466,6 +474,7 @@ services:
       DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
       DATABASE_POOL_SIZE: 0
       SERVER_PORT: 8000
+      LOGLEVEL: ${LOGLEVEL:-info}
     restart: on-failure 
     ports:
       - ${DEV_CIC_CACHE_SERVER_PORT:-63313}:8000
