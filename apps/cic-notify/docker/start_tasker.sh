@@ -2,4 +2,4 @@
 
 . /root/db.sh
 
-/usr/local/bin/cic-notify-tasker -vv $@
+exec /usr/local/bin/cic-notify-tasker -vv

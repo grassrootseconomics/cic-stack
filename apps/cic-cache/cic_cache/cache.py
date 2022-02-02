@@ -151,6 +151,7 @@ class DataCache(Cache):
 
             o = {
                 'block_number': r['block_number'],
+                'tx_index': r['tx_index'],
                 'tx_hash': r['tx_hash'],
                 'date_block': r['date_block'],
                 'sender': r['sender'],

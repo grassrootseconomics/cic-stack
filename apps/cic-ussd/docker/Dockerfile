@@ -33,4 +33,7 @@ RUN chmod +x /root/*.sh
 COPY config/ /usr/local/etc/cic-ussd/
 COPY cic_ussd/db/migrations/ /usr/local/share/cic-ussd/alembic
 
+# uwsgi stats server http
+EXPOSE 5050
+
 ENTRYPOINT []

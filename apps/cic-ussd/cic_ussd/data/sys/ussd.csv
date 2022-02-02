@@ -125,7 +125,7 @@ enter_transaction_recipient,"CON Enter phone number
 0. Rudi","CON Ikia namba ya simu
 0. Itina","CON Ikira namba ya thimu
 0. Thutha","CON Ika namba ya simu.
-0. Uya Nyuma","CON Ket nambani mar simu
+0. Uya Nyuma","CON Ket namba simu ngama iorone
 0. Chien","CON Namba simuu kekhai
 0. Dheebi"
 enter_transaction_amount,"CON Enter amount
@@ -1025,22 +1025,22 @@ initial_middle_language_set,"CON Choose language:
 22.Waan dhabran
 00.Bai"
 initial_last_language_set,"CON Choose language:
-%{middle_language_set}
+%{last_language_set}
 22. Previous
 00. Exit","CON Choose language:
-%{middle_language_set}
+%{last_language_set}
 22. Rudi
 00. Ondoka","CON Sakua luka:
-%{middle_language_set}
+%{last_language_set}
 22. Itina 
 00. Uma","CON : Cagura ruthiomi
-%{middle_language_set}
+%{last_language_set}
 22. Thutha
 00. Uma","CON Tsagula luga:
-%{middle_language_set}
+%{last_language_set}
 22. Uyira ya nyuma
 00. Ombola","CON Yier dhok:
-%{middle_language_set}
+%{last_language_set}
 22. Mokalo
 00. Wuok","CON Afaan chaguad.
 %last_language_set

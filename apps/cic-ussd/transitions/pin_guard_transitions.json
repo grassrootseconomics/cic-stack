@@ -89,6 +89,12 @@
   },
   {
     "trigger": "scan_data",
+    "source": "exit_guardian_addition_success",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_nine_selected"
+  },
+  {
+    "trigger": "scan_data",
     "source": "exit_guardian_removal_success",
     "dest": "exit",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_nine_selected"

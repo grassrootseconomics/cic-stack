@@ -1,11 +1,11 @@
 include:
   #- local: 'ci_templates/.cic-template.yml' #kaniko build templates
   # these includes are app specific unit tests
-  - local: 'apps/cic-eth/.gitlab-ci.yml'
-  - local: 'apps/cic-ussd/.gitlab-ci.yml'
-  - local: 'apps/cic-notify/.gitlab-ci.yml'
-  - local: 'apps/cic-meta/.gitlab-ci.yml'
-  - local: 'apps/cic-cache/.gitlab-ci.yml'
+  - local: "apps/cic-eth/.gitlab-ci.yml"
+  - local: "apps/cic-ussd/.gitlab-ci.yml"
+  - local: "apps/cic-notify/.gitlab-ci.yml"
+  - local: "apps/cic-meta/.gitlab-ci.yml"
+  - local: "apps/cic-cache/.gitlab-ci.yml"
     #- local: 'apps/contract-migration/.gitlab-ci.yml'
     #- local: 'apps/data-seeding/.gitlab-ci.yml'
 
@@ -28,7 +28,7 @@ variables:
 
 version:
   #image: python:3.7-stretch
-  image: registry.gitlab.com/grassrootseconomics/cic-base-images/ci-version:b01318ae 
+  image: registry.gitlab.com/grassrootseconomics/cic-base-images/ci-version:b01318ae
   stage: version
   tags:
     - integration
@@ -52,10 +52,10 @@ version:
     paths:
       - version
   rules:
-  - if: $CI_COMMIT_REF_PROTECTED == "true"
-    when: always
-  - if: $CI_COMMIT_REF_NAME == "master"
-    when: always
+    - if: $CI_COMMIT_REF_PROTECTED == "true"
+      when: always
+    - if: $CI_COMMIT_REF_NAME == "master"
+      when: always
 
 # runs on protected branches and pushes to repo
 build-push:
@@ -67,13 +67,12 @@ build-push:
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
-    - TAG=latest ./scripts/build-push.sh
-    - TAG=$(cat ./version) ./scripts/build-push.sh
+    - ./scripts/local-build-push.sh
   rules:
-  - if: $CI_COMMIT_REF_PROTECTED == "true"
-    when: always
-  - if: $CI_COMMIT_REF_NAME == "master"
-    when: always
+    - if: $CI_COMMIT_REF_PROTECTED == "true"
+      when: always
+    - if: $CI_COMMIT_REF_NAME == "master"
+      when: always
 
 deploy-dev:
   stage: deploy

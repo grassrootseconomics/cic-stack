@@ -33,15 +33,14 @@ This step may be run multiple times, as long as the token symbol is different fr
 Adds system accounts to the custodial engine, and unlocks the initialization seal. After this step, the custodial system is ready to use.
 
 
-## Services dependency graph
+## Runlevel dependency graph
 
-1. evm
-2. bootstrap runlevel 1 - deploy global contracts (RUN_MASK=1 docker-compose up bootstrap)
-3. bootstrap runlevel 2 - deploy instance contracts (RUN_MASK=2 docker-compose up bootstrap)
-4. bootstrap runlevel 4 - deploy token (RUN_MASK=4 docker-compose up bootstrap)
-5. redis
-6. postgres
-7. cic-eth-tasker 
-8. boostrap runlevel 8 - deploy custodial contracts (RUN_MASK=8 docker-compose up bootstrap)
-9. boostrap runlevel 16 - data seeding for development (RUN_MASK=16 docker-compose up bootstrap)
-10. bring up the remainig services (docker-compose up -d)
+| step | level | cumulative level | mode | services | description |
+|---|---|---|---|---|---|
+| 0 | 0 | 0 | any | - | prints last configuration and exists |
+| 1 | 1 | 1 | non-custodial | evm | deploy global contracts |
+| 2 | 2 | 3 | non-custodial | evm | deploy instance contracts |
+| 3 | 4 | 7 | non-custodial | evm | deploy token |
+| 4 | 8 | 15 | custodial | evm, postgres, redis, cic-eth-tasker | deploy custodial contracts |
+| 5 | 16 | 31 | non-custodial | meta | publish meta proof for deployed token |
+| 6 | 32 | 63 | development | evm | data seeding for development |

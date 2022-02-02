@@ -46,6 +46,10 @@ def is_authorized_pin(state_machine_data: Tuple[str, dict, Account, Session]) ->
     is_verified_password = account.verify_password(password=user_input)
     if not is_verified_password:
         account.failed_pin_attempts += 1
+    
+    if is_verified_password and account.failed_pin_attempts > 0:
+        account.reset_pin(session, True)
+
     return is_verified_password
 
 

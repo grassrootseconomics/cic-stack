@@ -21,8 +21,8 @@ unset CONFINI_DIR
 
 set +a
 
-LAST_BIT_POS=5
-files=(deploy_contract_root deploy_contract_instance deploy_token init_custodial data_seeding)
+LAST_BIT_POS=6
+files=(deploy_contract_root deploy_contract_instance deploy_token init_custodial proof_metadata data_seeding)
 description=("global contracts" "instance specific contracts" "token deployment" "initialize custodial engine" "data seeding for development")
 
 >&2 echo -e "\033[;96mRUNNING configurations\033[;39m"

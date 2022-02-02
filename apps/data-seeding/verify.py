@@ -35,6 +35,17 @@ from eth_contract_registry import Registry
 from eth_accounts_index import AccountsIndex
 from eth_token_index import TokenUniqueSymbolIndex
 
+# local imports
+from cic_seeding.chain import get_chain_addresses
+from cic_seeding import DirHandler
+from cic_seeding.index import AddressIndex
+from cic_seeding.filter import remove_zeros_filter
+from cic_seeding.imports import (
+        ImportUser,
+        Importer,
+        )
+
+
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
@@ -42,7 +53,7 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 base_config_dir = os.path.join(script_dir, 'config')
 
 custodial_tests = [
-        'local_key',
+        'custodial_key',
         'gas',
         'faucet',
         'ussd',
@@ -60,17 +71,28 @@ eth_tests = [
         ]
 
 phone_tests = [
-#        'ussd',
-        'ussd_pins'
+        'ussd',
+        'metadata_phone',
         ]
 
 admin_tests = [
-        'local_key',
+        'custodial_key',
         ]
 
 cache_tests = [
-        'cache_tx_user',
+        'cache_tx',
         ]
+
+test_descriptions = {
+    'custodial_key': 'Private key is in cic-eth keystore',
+    'accounts_index': 'Address is in accounts index |',
+    'gas': 'Address has gas balance',
+    'faucet': 'Address has triggered the token faucet',
+    'balance': 'Address has token balance matching the gift threshold',
+    'metadata': 'Personal metadata can be retrieved and has exact match',
+    'metadata_custom': 'Custom metadata can be retrieved and has exact match',
+    'metadata_phone': 'Phone pointer metadata can be retrieved and matches address',
+        }
 
 all_tests = eth_tests + custodial_tests + metadata_tests + phone_tests + cache_tests
 
@@ -79,24 +101,35 @@ argparser.add_argument('-p', '--provider', dest='p', type=str, help='chain rpc p
 argparser.add_argument('-c', type=str, help='config override dir')
 argparser.add_argument('--old-chain-spec', type=str, dest='old_chain_spec', default='evm:foo:1:oldchain', help='chain spec')
 argparser.add_argument('-i', '--chain-spec', type=str, dest='i', help='chain spec')
-argparser.add_argument('--meta-provider', type=str, dest='meta_provider', default='http://localhost:63380', help='cic-meta url')
-argparser.add_argument('--ussd-provider', type=str, dest='ussd_provider', default='http://localhost:63315', help='cic-ussd url')
-argparser.add_argument('--cache-provider', type=str, dest='cache_provider', default='http://localhost:63313', help='cic-cache url')
+argparser.add_argument('--meta-provider', type=str, dest='meta_provider', help='cic-meta url')
+argparser.add_argument('--ussd-provider', type=str, dest='ussd_provider', help='cic-ussd url')
+argparser.add_argument('--cache-provider', type=str, dest='cache_provider', help='cic-cache url')
 argparser.add_argument('--skip-custodial', dest='skip_custodial', action='store_true', help='skip all custodial verifications')
 argparser.add_argument('--skip-ussd', dest='skip_ussd', action='store_true', help='skip all ussd verifications')
 argparser.add_argument('--skip-metadata', dest='skip_metadata', action='store_true', help='skip all metadata verifications')
 argparser.add_argument('--skip-cache', dest='skip_cache', action='store_true', help='skip all cache verifications')
+argparser.add_argument('--skip-all', dest='skip_all', action='store_true', help='skip all verifications (only verifies outdir validity)')
 argparser.add_argument('--exclude', action='append', type=str, default=[], help='skip specified verification')
 argparser.add_argument('--include', action='append', type=str, help='include specified verification')
-argparser.add_argument('--list-verifications', action='store_true', help='print a list of verification check identifiers')
+argparser.add_argument('--list-verifications', dest='list_verifications', action='store_true', help='print a list of verification check identifiers')
 argparser.add_argument('--token-symbol', default='GFT', type=str, dest='token_symbol', help='Token symbol to use for trnsactions')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-x', '--exit-on-error', dest='x', action='store_true', help='Halt exection on error')
 argparser.add_argument('-v', help='be verbose', action='store_true')
 argparser.add_argument('-vv', help='be more verbose', action='store_true')
-argparser.add_argument('user_dir', type=str, help='user export directory')
+argparser.add_argument('user_dir', type=str, nargs='?', help='user export directory')
 args = argparser.parse_args(sys.argv[1:])
+
+if args.list_verifications:
+    unique_tests = sorted(set(all_tests))
+    for t in unique_tests:
+        print(t)
+    sys.exit(0)
+
+if not args.user_dir:
+    argparser.error('user_dir is required')
+    sys.exit(1)
 
 if args.v == True:
     logging.getLogger().setLevel(logging.INFO)
@@ -114,15 +147,20 @@ config.process()
 # override args
 args_override = {
         'CHAIN_SPEC': getattr(args, 'i'),
+        'CHAIN_SPEC_SOURCE': getattr(args, 'old_chain_spec'),
         'RPC_PROVIDER': getattr(args, 'p'),
         'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
+        'META_PROVIDER': getattr(args, 'meta_provider'),
+        'CACHE_PROVIDER': getattr(args, 'cache_provider'),
+        'USSD_PROVIDER': getattr(args, 'ussd_provider'),
         }
 config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
-config.add(args.meta_provider, '_META_PROVIDER', True)
-config.add(args.ussd_provider, '_USSD_PROVIDER', True)
-config.add(args.cache_provider, '_CACHE_PROVIDER', True)
+config.add(args.user_dir, '_USERDIR', True)
+config.add(False, '_RESET', True)
+config.add(True, '_APPEND', True)
+logg.debug('config loaded:\n{}'.format(config))
 
 token_symbol = args.token_symbol
 
@@ -138,27 +176,40 @@ exit_on_error = args.x
 active_tests = []
 exclude = []
 include = args.include
-if args.include == None:
-    include = all_tests
-for t in args.exclude:
-    if t not in all_tests:
-        raise ValueError('Cannot exclude unknown verification "{}"'.format(t))
-    exclude.append(t)
-if args.skip_custodial:
-    logg.info('will skip all custodial verifications ({})'.format(','.join(custodial_tests)))
-    for t in custodial_tests:
-        if t not in exclude:
-            exclude.append(t)
-if args.skip_ussd:
-    logg.info('will skip all ussd verifications ({})'.format(','.join(phone_tests)))
-    for t in phone_tests:
-        if t not in exclude:
-            exclude.append(t)
-if args.skip_metadata:
-    logg.info('will skip all metadata verifications ({})'.format(','.join(metadata_tests)))
-    for t in metadata_tests:
-        if t not in exclude:
-            exclude.append(t)
+api = None
+
+if args.skip_all:
+    include = []
+else:
+    if args.include == None:
+        include = all_tests
+
+    for t in args.exclude:
+        if t not in all_tests:
+            raise ValueError('Cannot exclude unknown verification "{}"'.format(t))
+        exclude.append(t)
+
+    if args.skip_custodial:
+        logg.info('will skip all custodial verifications ({})'.format(','.join(custodial_tests)))
+        for t in custodial_tests:
+            if t not in exclude:
+                exclude.append(t)
+
+    if args.skip_ussd:
+        logg.info('will skip all ussd verifications ({})'.format(','.join(phone_tests)))
+        for t in phone_tests:
+            if t not in exclude:
+                exclude.append(t)
+            logg.debug( 'skip test {} {}'.format(t, exclude))
+
+    if args.skip_metadata:
+        logg.info('will skip all metadata verifications ({})'.format(','.join(metadata_tests)))
+        for t in metadata_tests:
+            if t not in exclude:
+                exclude.append(t)
+
+logg.debug('excluuuuude {}'.format(exclude))
+
 for t in include:
     if t not in all_tests:
         raise ValueError('Cannot include unknown verification "{}"'.format(t))
@@ -166,7 +217,6 @@ for t in include:
         active_tests.append(t)
         logg.info('will perform verification "{}"'.format(t))
 
-api = None
 for t in custodial_tests:
     if t in active_tests:
         from cic_eth.api.admin import AdminApi
@@ -203,7 +253,7 @@ def send_ussd_request(address, data_dir):
         'text': '',
     }
 
-    req = urllib.request.Request(config.get('_USSD_PROVIDER'))
+    req = urllib.request.Request(config.get('USSD_PROVIDER'))
     urlencoded_data = urllib.parse.urlencode(data)
     data_bytes = urlencoded_data.encode('utf-8')
     req.add_header('Content-Type', 'application/x-www-form-urlencoded')
@@ -227,15 +277,19 @@ class VerifierState:
 
     def poke(self, item_key):
         self.items[item_key] += 1
+        logg.error('poked {}'.format(self.items[item_key]))
 
 
     def __str__(self):
         r = ''
         for k in self.items.keys():
             if k in self.active_tests:
-                r += '{}: {}/{}\n'.format(k, self.items[k], self.target_count)
+                if self.items[k] == 0:
+                    r += '{}: \x1b[0;92m{}/{}\x1b[0;39m\n'.format(k, self.target_count - self.items[k], self.target_count)
+                else:
+                    r += '{}: \x1b[0;91m{}/{}\x1b[0;39m\n'.format(k, self.target_count - self.items[k], self.target_count)
             else:
-                r += '{}: skipped\n'.format(k)
+                r += '{}: \x1b[0;33mskipped\x1b[0;39m\n'.format(k)
         return r
 
 
@@ -253,62 +307,61 @@ class VerifierError(Exception):
 
 class Verifier:
 
-    # TODO: what an awful function signature
-    def __init__(self, conn, target_count, cic_eth_api, gas_oracle, chain_spec, index_address, token_address, faucet_address, data_dir, exit_on_error=False):
+    def __init__(self, importer, conn, cic_eth_api, gas_oracle, chain_spec, exit_on_error=False):
         self.conn = conn
         self.gas_oracle = gas_oracle
         self.chain_spec = chain_spec
-        self.index_address = index_address
-        self.token_address = token_address
-        self.faucet_address = faucet_address
         self.erc20_tx_factory = ERC20(chain_spec, gas_oracle=gas_oracle)
         self.tx_factory = TxFactory(chain_spec, gas_oracle=gas_oracle)
-        self.api = cic_eth_api
-        self.data_dir = data_dir
-        self.exit_on_error = exit_on_error
         self.faucet_tx_factory = Faucet(chain_spec, gas_oracle=gas_oracle)
+        self.api = cic_eth_api
+        self.exit_on_error = exit_on_error
+        self.imp = importer
+        self.lookup = self.imp.lookup
+        self.faucet_amount = 0
 
         verifymethods = []
         for k in dir(self):
             if len(k) > 7 and k[:7] == 'verify_':
                 logg.debug('verifier has verify method {}'.format(k))
-                verifymethods.append(k[7:])
-        o = self.faucet_tx_factory.token_amount(self.faucet_address, sender_address=ZERO_ADDRESS)
-        r = self.conn.do(o)
-        self.faucet_amount = self.faucet_tx_factory.parse_token_amount(r)
-        logg.info('faucet amount set to {} at verify initialization time'.format(self.faucet_amount))
+                method = k[7:]
+                verifymethods.append(method)
+                if method == 'faucet':
+                    o = self.faucet_tx_factory.token_amount(self.lookup.get('faucet'), sender_address=ZERO_ADDRESS)
+                    r = self.conn.do(o)
+                    self.faucet_amount = self.faucet_tx_factory.parse_token_amount(r)
+                    logg.info('faucet amount set to {} at verify initialization time'.format(self.faucet_amount))
 
-        self.state = VerifierState(verifymethods, target_count, active_tests=active_tests)
+        self.state = VerifierState(verifymethods, len(self.imp), active_tests=active_tests)
+
+        logg.info('verification entry count is {}'.format(len(self.imp)))
 
 
     def verify_accounts_index(self, address, balance=None):
         accounts_index = AccountsIndex(self.chain_spec)
-        o = accounts_index.have(self.index_address, address)
+        o = accounts_index.have(self.lookup.get('account_registry'), address)
         r = self.conn.do(o)
         n = accounts_index.parse_have(r)
-        logg.debug('index check for {}: {}'.format(address, n))
         if n != 1:
             raise VerifierError(n, 'accounts index')
 
 
     def verify_balance(self, address, balance):
-        o = self.erc20_tx_factory.balance(self.token_address, address)
+        o = self.erc20_tx_factory.balance(self.imp.token_address, address)
         r = self.conn.do(o)
         try:
             actual_balance = int(strip_0x(r), 16)
         except ValueError:
             actual_balance = int(r)
-        balance = int(balance / 1000000) * 1000000
+        balance = int(balance) * 1000000
         balance += self.faucet_amount
-        logg.info('balance for {}: {}'.format(address, balance))
         if balance != actual_balance:
             raise VerifierError((actual_balance, balance), 'balance')
 
 
-    def verify_local_key(self, address, balance=None):
+    def verify_custodial_key(self, address, balance=None):
         t = self.api.have_account(address, self.chain_spec)
         r = t.get()
-        logg.debug('verify local key result {}'.format(r))
         if r != address:
             raise VerifierError((address, r), 'local key')
 
@@ -316,14 +369,13 @@ class Verifier:
     def verify_gas(self, address, balance_token=None):
         o = balance(add_0x(address))
         r = self.conn.do(o)
-        logg.debug('wtf {}'.format(r))
         actual_balance = int(strip_0x(r), 16)
         if actual_balance == 0:
             raise VerifierError((address, actual_balance), 'gas')
 
 
     def verify_faucet(self, address, balance_token=None):
-        o = self.faucet_tx_factory.usable_for(self.faucet_address, address)
+        o = self.faucet_tx_factory.usable_for(self.lookup.get('faucet'), address)
         r = self.conn.do(o)
         if self.faucet_tx_factory.parse_usable_for(r):
             raise VerifierError((address, r), 'faucet')
@@ -331,8 +383,7 @@ class Verifier:
 
     def verify_metadata(self, address, balance=None):
         k = generate_metadata_pointer(bytes.fromhex(strip_0x(address)), MetadataPointer.PERSON)
-        url = os.path.join(config.get('_META_PROVIDER'), k)
-        logg.debug('verify metadata url {}'.format(url))
+        url = os.path.join(config.get('META_PROVIDER'), k)
         try:
             res = urllib.request.urlopen(url)
         except urllib.error.HTTPError as e:
@@ -343,24 +394,17 @@ class Verifier:
         b = res.read()
         o_retrieved = json.loads(b.decode('utf-8'))
 
-        upper_address = strip_0x(address).upper()
-        f = open(os.path.join(
-            self.data_dir,
-            'new',
-            upper_address[:2],
-            upper_address[2:4],
-            upper_address + '.json',
-            ), 'r'
-            )
-        o_original = json.load(f)
-        f.close()
+        j = self.dh.get(address, 'new')
+
+        o_original = json.loads(j)
 
         if o_original != o_retrieved:
             raise VerifierError(o_retrieved, 'metadata (person)')
 
 
     def verify_cache_tx_user(self, address, balance=None):
-        url = os.path.join(config.get('_CACHE_PROVIDER'), 'txa', 'user', address)
+        address = to_checksum_address(address)
+        url = os.path.join(config.get('CACHE_PROVIDER'), 'txa', 'user', address, '100', '0')
         req = urllib.request.Request(url)
         req.add_header('X_CIC_CACHE_MODE', 'all')
         try:
@@ -393,7 +437,7 @@ class Verifier:
         p = Person.deserialize(o) 
 
         k = generate_metadata_pointer(p.tel.encode('utf-8'), MetadataPointer.PHONE)
-        url = os.path.join(config.get('_META_PROVIDER'), k)
+        url = os.path.join(config.get('META_PROVIDER'), k)
         logg.debug('verify metadata phone url {}'.format(url))
         try:
             res = urllib.request.urlopen(url)
@@ -415,6 +459,7 @@ class Verifier:
             raise VerifierError(address_recovered, 'metadata (phone)')
 
 
+    # TODO: should we check language preference when implemented.
     def verify_ussd(self, address, balance=None):
         response_data = send_ussd_request(address, self.data_dir)
         state = response_data[:3]
@@ -424,16 +469,10 @@ class Verifier:
             raise VerifierError(response_data, 'ussd')
 
 
-    def verify_ussd_pins(self, address, balance):
-        response_data = send_ussd_request(address, self.data_dir)
-        if response_data[:11] != 'CON Balance' and response_data[:9] != 'CON Salio':
-            raise VerifierError(response_data, 'pins')
-
-
     def verify(self, address, balance, debug_stem=None):
   
         for k in active_tests:
-            s = '{} {}'.format(debug_stem, k)
+            s = '{}: {}'.format(debug_stem, k)
             outfunc(s)
             try:
                 m = getattr(self, 'verify_{}'.format(k))
@@ -456,102 +495,27 @@ def main():
     
     conn = EthHTTPConnection(config.get('RPC_PROVIDER'))
     gas_oracle = OverrideGasOracle(conn=conn, limit=8000000)
-
-    # Get Token registry address
-    registry = Registry(chain_spec)
-    o = registry.address_of(config.get('CIC_REGISTRY_ADDRESS'), 'TokenRegistry')
-    r = conn.do(o)
-    token_index_address = registry.parse_address_of(r)
-    token_index_address = to_checksum_address(token_index_address)
-    logg.info('found token index address {}'.format(token_index_address))
-
-    # Get Account registry address
-    o = registry.address_of(config.get('CIC_REGISTRY_ADDRESS'), 'AccountRegistry')
-    r = conn.do(o)
-    account_index_address = registry.parse_address_of(r)
-    account_index_address = to_checksum_address(account_index_address)
-    logg.info('found account index address {}'.format(account_index_address))
-
-    # Get Faucet address
-    o = registry.address_of(config.get('CIC_REGISTRY_ADDRESS'), 'Faucet')
-    r = conn.do(o)
-    faucet_address = registry.parse_address_of(r)
-    faucet_index_address = to_checksum_address(token_index_address)
-    logg.info('found faucet {}'.format(faucet_address))
-
-# Get Sarafu token address
-    token_index = TokenUniqueSymbolIndex(chain_spec)
-    o = token_index.address_of(token_index_address, token_symbol)
-    r = conn.do(o)
-    token_address = token_index.parse_address_of(r)
-    try:
-        token_address = to_checksum_address(token_address)
-    except ValueError as e:
-        logg.critical('lookup failed for token {}: {}'.format(token_symbol, e))
-        sys.exit(1)
-    logg.info('found token address {}'.format(token_address))
  
-    balances = {}
-    f = open('{}/balances.csv'.format(user_dir, 'r'))
-    i = 0
-    while True:
-        l = f.readline()
-        if l == None:
-            break
-        r = l.split(',')
-        try:
-            address = to_checksum_address(r[0])
-            #sys.stdout.write('loading balance {} {}'.format(i, address).ljust(200) + "\r")
-            outfunc('loading balance {} {}'.format(i, address)) #.ljust(200))
-        except ValueError:
-            break
-        balance = int(r[1].rstrip())
-        balances[address] = balance
-        i += 1
+    imp = Importer(config, conn, None, None)
+    imp.prepare()
 
-    f.close()
-
-    verifier = Verifier(conn, i, api, gas_oracle, chain_spec, account_index_address, token_address, faucet_address, user_dir, exit_on_error)
+    verifier = Verifier(imp, conn, api, gas_oracle, chain_spec, exit_on_error=exit_on_error)
 
     user_new_dir = os.path.join(user_dir, 'new')
     i = 0
     for x in os.walk(user_new_dir):
         for y in x[2]:
-            if y[len(y)-5:] != '.json':
-                continue
-            filepath = os.path.join(x[0], y)
-            f = open(filepath, 'r')
+            u = None
             try:
-                o = json.load(f)
-            except json.decoder.JSONDecodeError as e:
-                f.close()
-                logg.error('load error for {}: {}'.format(y, e))
+                u = imp.user_by_address(y)
+            except ValueError:
                 continue
-            f.close()
 
-            u = Person.deserialize(o)
-            #logg.debug('data {}'.format(u.identities['evm']))
+            s = 'processing {}'.format(u.description)
+            outfunc(s)
 
-            new_chain_spec = chain_spec.asdict()
-            arch = new_chain_spec.get('arch')
-            fork = new_chain_spec.get('fork')
-            tag = identity_tag(new_chain_spec)
-            new_address = u.identities[arch][fork][tag][0]
-
-            old_chainspec = old_chain_spec.asdict()
-            arch = old_chainspec.get('arch')
-            fork = old_chainspec.get('fork')
-            tag = identity_tag(old_chainspec)
-            old_address = u.identities[arch][fork][tag][0]
-            balance = 0
-            try:
-                balance = balances[old_address]
-            except KeyError:
-                logg.info('no old balance found for {}, assuming 0'.format(old_address))
-
-            s = 'checking {}: {} -> {} = {}'.format(i, old_address, new_address, balance)
-
-            verifier.verify(new_address, balance, debug_stem=s)
+            s = 'check {}'.format(u)
+            verifier.verify(u.address, u.original_balance, debug_stem=s)
             i += 1
 
     print()

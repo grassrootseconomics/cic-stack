@@ -94,3 +94,12 @@ def test_account_create(init_cache, init_database, load_chain_spec, mock_account
     assert len(init_database.query(TaskTracker).all()) == 1
     account_creation_data = get_cached_data(task_uuid)
     assert json.loads(account_creation_data).get('status') == AccountStatus.PENDING.name
+
+
+def test_reset_pin(init_database, activated_account):
+    assert activated_account.get_status(init_database) == AccountStatus.ACTIVE.name
+    activated_account.failed_pin_attempts = 1
+    activated_account.reset_pin(init_database, True)
+    assert activated_account.get_status(init_database) == AccountStatus.ACTIVE.name
+    activated_account.reset_pin(init_database)
+    assert activated_account.get_status(init_database) == AccountStatus.RESET.name

@@ -115,15 +115,18 @@ class Account(SessionBase):
         """
         return self.failed_pin_attempts == 3 and self.get_status(session) == AccountStatus.LOCKED.name
 
-    def reset_pin(self, session: Session) -> str:
-        """This function resets the number of failed pin attempts to zero. It places the account in pin reset status
-        enabling users to reset their pins.
+    def reset_pin(self, session: Session, soft: bool = False):
+        """This function resets the number of failed pin attempts to zero. It checks whether a pin reset call is
+        intended as "soft reset" contrary to which it changes an account's status so users can reset their account status.
         :param session: Database session object.
         :type session: Session
+        :param soft: Bool param to check whether to execute a reset without changing the account status.
+        :type soft: bool
         """
         session = SessionBase.bind_session(session=session)
         self.failed_pin_attempts = 0
-        self.status = AccountStatus.RESET.value
+        if not soft:
+            self.status = AccountStatus.RESET.value
         session.add(self)
         session.flush()
         SessionBase.release_session(session=session)
