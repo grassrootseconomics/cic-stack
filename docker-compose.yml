@@ -175,12 +175,12 @@ services:
             ./start_tasker.sh --aux-all -q cic-eth  -vv
 
   cic-eth-server:
-    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}/cic-eth:${TAG:-latest}
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}/cic-eth-server:${TAG:-latest}
     ports:
       - 5000:5000
     build: 
       context: apps/cic-eth
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile_server
       args:
         DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
         PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
