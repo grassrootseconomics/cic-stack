@@ -196,6 +196,7 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
       CELERY_DEBUG: ${CELERY_DEBUG:-1}
+      LOGLEVEL: ${LOGLEVEL:-info}
     restart: unless-stopped 
     depends_on:
       - cic-eth-tasker
