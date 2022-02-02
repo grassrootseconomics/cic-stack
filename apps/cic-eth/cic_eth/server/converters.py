@@ -35,5 +35,4 @@ def truncate(value: float, decimals: int) -> float:
     :return: The truncated value.
     :rtype: int
     """
-    stepper = 10.0**decimals
-    return trunc(stepper*value) / stepper
+    return round(value,decimals)

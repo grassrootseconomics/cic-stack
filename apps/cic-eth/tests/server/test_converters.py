@@ -19,11 +19,11 @@ def test_to_wei(value, decimals, expected):
 
 
 @pytest.mark.parametrize("expected, decimals, value", [
-    (1.234567, 6, 1.23456789),
-    (0.1003209999, 10, 0.100321),
+    (1.234568, 6, 1.23456789),
+    (1.234568, 6, 1.2345675),
+    (0.1003210000, 10, 0.100321),
     (1.0, 0, 1),
     (0.0, 2, 0.000413)
-
 ])
 def test_truncate(expected, decimals, value):
     assert expected == truncate(value=value, decimals=decimals)
