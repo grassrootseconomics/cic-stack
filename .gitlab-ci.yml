@@ -13,7 +13,6 @@ stages:
   - version
   - build
   - test
-  - deploy
 
 image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/docker-with-compose:latest
 
@@ -38,7 +37,7 @@ version:
     - eval $(ssh-agent -s)
     - ssh-add <(echo "$SSH_PRIVATE_KEY")
     - git remote set-url origin git@gitlab.com:grassrootseconomics/cic-internal-integration.git
-    - export TAG=$(sbot predict version -m auto)
+    - export TAG=$(sbot predict version -m patch)
     - |
       if [[ -z $TAG ]]
       then
@@ -73,8 +72,3 @@ build-push:
       when: always
     - if: $CI_COMMIT_REF_NAME == "master"
       when: always
-
-deploy-dev:
-  stage: deploy
-  trigger: grassrootseconomics/devops
-  when: manual

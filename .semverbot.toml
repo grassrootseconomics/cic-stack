@@ -8,9 +8,4 @@ name = "semvervot"
 prefix = "v"
 
 [semver]
-mode = "git-commit"
-
-[semver.detection]
-patch = ["fix", "[fix]", "patch", "[patch]"]
-minor = ["minor", "[minor]", "feat", "[feat]", "release", "[release]", "bump", "[bump]"]
-major = ["BREAKING CHANGE"]
+mode = "patch"
