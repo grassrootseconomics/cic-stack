@@ -11,6 +11,7 @@ import confini
 # local imports
 from cic_notify.db.models.base import SessionBase
 from cic_notify.db import dsn_from_config
+from cic_notify.mux import Muxer
 from cic_notify.tasks.sms.africastalking import AfricasTalkingNotifier
 
 logging.basicConfig(level=logging.WARNING)
@@ -72,11 +73,14 @@ import cic_notify.tasks
 # initialize Africa'sTalking notifier
 # handle task config
 tasks_config_dir = os.path.join(args.c, 'tasks')
-tasks_config_dir = confini.Config(tasks_config_dir, args.env_prefix)
-tasks_config_dir.process()
+tasks_config = confini.Config(tasks_config_dir, args.env_prefix)
+tasks_config.process()
+
+# initialize muxer
+Muxer.initialize(tasks_config)
 
 sms_enabled = False
-for config_key, config_value in tasks_config_dir.store.items():
+for config_key, config_value in tasks_config.store.items():
     if config_key[:5] == 'TASKS':
         channel_key = config_key[6:].lower()
         task_status = config_value.split(':')

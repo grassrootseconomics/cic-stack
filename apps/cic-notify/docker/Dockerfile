@@ -22,7 +22,7 @@ RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
     --extra-index-url $EXTRA_PIP_INDEX_URL $EXTRA_PIP_ARGS \
     -r requirements.txt
 
-# install cic-notify \
+# install cic-notify
 RUN python setup.py install
 
 # copy scripts

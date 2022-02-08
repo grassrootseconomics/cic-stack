@@ -18,10 +18,8 @@ class Muxer:
 
     # handle muxer
     @classmethod
-    def initialize(cls, config_directory: str):
-
-        config = Config(config_directory)
-        config.process()
+    def initialize(cls, config: Config):
+        logg.debug(f"Loading task configs: {config}")
 
         channels_dict = {}
         for config_key, config_value in config.store.items():

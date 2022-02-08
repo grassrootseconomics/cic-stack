@@ -11,7 +11,7 @@ logg = logging.getLogger(__file__)
 @pytest.fixture(scope='session')
 def celery_includes():
     return [
-        'cic_notify.tasks.sms',
+        'cic_notify.tasks'
     ]
 
 

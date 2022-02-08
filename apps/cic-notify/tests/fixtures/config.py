@@ -6,6 +6,9 @@ import logging
 import pytest
 from confini import Config
 
+# local imports
+from cic_notify.mux import Muxer
+
 logg = logging.getLogger(__file__)
 
 
@@ -29,4 +32,12 @@ def load_config():
     config = Config(default_dir=config_directory)
     config.process()
     logg.debug('config loaded\n{}'.format(config))
+    return config
+
+
+@pytest.fixture(scope='session')
+def task_config():
+    config_directory = os.path.join(root_directory, 'cic_notify', 'data', 'config', 'tasks', 'test')
+    config = Config(default_dir=config_directory)
+    config.process()
     return config

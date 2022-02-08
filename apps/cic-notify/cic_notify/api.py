@@ -1,23 +1,15 @@
 # standard imports
 import logging
-import os
 
 # external imports
 import celery
 
 # local imports
-from cic_notify.mux import Muxer
+
 
 app = celery.current_app
 logging.basicConfig(level=logging.DEBUG)
 logg = logging.getLogger()
-
-root_directory = os.path.dirname(__file__)
-default_config_directory = os.path.join(root_directory, 'data', 'config', 'tasks')
-
-
-# initialize muxer
-Muxer.initialize(default_config_directory)
 
 
 class Api:
@@ -40,12 +32,7 @@ class Api:
         :return:
         :rtype:
         """
-
-        muxer = Muxer()
-        muxer.route(channel_keys=self.channel_keys)
-
-        signatures = []
-        for task in muxer.tasks:
-            signature = celery.signature(task, [message, recipient, ], queue=self.queue)
-            signatures.append(signature)
-        return celery.group(signatures)()
+        signature = celery.signature(
+            'cic_notify.tasks.default.resolver.resolve_tasks',
+            [self.channel_keys, message, self.queue, recipient], queue=self.queue)
+        signature.apply_async()
