@@ -20,6 +20,7 @@ from cic_ussd.metadata import PersonMetadata
 from cic_ussd.phone_number import Support
 from cic_ussd.processor.menu import response, MenuProcessor
 from cic_ussd.processor.util import parse_person_metadata, ussd_menu_list
+from cic_ussd.state_machine.logic.util import cash_rounding_precision
 from cic_ussd.translation import translation_for
 
 
@@ -326,12 +327,12 @@ def test_transaction_pin_authorization(activated_account, cache_preferences, cac
     transaction_pin_authorization = 'ussd.transaction_pin_authorization'
     generic_ussd_session['data'] = {
         'recipient_phone_number': valid_recipient.phone_number,
-        'transaction_amount': '15'
+        'transaction_amount': cash_rounding_precision('15')
     }
     resp = response(activated_account, transaction_pin_authorization, transaction_pin_authorization[5:], init_database,
                     generic_ussd_session)
     user_input = generic_ussd_session.get('data').get('transaction_amount')
-    transaction_amount = to_wei(decimals, int(user_input))
+    transaction_amount = to_wei(decimals, user_input)
     tx_recipient_information = valid_recipient.standard_metadata_id()
     tx_sender_information = activated_account.standard_metadata_id()
     assert resp == translation_for(f'{transaction_pin_authorization}.first',
@@ -401,10 +402,10 @@ def test_exit_insufficient_balance(activated_account, cache_balances, cache_pref
     exit_insufficient_balance = 'ussd.exit_insufficient_balance'
     generic_ussd_session['data'] = {
         'recipient_phone_number': valid_recipient.phone_number,
-        'transaction_amount': '85'
+        'transaction_amount': cash_rounding_precision('85')
     }
     transaction_amount = generic_ussd_session.get('data').get('transaction_amount')
-    transaction_amount = to_wei(decimals, int(transaction_amount))
+    transaction_amount = to_wei(decimals, transaction_amount)
     resp = response(activated_account, exit_insufficient_balance, exit_insufficient_balance[5:], init_database,
                     generic_ussd_session)
     assert resp == translation_for(exit_insufficient_balance,
@@ -459,10 +460,10 @@ def test_exit_successful_transaction(activated_account, cache_preferences, cache
     exit_successful_transaction = 'ussd.exit_successful_transaction'
     generic_ussd_session['data'] = {
         'recipient_phone_number': valid_recipient.phone_number,
-        'transaction_amount': '15'
+        'transaction_amount': cash_rounding_precision('15')
     }
     transaction_amount = generic_ussd_session.get('data').get('transaction_amount')
-    transaction_amount = to_wei(decimals, int(transaction_amount))
+    transaction_amount = to_wei(decimals, transaction_amount)
     resp = response(activated_account, exit_successful_transaction, exit_successful_transaction[5:], init_database,
                     generic_ussd_session)
     assert resp == translation_for(exit_successful_transaction,

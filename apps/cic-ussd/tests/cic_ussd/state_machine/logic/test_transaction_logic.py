@@ -16,6 +16,7 @@ from cic_ussd.state_machine.logic.transaction import (is_valid_recipient,
                                                       retrieve_recipient_metadata,
                                                       save_recipient_phone_to_session_data,
                                                       save_transaction_amount_to_session_data)
+from cic_ussd.state_machine.logic.util import cash_rounding_precision
 
 # test imports
 
@@ -34,7 +35,7 @@ def test_is_valid_recipient(activated_account,
 
 @pytest.mark.parametrize("amount, expected_result", [
     ('50', True),
-    ('', False)
+    ('0', False)
 ])
 def test_is_valid_transaction_amount(activated_account, amount, expected_result, generic_ussd_session, init_database):
     state_machine_data = (amount, generic_ussd_session, activated_account, init_database)
@@ -73,7 +74,7 @@ def test_process_transaction_request(activated_account,
     token_data = get_cached_token_data(blockchain_address, token_symbol)
     decimals = token_data.get("decimals")
     cached_ussd_session.set_data('recipient_phone_number', valid_recipient.phone_number)
-    cached_ussd_session.set_data('transaction_amount', '50')
+    cached_ussd_session.set_data('transaction_amount', cash_rounding_precision('50'))
     ussd_session = get_cached_data(cached_ussd_session.external_session_id)
     ussd_session = json.loads(ussd_session)
     state_machine_data = ('', ussd_session, activated_account, init_database)
@@ -112,4 +113,4 @@ def test_transaction_information_to_session_data(activated_account,
     save_transaction_amount_to_session_data(state_machine_data)
     ussd_session = get_cached_data(cached_ussd_session.external_session_id)
     ussd_session = json.loads(ussd_session)
-    assert ussd_session.get('data')['transaction_amount'] == '25'
+    assert ussd_session.get('data')['transaction_amount'] == cash_rounding_precision('25')
