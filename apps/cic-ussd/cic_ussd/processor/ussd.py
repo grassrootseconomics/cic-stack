@@ -130,7 +130,8 @@ def handle_no_account_menu_operations(account: Optional[Account],
     if last_ussd_session:
         menu_name = menu.get('name')
         if user_input:
-            state = next_state(account, session, user_input, last_ussd_session.to_json())
+            last_input = latest_input(user_input)
+            state = next_state(account, session, last_input, last_ussd_session.to_json())
             menu = UssdMenu.find_by_name(state)
         elif menu_name not in States.non_resumable_states and menu_name != initial_language_selection:
             menu = resume_last_ussd_session(last_ussd_session.state)
