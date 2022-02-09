@@ -1,21 +1,20 @@
 #!/usr/bin/python3
 
 # Author: Louis Holbrook <dev@holbrook.no> (https://holbrook.no)
-# Description: interactive console for Sempo USSD session
+# Description: interactive console for USSD session mimicking requests as received from AfricasTalking
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # standard imports
-import os
-import sys
-import uuid
-import json
 import argparse
 import logging
+import os
+import sys
 import urllib
-from xdg.BaseDirectory import xdg_config_home
+import uuid
+from pathlib import Path
 from urllib import parse, request
 
-# third-party imports
+# external imports
 from confini import Config
 
 logging.basicConfig(level=logging.WARNING)
@@ -23,49 +22,49 @@ logg = logging.getLogger()
 
 default_config_dir = os.environ.get('CONFINI_DIR', '/usr/local/etc/cic')
 
-argparser = argparse.ArgumentParser(description='CLI tool to interface a Sempo USSD session')
-argparser.add_argument('-c', type=str, default=default_config_dir, help='config root to use')
-#argparser.add_argument('-d', type=str, default='local', help='deployment name to interface (config root subdirectory)')
-argparser.add_argument('--host', type=str, default='localhost')
-argparser.add_argument('--port', type=int, default=9000)
-argparser.add_argument('--nossl', help='do not use ssl (careful)', action='store_true')
-argparser.add_argument('phone', help='phone number for USSD session')
-argparser.add_argument('-v', help='be verbose', action='store_true')
-argparser.add_argument('-vv', help='be more verbose', action='store_true')
+arg_parser = argparse.ArgumentParser(description='CLI tool to interface with the USSD client.')
+arg_parser.add_argument('-c', type=str, default=default_config_dir, help='config root to use')
+arg_parser.add_argument('-v', help='be verbose', action='store_true')
+arg_parser.add_argument('-vv', help='be more verbose', action='store_true')
+arg_parser.add_argument('--host', type=str, default='localhost')
+arg_parser.add_argument('--port', type=int, default=9000)
+arg_parser.add_argument('--nossl', help='do not use ssl (careful)', action='store_true')
+arg_parser.add_argument('phone', help='phone number for USSD session')
 
-args = argparser.parse_args(sys.argv[1:])
+args = arg_parser.parse_args(sys.argv[1:])
 
-if args.v == True:
+if args.v is True:
     logging.getLogger().setLevel(logging.INFO)
-elif args.vv == True:
+elif args.vv is True:
     logging.getLogger().setLevel(logging.DEBUG)
 
-#config_dir = os.path.join(args.c, args.d)
-config_dir = os.path.join(args.c)
-os.makedirs(config_dir, 0o777, True)
-
-config = Config(config_dir)
+# parse config
+config = Config(args.c)
 config.process()
-logg.debug('config loaded from {}'.format(config_dir))
+config.censor('PASSWORD', 'DATABASE')
+logg.debug('config loaded from {}:\n{}'.format(args.c, config))
 
 host = config.get('CLIENT_HOST')
 port = config.get('CLIENT_PORT')
 ssl = config.get('CLIENT_SSL')
 
-if host == None:
+if not host:
     host = args.host
-if port == None:
+if not port:
     port = args.port
-if ssl == None:
+if not ssl:
     ssl = not args.nossl
 elif ssl == 0:
     ssl = False
 else:
     ssl = True
 
-def main():
+input_file = Path('/tmp/ussd-input')
+input_file.touch(exist_ok=True)
 
-    # TODO: improve url building 
+
+def main():
+    # TODO: improve url building
     url = 'http'
     if ssl:
         url += 's'
@@ -77,18 +76,26 @@ def main():
 
     session = uuid.uuid4().hex
     data = {
-            'sessionId': session,
-            'serviceCode': config.get('USSD_SERVICE_CODE'),
-            'phoneNumber': args.phone,
-            'text': "",
-        }
+        'sessionId': session,
+        'serviceCode': config.get('USSD_SERVICE_CODE'),
+        'phoneNumber': args.phone,
+        'text': "",
+    }
 
     state = "_BEGIN"
     while state != "END":
-
         if state != "_BEGIN":
             user_input = input('next> ')
-            data['text'] = user_input
+
+            with open(input_file, 'r+') as file:
+                input_file_size = os.path.getsize(input_file)
+                if input_file_size == 0 or len(file.readline()) == 0:
+                    file.write(user_input)
+                else:
+                    file.write(f"*{user_input}")
+
+            with open(input_file, 'r') as latest_input:
+                data['text'] = latest_input.readline()
 
         req = urllib.request.Request(url)
         urlencoded_data = parse.urlencode(data)
