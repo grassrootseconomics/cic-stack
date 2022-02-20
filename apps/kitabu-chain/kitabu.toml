@@ -1,36 +1,36 @@
 # File bootnode.toml
 
 [parity]
-chain = "{{CONFIG_DIR}}/kitabu.json"
-base_path = "{{DATA_DIR}}/data"
+chain = "./kitabu.json"
+base_path = "./data/data"
 
 [network]
 port = 30303
-#reserved_peers = "{{CONFIG_DIR}}/bootnodes.txt"
+#reserved_peers = "/home/lash/src/contrib/grassrootseconomics/kitabu-chain/openethereum/kitabu/bootnodes.txt"
 # reserved_only = true
 max_peers = 10
 snapshot_peers = 25
 #nat = "extip:100.102.26.121"
-#nat = "extip:{{EXTERNAL_IP}}"
+nat = "extip:127.0.0.1"
 
 [rpc]
 port = 8545
-apis = ["web3", "eth", "net" ]
+apis = ["web3", "eth", "net"]
 interface = "all"
 cors = ["*"]
 
 [websockets]
-disable = false
+disable = true
 port = 8546
 interface = "all"
 origins = ["all"]
 
 [account]
-password = ["{{CONFIG_DIR}}/kitabu.pwd"]
+password = ["./kitabu.pwd"]
 
 [mining]
 #CHANGE ENGINE SIGNER TO VALIDATOR ADDRESS
-engine_signer = "{{SIGNER_ADDRESS}}"
+engine_signer = "0x5C5aB0D602EEF41f82B6fc087A24e61383589C39"
 reseal_on_txs = "none"
 force_sealing = true
 min_gas_price = 1
@@ -43,5 +43,5 @@ pruning_history = 256
 cache_size_db = 2000
 
 [misc]
-log_file = "{{LOG_DIR}}/kitabu.log"
+log_file = "./data/kitabu.log"
 
