@@ -5,7 +5,7 @@ FROM $DOCKER_REGISTRY/debian:buster-slim
 WORKDIR /root
 
 RUN apt-get update -y 
-RUN apt-get install -y cmake llvm git python3-venv curl clang
+RUN apt-get install -y cmake llvm git python3-venv curl clang bsdmainutils libssl-dev autoconf libtool pkg-config python3-pip
 
 RUN git clone --depth 1 --branch v3.3.3 https://git.grassecon.net/grassrootseconomics/openethereum
 
@@ -32,6 +32,7 @@ RUN pip3 install --index-url $PIP_INDEX_URL \
 ENV VANITY_STRING=${VANITY_STRING:-"Kitabu Sarafu Karibu Sana"}
 
 RUN apt-get install -y bsdmainutils
+
 COPY ./extra.sh ./extra.sh
 COPY ./aux/bash-templater/templater.sh ./templater.sh
 COPY ./kitabu*template ./
