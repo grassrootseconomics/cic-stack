@@ -2,6 +2,7 @@
 
 A custodial wallet and blockchain bidirectional interface engine for community inclusion currencies. Check the [CIC Stack summary](https://docs.grassecon.org/software) page for more information.
 
+
 ### Contributing
 
 See our [contribution guidelines](https://docs.grassecon.org/community/contrib/) for more details on:

@@ -10,6 +10,6 @@ celery==4.4.7
 redis==3.5.3
 chainsyncer[sql]~=0.0.7
 erc20-faucet~=0.3.2
-chainlib-eth~=0.0.15
+chainlib-eth~=0.0.26
 eth-address-index~=0.2.4
 okota~=0.2.5

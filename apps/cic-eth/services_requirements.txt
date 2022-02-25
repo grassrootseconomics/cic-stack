@@ -1,9 +1,9 @@
 chainqueue~=0.0.6rc1
-chainsyncer[sql]~=0.0.7
+chainsyncer[sql]~=0.1.0
 alembic==1.4.2
 confini~=0.5.3
 redis==3.5.3
-hexathon~=0.1.0
+hexathon~=0.1.5
 pycryptodome==3.10.1
 liveness~=0.0.1a7
 eth-address-index~=0.2.4

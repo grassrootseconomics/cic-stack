@@ -178,7 +178,7 @@ class Importer:
 
     # Dirhandler proxy
     def add(self, k, v, dirkey):
-        return self.dh.add(k, v, dirkey)
+        return self.dh.put(k, v, dirkey)
 
 
     # Dirhandler proxy
@@ -357,7 +357,7 @@ class Importer:
 
         address_clean = legacy_normalize_address(u.address)
         custom_key = generate_metadata_pointer(bytes.fromhex(address_clean), MetadataPointer.CUSTOM)
-        self.dh.add(custom_key, json.dumps({'tags': tag_data}), 'custom')
+        self.dh.put(custom_key, json.dumps({'tags': tag_data}), 'custom')
         custom_path = self.dh.path(custom_key, 'custom')
         legacy_link_data(custom_path)
 
@@ -381,7 +381,7 @@ class Importer:
 
         # add updated person record to the migration data folder
         o = u.serialize()
-        self.dh.add(u.address, json.dumps(o), 'new')
+        self.dh.put(u.address, json.dumps(o), 'new')
 
         self.process_meta_person(i, u)
         self.process_meta_custom(i, u)
@@ -473,7 +473,7 @@ class Importer:
 
 
     # Combine _address_by_tx and _user_by_address
-    def _user_by_tx(self, tx):
+    def user_by_tx(self, tx):
         if tx.payload == None or len(tx.payload) == 0:
             logg.debug('no payload, skipping {}'.format(tx))
             return None
@@ -514,7 +514,7 @@ class Importer:
     def _export_tx(self, tx_hash, data):
         tx_hash_hex = strip_0x(tx_hash)
         tx_data = strip_0x(data)
-        self.dh.add(tx_hash_hex, tx_data, 'tx')
+        self.dh.put(tx_hash_hex, tx_data, 'tx')
         return tx_data
 
 
@@ -523,7 +523,7 @@ class Importer:
     # Visited by chainsyncer.filter.SyncFilter.
     def filter(self, conn, block, tx, db_session=None):
         # get user if matching tx
-        u = self._user_by_tx(tx)
+        u = self.user_by_tx(tx)
         if u == None:
             return
 

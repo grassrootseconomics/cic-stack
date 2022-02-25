@@ -106,7 +106,7 @@ def test_get_cached_token_symbol_list(activated_account, cache_token_symbol_list
 
 def test_hashed_token_proof(token_proof_symbol):
     hash_object = hashlib.new("sha256")
-    token_proof = json.dumps(token_proof_symbol)
+    token_proof = json.dumps(token_proof_symbol, separators=(',', ':'))
     hash_object.update(token_proof.encode('utf-8'))
     assert hash_object.digest().hex() == hashed_token_proof(token_proof_symbol)
 

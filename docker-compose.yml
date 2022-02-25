@@ -92,7 +92,7 @@ services:
     volumes:
       - contract-config:/tmp/cic/config
       - ./apps/contract-migration/testdata/pgp/:/tmp/cic/pgp
-
+      - ./apps/contract-migration/:/root/
 
 
   cic-signer:
@@ -692,6 +692,7 @@ services:
           PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
           EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net}
           EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+      container_name: data-seeding
       environment:
         DATABASE_HOST: ${DATABASE_HOST:-postgres}
         DATABASE_PORT: ${DATABASE_PORT:-5432}
@@ -728,13 +729,13 @@ services:
           # TODO: this should be generated from host/port/ssl
         USSD_PROVIDER: http://cic-user-ussd-server:9000
         CELERY_QUEUE: cic-import-ussd
-      command:
-        - /bin/bash
-        - -c
-        - |
-          set -a
-          if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi
-          set +a
-          ./import_ussd.sh
+        # TODO put env's here for the cli tools 
+      command: bash -c "while true; do echo 'For interactive use -- docker exec -it data-seeding bash'; sleep 15; done"
+      depends_on:
+        - cic-eth-dispatcher
+        - cic-eth-tracker
+        - cic-eth-tasker
+        - cic-meta-server
       volumes:
         - contract-config:/tmp/cic/config/:ro
+        - ./apps/data-seeding:/root/

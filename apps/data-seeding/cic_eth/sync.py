@@ -78,7 +78,7 @@ elif args.vv == True:
 
 config = None
 if args.c != None:
-    config = confini.Config(base_config_dir, os.environ.get('CONFINI_ENV_PREFIX'), override_config_dir=args.c)
+    config = confini.Config(base_config_dir, os.environ.get('CONFINI_ENV_PREFIX'), override_dirs=args.c)
 else:
     config = confini.Config(base_config_dir, os.environ.get('CONFINI_ENV_PREFIX'))
 config.process()

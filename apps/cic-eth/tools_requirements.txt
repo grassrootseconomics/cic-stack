@@ -1,5 +1,5 @@
 chainqueue~=0.0.6a4
 redis==3.5.3
-hexathon~=0.1.0
+hexathon~=0.1.5
 pycryptodome==3.10.1
 pyxdg==0.27

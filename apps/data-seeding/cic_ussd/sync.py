@@ -46,7 +46,10 @@ from cic_seeding.imports.cic_ussd import (
         )
 from cic_seeding.imports import Importer
 from cic_seeding.notify import sync_progress_callback
-from cic_seeding.sync import DeferredSyncer
+from cic_seeding.sync import (
+        DeferredSyncer,
+        DeferredSyncQueue,
+        )
 
 
 logging.basicConfig(level=logging.WARNING)
@@ -145,7 +148,7 @@ class DeferredImportThread(threading.Thread):
         deferred_syncer_backend = MemBackend(str(chain_spec), 0)
         deferred_syncer_backend.set(0, 0)
 
-        syncer = DeferredSyncer(deferred_syncer_backend, chain_interface, deferred_imp, 'ussd_tx_src', block_callback=sync_progress_callback)
+        syncer = DeferredSyncer(chain_spec, deferred_syncer_backend, chain_interface, deferred_imp, 'ussd_tx_src', block_callback=sync_progress_callback)
         syncer.add_filter(deferred_imp)
 
         self.syncer = syncer
@@ -162,28 +165,30 @@ class DeferredImportThread(threading.Thread):
 # TODO: need a channel for closing down the workers.
 class AccountConnectThread(threading.Thread):
 
-    def __init__(self, imp, queue, offset):
+    def __init__(self, imp, queue): #, offset):
         super(AccountConnectThread, self).__init__()
         self.imp = imp
         self.q = queue
-        self.offset = offset
+        #self.offset = offset
 
 
     def run(self):
         logg.info('account connect thread started')
-        i = self.offset
-        while True:
-            address = None
-            try:
-                address = self.imp.get(i, 'ussd_phone')
-            except FileNotFoundError as e:
-                break
+        #i = self.offset
+        for address in self.imp.dh.direct('list', 'ussd_phone'):
+#            address = None
+#            try:
+#                address = self.imp.get(i, 'ussd_phone')
+#            except FileNotFoundError as e:
+#                break
+            #self.imp.dh.direct('set_have_address', 'ussd_tx_src', address)
+            #self.imp.dh.put(address, None, 'ussd_phone')
             u = self.imp.user_by_address(address, original=True)
             self.q.put(u)
-            i += 1
+#            i += 1
           
 
-def run_account_connect(config, imp, offset):
+def run_account_connect(config, imp): #, offset):
     # Spawn account connection workers
     q = queue.Queue(maxsize=config.get('_THREADS'))
     workers = []
@@ -195,7 +200,7 @@ def run_account_connect(config, imp, offset):
 
     # Spawn thread to scan phone number records added by CicUssdImporter for processing.
     # This thread will feed the already spawned account connection workers.
-    th_account = AccountConnectThread(imp, q, offset)
+    th_account = AccountConnectThread(imp, q) #, offset)
     th_account.start()
 
     def stop():
@@ -260,17 +265,20 @@ def run_main_syncer(config, rpc, imp, block_offset, block_limit):
 def main():
     global block_offset, block_limit
 
+
     # Create the main thread processor
-    stores = apply_default_stores(config)
+    semaphore = threading.Semaphore()
+    stores = apply_default_stores(config, semaphore)
+
     imp = CicUssdImporter(config, rpc, signer, signer_address, stores=stores)
     imp.prepare()
-    offset = stores['ussd_phone'].tell()
+    #offset = stores['ussd_phone'].tell()
 
     chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
 
     stoppers = []
 
-    stopper = run_account_connect(config, imp, offset)
+    stopper = run_account_connect(config, imp) #, offset)
     stoppers.append(stopper)
 
     sync_deferred = True

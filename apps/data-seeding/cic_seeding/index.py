@@ -7,6 +7,9 @@ import sys
 # external imports
 from chainlib.encode import TxHexNormalizer
 from hexathon import strip_0x
+from shep.persist import PersistedState
+from shep.store.file import SimpleFileStoreFactory
+from shep.error import StateItemExists
 
 logg = logging.getLogger(__name__)
 
@@ -45,6 +48,10 @@ class AddressIndex:
         return v
 
 
+    def next(self, k):
+        return self.store.next(k)
+
+
     def add_from_file(self, file, typ='csv'):
         if typ != 'csv':
             raise NotImplementedError(typ)
@@ -72,98 +79,38 @@ class AddressIndex:
         return self.name
 
 
-class SeedQueue:
+class AddressQueue(PersistedState):
 
-    def __init__(self, queue_dir, key_normalizer=None, value_filter=None):
+    def __init__(self, queue_dir, key_normalizer=None):
         self.queue_dir = queue_dir
-        self.newdir = os.path.join(queue_dir, 'new')
-        self.curdir = os.path.join(queue_dir, 'cur')
-        self.deldir = os.path.join(queue_dir, 'del')
-        os.makedirs(self.newdir, exist_ok=True)
-        os.makedirs(self.curdir, exist_ok=True)
-        os.makedirs(self.deldir, exist_ok=True)
-        self.key_normalizer = key_normalizer
-        self.value_filter = value_filter
+        factory = SimpleFileStoreFactory(self.queue_dir)
+        super(AddressQueue, self).__init__(factory.add, 4)
 
+        self.add('cur')
+        self.add('del')
 
-    def tell(self):
-        return self.c
-
-
-    def add(self, k, v):
-        if self.key_normalizer != None:
-            k = self.key_normalizer(k)
-        newd = os.path.join(self.newdir, str(k))
-        f = open(newd, 'w')
-        f.write(v)
-        f.close()
-        return k
-
+        self.sync(self.NEW)
+ 
 
     def get(self, k):
-        if self.key_normalizer != None:
-            k = self.key_normalizer(k)
-        newd = os.path.join(self.newdir, str(k))
-        curd = os.path.join(self.curdir, str(k))
-        shutil.move(newd, curd)
-        f = open(curd, 'r')
-        v = f.read()
-        f.close()
-
-        if self.value_filter != None:
-            v = self.value_filter(v)
+        v = super(AddressQueue, self).get(str(k))
+        if v == None:
+            raise FileNotFoundError(k)
         return v
 
 
-    def rm(self, k):
-        curd = os.path.join(self.curdir, k)
-        deld = os.path.join(self.deldir, k)
-        shutil.move(curd, deld)
-
-
-    def flush(self):
-        pass
-
-
-    def path(self, k):
-        if k == None:
-            return self.queue_dir
-        if self.key_normalizer != None:
-            k = self.key_normalizer(k)
-        return os.path.join(self.queue_dir, k)
-
-
-class AddressQueue(SeedQueue):
-
-    def __init__(self, queue_dir, key_normalizer=None, value_filter=None):
-        super(AddressQueue, self).__init__(queue_dir, key_normalizer=None, value_filter=None)
-
-        self.c = sys.maxsize
-        for v in os.listdir(self.newdir):
-            if v[0] == '.':
-                continue
-            i = 0
-            try:
-                i = int(v)
-            except ValueError:
-                logg.warning('skipping alien content in directory: {}'.format(v))
-
-            if i < self.c:
-                self.c = i
-  
-        if self.c == sys.maxsize:
-            self.c = 0
-
-        logg.info('start queue index set to {}'.format(self.c))
+    def tell(self):
+        v = self.list(self.NEW)
+        v.sort()
+        logg.info('tell {}'.format(v))
+        try:
+            r = int(v[0])
+        except IndexError:
+            return -1
+        return r
 
     
-    def add(self, k, v):
-        if self.key_normalizer != None:
-            k = self.key_normalizer(k)
-        if k != None and k != self.c:
-            raise ValueError('explicit index value {} does not match current in store: {}'.format(k, self.c))
-        fp = os.path.join(self.newdir, str(self.c))
-        f = open(fp, 'w')
-        f.write(v)
-        f.close()
-        self.c += 1
+    def list(self, state_name='NEW'):
+        state = self.from_name(state_name)
+        return super(AddressQueue, self).list(state)
+

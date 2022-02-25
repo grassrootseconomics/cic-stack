@@ -202,7 +202,7 @@ def hashed_token_proof(token_proof: Union[dict, str]) -> str:
     :rtype:
     """
     if isinstance(token_proof, dict):
-        token_proof = json.dumps(token_proof)
+        token_proof = json.dumps(token_proof, separators=(',', ':'))
     logg.debug(f'Hashing token proof: {token_proof}')
     hash_object = hashlib.new("sha256")
     hash_object.update(token_proof.encode('utf-8'))

@@ -94,16 +94,16 @@ if __name__ == '__main__':
         uid = strip_0x(eth).upper()
 
         v = o.serialize()
-        dh.add(uid, json.dumps(v), 'src')
+        dh.put(uid, json.dumps(v), 'src')
         entry_path = dh.path(uid, 'src')
         legacy_link_data(entry_path)
 
         pidx = genPhoneIndex(phone)
-        dh.add(pidx, eth, 'phone')
+        dh.put(pidx, eth, 'phone')
 
-        dh.add(eth.upper(), ','.join(tags), 'tags')
+        dh.put(eth.upper(), ','.join(tags), 'tags')
         amount = genAmount(gift_max, gift_factor)
-        dh.add(eth.upper(), str(amount), 'balances')
+        dh.put(eth.upper(), str(amount), 'balances')
 
         u = ImportUser(dh, o, None, chain_spec)
         print('{}: {}'.format(i, u.description))

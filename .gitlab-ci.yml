@@ -19,7 +19,6 @@ image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/docker-w
 variables:
   DOCKER_BUILDKIT: "1"
   COMPOSE_DOCKER_CLI_BUILD: "1"
-  CI_DEBUG_TRACE: "true"
   SEMVERBOT_VERSION: "0.2.0"
 
   #before_script:

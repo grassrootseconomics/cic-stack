@@ -8,6 +8,7 @@ import sys
 import re
 
 # external imports
+import hexathon
 from cic_eth_registry.error import UnknownContractError
 from chainlib.chain import ChainSpec
 from chainlib.eth.constant import ZERO_ADDRESS
@@ -83,7 +84,11 @@ def main():
 
     o = block_latest()
     r = conn.do(o)
-    block_current = int(r, 16)
+    # block_current = int(r, 16)
+    try:
+        block_current = hexathon.to_int(r, need_prefix=True)
+    except ValueError:
+        block_current = int(r, 16)
     block_offset = block_current + 1
 
     loop_interval = config.get('SYNCER_LOOP_INTERVAL')

@@ -98,7 +98,7 @@ class EthImporter(Importer):
         pk = self.keystore.get(address)
         keyfile_content = to_keyfile_dict(pk, 'foo')
         address_index = legacy_normalize_file_key(address)
-        self.dh.add(address_index, json.dumps(keyfile_content), 'keystore')
+        self.dh.put(address_index, json.dumps(keyfile_content), 'keystore')
         path = self.dh.path(address_index, 'keystore')
         legacy_link_data(path)
 
@@ -130,7 +130,7 @@ class EthImporter(Importer):
     # Visited by chainsyncer.filter.SyncFilter.
     def filter(self, conn, block, tx, db_session):
         # get user if matching tx
-        u = self._user_by_tx(tx)
+        u = self.user_by_tx(tx)
         if u == None:
             return
         

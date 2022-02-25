@@ -4,11 +4,14 @@
 
 set -a
 DEV_DEBUG_FLAG=""
+DEV_DEBUG_FLAG_FLAT=""
 DEV_DEBUG_LEVEL=${DEV_DEBUG_LEVEL:-0}
 if [ "$DEV_DEBUG_LEVEL" -eq 1 ]; then
 	DEV_DEBUG_FLAG="-v"
+	DEV_DEBUG_FLAG_FLAT="-v"
 elif [ "$DEV_DEBUG_LEVEL" -gt 1 ]; then
 	DEV_DEBUG_FLAG="-vv"
+	DEV_DEBUG_FLAG_FLAT="-v"
 fi
 
 DEV_WAIT_FLAG=""

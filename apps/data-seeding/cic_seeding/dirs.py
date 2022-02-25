@@ -231,9 +231,9 @@ class DirHandler:
 
 
     # Relay to DirHandlerInterface.
-    def add(self, k, v, dirkey):
+    def put(self, k, v, dirkey):
         ifc = self.interfaces[dirkey]
-        return ifc.add(k, v)
+        return ifc.put(k, v)
 
 
     # Relay to DirHandlerInterface.
@@ -262,10 +262,16 @@ class DirHandler:
         return ifc.rm(k)
 
 
+    # Relay to DirHandlerInterface.
+    def direct(self, cmd, dirkey, *args, **kwargs):
+        m = getattr(self.interfaces[dirkey], cmd)
+        return m(*args, **kwargs)
+
+
 # Define the interface that the dirhandler expects for relaying file access to a backend.
 class DirHandlerInterface:
 
-    def add(self, k, v):
+    def put(self, k, v):
         raise NotImplementedError()
 
 
@@ -285,6 +291,10 @@ class DirHandlerInterface:
         raise NotImplementedError()
 
 
+    def direct(self):
+        raise NotImplementedError()
+
+
 class HexDirInterface(DirHandlerInterface):
 
     levels = 2
@@ -293,7 +303,7 @@ class HexDirInterface(DirHandlerInterface):
         self.dir = HexDir(path, key_length, levels=self.levels)
         self.key_length = key_length
 
-    def add(self, k, v):
+    def put(self, k, v):
         k = strip_0x(k)
         kb = bytes.fromhex(k)
         v =  v.encode('utf-8')
@@ -331,7 +341,7 @@ class IndexInterface:
             self.store = AddressIndex() 
 
 
-    def add(self, k, v):
+    def put(self, k, v):
         k = self.store.add(k, v)
         self.f.write(k + ',' + v + '\n')
         return k
@@ -361,29 +371,3 @@ class IndexInterface:
 
     def __str__(self):
         return 'index interface with store {}'.format(self.store)
-
-
-class QueueInterface:
-
-    def __init__(self, store):
-        self.store = store
-
-    
-    def get(self, k):
-        return self.store.get(k)
-
-
-    def add(self, k, v):
-        return self.store.add(k, v)
-
-
-    def rm(self, k):
-        return self.store.rm(k)
-
-
-    def rm(self, k):
-        return self.store.path(k)
-
-
-    def flush(self, k):
-        return self.store.flush()

@@ -23,12 +23,11 @@ from cic_seeding.imports import (
         )
 from cic_seeding.index import (
         AddressQueue,
-        SeedQueue,
+        #SeedQueue,
         normalize_key,
         )
-from cic_seeding.chain import (
-        TamperedBlock,
-        )
+from cic_seeding.sync import DeferredSyncQueue
+from cic_seeding.chain import TamperedBlock
 from cic_seeding.legacy import legacy_link_data
 
 logg = logging.getLogger()
@@ -117,13 +116,18 @@ class CicUssdConnectWorker(threading.Thread):
         logg.debug('have address {} for phone {}'.format(address, ph))
         u.add_address(address)
 
+        self.imp.dh.direct('set_have_address', 'ussd_tx_src', address)
+        self.imp.dh.direct('next', 'ussd_phone', u.original_address)
+
         idx = float('{}.{}'.format(self.idx, i))
         self.imp.process_address(idx, u)
 
+        self.imp.dh.direct('next', 'ussd_phone', u.original_address)
 
-def apply_default_stores(config, stores={}):
+
+def apply_default_stores(config, semaphore, stores={}):
     store_path = os.path.join(config.get('_USERDIR'), 'ussd_tx_src')
-    blocktx_store = SeedQueue(store_path, key_normalizer=normalize_key)
+    blocktx_store = DeferredSyncQueue(store_path, semaphore, key_normalizer=normalize_key)
 
     store_path = os.path.join(config.get('_USERDIR'), 'ussd_phone')
     unconnected_phone_store = AddressQueue(store_path)
@@ -170,7 +174,8 @@ class CicUssdImporter(Importer):
 
 
     def _queue_user(self, i, u, tags=[]):
-        self.dh.add(None, u.original_address, 'ussd_phone')
+        #self.dh.put(str(i), u.original_address, 'ussd_phone')
+        self.dh.put(u.original_address, None, 'ussd_phone')
 
 
     # Add all source users to lookup processing directory.
@@ -179,20 +184,18 @@ class CicUssdImporter(Importer):
     def prepare(self):
         super(CicUssdImporter, self).prepare()
         need_init = False
+        complete_fp = os.path.join(self.dh.user_dir, '.ussd_init_complete')
         try:
-            os.stat(self.dh.path('.complete', 'ussd_phone'))
+            os.stat(complete_fp)
         except FileNotFoundError:
             need_init = True
 
         if need_init:
             self.walk(self._queue_user)
-            fp = self.dh.path('.complete', 'ussd_phone')
-            f = open(fp, 'w')
+            f = open(complete_fp, 'w')
             f.close()
 
 
-    # create account is simply a matter of selecting the language on the menu.
-    # TODO: add language preference data to imports generation, and already "import" the language in this step.
     def create_account(self, i, u):
         phone_number = phone_number_to_e164(u.phone, None)
         req = self._build_ussd_request(
@@ -204,15 +207,23 @@ class CicUssdImporter(Importer):
         response_data = response.read().decode('utf-8')
         logg.debug('ussd response: {}'.format(response_data))
 
-        req = self._build_ussd_request(
-                             phone_number,
-                             self.ussd_service_code,
-                             txt='1',
-                             )
-        logg.debug('ussd request: {} {}'.format(req.full_url, req.data))
-        response = urllib.request.urlopen(req)
-        response_data = response.read().decode('utf-8')
-        logg.debug('ussd response: {}'.format(response_data))
+        while True:
+            req = self._build_ussd_request(
+                                 phone_number,
+                                 self.ussd_service_code,
+                                 txt='1',
+                                 )
+            logg.debug('ussd request: {} {}'.format(req.full_url, req.data))
+            response = urllib.request.urlopen(req)
+            response_data = response.read().decode('utf-8')
+            logg.debug('ussd response: {}'.format(response_data))
+            if len(response_data) < 3:
+                raise RuntimeError('Unexpected response length')
+            elif response_data[:3] == 'END':
+                logg.debug('detected ussd END, so user should have been created now')
+                break
+            logg.debug('ussd response is still CON, retrying')
+            time.sleep(0.1)
 
 
     def process_meta_custom_tags(self, i, u):
@@ -220,7 +231,7 @@ class CicUssdImporter(Importer):
         phone = phonenumbers.format_number(u.phone, phonenumbers.PhoneNumberFormat.E164)
         custom_key = generate_metadata_pointer(phone.encode('utf-8'), MetadataPointer.CUSTOM)
         
-        self.dh.add(custom_key, json.dumps({'tags': u.extra['tags']}), 'custom_phone')
+        self.dh.put(custom_key, json.dumps({'tags': u.extra['tags']}), 'custom_phone')
         custom_path = self.dh.path(custom_key, 'custom')
         legacy_link_data(custom_path)
 
@@ -235,4 +246,4 @@ class CicUssdImporter(Importer):
             return
 
         tampered_block = TamperedBlock(block.src(), tx)
-        self.dh.add(address, json.dumps(tampered_block.src()), 'ussd_tx_src')
+        self.dh.direct('set_have_block', 'ussd_tx_src', address, json.dumps(tampered_block.src()))

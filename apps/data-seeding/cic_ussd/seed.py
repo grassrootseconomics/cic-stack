@@ -19,7 +19,9 @@ from chainlib.eth.connection import EthHTTPConnection
 
 # local imports
 from cic_seeding.imports.cic_ussd import CicUssdImporter
-from cic_seeding.index import AddressQueue
+#from cic_seeding.index import AddressQueue
+from shep.store.file import SimpleFileStoreFactory
+from shep.persist import PersistedState
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -96,10 +98,14 @@ logg.debug(f'config loaded from {args.c}:\n{config}')
 
 if __name__ == '__main__':
     store_path = os.path.join(config.get('_USERDIR'), 'ussd_address')
-    unconnected_address_store = AddressQueue(store_path)
+    #unconnected_address_store = AddressQueue(store_path)
+    factory = SimpleFileStoreFactory(store_path).add
+    unconnected_address_store = PersistedState(factory, 2)
 
     store_path = os.path.join(config.get('_USERDIR'), 'ussd_phone')
-    unconnected_phone_store = AddressQueue(store_path)
+    factory = SimpleFileStoreFactory(store_path).add
+    unconnected_phone_store = PersistedState(factory, 2)
+    #unconnected_phone_store = AddressQueue(store_path)
 
     imp = CicUssdImporter(config, None, None, None, stores={
         'ussd_address': unconnected_address_store,

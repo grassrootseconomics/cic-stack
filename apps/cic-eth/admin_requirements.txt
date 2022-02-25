@@ -1,4 +1,4 @@
 SQLAlchemy==1.3.20
-hexathon~=0.1.0
+hexathon~=0.1.5
 chainqueue~=0.0.6a4
 eth-erc20~=0.1.5

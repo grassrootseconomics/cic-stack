@@ -74,7 +74,7 @@ function deploy_accounts_index() {
 	if [ -z "$have_default_token" ]; then
 		advance_nonce
 		debug_rpc
-		>&2 echo -e "\033[;96mAdd acccounts index record for default token to contract registry\033[;39m"
+		>&2 echo -e "\033[;96mAdd acccounts index $DEV_ACCOUNTS_INDEX_ADDRESS record for default token $1 to contract registry\033[;39m"
 		r=`eth-contract-registry-set --nonce $nonce $DEV_WAIT_FLAG $fee_price_arg -s -u -y $WALLET_KEY_FILE -e $CIC_REGISTRY_ADDRESS -i $CHAIN_SPEC  -p $RPC_PROVIDER $DEV_DEBUG_FLAG --identifier AccountRegistry $DEV_ACCOUNTS_INDEX_ADDRESS`
 		add_pending_tx_hash $r
 	fi
@@ -158,10 +158,15 @@ debug_rpc
 r=`erc20-transfer $DEV_WAIT_FLAG --nonce $nonce $fee_price_arg -p $RPC_PROVIDER -y $WALLET_KEY_FILE -i $CHAIN_SPEC -u $DEV_DEBUG_FLAG -s -e $TOKEN_ADDRESS -a $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER 1`
 add_pending_tx_hash $r
 
-check_wait 3
+token_proof=$(jq . -c -j token_data/proof.json)
+token_proof_hash=`echo -n $token_proof | sha256sum | awk '{print $1;}'`
+>&2 echo -e "\033[;96mWriting immutable token data proof "$token_proof_hash" to okota\033[;39m"
+advance_nonce
+debug_rpc
+r=`eth-address-declarator-add --nonce $nonce $fee_price_arg -p $RPC_PROVIDER -y $WALLET_KEY_FILE -i $CHAIN_SPEC -u $DEV_DEBUG_FLAG -s -ww -e $DEV_ADDRESS_DECLARATOR -a $TOKEN_ADDRESS $token_proof_hash`
+add_pending_tx_hash $r
 
->&2 echo -e "\033[;96mWriting token proofs to okota\033[;39m"
-python scripts/proofs.py --write-chain --token-symbol $TOKEN_SYMBOL -e $TOKEN_ADDRESS --address-declarator $DEV_ADDRESS_DECLARATOR --signer-address $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER
+check_wait 3
 
 >&2 echo -e "\033[;96mWriting env_reset file\033[;39m"
 confini-dump --schema-dir ./config > ${DEV_DATA_DIR}/env_reset

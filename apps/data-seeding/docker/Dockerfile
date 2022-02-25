@@ -22,7 +22,7 @@ RUN --mount=type=cache,mode=0755,target=/root/.npm \
 #RUN npm ci --production --verbose
 #RUN --mount=type=cache,mode=0755,target=/root/node_modules npm install
 
-COPY common/ cic_ussd/common/
+#COPY common/ cic_ussd/common/
 COPY requirements.txt .
 COPY config/ config
 
