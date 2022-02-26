@@ -13,6 +13,7 @@ import urllib
 import uuid
 from pathlib import Path
 from urllib import parse, request
+import tempfile
 
 # external imports
 from confini import Config
@@ -41,8 +42,8 @@ elif args.vv is True:
 # parse config
 config = Config(args.c)
 config.process()
+config.add(args.phone, '_PHONE')
 config.censor('PASSWORD', 'DATABASE')
-logg.debug('config loaded from {}:\n{}'.format(args.c, config))
 
 host = config.get('CLIENT_HOST')
 port = config.get('CLIENT_PORT')
@@ -59,55 +60,75 @@ elif ssl == 0:
 else:
     ssl = True
 
-input_file = Path('/tmp/ussd-input')
-input_file.touch(exist_ok=True)
+config.add(host, '_CLIENT_HOST')
+config.add(port, '_CLIENT_PORT')
+config.add(ssl, '_CLIENT_SSL')
+logg.debug('config loaded from {}:\n{}'.format(args.c, config))
+
+
+class UssdClientSession:
+
+    def __init__(self, config):
+        url = 'http'
+        if config.get('_CLIENT_SSL'):
+            url += 's'
+        url += '://{}:{}'.format(config.get('_CLIENT_HOST'), config.get('_CLIENT_PORT'))
+        url += '/?username={}&password={}'.format(config.get('USSD_USER'), config.get('USSD_PASS'))
+        self.url = url
+
+        (fn, fp) = tempfile.mkstemp()
+        self.input_file = fp
+        session = uuid.uuid4()
+        self.data = {
+            'sessionId': session,
+            'serviceCode': config.get('USSD_SERVICE_CODE'),
+            'phoneNumber': config.get('_PHONE'),
+            'text': "",
+        }
+
+        logg.info('session {} url {} phone'.format(session, self.url, config.get('_PHONE')))
+        logg.debug('state file {}'.format(self.input_file))
+
+
+    def __del__(self):
+        logg.debug('cleaning up state file {}'.format(self.input_file))
+        os.unlink(self.input_file)
+
+
+    def run(self, w=sys.stdout):
+        state = "_BEGIN"
+        while state != "END":
+            if state != "_BEGIN":
+                user_input = input('next> ')
+
+                with open(self.input_file, 'r+') as file:
+                    input_file_size = os.path.getsize(self.input_file)
+                    if input_file_size == 0 or len(file.readline()) == 0:
+                        file.write(user_input)
+                    else:
+                        file.write(f"*{user_input}")
+
+                with open(self.input_file, 'r') as latest_input:
+                    self.data['text'] = latest_input.readline()
+
+            logg.debug('sending data "{}"'.format(self.data['text']))
+            req = urllib.request.Request(self.url)
+            urlencoded_data = parse.urlencode(self.data)
+            data_bytes = urlencoded_data.encode('utf-8')
+            req.add_header('Content-Type', 'application/x-www-form-urlencoded')
+            req.data = data_bytes
+            response = urllib.request.urlopen(req)
+            response_data = response.read().decode('utf-8')
+            state = response_data[:3]
+            out = response_data[4:]
+            w.write(out + '\n')
 
 
 def main():
     # TODO: improve url building
-    url = 'http'
-    if ssl:
-        url += 's'
-    url += '://{}:{}'.format(host, port)
-    url += '/?username={}&password={}'.format(config.get('USSD_USER'), config.get('USSD_PASS'))
-
-    logg.info('service url {}'.format(url))
-    logg.info('phone {}'.format(args.phone))
-
-    session = uuid.uuid4().hex
-    data = {
-        'sessionId': session,
-        'serviceCode': config.get('USSD_SERVICE_CODE'),
-        'phoneNumber': args.phone,
-        'text': "",
-    }
-
-    state = "_BEGIN"
-    while state != "END":
-        if state != "_BEGIN":
-            user_input = input('next> ')
-
-            with open(input_file, 'r+') as file:
-                input_file_size = os.path.getsize(input_file)
-                if input_file_size == 0 or len(file.readline()) == 0:
-                    file.write(user_input)
-                else:
-                    file.write(f"*{user_input}")
-
-            with open(input_file, 'r') as latest_input:
-                data['text'] = latest_input.readline()
-
-        req = urllib.request.Request(url)
-        urlencoded_data = parse.urlencode(data)
-        data_bytes = urlencoded_data.encode('utf-8')
-        req.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        req.data = data_bytes
-        response = urllib.request.urlopen(req)
-        response_data = response.read().decode('utf-8')
-        state = response_data[:3]
-        out = response_data[4:]
-        print(out)
-
+    c = UssdClientSession(config)
+    c.run()
+    
 
 if __name__ == "__main__":
     main()
