@@ -56,8 +56,8 @@ custodial_tests = [
         'custodial_key',
         'gas',
         'faucet',
-        'ussd'
-        # 'ussd_pins',
+        'ussd',
+        'ussd_pins',
         ]
 
 metadata_tests = [
@@ -80,7 +80,7 @@ admin_tests = [
         ]
 
 cache_tests = [
-        'cache_tx_user',
+        'cache_tx',
         ]
 
 test_descriptions = {
@@ -113,6 +113,7 @@ argparser.add_argument('--exclude', action='append', type=str, default=[], help=
 argparser.add_argument('--include', action='append', type=str, help='include specified verification')
 argparser.add_argument('--list-verifications', dest='list_verifications', action='store_true', help='print a list of verification check identifiers')
 argparser.add_argument('--token-symbol', default='GFT', type=str, dest='token_symbol', help='Token symbol to use for trnsactions')
+argparser.add_argument('--token-type', type=str, dest='token_type', choices=['erc20', 'erc20_demurrage_token', 'giftable_erc20_token'], help='Token interface type')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-x', '--exit-on-error', dest='x', action='store_true', help='Halt exection on error')
@@ -153,6 +154,7 @@ args_override = {
         'META_PROVIDER': getattr(args, 'meta_provider'),
         'CACHE_PROVIDER': getattr(args, 'cache_provider'),
         'USSD_PROVIDER': getattr(args, 'ussd_provider'),
+        'TOKEN_TYPE': getattr(args, 'token_type'),
         }
 config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')
@@ -208,12 +210,6 @@ else:
             if t not in exclude:
                 exclude.append(t)
 
-    if args.skip_cache:
-        logg.info('will skip all cache verifications ({})'.format(','.join(cache_tests)))
-        for t in cache_tests:
-            if t not in exclude:
-                exclude.append(t)
-
 logg.debug('excluuuuude {}'.format(exclude))
 
 for t in include:
@@ -241,7 +237,7 @@ def send_ussd_request(address, data_dir):
         'new',
         upper_address[:2],
         upper_address[2:4],
-        upper_address,
+        upper_address + '.json',
     ), 'r'
     )
     o = json.load(f)
@@ -313,11 +309,10 @@ class VerifierError(Exception):
 
 class Verifier:
 
-    def __init__(self, importer, conn, cic_eth_api, gas_oracle, chain_spec, exit_on_error=False):
+    def __init__(self, importer, conn, cic_eth_api, gas_oracle, chain_spec, token_type='erc20', exit_on_error=False):
         self.conn = conn
         self.gas_oracle = gas_oracle
         self.chain_spec = chain_spec
-        self.erc20_tx_factory = ERC20(chain_spec, gas_oracle=gas_oracle)
         self.tx_factory = TxFactory(chain_spec, gas_oracle=gas_oracle)
         self.faucet_tx_factory = Faucet(chain_spec, gas_oracle=gas_oracle)
         self.api = cic_eth_api
@@ -325,6 +320,14 @@ class Verifier:
         self.imp = importer
         self.lookup = self.imp.lookup
         self.faucet_amount = 0
+
+        if token_type == 'erc20_demurrage_token':
+            from erc20_demurrage_token.token import DemurrageToken
+            self.erc20_tx_factory = DemurrageToken(chain_spec, gas_oracle=gas_oracle)
+            self.balance_method = self.erc20_tx_factory.base_balance_of
+        else:
+            self.erc20_tx_factory = ERC20(chain_spec, gas_oracle=gas_oracle)
+            self.balance_method = self.erc20_tx_factory.balance
 
         verifymethods = []
         for k in dir(self):
@@ -353,7 +356,7 @@ class Verifier:
 
 
     def verify_balance(self, address, balance):
-        o = self.erc20_tx_factory.balance(self.imp.token_address, address)
+        o = self.balance_method(self.imp.token_address, address)
         r = self.conn.do(o)
         try:
             actual_balance = int(strip_0x(r), 16)
@@ -400,7 +403,7 @@ class Verifier:
         b = res.read()
         o_retrieved = json.loads(b.decode('utf-8'))
 
-        j = self.imp.dh.get(address, 'new')
+        j = self.dh.get(address, 'new')
 
         o_original = json.loads(j)
 
@@ -430,11 +433,11 @@ class Verifier:
     def verify_metadata_phone(self, address, balance=None):
         upper_address = strip_0x(address).upper()
         f = open(os.path.join(
-            self.imp.dh.user_dir,
+            self.data_dir,
             'new',
             upper_address[:2],
             upper_address[2:4],
-            upper_address,
+            upper_address + '.json',
             ), 'r'
             )
         o = json.load(f)
@@ -467,7 +470,7 @@ class Verifier:
 
     # TODO: should we check language preference when implemented.
     def verify_ussd(self, address, balance=None):
-        response_data = send_ussd_request(address, self.imp.dh.user_dir)
+        response_data = send_ussd_request(address, self.data_dir)
         state = response_data[:3]
         out = response_data[4:]
         m = '{} {}'.format(state, out[:7])
@@ -505,7 +508,7 @@ def main():
     imp = Importer(config, conn, None, None)
     imp.prepare()
 
-    verifier = Verifier(imp, conn, api, gas_oracle, chain_spec, exit_on_error=exit_on_error)
+    verifier = Verifier(imp, conn, api, gas_oracle, chain_spec, token_type=config.get('TOKEN_TYPE'), exit_on_error=exit_on_error)
 
     user_new_dir = os.path.join(user_dir, 'new')
     i = 0
