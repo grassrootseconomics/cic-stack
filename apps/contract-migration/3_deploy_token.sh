@@ -158,7 +158,7 @@ debug_rpc
 r=`erc20-transfer $DEV_WAIT_FLAG --nonce $nonce $fee_price_arg -p $RPC_PROVIDER -y $WALLET_KEY_FILE -i $CHAIN_SPEC -u $DEV_DEBUG_FLAG -s -e $TOKEN_ADDRESS -a $DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER 1`
 add_pending_tx_hash $r
 
-token_proof=$(jq . -c -j token_data/proof.json)
+token_proof=$(jq . -c -j ${DEV_TOKEN_DATA_PATH}/proof.json)
 token_proof_hash=`echo -n $token_proof | sha256sum | awk '{print $1;}'`
 >&2 echo -e "\033[;96mWriting immutable token data proof "$token_proof_hash" to okota\033[;39m"
 advance_nonce

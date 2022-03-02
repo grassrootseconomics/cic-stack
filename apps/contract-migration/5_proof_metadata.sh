@@ -18,23 +18,23 @@ fi
 TOKEN_SYMBOL=`erc20-info $DEV_DEBUG_FLAG -e $TOKEN_ADDRESS --fee-limit 1000000 --raw symbol`
 
 >&2 echo -e "\033[;96mWriting immutable token proof for token $TOKEN_ADDRESS\033[;39m"
-curl -X POST $META_URL -H 'Content-type: application/json' -H 'X-CIC-AUTOMERGE: immutable' --data-binary @token_data/proof.json
+curl -X POST $META_URL -H 'Content-type: application/json' -H 'X-CIC-AUTOMERGE: immutable' --data-binary @${DEV_TOKEN_DATA_PATH}/proof.json
 
 ptr=`cic-ptr -t token_meta $DEV_DEBUG_FLAG_FLAT $TOKEN_ADDRESS` 
 >&2 echo -e "\033[;96mWriting 'token_meta' metadata pointer $ptr for token $TOKEN_SYMBOL ($TOKEN_ADDRESS)\033[;39m"
-./meta.sh $ptr token_data/meta.json
+./meta.sh $ptr ${DEV_TOKEN_DATA_PATH}/meta.json
 
 ptr=`cic-ptr -t token_meta_symbol $DEV_DEBUG_FLAG_FLAT $TOKEN_SYMBOL` 
 >&2 echo -e "\033[;96mWriting 'token_meta_symbol' metadata pointer $ptr for token $TOKEN_SYMBOL ($TOKEN_ADDRESS)\033[;39m"
-./meta.sh $ptr token_data/meta.json
+./meta.sh $ptr ${DEV_TOKEN_DATA_PATH}/meta.json
 
 ptr=`cic-ptr -t token_proof $DEV_DEBUG_FLAG_FLAT $TOKEN_ADDRESS` 
 >&2 echo -e "\033[;96mWriting 'token_proof' metadata pointer $ptr for token $TOKEN_SYMBOL ($TOKEN_ADDRESS)\033[;39m"
-./meta.sh $ptr token_data/proof.json
+./meta.sh $ptr ${DEV_TOKEN_DATA_PATH}/proof.json
 
 ptr=`cic-ptr -t token_proof_symbol $DEV_DEBUG_FLAG_FLAT $TOKEN_SYMBOL` 
 >&2 echo -e "\033[;96mWriting 'token_meta' metadata pointer $ptr for token $TOKEN_SYMBOL ($TOKEN_ADDRESS)\033[;39m"
-./meta.sh $ptr token_data/proof.json
+./meta.sh $ptr ${DEV_TOKEN_DATA_PATH}/proof.json
 
 >&2 echo -e "\033[;96mWriting env_reset file\033[;39m"
 confini-dump --schema-dir ./config > ${DEV_DATA_DIR}/env_reset

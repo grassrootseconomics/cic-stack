@@ -72,7 +72,7 @@ def balance(self, tokens, holder_address, chain_spec_dict):
     for t in tokens:
         address = t['address']
         logg.debug('address {} {}'.format(address, holder_address))
-        gas_oracle = self.create_gas_oracle(rpc, min_price=self.min_fee_price)
+        gas_oracle = self.create_gas_oracle(rpc, address=address, min_price=self.min_fee_price)
         token = ERC20Token(chain_spec, rpc, add_0x(address))
         c = ERC20(chain_spec, gas_oracle=gas_oracle)
         o = c.balance_of(address, holder_address, sender_address=caller_address)

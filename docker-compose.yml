@@ -59,6 +59,7 @@ services:
       DEV_DEBUG_LEVEL: ${DEV_DEBUG_LEVEL:-0}
       DEV_TX_WAIT: $DEV_TX_WAIT
       DEV_GAS_AMOUNT: $DEV_GAS_AMOUNT
+      DEV_TOKEN_DATA_PATH: $DEV_TOKEN_DATA_PATH
       RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
       CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
       REDIS_HOST: ${REDIS_HOST:-redis}

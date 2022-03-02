@@ -1,6 +1,6 @@
 celery==4.4.7
 semver==2.13.0
-chainlib-eth~=0.0.26
+chainlib-eth~=0.0.27
 urlybird~=0.0.1
 cic-eth-registry~=0.6.6
 cic-types~=0.2.1a8
