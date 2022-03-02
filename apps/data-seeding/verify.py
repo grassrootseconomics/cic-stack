@@ -56,8 +56,8 @@ custodial_tests = [
         'custodial_key',
         'gas',
         'faucet',
-        'ussd',
-        'ussd_pins',
+        'ussd'
+        # 'ussd_pins',
         ]
 
 metadata_tests = [
@@ -80,7 +80,7 @@ admin_tests = [
         ]
 
 cache_tests = [
-        'cache_tx',
+        'cache_tx_user',
         ]
 
 test_descriptions = {
@@ -210,7 +210,12 @@ else:
             if t not in exclude:
                 exclude.append(t)
 
-logg.debug('excluuuuude {}'.format(exclude))
+    if args.skip_cache:
+        logg.info('will skip all cache verifications ({})'.format(','.join(cache_tests)))
+        for t in cache_tests:
+            if t not in exclude:
+                exclude.append(t)
+
 
 for t in include:
     if t not in all_tests:
@@ -237,7 +242,7 @@ def send_ussd_request(address, data_dir):
         'new',
         upper_address[:2],
         upper_address[2:4],
-        upper_address + '.json',
+        upper_address,
     ), 'r'
     )
     o = json.load(f)
@@ -403,7 +408,7 @@ class Verifier:
         b = res.read()
         o_retrieved = json.loads(b.decode('utf-8'))
 
-        j = self.dh.get(address, 'new')
+        j = self.imp.dh.get(address, 'new')
 
         o_original = json.loads(j)
 
@@ -433,11 +438,11 @@ class Verifier:
     def verify_metadata_phone(self, address, balance=None):
         upper_address = strip_0x(address).upper()
         f = open(os.path.join(
-            self.data_dir,
+            self.imp.dh.user_dir,
             'new',
             upper_address[:2],
             upper_address[2:4],
-            upper_address + '.json',
+            upper_address,
             ), 'r'
             )
         o = json.load(f)
@@ -470,7 +475,7 @@ class Verifier:
 
     # TODO: should we check language preference when implemented.
     def verify_ussd(self, address, balance=None):
-        response_data = send_ussd_request(address, self.data_dir)
+        response_data = send_ussd_request(address, self.imp.dh.user_dir)
         state = response_data[:3]
         out = response_data[4:]
         m = '{} {}'.format(state, out[:7])
