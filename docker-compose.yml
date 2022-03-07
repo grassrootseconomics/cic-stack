@@ -4,7 +4,7 @@ volumes:
   postgres-db: {}
   signer-data: {}
   bloxberg-data: {}
-  contract-config: {} 
+  contract-config: {}
 
 services:
   evm:
@@ -25,13 +25,13 @@ services:
   postgres:
     image: ${IMAGE_BASE_URL:-docker.io}/postgres:12.5-alpine
     environment:
-      POSTGRES_HOST_AUTH_METHOD: trust # for postgres user access w/o password. Obvioulsy not safe but allows easy elevated debugging.  
+      POSTGRES_HOST_AUTH_METHOD: trust # for postgres user access w/o password. Obvioulsy not safe but allows easy elevated debugging.
       # PGDATA: /tmp/cic/postgres
     ports:
       - ${DEV_POSTGRES_PORT:-63432}:5432
     command: [ "-c", "max_connections=200" ]
     volumes:
-      - ./scripts/initdb/create_db.sql:/docker-entrypoint-initdb.d/1-create_all_db.sql 
+      - ./scripts/initdb/create_db.sql:/docker-entrypoint-initdb.d/1-create_all_db.sql
       - postgres-db:/var/lib/postgresql/data
 
   redis:
@@ -40,7 +40,7 @@ services:
       - ${DEV_REDIS_PORT:-63379}:6379
     command: "--loglevel verbose"
 
-    
+
   bootstrap:
     image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/contract-migration:${TAG:-latest}
     build:
@@ -99,7 +99,7 @@ services:
 
   cic-signer:
     image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/funga-eth:${TAG:-latest}
-    build: 
+    build:
       context: apps/cic-signer
       dockerfile: Dockerfile
       args:
@@ -130,7 +130,7 @@ services:
   # queue handling for outgoing transactions and incoming transactions
   cic-eth-tasker:
     image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:${TAG:-latest}
-    build: 
+    build:
       context: apps/cic-eth
       dockerfile: docker/Dockerfile
       args:
@@ -161,7 +161,7 @@ services:
       TASKS_TRACE_QUEUE_STATUS: ${TASKS_TRACE_QUEUE_STATUS:-1}
       ETH_MIN_FEE_PRICE: ${ETH_MIN_FEE_PRICE:-1000000000}
       LOGLEVEL: ${LOGLEVEL:-info}
-    restart: unless-stopped 
+    restart: unless-stopped
     depends_on:
       - evm
       - postgres
@@ -175,7 +175,7 @@ services:
         - -c
         - |
             set -a
-            if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
+            if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi
             set +a
             ./start_tasker.sh --aux-all -q cic-eth  -vv
 
@@ -183,7 +183,7 @@ services:
     image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}/cic-eth-server:${TAG:-latest}
     ports:
       - 5000:5000
-    build: 
+    build:
       context: apps/cic-eth
       dockerfile: docker/Dockerfile_server
       args:
@@ -199,7 +199,7 @@ services:
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
       CELERY_DEBUG: ${CELERY_DEBUG:-1}
       LOGLEVEL: ${LOGLEVEL:-info}
-    restart: unless-stopped 
+    restart: unless-stopped
     depends_on:
       - cic-eth-tasker
 
@@ -212,13 +212,13 @@ services:
       - -c
       - |
         set -a
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi
         set +a
         ./start_server.sh -vv
 
   cic-eth-tracker:
     image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:${TAG:-latest}
-    build: 
+    build:
       context: apps/cic-eth
       dockerfile: docker/Dockerfile
       args:
@@ -248,7 +248,7 @@ services:
       SYNCER_OFFSET: ${SYNCER_OFFSET:-0}
       TASKS_TRANSFER_CALLBACKS: ${TASKS_TRANSFER_CALLBACKS:-cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback}
       LOGLEVEL: ${LOGLEVEL:-info}
-    restart: unless-stopped 
+    restart: unless-stopped
     depends_on:
       - evm
       - postgres
@@ -260,14 +260,14 @@ services:
       - -c
       - |
         set -a
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi
         set +a
         ./start_tracker.sh -vv
 
 
   cic-eth-dispatcher:
     image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:${TAG:-latest}
-    build: 
+    build:
       context: apps/cic-eth
       dockerfile: docker/Dockerfile
       args:
@@ -293,7 +293,7 @@ services:
       CELERY_QUEUE: ${CELERY_QUEUE:-cic-eth}
       DISPATCHER_LOOP_INTERVAL: ${DISPATCHER_LOOP_INTERVAL:-1}
       LOGLEVEL: ${LOGLEVEL:-info}
-    restart: unless-stopped 
+    restart: unless-stopped
     depends_on:
       - evm
       - postgres
@@ -305,14 +305,14 @@ services:
       - -c
       - |
         set -a
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi
         set +a
         ./start_dispatcher.sh -vv
 
 
   cic-eth-retrier:
     image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:${TAG:-latest}
-    build: 
+    build:
       context: apps/cic-eth
       dockerfile: docker/Dockerfile
       args:
@@ -340,7 +340,7 @@ services:
       RETRY_DELAY: ${RETRY_DELAY:-60}
       RETRY_BATCH_SIZE: ${RETRY_BATCH_SIZE:-100}
       LOGLEVEL: ${LOGLEVEL:-info}
-    restart: unless-stopped 
+    restart: unless-stopped
     depends_on:
       - evm
       - postgres
@@ -352,15 +352,15 @@ services:
       - -c
       - |
         set -a
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi
         set +a
         ./start_retry.sh -vv
 
 
-    
+
   cic-cache-tracker:
     image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-cache:${TAG:-latest}
-    build: 
+    build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
       args:
@@ -390,7 +390,7 @@ services:
       SYNCER_NO_HISTORY: ${SYNCER_NO_HISTORY:-1}
       TASKS_TRANSFER_CALLBACKS: ${TASKS_TRANSFER_CALLBACKS:-cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback}
       LOGLEVEL: ${LOGLEVEL:-info}
-    restart: unless-stopped 
+    restart: unless-stopped
     depends_on:
       - evm
       - postgres
@@ -402,14 +402,14 @@ services:
       - -c
       - |
         set -a
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi
         set +a
         ./start_tracker.sh -vv
 
 
   cic-cache-tasker:
     image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-cache:${TAG:-latest}
-    build: 
+    build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
       args:
@@ -435,7 +435,7 @@ services:
       CELERY_DEBUG: ${CELERY_DEBUG:-1}
       CELERY_QUEUE: ${CELERY_QUEUE:-cic-eth}
       LOGLEVEL: ${LOGLEVEL:-info}
-    restart: unless-stopped 
+    restart: unless-stopped
     depends_on:
       - evm
       - postgres
@@ -447,7 +447,7 @@ services:
       - -c
       - |
         set -a
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi
         set +a
         /usr/local/bin/cic-cache-taskerd -vv
 #        "/usr/local/bin/uwsgi" \
@@ -455,10 +455,10 @@ services:
 #        --http :8000 \
 #        --pyargv "-vv"
 
-  
+
   cic-cache-server:
     image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-cache:${TAG:-latest}
-    build: 
+    build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
       args:
@@ -478,7 +478,7 @@ services:
       DATABASE_POOL_SIZE: 0
       SERVER_PORT: 8000
       LOGLEVEL: ${LOGLEVEL:-info}
-    restart: on-failure 
+    restart: on-failure
     ports:
       - ${DEV_CIC_CACHE_SERVER_PORT:-63313}:8000
     depends_on:
@@ -489,7 +489,7 @@ services:
       - -c
       - |
         set -a
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi
         set +a
         /usr/local/bin/uwsgi \
         --wsgi-file /root/cic_cache/runnable/daemons/server.py \
@@ -498,7 +498,7 @@ services:
 
     volumes:
       - contract-config:/tmp/cic/config/:ro
-        
+
 
   # metadata replacement server for swarm
   cic-meta-server:
@@ -530,7 +530,7 @@ services:
       PGP_PUBLICKEY_ACTIVE_FILE: publickeys.asc
       PGP_PUBLICKEY_ENCRYPT_FILE: publickeys.asc
       SCHEMA_SQL_PATH: scripts/initdb/server.postgres.sql
-    restart: on-failure 
+    restart: on-failure
     ports:
       - ${DEV_CIC_META_SERVER_PORT:-63380}:8000
     depends_on:
@@ -567,7 +567,7 @@ services:
       REDIS_HOST: redis
       PGP_PASSPHRASE: merman
       CIC_META_URL: ${CIC_META_URL:-http://meta:8000}
-    restart: unless-stopped 
+    restart: unless-stopped
     depends_on:
       - postgres
       - redis
@@ -600,7 +600,7 @@ services:
       DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
       DATABASE_POOL_SIZE: 0
       SERVER_PORT: 9500
-    restart: on-failure 
+    restart: on-failure
     ports:
       - ${DEV_CIC_USER_SERVER_PORT:-63415}:9500
       - 5050:5050
@@ -731,7 +731,7 @@ services:
           # TODO: this should be generated from host/port/ssl
         USSD_PROVIDER: http://cic-user-ussd-server:9000
         CELERY_QUEUE: cic-import-ussd
-        # TODO put env's here for the cli tools 
+        # TODO put env's here for the cli tools
       command: bash -c "while true; do echo 'For interactive use -- docker exec -it data-seeding bash'; sleep 15; done"
       depends_on:
         - cic-eth-dispatcher
