@@ -215,7 +215,14 @@ class CicUssdImporter(Importer):
                                  txt=language_selection,
                                  )
             logg.debug('ussd request: {} {}'.format(req.full_url, req.data))
-            response = urllib.request.urlopen(req)
+            response = None
+            try:
+                response = urllib.request.urlopen(req)
+            except urllib.error.HTTPError as e:
+                if e.code >= 500:
+                    time.sleep(0.3)
+                    continue
+                raise e
             response_data = response.read().decode('utf-8')
             logg.debug('ussd response: {}'.format(response_data))
             if len(response_data) < 3:
