@@ -1,4 +1,5 @@
 # external imports
+import pytest
 from eth_erc20 import ERC20
 from chainlib.connection import RPCConnection
 from chainlib.eth.nonce import RPCNonceOracle
@@ -22,6 +23,7 @@ from chainlib.eth.address import is_same_address
 from chainlib.eth.contract import ABIContractEncoder
 from hexathon import strip_0x
 from eth_token_index import TokenUniqueSymbolIndex
+from cic_eth_registry.error import UnknownContractError
 
 # local imports
 from cic_eth.runnable.daemons.filters.token import TokenFilter
@@ -96,3 +98,30 @@ def test_filter_gas(
     method = enc.get()
 
     assert o.method == method
+
+@pytest.mark.xfail(raises=UnknownContractError)
+def test_filter_unknown_contract_error(
+        default_chain_spec,
+        init_database,
+        eth_rpc,
+        eth_signer,
+        contract_roles,
+        agent_roles,
+        token_roles,
+        foo_token,
+        register_lookups,
+        celery_session_worker,
+        cic_registry,
+    ):
+
+    rpc = RPCConnection.connect(default_chain_spec, 'default')
+    nonce_oracle = RPCNonceOracle(token_roles['FOO_TOKEN_OWNER'], eth_rpc)
+    gas_oracle = OverrideGasOracle(price=1000000000, limit=1000000)
+    c = ERC20(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
+    (tx_hash_hex, tx_signed_raw_hex) = c.transfer(foo_token, token_roles['FOO_TOKEN_OWNER'], agent_roles['ALICE'], 100, tx_format=TxFormat.RLP_SIGNED)
+    
+    fltr = TokenFilter(default_chain_spec, queue=None, call_address=agent_roles['ALICE'])
+    tx_signed_raw_bytes = bytes.fromhex(strip_0x(tx_signed_raw_hex))
+    tx_src = unpack(tx_signed_raw_bytes, default_chain_spec)
+    tx = Tx(tx_src)
+    t = fltr.filter(eth_rpc, None, tx, db_session=init_database)
