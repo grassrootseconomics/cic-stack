@@ -172,10 +172,12 @@ async function processRequest(req, res) {
 		} else {
 			data += d;
 		}
+		console.debug('chunk length ' + d.length);
 	});
 	req.on('end', async (d) => {
-		if (d !== undefined) {
+		if (d !== undefined && data !== undefined) {
 			data += d;
+			console.debug('final chunk length ' + d.length);
 		}
 		let inputContentType = req.headers['content-type'];
 		let debugString = 'executing mode ' + mod ;
