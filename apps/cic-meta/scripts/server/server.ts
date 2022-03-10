@@ -165,20 +165,13 @@ async function processRequest(req, res) {
 
 
 	// handle bigger chunks of data
-	let data;
+	let data: any = [];
 	req.on('data', (d) => {
-		if (data === undefined) {
-			data = d;
-		} else {
-			data += d;
-		}
+		data.push(d)
 		console.debug('chunk length ' + d.length);
 	});
 	req.on('end', async (d) => {
-		if (d !== undefined && data !== undefined) {
-			data += d;
-			console.debug('final chunk length ' + d.length);
-		}
+		data = Buffer.concat(data);
 		let inputContentType = req.headers['content-type'];
 		let debugString = 'executing mode ' + mod ;
 		if (data !== undefined) {
