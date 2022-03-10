@@ -174,6 +174,9 @@ async function processRequest(req, res) {
 		}
 	});
 	req.on('end', async (d) => {
+		if (d !== undefined) {
+			data += d;
+		}
 		let inputContentType = req.headers['content-type'];
 		let debugString = 'executing mode ' + mod ;
 		if (data !== undefined) {
