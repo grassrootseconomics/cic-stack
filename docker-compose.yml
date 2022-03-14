@@ -3,25 +3,37 @@ version: "3"
 volumes:
   postgres-db: {}
   signer-data: {}
-  bloxberg-data: {}
   contract-config: {}
 
 services:
   evm:
-    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/bloxberg-node:${TAG:-latest}
-    build:
-      context: apps/bloxbergValidatorSetup
-      args:
-          DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-docker.io}
+    image: openethereum/openethereum:v3.3.3
     restart: unless-stopped
+    init: true
+    user: root
     ports:
       - ${DEV_ETH_PORT_HTTP:-63545}:8545
       - ${DEV_ETH_PORT_WS:-63546}:8546
       - 30303
+    command:
+      --config=/root/kitabu.toml
+      --nat='extip:127.0.0.1'
+      --engine-signer=0xb1baa054f01eb58adf56fef4f0109f8a59cdfc94
+      --jsonrpc-port=8545
+      --jsonrpc-cors=all
+      --jsonrpc-interface=all
+      --jsonrpc-hosts=all
+      --jsonrpc-apis=web3,eth,net,parity
+      --ws-port=8546
+      --ws-interface=all
+      --ws-hosts=all
     volumes:
-      - ./apps/bloxbergValidatorSetup/keys:/root/keys # stores the signing key locally
-      - bloxberg-data:/root/.local/share/io.parity.ethereum/
-
+      - ./apps/kitabu-chain-local/key:/root/data/keys/kitabu_sarafu/key
+      - ./apps/kitabu-chain-local/key.pwd:/root/password
+      - ./apps/kitabu-chain-local/kitabu.toml:/root/kitabu.toml
+      - ./apps/kitabu-chain-local/kitabu.json:/root/kitabu.json
+      - ./kitabu-chain-local-data:/root/data
+      
   postgres:
     image: ${IMAGE_BASE_URL:-docker.io}/postgres:12.5-alpine
     environment:

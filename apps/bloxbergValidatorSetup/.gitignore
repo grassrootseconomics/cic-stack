@@ -1,6 +1,0 @@
-/validator/bloxbergData
-/validator/bloxberg.log
-keys/*
-!keys/Bloxberg
-keys/Bloxberg/*
-!keys/Bloxberg/UTC--2021-02-10T16-57-35Z--03512a62-5334-20cc-4e44-71156f33cff6

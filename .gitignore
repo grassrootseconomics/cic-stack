@@ -19,3 +19,4 @@ apps/data-seeding/out/
 .envrc
 .vscode
 .python-version
+kitabu-chain-local-data
