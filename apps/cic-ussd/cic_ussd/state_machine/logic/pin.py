@@ -8,13 +8,14 @@ import re
 from typing import Tuple
 
 # third party imports
+from cic_types.condiments import MetadataPointer
 from sqlalchemy.orm.session import Session
 
 # local imports
+from cic_ussd.cache import cache_data, cache_data_key, get_cached_data
 from cic_ussd.db.models.account import Account
 from cic_ussd.db.models.base import SessionBase
 from cic_ussd.db.enum import AccountStatus
-from cic_ussd.session.ussd_session import save_session_data
 
 
 logg = logging.getLogger(__file__)
@@ -62,20 +63,15 @@ def is_locked_account(state_machine_data: Tuple[str, dict, Account, Session]) ->
     return account.get_status(session) == AccountStatus.LOCKED.name
 
 
-def save_initial_pin_to_session_data(state_machine_data: Tuple[str, dict, Account, Session]):
+def save_initial_pin_to_cache(state_machine_data: Tuple[str, dict, Account, Session]):
     """This function hashes a pin and stores it in session data.
     :param state_machine_data: A tuple containing user input, a ussd session and user object.
     :type state_machine_data: tuple
     """
     user_input, ussd_session, account, session = state_machine_data
-    data = ussd_session.get('data')
-    if data:
-        data['initial_pin'] = user_input
-    else:
-        data = {
-            'initial_pin': user_input
-        }
-    save_session_data('cic-ussd', session, data, ussd_session)
+    phone_number = account.phone_number
+    key = cache_data_key([phone_number.encode("utf-8"), b'cic:initial.pin'], MetadataPointer.NONE)
+    cache_data(key, user_input)
 
 
 def pins_match(state_machine_data: Tuple[str, dict, Account, Session]) -> bool:
@@ -86,7 +82,9 @@ def pins_match(state_machine_data: Tuple[str, dict, Account, Session]) -> bool:
     :rtype: bool
     """
     user_input, ussd_session, account, session = state_machine_data
-    initial_pin = ussd_session.get('data').get('initial_pin')
+    phone_number = account.phone_number
+    key = cache_data_key([phone_number.encode("utf-8"), b'cic:initial.pin'], MetadataPointer.NONE)
+    initial_pin = get_cached_data(key)
     return user_input == initial_pin
 
 

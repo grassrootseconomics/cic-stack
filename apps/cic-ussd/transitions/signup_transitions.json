@@ -3,7 +3,7 @@
     "trigger": "scan_data",
     "source": "initial_pin_entry",
     "dest": "initial_pin_confirmation",
-    "after": "cic_ussd.state_machine.logic.pin.save_initial_pin_to_session_data",
+    "after": "cic_ussd.state_machine.logic.pin.save_initial_pin_to_cache",
     "conditions": "cic_ussd.state_machine.logic.pin.is_valid_pin"
   },
   {

@@ -32,8 +32,7 @@ def update_account_status_to_active(state_machine_data: Tuple[str, dict, Account
     """
     user_input, ussd_session, account, session = state_machine_data
     session = SessionBase.bind_session(session=session)
-    password = ussd_session.get('data').get('initial_pin')
-    account.create_password(password)
+    account.create_password(user_input)
     account.activate_account()
     session.add(account)
     session.flush()
