@@ -3,10 +3,10 @@ import json
 
 # external imports
 import pytest
+from cic_types.condiments import MetadataPointer
 
 # local imports
-from cic_ussd.cache import get_cached_data
-from cic_ussd.encoder import check_password_hash, create_password_hash
+from cic_ussd.cache import get_cached_data, cache_data_key, cache_data
 from cic_ussd.state_machine.logic.pin import (complete_pin_change,
                                               is_valid_pin,
                                               is_valid_new_pin,
@@ -14,7 +14,7 @@ from cic_ussd.state_machine.logic.pin import (complete_pin_change,
                                               is_blocked_pin,
                                               is_locked_account,
                                               pins_match,
-                                              save_initial_pin_to_session_data)
+                                              save_initial_pin_to_cache)
 
 
 def test_complete_pin_change(activated_account, cached_ussd_session, init_database):
@@ -41,25 +41,26 @@ def test_is_valid_pin(activated_account, expected, generic_ussd_session, init_da
 ])
 def test_pins_match(activated_account, cached_ussd_session, init_cache, init_database, user_input):
     state_machine_data = (user_input, cached_ussd_session.to_json(), activated_account, init_database)
-    cached_ussd_session.set_data('initial_pin', user_input)
+    key = cache_data_key([activated_account.phone_number.encode("utf-8"), b'cic:initial.pin'], MetadataPointer.NONE)
+    cache_data(key, user_input)
     assert pins_match(state_machine_data) is True
 
 
-def test_save_initial_pin_to_session_data(activated_account,
-                                          cached_ussd_session,
-                                          celery_session_worker,
-                                          init_cache,
-                                          init_database,
-                                          persisted_ussd_session,
-                                          set_fernet_key):
+def test_save_initial_pin_to_cache(activated_account,
+                                   cached_ussd_session,
+                                   celery_session_worker,
+                                   init_cache,
+                                   init_database,
+                                   persisted_ussd_session,
+                                   set_fernet_key):
     state_machine_data = ('1212', cached_ussd_session.to_json(), activated_account, init_database)
-    save_initial_pin_to_session_data(state_machine_data)
-    ussd_session = get_cached_data(cached_ussd_session.external_session_id)
-    ussd_session = json.loads(ussd_session)
-    assert '1212' == ussd_session.get('data')['initial_pin']
+    save_initial_pin_to_cache(state_machine_data)
+    key = cache_data_key([activated_account.phone_number.encode("utf-8"), b'cic:initial.pin'], MetadataPointer.NONE)
+    initial_pin = get_cached_data(key)
+    assert '1212' == initial_pin
     cached_ussd_session.set_data('some_key', 'some_value')
     state_machine_data = ('1212', cached_ussd_session.to_json(), activated_account, init_database)
-    save_initial_pin_to_session_data(state_machine_data)
+    save_initial_pin_to_cache(state_machine_data)
     ussd_session = get_cached_data(cached_ussd_session.external_session_id)
     ussd_session = json.loads(ussd_session)
     assert ussd_session.get('data')['some_key'] == 'some_value'
@@ -98,4 +99,3 @@ def test_is_locked_account(activated_account, generic_ussd_session, init_databas
 def test_is_valid_new_pin(activated_account, cached_ussd_session, expected_result, init_database, user_input):
     state_machine_data = (user_input, cached_ussd_session.to_json(), activated_account, init_database)
     assert is_valid_new_pin(state_machine_data) is expected_result
-
