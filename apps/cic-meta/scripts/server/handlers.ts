@@ -103,6 +103,8 @@ function handleServerMergePut(data, db, digest, keystore, signer) {
 			return;
 		}
 
+		console.debug('digest ' + wrappedData.s.digest)
+		console.debug('signature ' + wrappedData.s.data)
 		const e = Envelope.fromJSON(wrappedData.m);
 		let s = undefined;
 		try {
@@ -117,9 +119,12 @@ function handleServerMergePut(data, db, digest, keystore, signer) {
 		});
 		s.setSigner(signer);
 		s.onauthenticate = (v) => {
-			console.log('vvv', v);
+			console.log('verify result', v);
 			if (!v) {
-				whohoo(undefined);
+				doh({
+					typ: 'sig',
+					msg: 'wrong signature',
+				});
 				return;
 			}
 			const opts = {

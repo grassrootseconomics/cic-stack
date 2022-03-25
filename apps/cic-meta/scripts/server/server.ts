@@ -244,7 +244,15 @@ async function processRequest(req, res) {
 			}
 		} catch(e) {
 			console.error('fail', mod, digest, e);
-			res.writeHead(500, {"Content-Type": "text/plain"});
+			let code = 500;
+			let msg = 'uncaught exception';
+			if (e.typ !== undefined) {
+				if (e.typ === 'sig') {
+					code = 403;
+					msg = e.msg;
+				}
+			}
+			res.writeHead(code, msg, {"Content-Type": "text/plain"});
 			res.end();
 			return;
 		}

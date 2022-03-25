@@ -5,10 +5,17 @@ set -e
 key=$1
 file=$2
 
+if [ "$DEV_DEBUG_LEVEL" -eq 1 ]; then
+	curl_debug_flag="-v"
+elif [ "$DEV_DEBUG_LEVEL" -gt 1 ]; then
+	curl_debug_flag="-vv"
+fi
+
 t=`mktemp -d`
 
 # Since a python tool for posting automerge items is still missing, we need to make use of the cic-meta server's capability to generate the change graph and provide a digest to sign.
-curl -s -X POST $META_URL/$ptr -H "Content-Type: application/json" -H "X-CIC-AUTOMERGE: server" --data-binary @$file > $t/req.json
+f_size=`stat -c %s $file`
+curl --show-error -f $curl_debug_flag -s -X POST $META_URL/$ptr -H "Content-Length: $f_size" -H "Content-Type: application/json" -H "X-CIC-AUTOMERGE: server" --data-binary @$file > $t/req.json
 
 # Extract the digest
 `jq -j .digest < $t/req.json > $t/digest`
@@ -35,9 +42,10 @@ cat <<EOF > $t/req2.json
 }
 EOF
 < $t/req2.json jq --arg m "$d_raw" '. + { m: $m }' > $t/req3.json
+f_size=`stat -c %s $t/req3.json`
 
 # Send the update request
-curl -s -X PUT $META_URL/$ptr -H "Content-Type: application/json" -H "X-CIC-AUTOMERGE: server" --data @$t/req3.json
+curl --show-error -f  $curl_debug_flag -s -X PUT $META_URL/$ptr -H "Content-Length: $f_size" -H "Content-Type: application/json" -H "X-CIC-AUTOMERGE: server" --data-binary @$t/req3.json
 
 # Clean up
 rm -rf $t
