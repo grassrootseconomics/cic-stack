@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import * as handlers from './handlers';
-import { PGPKeyStore, PGPSigner, Config } from '@cicnet/crdt-meta';
+import { PGPKeyStore, PGPSigner, Config } from 'kc-crdt-meta';
 import { SqliteAdapter, PostgresAdapter } from '../../src/db';
 
 import { standardArgs } from './args';

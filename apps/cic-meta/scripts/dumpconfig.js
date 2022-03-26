@@ -1,4 +1,4 @@
-import { Config } from '@cicnet/crdt-meta';
+import { Config } from 'kc-crdt-meta';
 const fs = require('fs');
 
 if (process.argv[2] === undefined) {

@@ -1,4 +1,4 @@
-import {Addressable, mergeKey, Syncable} from "@cicnet/crdt-meta";
+import {Addressable, mergeKey, Syncable} from "kc-crdt-meta";
 
 class Custom extends Syncable implements Addressable {
 

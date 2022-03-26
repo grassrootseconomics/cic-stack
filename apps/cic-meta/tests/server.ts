@@ -4,7 +4,7 @@ import pgp = require('openpgp');
 import sqlite = require('sqlite3');
 
 import * as handlers from '../scripts/server/handlers';
-import { Envelope, Syncable, ArgPair, PGPKeyStore, PGPSigner, KeyStore, Signer } from '@cicnet/crdt-meta';
+import { Envelope, Syncable, ArgPair, PGPKeyStore, PGPSigner, KeyStore, Signer } from 'kc-crdt-meta';
 import { SqliteAdapter } from '../src/db';
 
 const hashOfFoo = '2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae';

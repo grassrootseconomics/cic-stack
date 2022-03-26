@@ -1,4 +1,4 @@
-import {ArgPair, Envelope, Syncable, MutablePgpKeyStore, PGPSigner} from "@cicnet/crdt-meta";
+import {ArgPair, Envelope, Syncable, MutablePgpKeyStore, PGPSigner} from "kc-crdt-meta";
 import {User} from "./user";
 import {Phone} from "./phone";
 import {Custom} from "./custom";

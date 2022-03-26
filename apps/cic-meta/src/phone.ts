@@ -1,4 +1,4 @@
-import { Syncable, Addressable, mergeKey } from '@cicnet/crdt-meta';
+import { Syncable, Addressable, mergeKey } from 'kc-crdt-meta';
 
 class Phone extends Syncable implements Addressable {
 

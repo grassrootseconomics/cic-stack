@@ -2,7 +2,7 @@ import * as Automerge from 'automerge';
 import * as pgp from 'openpgp';
 import * as crypto from 'crypto';
 
-import { Envelope, Syncable, bytesToHex } from '@cicnet/crdt-meta';
+import { Envelope, Syncable, bytesToHex } from 'kc-crdt-meta';
 
 
 function handleNoMergeGet(db, digest, keystore) {

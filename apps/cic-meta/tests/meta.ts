@@ -3,7 +3,7 @@ import * as fs from 'fs';
 const nock = require('nock');
 import {Meta} from "../src";
 import {getResponse, metaData, networkErrorResponse, notFoundResponse, putResponse} from "./response";
-import {Syncable} from "@cicnet/crdt-meta";
+import {Syncable} from "kc-crdt-meta";
 
 const metaUrl = 'https://meta.dev.grassrootseconomics.net';
 const testAddress = '0xc1912fee45d61c87cc5ea59dae31190fffff232d';
