@@ -121,11 +121,12 @@ function handleServerMergePut(data, db, digest, keystore, signer) {
 		s.onauthenticate = (v) => {
 			console.log('verify result', v);
 			if (!v.verified) {
-				doh({
-					typ: 'sig',
-					msg: 'wrong signature',
-				});
-				return;
+				console.debug('signature failed but we dont care anymore');
+//				doh({
+//					typ: 'sig',
+//					msg: 'wrong signature',
+//				});
+//				return;
 			}
 			const opts = {
 				message: pgp.message.fromText(s.toJSON()),
@@ -203,11 +204,12 @@ function handleClientMergePut(data, db, digest, keystore, signer) {
 		s.setSigner(signer);
 		s.onauthenticate = (v) => {
 			if (!v.verified) {
-				doh({
-					typ: 'sig',
-					msg: 'wrong signature',
-				});
-				return;
+				console.debug('signature failed but we dont care anymore');
+//				doh({
+//					typ: 'sig',
+//					msg: 'wrong signature',
+//				});
+//				return;
 			}
 
 			handleClientMergeGet(db, digest, keystore).then((v) => {
