@@ -12,6 +12,9 @@ elif [ "$DEV_DEBUG_LEVEL" -gt 1 ]; then
 fi
 
 t=`mktemp -d`
+if [ "$DEV_DEBUG_LEVEL" -gt 2 ]; then
+	>&2 echo "using dir $t"
+fi
 
 # Since a python tool for posting automerge items is still missing, we need to make use of the cic-meta server's capability to generate the change graph and provide a digest to sign.
 f_size=`stat -c %s $file`
@@ -45,9 +48,14 @@ EOF
 f_size=`stat -c %s $t/req3.json`
 
 # Send the update request
+if [ "$DEV_DEBUG_LEVEL" -gt 2 ]; then
+	echo "send to meta server:"
+	cat $t/req3.json
+fi
 curl --show-error -f  $curl_debug_flag -s -X PUT $META_URL/$ptr -H "Content-Length: $f_size" -H "Content-Type: application/json" -H "X-CIC-AUTOMERGE: server" --data-binary @$t/req3.json
 
+
 # Clean up
-rm -rf $t
+#rm -rf $t
 
 set +e

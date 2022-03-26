@@ -21,7 +21,7 @@
 		"publish": "npm publish --access public"
 	},
 	"dependencies": {
-		"@cicnet/crdt-meta": "~0.0.10",
+		"@cicnet/crdt-meta": "git+https://gitlab.com/cicnet/crdt-meta.git#lash/pgp-visibility",
 		"@ethereumjs/tx": "~3.0.0",
 		"automerge": "~0.14.1",
 		"colors": "~1.4.0",

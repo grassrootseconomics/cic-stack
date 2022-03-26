@@ -120,7 +120,7 @@ function handleServerMergePut(data, db, digest, keystore, signer) {
 		s.setSigner(signer);
 		s.onauthenticate = (v) => {
 			console.log('verify result', v);
-			if (!v) {
+			if (!v.verified) {
 				doh({
 					typ: 'sig',
 					msg: 'wrong signature',
@@ -202,8 +202,11 @@ function handleClientMergePut(data, db, digest, keystore, signer) {
 
 		s.setSigner(signer);
 		s.onauthenticate = (v) => {
-			if (!v) {
-				whohoo(false);
+			if (!v.verified) {
+				doh({
+					typ: 'sig',
+					msg: 'wrong signature',
+				});
 				return;
 			}
 
