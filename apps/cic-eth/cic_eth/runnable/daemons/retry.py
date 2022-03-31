@@ -39,6 +39,9 @@ extra_args = {
         }
 config = cic_eth.cli.Config.from_args(args, arg_flags, local_arg_flags, extra_args=extra_args)
 
+# connect to celery
+celery_app = cic_eth.cli.CeleryApp.from_config(config)
+
 # connect to database
 dsn = dsn_from_config(config)
 SessionBase.connect(dsn, debug=config.true('DATABASE_DEBUG'))
