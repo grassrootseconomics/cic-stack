@@ -69,8 +69,8 @@ class RetrySyncer(HeadSyncer):
         session = SessionBase.create_session()
         stalled_txs = get_status_tx(
                 self.chain_spec,
-                StatusBits.IN_NETWORK.value,
-                not_status=StatusBits.FINAL | StatusBits.MANUAL | StatusBits.OBSOLETE,
+                status=StatusBits.IN_NETWORK.value,
+                not_status=StatusBits.FINAL.value | StatusBits.MANUAL.value | StatusBits.OBSOLETE.value,
                 before=before,
                 limit=self.batch_size,
                 session=session,
@@ -89,5 +89,3 @@ class RetrySyncer(HeadSyncer):
             self.filter.apply(self.conn, block, tx)
             self.backend.reset_filter()
         self.backend.set(block.number, 0)
-
-
