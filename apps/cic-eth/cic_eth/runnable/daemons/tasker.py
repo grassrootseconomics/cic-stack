@@ -80,6 +80,8 @@ arg_flags = cic_eth.cli.argflag_std_read
 local_arg_flags = cic_eth.cli.argflag_local_task
 argparser = cic_eth.cli.ArgumentParser(arg_flags)
 argparser.process_local_flags(local_arg_flags)
+argparser.add_argument('--celery-worker-pool', type=str, help='Celery pool type (passed to celery as --pool)')
+argparser.add_argument('--celery-worker-count', type=int, help='Celery concurrency level (passed to celery as --concurrency)')
 argparser.add_argument('--trace-queue-status', default=None, dest='trace_queue_status', action='store_true', help='set to perist all queue entry status changes to storage')
 argparser.add_argument('--aux-all', action='store_true', help='include tasks from all submodules from the aux module path')
 argparser.add_argument('--min-fee-price', dest='min_fee_price', type=int, help='set minimum fee price for transactions, in wei')
@@ -92,6 +94,8 @@ extra_args = {
     'aux': None,
     'trace_queue_status': 'TASKS_TRACE_QUEUE_STATUS',
     'min_fee_price': 'ETH_MIN_FEE_PRICE',
+    'celery_worker_count': 'CELERY_WORKER_COUNT',
+    'celery_worker_pool': 'CELERY_WORKER_POOL',
         }
 config = cic_eth.cli.Config.from_args(args, arg_flags, local_arg_flags)
 
@@ -218,6 +222,10 @@ def main():
     argv.append(config.get('CELERY_QUEUE'))
     argv.append('-n')
     argv.append(config.get('CELERY_QUEUE'))
+    argv.append('--concurrency')
+    argv.append(config.get('CELERY_WORKER_COUNT'))
+    argv.append('--pool')
+    argv.append(config.get('CELERY_WORKER_POOL'))
 
     # TODO: More elegant way of setting queue-wide settings
     BaseTask.default_token_symbol = default_token_symbol
