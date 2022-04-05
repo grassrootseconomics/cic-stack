@@ -290,6 +290,7 @@ class VerifierState:
     def __init__(self, item_keys, target_count, active_tests=None):
         self.items = {}
         self.target_count = target_count
+        self.count = 0
         for k in item_keys:
             self.items[k] = 0
         if active_tests == None:
@@ -305,12 +306,15 @@ class VerifierState:
 
     def __str__(self):
         r = ''
+        if self.target_count != self.count:
+            r += '\x1b[0;33mverification count {} does not match target count {}\x1b[0;39m\n'.format(self.target_count, self.count)
         for k in self.items.keys():
             if k in self.active_tests:
                 if self.items[k] == 0:
-                    r += '{}: \x1b[0;92m{}/{}\x1b[0;39m\n'.format(k, self.target_count - self.items[k], self.target_count)
+                    #r += '{}: \x1b[0;92m{}/{}\x1b[0;39m\n'.format(k, self.target_count - self.items[k], self.target_count)
+                    r += '{}: \x1b[0;92m{}/{}\x1b[0;39m\n'.format(k, self.target_count - self.items[k], self.count)
                 else:
-                    r += '{}: \x1b[0;91m{}/{}\x1b[0;39m\n'.format(k, self.target_count - self.items[k], self.target_count)
+                    r += '{}: \x1b[0;91m{}/{}\x1b[0;39m\n'.format(k, self.target_count - self.items[k], self.count)
             else:
                 r += '{}: \x1b[0;33mskipped\x1b[0;39m\n'.format(k)
         return r
@@ -344,6 +348,7 @@ class Verifier:
         self.faucet_amount = 0
         self.balance_adjust = balance_adjust
         self.balance_adjust_percentage = isinstance(balance_adjust, float)
+        self.count = 0
 
         verifymethods = []
         for k in dir(self):
@@ -530,6 +535,8 @@ class Verifier:
                     sys.exit(1)
                 logg.error(logline)
                 self.state.poke(k)
+
+            self.state.count += 1
 
 
     def __str__(self):
