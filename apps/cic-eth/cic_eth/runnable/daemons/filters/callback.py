@@ -173,6 +173,7 @@ class CallbackFilter(SyncFilter):
                     tokentx.set_status(0)
                 result = tokentx.asdict()
                 t = self.call_back(transfer_type, result)
+                self.register_match()
                 logline = 'callback success task id {} tx {} queue {}'.format(t, tx.hash, t.queue)
                 logline = self.to_logline(block, tx, logline)
                 logg.info(logline)
