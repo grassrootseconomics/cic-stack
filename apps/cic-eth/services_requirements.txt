@@ -13,3 +13,4 @@ erc20-transfer-authorization~=0.3.6
 sarafu-faucet~=0.0.7
 moolb~=0.2.0
 okota~=0.2.6
+eventlet~=0.33.0
