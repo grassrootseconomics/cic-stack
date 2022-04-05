@@ -104,11 +104,6 @@ def test_two_retries(
     set_sent(default_chain_spec, tx_replacement['hash'], session=init_database)
     init_database.commit()
 
-    sql = 'SELECT date_updated, status, nonce FROM otx'
-    r = init_database.execute(sql)
-    for v in r:
-        logg.debug('>>>>>>>>>>>>>>>> line {} {}'.format(v[0], v[1]))
-
     retry.process(eth_rpc, block)
 
     i = 0
