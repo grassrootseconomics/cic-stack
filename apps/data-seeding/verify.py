@@ -307,12 +307,12 @@ class VerifierState:
     def __str__(self):
         r = ''
         if self.target_count != self.count:
-            r += '\x1b[0;33mverification count {} does not match target count {}\x1b[0;39m\n'.format(self.target_count, self.count)
+            r += '\x1b[0;33mverification count {} does not match target count {}\x1b[0;39m\n'.format(self.count, self.target_count)
         for k in self.items.keys():
             if k in self.active_tests:
                 if self.items[k] == 0:
                     r += '{}: \x1b[0;92m{}/{}\x1b[0;39m\n'.format(k, self.count - self.items[k], self.count)
-                else
+                else:
                     r += '{}: \x1b[0;91m{}/{}\x1b[0;39m\n'.format(k, self.count - self.items[k], self.count)
             else:
                 r += '{}: \x1b[0;33mskipped\x1b[0;39m\n'.format(k)
