@@ -44,8 +44,7 @@ def test_two_retries(
         eth_rpc,
         eth_signer,
         agent_roles,
-        #celery_session_worker,
-        celery_worker,
+        celery_session_worker,
         ):
 
     rpc = RPCConnection.connect(default_chain_spec, 'default')
@@ -80,7 +79,7 @@ def test_two_retries(
 
     i = 0
     txs = {}
-    while i < 10:
+    while i < 1000:
         txs = get_account_tx_local(default_chain_spec, agent_roles['ALICE'], as_recipient=False)
         if len(list(txs.keys())) == 2:
             break
@@ -114,7 +113,7 @@ def test_two_retries(
 
     i = 0
     txs = {}
-    while i < 10:
+    while i < 100:
         txs = get_account_tx_local(default_chain_spec, agent_roles['ALICE'], as_recipient=False)
         if len(list(txs.keys())) == 3:
             break

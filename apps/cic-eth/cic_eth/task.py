@@ -88,6 +88,10 @@ class BaseTask(celery.Task):
             s.apply_async()
 
 
+    def after_return(self, status, retval, task_id, args, kwargs, einfo):
+        logg.info('task {} done: status {} return {} called with {} {}'.format(task_id, status, retval, args, kwargs))
+
+
 class CriticalTask(BaseTask):
     retry_jitter = True
     retry_backoff = True
