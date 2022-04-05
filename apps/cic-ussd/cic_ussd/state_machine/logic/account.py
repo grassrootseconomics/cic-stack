@@ -235,4 +235,6 @@ def process_account_creation(state_machine_data: Tuple[str, dict, Account, Sessi
     user_input, ussd_session, account, session = state_machine_data
     preferred_language = preferred_langauge_from_selection(user_input=user_input)
     chain_str = Chain.spec.__str__()
-    create(chain_str, ussd_session.get('msisdn'), session, preferred_language)
+    phone = ussd_session.get('msisdn')
+    create(chain_str, phone, session, preferred_language)
+    logg.info('create account on {} for {}'.format(chain_str, phone))
