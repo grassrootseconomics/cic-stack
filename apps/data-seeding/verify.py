@@ -535,7 +535,7 @@ class Verifier:
                 logg.error(logline)
                 self.state.poke(k)
 
-            self.state.count += 1
+        self.state.count += 1
 
 
     def __str__(self):
