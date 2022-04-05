@@ -2,6 +2,7 @@
 import logging
 import urllib.request
 import urllib.parse
+import urllib.error
 import uuid
 import os
 import json
@@ -105,10 +106,14 @@ class CicUssdConnectWorker(threading.Thread):
                 r = urllib.request.urlopen(self.req)
                 address = json.load(r)
                 break 
-            except urllib.error.HTTPError:
+            except urllib.error.HTTPError as e:
                 if self.max_tries > 0 and self.max_tries == tries:
-                    raise RuntimeError('cannot find metadata resource {} -> {}'.format(ph, self.ptr))
-                time.sleep(self.delay)
+                    raise RuntimeError('cannot find metadata resource {} -> {} ({})'.format(ph, self.ptr, e))
+            except urllib.error.URLError as e:
+                if self.max_tries > 0 and self.max_tries == tries:
+                    raise RuntimeError('cannot access metadata endpoint {} -> {} ({})'.format(ph, self.ptr, e))
+
+            time.sleep(self.delay)
             
             if r == None:
                 continue
