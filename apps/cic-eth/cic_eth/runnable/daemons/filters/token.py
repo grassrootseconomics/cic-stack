@@ -19,25 +19,27 @@ import celery
 # local imports
 from .base import SyncFilter
 
-logg = logging.getLogger(__name__)
+logg = logging.getLogger()
 
 
 class TokenFilter(SyncFilter):
 
     def __init__(self, chain_spec, queue, call_address=ZERO_ADDRESS):
+        super(TokenFilter, self).__init__()
         self.queue = queue
         self.chain_spec = chain_spec
         self.caller_address = call_address
 
 
     def filter(self, conn, block, tx, db_session=None):
+        super(TokenFilter, self).filter(conn, block, tx, db_session)
         if not tx.payload:
-            return (None, None)
+            return None
 
         try:
             r = ERC20.parse_transfer_request(tx.payload)
         except RequestMismatchException:
-            return (None, None)
+            return None
 
         token_address = tx.inputs[0]
         token = ERC20Token(self.chain_spec, conn, token_address)
@@ -53,6 +55,8 @@ class TokenFilter(SyncFilter):
         if is_same_address(r, ZERO_ADDRESS):
             return None
 
+        self.register_match()
+
         enc = ABIContractEncoder()
         enc.method('transfer')
         method = enc.get()
@@ -67,4 +71,13 @@ class TokenFilter(SyncFilter):
                     ],
                 queue=self.queue,
                 )
-        return s.apply_async()
+        t = s.apply_async()
+        
+        logline = 'erc20 transfer {} {}'.format(token.symbol, tx.hash)
+        logline = self.to_logline(block, tx, logline)
+        logg.info(logline)
+        return t
+
+
+    def __str__(self):
+        return 'erc20 tx filter'

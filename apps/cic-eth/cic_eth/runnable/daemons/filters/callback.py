@@ -23,8 +23,7 @@ from .base import SyncFilter
 from cic_eth.eth.meta import ExtendedTx
 from cic_eth.encode import tx_normalize
 
-logg = logging.getLogger().getChild(__name__)
-
+logg = logging.getLogger(__name__)
 
 
 class CallbackFilter(SyncFilter):
@@ -32,6 +31,7 @@ class CallbackFilter(SyncFilter):
     trusted_addresses = []
 
     def __init__(self, chain_spec, method, queue, caller_address=ZERO_ADDRESS):
+        super(CallbackFilter, self).__init__()
         self.queue = queue
         self.method = method
         self.chain_spec = chain_spec
@@ -144,6 +144,7 @@ class CallbackFilter(SyncFilter):
 
 
     def filter(self, conn, block, tx, db_session=None):
+        super(CallbackFilter, self).filter(conn, block, tx, db_session)
         transfer_data = None
         transfer_type = None
         try:
@@ -157,7 +158,8 @@ class CallbackFilter(SyncFilter):
             return
 
         logg.debug('checking callbacks filter input {}'.format(tx.payload[:8]))
-
+    
+        t = None
         if transfer_data != None:
             token_symbol = None
             result = None
@@ -171,12 +173,15 @@ class CallbackFilter(SyncFilter):
                     tokentx.set_status(0)
                 result = tokentx.asdict()
                 t = self.call_back(transfer_type, result)
-                logg.info('callback success task id {} tx {} queue {}'.format(t, tx.hash, t.queue))
+                logline = 'callback success task id {} tx {} queue {}'.format(t, tx.hash, t.queue)
+                logline = self.to_logline(block, tx, logline)
+                logg.info(logline)
             except UnknownContractError:
                 logg.debug('callback filter {}:{} skipping "transfer" method on unknown contract {} tx {}'.format(self.queue, self.method, transfer_data['to'], tx.hash))
             except NotAContractError:
                 logg.debug('callback filter {}:{} skipping "transfer" on non-contract address {} tx {}'.format(self.queue, self.method, transfer_data['to'], tx.hash))
-
+    
+        return t
 
     def __str__(self):
-        return 'cic-eth callbacks'
+        return 'callbackfilter'
