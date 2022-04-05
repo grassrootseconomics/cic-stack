@@ -311,10 +311,9 @@ class VerifierState:
         for k in self.items.keys():
             if k in self.active_tests:
                 if self.items[k] == 0:
-                    #r += '{}: \x1b[0;92m{}/{}\x1b[0;39m\n'.format(k, self.target_count - self.items[k], self.target_count)
-                    r += '{}: \x1b[0;92m{}/{}\x1b[0;39m\n'.format(k, self.target_count - self.items[k], self.count)
-                else:
-                    r += '{}: \x1b[0;91m{}/{}\x1b[0;39m\n'.format(k, self.target_count - self.items[k], self.count)
+                    r += '{}: \x1b[0;92m{}/{}\x1b[0;39m\n'.format(k, self.count - self.items[k], self.count)
+                else
+                    r += '{}: \x1b[0;91m{}/{}\x1b[0;39m\n'.format(k, self.count - self.items[k], self.count)
             else:
                 r += '{}: \x1b[0;33mskipped\x1b[0;39m\n'.format(k)
         return r
