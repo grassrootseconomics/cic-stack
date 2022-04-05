@@ -418,6 +418,7 @@ class Importer:
                callback(i, u)
 
                i += 1
+               logg.debug('processed {} {}'.format(i, u))
                sys.stdout.write('processed {} {}'.format(i, u).ljust(200) + "\r")
            
                j += 1
