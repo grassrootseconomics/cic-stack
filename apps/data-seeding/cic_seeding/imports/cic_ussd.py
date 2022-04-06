@@ -86,6 +86,7 @@ class CicUssdConnectWorker(threading.Thread):
         while True:
             u = self.q.get()
             if u == None:
+                logg.debug('queue returned none for worker {}'.format(self))
                 time.sleep(0.1)
                 continue
                 #return
@@ -116,12 +117,13 @@ class CicUssdConnectWorker(threading.Thread):
                 if self.max_tries > 0 and self.max_tries == tries:
                     raise RuntimeError('cannot access metadata endpoint {} -> {} ({})'.format(ph, self.ptr, e))
 
+            logg.debug('metadata pointer {} not yet available for old address {}'.format(self.ptr, u.original_address))
             time.sleep(self.delay)
             
-            if r == None:
-                continue
+            #if r == None:
+            #   continue
     
-        logg.debug('have address {} for phone {}'.format(address, ph))
+        logg.debug('have new address {} for phone {}'.format(address, ph))
         u.add_address(address)
 
         self.imp.dh.direct('set_have_address', 'ussd_tx_src', address)
