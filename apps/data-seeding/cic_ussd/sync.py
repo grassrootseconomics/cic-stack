@@ -167,40 +167,29 @@ class DeferredImportThread(threading.Thread):
 # TODO: need a channel for closing down the workers.
 class AccountConnectThread(threading.Thread):
 
-    def __init__(self, imp): #, offset):
+    def __init__(self, imp, threads):
         super(AccountConnectThread, self).__init__()
         self.imp = imp
-        #self.offset = offset
-        self.addresses = []
-        self.count = 0
-        for address in self.imp.dh.direct('list', 'ussd_phone'):
-            logg.debug('connecting old address {}'.format(address))
-            self.addresses.append(address)
-            self.count += 1
-        self.q = queue.Queue(maxsize=self.count)
+        self.threads = threads
+        self.q = queue.Queue(maxsize=self.threads)
 
 
-    # TODO: Add a quit channel!
     def run(self):
         logg.info('account connect thread started')
-        #i = self.offset
-        for address in self.addresses:
-#            address = None
-#            try:
-#                address = self.imp.get(i, 'ussd_phone')
-#            except FileNotFoundError as e:
-#                break
-            #self.imp.dh.direct('set_have_address', 'ussd_tx_src', address)
-            #self.imp.dh.put(address, None, 'ussd_phone')
+        for address in self.imp.dh.direct('list', 'ussd_phone'):
             u = self.imp.user_by_address(address, original=True)
+            logg.debug('adding user {} to account connect queue'.format(u))
             self.q.put(u)
-#            i += 1
+
+        logg.debug('done adding users to account connect queue')
+        for i in range(self.threads):
+            self.q.put(None)
           
 
 def run_account_connect(config, imp): #, offset):
     # Spawn thread to scan phone number records added by CicUssdImporter for processing.
     # This thread will feed the already spawned account connection workers.
-    th_account = AccountConnectThread(imp) #, offset)
+    th_account = AccountConnectThread(imp, config.get('_THREADS'))
     th_account.start()
 
     # Spawn account connection workers
