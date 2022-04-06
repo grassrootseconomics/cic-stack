@@ -172,11 +172,15 @@ class AccountConnectThread(threading.Thread):
         self.imp = imp
         self.threads = threads
         self.q = queue.Queue(maxsize=self.threads)
+        self.addresses = []
+        for address in self.imp.dh.direct('list', 'ussd_phone'):
+            self.addresses.append(address)
+        logg.debug('connect thread read {} addresses'.format(len(self.addresses)))
 
 
     def run(self):
         logg.info('account connect thread started')
-        for address in self.imp.dh.direct('list', 'ussd_phone'):
+        for address in self.addresses:
             u = self.imp.user_by_address(address, original=True)
             logg.debug('adding user {} to account connect queue'.format(u))
             self.q.put(u)
