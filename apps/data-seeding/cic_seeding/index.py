@@ -90,12 +90,12 @@ class AddressQueue(PersistedState):
         self.add('cur')
         self.add('del')
 
-        ls = super(AddressQueue, self).list(state)
+        ls = super(AddressQueue, self).list(self.NEW)
         logg.debug('new state count before {}'.format(len(ls)))
 
         self.sync(self.NEW)
 
-        ls = super(AddressQueue, self).list(state)
+        ls = super(AddressQueue, self).list(self.NEW)
         logg.debug('new state count after {}'.format(len(ls)))
  
 

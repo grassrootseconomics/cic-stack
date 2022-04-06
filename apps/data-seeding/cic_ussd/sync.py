@@ -270,6 +270,7 @@ def main():
     imp = CicUssdImporter(config, rpc, signer, signer_address, stores=stores)
     imp.prepare()
     #offset = stores['ussd_phone'].tell()
+    sys.exit(0)
 
     chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
 
