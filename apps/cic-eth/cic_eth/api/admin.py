@@ -199,8 +199,9 @@ class AdminApi:
 
         # TODO: This check should most likely be in resend task itself
         tx_dict = s_get_tx_cache.apply_async().get()
-        if not is_alive(getattr(StatusEnum, tx_dict['status']).value):
-            raise TxStateChangeError('Cannot resend mined or obsoleted transaction'.format(txold_hash_hex))
+        #if not is_alive(getattr(StatusEnum, tx_dict['status_code'])):
+        if not is_alive(tx_dict['status_code']):
+            raise TxStateChangeError('Cannot resend mined or obsoleted transaction'.format(tx_hash_hex))
         
         if not in_place:
             raise NotImplementedError('resend as new not yet implemented')

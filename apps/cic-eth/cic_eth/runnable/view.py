@@ -21,16 +21,19 @@ from hexathon import (
         strip_0x,
         uniform as hex_uniform,
         )
+from chainqueue.enum import (
+    StatusEnum,
+    StatusBits,
+    status_str,
+    )
 
 # local imports
 import cic_eth.cli
 from cic_eth.api.admin import AdminApi
 from cic_eth.db.enum import (
-    StatusEnum,
-    StatusBits,
-    status_str,
     LockEnum,
 )
+
 from cic_eth.registry import connect as connect_registry
 
 logging.basicConfig(level=logging.WARNING)
