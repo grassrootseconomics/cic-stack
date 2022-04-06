@@ -17,8 +17,10 @@ logg = logging.getLogger(__name__)
 
 class MaxGasOracle(RPCGasOracle):
 
+    fee_units = MAXIMUM_FEE_UNITS
+
     def get_fee_units(self, code=None):
-        return MAXIMUM_FEE_UNITS
+        return self.fee_units
 
 
 class CacheGasOracle(MaxGasOracle):

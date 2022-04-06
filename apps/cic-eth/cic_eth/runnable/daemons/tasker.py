@@ -26,7 +26,10 @@ from chainlib.chain import ChainSpec
 from chainqueue.db.models.otx import Otx
 from cic_eth_registry.error import UnknownContractError
 from cic_eth_registry.erc20 import ERC20Token
-from cic_eth.eth.util import MAXIMUM_FEE_UNITS
+from cic_eth.eth.util import (
+        MAXIMUM_FEE_UNITS,
+        MaxGasOracle,
+        )
 from hexathon import add_0x
 import liveness.linux
 
@@ -235,6 +238,10 @@ def main():
     BaseTask.default_token_decimals = default_token.decimals
     BaseTask.default_token_name = default_token.name
     BaseTask.trusted_addresses = trusted_addresses
+
+
+    MaxGasOracle.maximum_fee_units = config.get('ETH_MAX_FEE_UNITS')
+
     CriticalWeb3Task.safe_gas_refill_amount = int(config.get('ETH_GAS_HOLDER_MINIMUM_UNITS')) * int(config.get('ETH_GAS_HOLDER_REFILL_UNITS'))
     CriticalWeb3Task.safe_gas_threshold_amount = int(config.get('ETH_GAS_HOLDER_MINIMUM_UNITS')) * int(config.get('ETH_GAS_HOLDER_REFILL_THRESHOLD'))
     CriticalWeb3Task.safe_gas_gifter_balance = int(config.get('ETH_GAS_HOLDER_MINIMUM_UNITS')) * int(config.get('ETH_GAS_GIFTER_REFILL_BUFFER'))
