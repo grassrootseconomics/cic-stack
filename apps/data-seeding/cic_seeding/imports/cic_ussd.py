@@ -80,12 +80,15 @@ class CicUssdConnectWorker(threading.Thread):
         self.idx = idx
    
 
+    # TODO: Add a quit channel!
     def run(self):
         i = 0
         while True:
             u = self.q.get()
             if u == None:
-                return
+                time.sleep(0.1)
+                continue
+                #return
             self.process(i, u)
             i += 1
 

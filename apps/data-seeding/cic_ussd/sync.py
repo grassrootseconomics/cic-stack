@@ -167,17 +167,24 @@ class DeferredImportThread(threading.Thread):
 # TODO: need a channel for closing down the workers.
 class AccountConnectThread(threading.Thread):
 
-    def __init__(self, imp, queue): #, offset):
+    def __init__(self, imp): #, offset):
         super(AccountConnectThread, self).__init__()
         self.imp = imp
-        self.q = queue
         #self.offset = offset
+        self.addresses = []
+        self.count = 0
+        for address in self.imp.dh.direct('list', 'ussd_phone'):
+            logg.debug('connecting old address {}'.format(address))
+            self.addresses.append(address)
+            self.count += 1
+        self.q = queue.Queue(maxsize=self.count)
 
 
+    # TODO: Add a quit channel!
     def run(self):
         logg.info('account connect thread started')
         #i = self.offset
-        for address in self.imp.dh.direct('list', 'ussd_phone'):
+        for address in self.addresses:
 #            address = None
 #            try:
 #                address = self.imp.get(i, 'ussd_phone')
@@ -191,19 +198,18 @@ class AccountConnectThread(threading.Thread):
           
 
 def run_account_connect(config, imp): #, offset):
+    # Spawn thread to scan phone number records added by CicUssdImporter for processing.
+    # This thread will feed the already spawned account connection workers.
+    th_account = AccountConnectThread(imp) #, offset)
+    th_account.start()
+
     # Spawn account connection workers
-    q = queue.Queue(maxsize=config.get('_THREADS'))
     workers = []
     for i in range(config.get('_THREADS')):
-        w = CicUssdConnectWorker(i, imp, config.get('META_PROVIDER'), q)
+        w = CicUssdConnectWorker(i, imp, config.get('META_PROVIDER'), th_account.q)
         w.start()
         workers.append(w)
 
-
-    # Spawn thread to scan phone number records added by CicUssdImporter for processing.
-    # This thread will feed the already spawned account connection workers.
-    th_account = AccountConnectThread(imp, q) #, offset)
-    th_account.start()
 
     def stop():
         logg.info('stopping account connect')
