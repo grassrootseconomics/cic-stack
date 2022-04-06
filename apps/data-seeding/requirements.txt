@@ -14,4 +14,4 @@ psycopg2==2.8.6
 liveness~=0.0.1a7
 confini~=0.5.3
 leveldir~=0.2.0
-shep~=0.0.19
+shep~=0.1.1rc1

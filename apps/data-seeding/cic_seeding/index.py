@@ -85,7 +85,7 @@ class AddressQueue(PersistedState):
     def __init__(self, queue_dir, key_normalizer=None):
         self.queue_dir = queue_dir
         factory = SimpleFileStoreFactory(self.queue_dir)
-        super(AddressQueue, self).__init__(factory.add, 4)
+        super(AddressQueue, self).__init__(factory.add, 3)
 
         self.add('cur')
         self.add('del')
@@ -114,4 +114,3 @@ class AddressQueue(PersistedState):
     def list(self, state_name='NEW'):
         state = self.from_name(state_name)
         return super(AddressQueue, self).list(state)
-

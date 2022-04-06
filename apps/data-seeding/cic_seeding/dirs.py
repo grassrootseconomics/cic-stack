@@ -8,6 +8,7 @@ import logging
 # external imports
 from leveldir.hex import HexDir
 from hexathon import strip_0x
+from shep.error import StateInvalid
 
 # local imports
 from cic_seeding.index import AddressIndex
@@ -81,7 +82,10 @@ class DirHandler:
             raise RuntimeError('interface cannot be added after initialization')
 
         self.interfaces[k] = v
-        path = v.path(None)
+        try:
+            path = v.path(None)
+        except StateInvalid:
+            return
         logg.info('added store {} -> {}'.format(k, v))
         if path == None:
             return
