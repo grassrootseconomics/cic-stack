@@ -152,6 +152,8 @@ def apply_default_stores(config, semaphore, stores={}):
 # Also provides the sync filter that stores block transactions for deferred processing.
 class CicUssdImporter(Importer):
 
+    max_create_attempts = 10
+
     def __init__(self, config, rpc, signer, signer_address, stores={}, default_tag=[], preferences={}):
         super(CicUssdImporter, self).__init__(config, rpc, signer=signer, signer_address=signer_address, stores=stores, default_tag=default_tag)
 
@@ -225,7 +227,7 @@ class CicUssdImporter(Importer):
             try:
                 response = urllib.request.urlopen(req)
             except urllib.error.HTTPError as e:
-                if attempts is 5:
+                if attempts == self.max_create_attempts:
                     raise e
                 if e.code >= 500:
                     time.sleep(0.3)
