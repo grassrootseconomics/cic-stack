@@ -225,10 +225,19 @@ def main():
     argv.append(config.get('CELERY_QUEUE'))
     argv.append('-n')
     argv.append(config.get('CELERY_QUEUE'))
-    argv.append('--concurrency')
-    argv.append(config.get('CELERY_WORKER_COUNT'))
     argv.append('--pool')
     argv.append(config.get('CELERY_WORKER_POOL'))
+
+    worker_count = 0
+    try:
+        worker_count = int(config.get('CELERY_WORKER_COUNT'))
+    except ValueError:
+        pass
+    if worker_count > 0:
+        argv.append('--concurrency')
+        argv.append(config.get('CELERY_WORKER_COUNT'))
+
+    logg.info('executing celery with argv: {}'.format(argv))
 
     # TODO: More elegant way of setting queue-wide settings
     BaseTask.default_token_symbol = default_token_symbol

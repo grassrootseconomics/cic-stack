@@ -3,9 +3,11 @@ import logging
 import time
 
 # external imports
+import pytest
 from chainlib.eth.gas import (
         Gas,
         RPCGasOracle,
+        OverrideGasOracle,
         )
 
 from chainlib.eth.tx import (
@@ -71,7 +73,6 @@ def test_two_retries(
     block = Block.from_src(r)
 
     retry = RetrySyncer(eth_rpc, default_chain_spec, cic_eth.cli.chain_interface, 0, failed_grace_seconds=0)
-
     fltr = StragglerFilter(default_chain_spec, queue=None)
     retry.add_filter(fltr)
 
@@ -129,3 +130,78 @@ def test_two_retries(
 
     logg.debug('tx {}'.format(tx_last))
 
+@pytest.mark.parametrize(
+        'gas_price',
+        [
+            (1),
+            (1000000),
+            ],
+        )
+def test_a_bunch_of_retries(
+        load_config,
+        init_database,
+        init_eth_tester,
+        default_chain_spec,
+        eth_rpc,
+        eth_signer,
+        agent_roles,
+        celery_session_worker,
+        gas_price,
+        ):
+
+    rpc = RPCConnection.connect(default_chain_spec, 'default')
+    nonce_oracle = RPCNonceOracle(agent_roles['ALICE'], eth_rpc)
+    gas_oracle = OverrideGasOracle(price=gas_price, limit=100000)
+    c = Gas(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
+    (tx_hash_hex, tx_signed_raw_hex) = c.create(agent_roles['ALICE'], agent_roles['BOB'], 100 * (10 ** 6), tx_format=TxFormat.RLP_SIGNED)
+    tx = unpack(bytes.fromhex(strip_0x(tx_signed_raw_hex)), default_chain_spec)
+    
+    tx_hash_hex_check = queue_create(default_chain_spec, tx['nonce'], tx['from'], tx_hash_hex, tx_signed_raw_hex, session=init_database)
+
+    set_ready(default_chain_spec, tx_hash_hex_check, session=init_database)
+    set_reserved(default_chain_spec, tx_hash_hex_check, session=init_database)
+    set_sent(default_chain_spec, tx_hash_hex_check, session=init_database)
+
+    cache_gas_data(tx_hash_hex_check, tx_signed_raw_hex, default_chain_spec.asdict())
+    init_database.commit()
+
+
+    retry = RetrySyncer(eth_rpc, default_chain_spec, cic_eth.cli.chain_interface, 0, failed_grace_seconds=0)
+    fltr = StragglerFilter(default_chain_spec, queue=None)
+    retry.add_filter(fltr)
+
+    i = 1
+    for ii in range(3):
+        o = block_latest()
+        r = eth_rpc.do(o)
+        logg.debug('block is now {}'.format(r))
+
+        o = block_by_number(r)
+        r = eth_rpc.do(o)
+        block = Block.from_src(r)
+
+        retry.process(eth_rpc, block)
+
+        ks = []
+        txs = None
+        for iii in range(10):
+            txs = get_account_tx_local(default_chain_spec, agent_roles['ALICE'], as_recipient=False)
+            ks = list(txs.keys())
+            if len(ks) > i:
+                break
+            time.sleep(0.2)
+            iii += 1
+
+        assert len(ks) == i + 1
+
+        k = ks[i]
+        tx_signed_raw_hex = txs[k]
+        i += 1
+
+        tx = unpack(bytes.fromhex(strip_0x(tx_signed_raw_hex)), default_chain_spec)
+        set_ready(default_chain_spec, tx['hash'], session=init_database)
+        set_reserved(default_chain_spec, tx['hash'], session=init_database)
+        set_sent(default_chain_spec, tx['hash'], session=init_database)
+
+        init_database.commit()
+        init_eth_tester.mine_blocks(1)

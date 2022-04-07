@@ -50,7 +50,6 @@ class BaseTask(celery.Task):
                 id_generator=kwargs.get('id_generator'),
                 )
         else:
-
             x = MaxGasOracle(conn)
             x.code_callback = x.get_fee_units
 

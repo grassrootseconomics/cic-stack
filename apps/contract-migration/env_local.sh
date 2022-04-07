@@ -3,10 +3,11 @@
 set +a
 if [ ! -z "$DEV_CONFIG_RESET" ]; then
 	export DEV_SESSION=$(uuidgen)
+	export CHAIN_SPEC=${CHAIN_SPEC:-evm:kitabu:5050:sarafu}
 fi
 if [ -z "$DEV_SESSION" ]; then
 	export DEV_SESSION=${DEV_SESSION:-$(uuidgen)}
-	export CHAIN_SPEC=${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
+	export CHAIN_SPEC=${CHAIN_SPEC:-evm:kitabu:5050:sarafu}
 fi
 uid=`id -z -u`
 export DEV_DATA_DIR="/run/user/$uid/cic-stack/$DEV_SESSION"
