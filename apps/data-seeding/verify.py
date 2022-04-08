@@ -115,6 +115,7 @@ argparser.add_argument('--include', action='append', type=str, help='include spe
 argparser.add_argument('--list-verifications', dest='list_verifications', action='store_true', help='print a list of verification check identifiers')
 argparser.add_argument('--balance-adjust', dest='balance_adjust', type=str, help='Adjust original balance and apply bounded value check')
 argparser.add_argument('--token-symbol', default='GFT', type=str, dest='token_symbol', help='Token symbol to use for trnsactions')
+argparser.add_argument('--results-dir', dest='results_dir', type=str, help='Directory to output results to')
 argparser.add_argument('-r', '--registry-address', type=str, dest='r', help='CIC Registry address')
 argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
 argparser.add_argument('-x', '--exit-on-error', dest='x', action='store_true', help='Halt exection on error')
@@ -160,6 +161,7 @@ config.dict_override(args_override, 'cli flag')
 config.censor('PASSWORD', 'DATABASE')
 config.censor('PASSWORD', 'SSL')
 config.add(args.user_dir, '_USERDIR', True)
+config.add(args.results_dir, '_RESULTS_DIR', True)
 config.add(False, '_RESET', True)
 config.add(True, '_APPEND', True)
 logg.debug('config loaded:\n{}'.format(config))
@@ -231,8 +233,6 @@ else:
             if t not in exclude:
                 exclude.append(t)
 
-logg.debug('excluuuuude {}'.format(exclude))
-
 for t in include:
     if t not in all_tests:
         raise ValueError('Cannot include unknown verification "{}"'.format(t))
@@ -249,6 +249,7 @@ for t in custodial_tests:
 
 
 outfunc = logg.debug
+
 
 
 def send_ussd_request(address, data_dir):
@@ -283,6 +284,29 @@ def send_ussd_request(address, data_dir):
     req.data = data_bytes
     response = urllib.request.urlopen(req)
     return response.read().decode('utf-8')
+
+
+class VerifierLog:
+
+    def __init__(self, dir_path, typ):
+        fp = os.path.join(dir_path, 'success_' + typ)
+        self.w_success = open(fp, 'w')
+        fp = os.path.join(dir_path, 'error_' + typ)
+        self.w_error = open(fp, 'w')
+        self.typ = typ
+
+
+    def success(self, v):
+        self.w_success.write(v + '\n')
+
+
+    def error(self, v):
+        self.w_error.write(v + '\n')
+
+
+    def __del__(self):
+        self.w_success.close()
+        self.w_error.close()
 
 
 class VerifierState:
@@ -333,7 +357,7 @@ class VerifierError(Exception):
 
 class Verifier:
 
-    def __init__(self, importer, conn, cic_eth_api, gas_oracle, chain_spec, exit_on_error=False, balance_adjust=0):
+    def __init__(self, importer, conn, cic_eth_api, gas_oracle, chain_spec, exit_on_error=False, active_tests=active_tests, balance_adjust=0, results_dir=None):
         self.conn = conn
         self.gas_oracle = gas_oracle
         self.chain_spec = chain_spec
@@ -348,6 +372,11 @@ class Verifier:
         self.balance_adjust = balance_adjust
         self.balance_adjust_percentage = isinstance(balance_adjust, float)
         self.count = 0
+        self.results_logs = {}
+        self.results_active = False
+        if results_dir != None:
+            os.makedirs(results_dir)
+            self.results_active = True
 
         verifymethods = []
         for k in dir(self):
@@ -360,6 +389,11 @@ class Verifier:
                     r = self.conn.do(o)
                     self.faucet_amount = self.faucet_tx_factory.parse_token_amount(r)
                     logg.info('faucet amount set to {} at verify initialization time'.format(self.faucet_amount))
+
+                if self.results_active:
+                    logg.info('results active {}'.format(k))
+                    self.results_logs[k[7:]] = VerifierLog(results_dir, k[7:])
+
 
         self.state = VerifierState(verifymethods, len(self.imp), active_tests=active_tests)
 
@@ -524,6 +558,7 @@ class Verifier:
         for k in active_tests:
             s = '{}: {}'.format(debug_stem, k)
             outfunc(s)
+            err = False
             try:
                 m = getattr(self, 'verify_{}'.format(k))
                 m(address, balance)
@@ -534,6 +569,13 @@ class Verifier:
                     sys.exit(1)
                 logg.error(logline)
                 self.state.poke(k)
+                err = True
+
+        if self.results_active != None:
+            if err:
+                self.results_logs[k].error(address)
+            else:
+                self.results_logs[k].success(address)
 
         self.state.count += 1
 
@@ -551,7 +593,7 @@ def main():
     imp = Importer(config, conn, None, None)
     imp.prepare()
 
-    verifier = Verifier(imp, conn, api, gas_oracle, chain_spec, exit_on_error=exit_on_error, balance_adjust=balance_modifier)
+    verifier = Verifier(imp, conn, api, gas_oracle, chain_spec, exit_on_error=exit_on_error, active_tests=active_tests, balance_adjust=balance_modifier, results_dir=config.get('_RESULTS_DIR'))
 
     user_new_dir = os.path.join(user_dir, 'new')
     i = 0
