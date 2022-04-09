@@ -1,5 +1,5 @@
 chainqueue~=0.0.6rc4
-chainsyncer[sql]~=0.1.0
+chainsyncer[sql]~=0.1.1
 alembic==1.4.2
 confini~=0.5.3
 redis==3.5.3
