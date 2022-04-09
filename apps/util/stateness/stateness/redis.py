@@ -7,18 +7,21 @@ import redis
 # local imports
 from .base import Monitor
 
-logg = logging.getLogger()
+logg = logging.getLogger(__name__)
 
 
 class RedisMonitor(Monitor):
 
-    def __init__(self, domain, host='localhost', port=6379):
+    def __init__(self, domain, host='localhost', port=6379, db=9999):
+        self.db = db
+        self.host = host
+        self.port = port
         self.redis = None
         super(RedisMonitor, self).__init__(domain)
 
 
     def connect(self):
-        self.redis = redis.Redis(host=host, port=port, db=db)
+        self.redis = redis.Redis(host=self.host, port=self.port, db=self.db)
         
 
     def load(self):
