@@ -40,7 +40,6 @@ from cic_eth.runnable.daemons.filters import (
         TransferAuthFilter,
         TokenFilter,
         )
-from cic_eth.runnable.daemons.filters.log import LogFilter
 from cic_eth.stat import init_chain_stat
 from cic_eth.registry import (
         connect as connect_registry,
@@ -193,15 +192,14 @@ def main():
     i = 0
     for syncer in syncers:
         logg.debug('running syncer index {}'.format(i))
-        #syncer.add_filter(gas_filter)
-        #syncer.add_filter(registration_filter)
+        syncer.add_filter(gas_filter)
+        syncer.add_filter(registration_filter)
         # TODO: the two following filter functions break the filter loop if return uuid. Pro: less code executed. Con: Possibly unintuitive flow break
-        #syncer.add_filter(tx_filter)
-        #syncer.add_filter(token_gas_cache_filter)
-        #for cf in callback_filters:
-        #    syncer.add_filter(cf)
+        syncer.add_filter(tx_filter)
+        syncer.add_filter(token_gas_cache_filter)
+        for cf in callback_filters:
+            syncer.add_filter(cf)
         #syncer.add_filter(transfer_auth_filter)
-        syncer.add_filter(LogFilter())
         
         try:
             r = syncer.loop(int(loop_interval), conn)
