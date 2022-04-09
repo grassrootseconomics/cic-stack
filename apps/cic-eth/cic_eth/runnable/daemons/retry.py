@@ -11,6 +11,7 @@ from cic_eth_registry import CICRegistry
 from chainlib.chain import ChainSpec
 from chainlib.connection import RPCConnection
 from chainsyncer.filter import SyncFilter
+from stateness.redis import RedisMonitor
 
 # local imports
 import cic_eth.cli
@@ -60,7 +61,8 @@ def main():
         stat = init_chain_stat(conn)
         loop_interval = stat.block_average()
 
-    syncer = RetrySyncer(conn, chain_spec, cic_eth.cli.chain_interface, straggler_delay, batch_size=config.get('RETRY_BATCH_SIZE'))
+    sync_state_monitor = RedisMonitor('cic-eth-tracker', host=config.get('REDIS_HOST'), port=config.get('REDIS_PORT'), db=config.get('REDIS_DB'))
+    syncer = RetrySyncer(conn, chain_spec, cic_eth.cli.chain_interface, straggler_delay, sync_state_monitor, batch_size=config.get('RETRY_BATCH_SIZE'))
     syncer.backend.set(0, 0)
     fltr = StragglerFilter(chain_spec, queue=config.get('CELERY_QUEUE'))
     syncer.add_filter(fltr)
