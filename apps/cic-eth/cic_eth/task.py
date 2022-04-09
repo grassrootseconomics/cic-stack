@@ -139,8 +139,8 @@ class CriticalWeb3AndSignerTask(CriticalWeb3Task):
         )
 
 @celery_app.task()
-def check_health(self):
-    pass
+def check_health(self, v=None):
+    return v
 
 
 # TODO: registry / rpc methods should perhaps be moved to better named module

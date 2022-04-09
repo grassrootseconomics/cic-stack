@@ -11,8 +11,8 @@ RUN npm config set registry=${NPM_REPOSITORY}
 
 # copy the dependencies
 COPY package.json package-lock.json ./
-RUN --mount=type=cache,mode=0755,target=/root/.npm \
-    npm set cache /root/.npm && \
+#RUN --mount=type=cache,mode=0755,target=/root/.npm \
+RUN    npm set cache /root/.npm && \
     npm cache verify && \
     npm ci --verbose
 
