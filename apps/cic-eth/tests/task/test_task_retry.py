@@ -1,6 +1,7 @@
 # standard imports
 import logging
 import time
+import datetime
 
 # external imports
 import pytest
@@ -39,6 +40,13 @@ from cic_eth.runnable.daemons.filters.straggler import StragglerFilter
 logg = logging.getLogger()
 
 
+class TimeParrot:
+
+    def get(self, v):
+        ts = int(datetime.datetime.utcnow().timestamp())
+        return str(ts).encode('utf_8')
+
+
 def test_two_retries(
         load_config,
         init_database,
@@ -72,7 +80,7 @@ def test_two_retries(
     r = eth_rpc.do(o)
     block = Block.from_src(r)
 
-    retry = RetrySyncer(eth_rpc, default_chain_spec, cic_eth.cli.chain_interface, 0, failed_grace_seconds=0)
+    retry = RetrySyncer(eth_rpc, default_chain_spec, cic_eth.cli.chain_interface, 0, TimeParrot(), failed_grace_seconds=0)
     fltr = StragglerFilter(default_chain_spec, queue=None)
     retry.add_filter(fltr)
 
@@ -166,7 +174,7 @@ def test_a_bunch_of_retries(
     init_database.commit()
 
 
-    retry = RetrySyncer(eth_rpc, default_chain_spec, cic_eth.cli.chain_interface, 0, failed_grace_seconds=0)
+    retry = RetrySyncer(eth_rpc, default_chain_spec, cic_eth.cli.chain_interface, 0, TimeParrot(), failed_grace_seconds=0)
     fltr = StragglerFilter(default_chain_spec, queue=None)
     retry.add_filter(fltr)
 
