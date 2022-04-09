@@ -187,8 +187,6 @@ def main():
 
     #transfer_auth_filter = TransferAuthFilter(registry, chain_spec, config.get('_CELERY_QUEUE'))
 
-    sys.exit(0)
-
     i = 0
     for syncer in syncers:
         logg.debug('running syncer index {}'.format(i))
