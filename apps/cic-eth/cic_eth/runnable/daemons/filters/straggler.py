@@ -7,6 +7,7 @@ from chainqueue.sql.state import (
     obsolete_by_cache,
     set_fubar,
     )
+from chainqueue.error import TxStateChangeError
 
 logg = logging.getLogger(__name__)
 
