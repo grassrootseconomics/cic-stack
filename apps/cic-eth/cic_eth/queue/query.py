@@ -169,6 +169,7 @@ def get_upcoming_tx(chain_spec, status=StatusEnum.READYSEND, not_status=None, re
         q = q.join(TxCache)
         q = q.filter(TxCache.sender==r.sender)
         q = q.filter(Otx.nonce==r.nonce)
+        q = q.filter(Otx.status.op('&')(status)==status)
 
         if before != None:
             q = q.filter(TxCache.date_checked<before)
