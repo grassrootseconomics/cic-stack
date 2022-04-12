@@ -530,6 +530,7 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_spec_dict, gas=None, defa
                     chain_spec_dict,
                     txold_hash_hex,
                     ],
+                queue=queue,
                 )
         t = s.apply_async()
         logg.error('giving up resends. setting fubar task {} and need manual help'.format(t))
