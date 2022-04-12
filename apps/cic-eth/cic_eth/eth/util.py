@@ -3,6 +3,7 @@ import logging
 
 # external imports
 from chainlib.eth.gas import RPCGasOracle
+from chainlib.eth.gas import OverrideGasOracle
 from hexathon import strip_0x
 
 # local imports
@@ -15,9 +16,13 @@ MAXIMUM_FEE_UNITS = 8000000
 logg = logging.getLogger(__name__)
 
 
-class MaxGasOracle(RPCGasOracle):
+class MaxGasOracle(OverrideGasOracle):
 
     fee_units = MAXIMUM_FEE_UNITS
+
+    def __init__(self, rpc):
+        super(MaxGasOracle, self).__init__(price=1, limit=self.fee_units, conn=rpc, code_callback=self.get_fee_units)
+
 
     def get_fee_units(self, code=None):
         return self.fee_units

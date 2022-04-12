@@ -51,7 +51,7 @@ class BaseTask(celery.Task):
                 )
         else:
             x = MaxGasOracle(conn)
-            x.code_callback = x.get_fee_units
+            #x.code_callback = x.get_fee_units
 
         return x
 
