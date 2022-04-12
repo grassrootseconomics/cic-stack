@@ -25,7 +25,7 @@ class StragglerFilter:
         try:
             obsolete_by_cache(self.chain_spec, tx.hash, False, session=db_session)
         except TxStateChangeError:
-            set_fubar(self.chain_spec, tx_hash, session=db_session)
+            set_fubar(self.chain_spec, tx.hash, session=db_session)
             return False
 
         s_send = celery.signature(
