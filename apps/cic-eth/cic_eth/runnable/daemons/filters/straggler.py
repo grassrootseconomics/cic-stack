@@ -3,7 +3,10 @@ import logging
 
 # external imports
 import celery
-from chainqueue.sql.state import obsolete_by_cache
+from chainqueue.sql.state import (
+    obsolete_by_cache,
+    set_fubar,
+    )
 
 logg = logging.getLogger(__name__)
 
@@ -18,7 +21,12 @@ class StragglerFilter:
 
     def filter(self, conn, block, tx, db_session=None):
         logg.debug('tx {}'.format(tx))
-        obsolete_by_cache(self.chain_spec, tx.hash, False, session=db_session)
+        try:
+            obsolete_by_cache(self.chain_spec, tx.hash, False, session=db_session)
+        except TxStateChangeError:
+            set_fubar(self.chain_spec, tx_hash, session=db_session)
+            return False
+
         s_send = celery.signature(
                 'cic_eth.eth.gas.resend_with_higher_gas',
                 [
