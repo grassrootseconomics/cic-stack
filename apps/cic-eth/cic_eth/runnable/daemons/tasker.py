@@ -40,6 +40,7 @@ from cic_eth.eth import (
         nonce,
         gas,
         )
+from cic_eth import debug
 from cic_eth.admin import (
         debug,
         ctrl,
