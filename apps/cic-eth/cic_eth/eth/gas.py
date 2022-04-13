@@ -534,6 +534,16 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_spec_dict, gas=None, defa
                 )
         t = s.apply_async()
         logg.error('giving up resends. setting fubar task {} and need manual help'.format(t))
+        if self.debug_log:
+            s_debug = celery.signature(
+                'cic_eth.debug.debug_add',
+                [
+                    ','.join([str(chain_spec), txold_hash_hex]),
+                    'resend fail task {} gas {}'.format(t, new_gas_price),
+                    ],
+                    queue=queue,
+                    )
+            r = s_debug.apply_async()
         raise ResendImpossibleError(txold_hash_hex)
 
     logg.debug('resending as tx {} {}'.format(tx_hash_hex, tx_signed_raw_hex))

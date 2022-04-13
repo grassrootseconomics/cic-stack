@@ -44,6 +44,7 @@ from cic_eth.error import (
 from cic_eth.queue.tx import queue_create
 from cic_eth.task import BaseTask
 from cic_eth.db.models.base import SessionBase
+from cic_eth.db.models.debug import Debug
 
 logg = logging.getLogger()
 
@@ -383,3 +384,9 @@ def test_retry_impossible(
     session.close()
 
     assert otx.status & StatusBits.UNKNOWN_ERROR.value > 0
+
+    q = init_database.query(Debug)
+    r = q.all()
+    assert len(r) == 1
+
+

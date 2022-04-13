@@ -11,12 +11,12 @@ from chainlib.eth.gas import (
         Gas,
         )
 from chainlib.eth.nonce import OverrideNonceOracle
+from chainqueue.enum import StatusBits
 
 # local imports
 from cic_eth.encode import tx_normalize
 from cic_eth.eth.gas import cache_gas_data
 from cic_eth.queue.tx import register_tx
-from cic_eth.enum import StatusBits
 from cic_eth.queue.state import set_ready
 
 # test imports

@@ -10,6 +10,8 @@ from cic_eth.task import BaseTask
 #logg = logging.getLogger(__name__)
 logg = logging.getLogger()
 
+BaseTask.debug_log = 1
+
 @pytest.fixture(scope='function')
 def init_celery_tasks(
     contract_roles, 
