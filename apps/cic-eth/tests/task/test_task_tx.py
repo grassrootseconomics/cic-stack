@@ -34,8 +34,11 @@ from chainqueue.db.enum import StatusBits
 from cic_eth.queue.tx import register_tx
 from cic_eth.eth.gas import cache_gas_data
 from cic_eth.db.models.debug import Debug
+from cic_eth.task import BaseTask
 
 logg = logging.getLogger()
+
+BaseTask.debug_log = 1
 
 
 def test_tx_send(

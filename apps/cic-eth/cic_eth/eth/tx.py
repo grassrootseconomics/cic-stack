@@ -124,15 +124,16 @@ def send(self, txs, chain_spec_dict):
         conn.do(o)
     except JSONRPCException as e:
         logg.error('send to node failed! {}'.format(e))
-        s_debug = celery.signature(
-            'cic_eth.debug.debug_add',
-            [
-                ','.join([str(chain_spec), tx_hash_hex]),
-                str(e),
-                ],
-                queue=queue,
-                )
-        s_debug.apply_async()
+        if self.debug_log:
+            s_debug = celery.signature(
+                'cic_eth.debug.debug_add',
+                [
+                    ','.join([str(chain_spec), tx_hash_hex]),
+                    str(e),
+                    ],
+                    queue=queue,
+                    )
+            s_debug.apply_async()
         err_state = True
 
     r = None

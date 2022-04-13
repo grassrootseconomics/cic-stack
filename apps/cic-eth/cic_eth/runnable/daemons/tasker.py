@@ -236,6 +236,7 @@ def main():
     BaseTask.default_token_decimals = default_token.decimals
     BaseTask.default_token_name = default_token.name
     BaseTask.trusted_addresses = trusted_addresses
+    BaseTask.debug_log = config.true('CELERY_DEBUG_LOG')
     CriticalWeb3Task.safe_gas_refill_amount = int(config.get('ETH_GAS_HOLDER_MINIMUM_UNITS')) * int(config.get('ETH_GAS_HOLDER_REFILL_UNITS'))
     CriticalWeb3Task.safe_gas_threshold_amount = int(config.get('ETH_GAS_HOLDER_MINIMUM_UNITS')) * int(config.get('ETH_GAS_HOLDER_REFILL_THRESHOLD'))
     CriticalWeb3Task.safe_gas_gifter_balance = int(config.get('ETH_GAS_HOLDER_MINIMUM_UNITS')) * int(config.get('ETH_GAS_GIFTER_REFILL_BUFFER'))

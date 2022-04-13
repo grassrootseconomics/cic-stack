@@ -38,6 +38,7 @@ class BaseTask(celery.Task):
     default_token_name = None
     default_token_decimals = None
     run_dir = '/run'
+    debug_log = False
 
 
     def create_gas_oracle(self, conn, address=None, *args, **kwargs):
