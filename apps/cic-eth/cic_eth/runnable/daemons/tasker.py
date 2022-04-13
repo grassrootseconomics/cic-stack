@@ -258,7 +258,7 @@ def main():
         BaseTask.min_fee_price = int(config.get('ETH_MIN_FEE_PRICE'))
         CriticalWeb3Task.safe_gas_threshold_amount *= BaseTask.min_fee_price
         CriticalWeb3Task.safe_gas_refill_amount = CriticalWeb3Task.safe_gas_refill_amount + MAXIMUM_FEE_UNITS
-        CriticalWeb3Task.safe_gas_refill_amount *= BaseTask.min_fee_price
+        CriticalWeb3Task.safe_gas_refill_amount *= (BaseTask.min_fee_price + int(config.get('ETH_GAS_GIFT_MIN_PRICE_BUFFER')))
         CriticalWeb3Task.safe_gas_gifter_balance *= BaseTask.min_fee_price
 
     BaseTask.run_dir = config.get('CIC_RUN_DIR')
