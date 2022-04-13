@@ -59,12 +59,13 @@ def test_filter_gas(
             )
     set_waitforgas(default_chain_spec, tx_hash_hex, session=init_database)
     init_database.commit()
+
     tx_hash_hex_wait = tx_hash_hex
     otx = Otx.load(tx_hash_hex_wait, session=init_database)
     assert otx.status & StatusBits.GAS_ISSUES == StatusBits.GAS_ISSUES
 
     c = Gas(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
-    (tx_hash_hex, tx_signed_raw_hex) = c.create(agent_roles['BOB'], agent_roles['ALICE'], 100 * (10 ** 6), tx_format=TxFormat.RLP_SIGNED)
+    (tx_hash_hex, tx_signed_raw_hex) = c.create(agent_roles['CAROL'], agent_roles['ALICE'], 100 * (10 ** 6), tx_format=TxFormat.RLP_SIGNED)
 
     queue_create(
             default_chain_spec,
