@@ -236,7 +236,7 @@ def transfer(self, tokens, holder_address, receiver_address, value, chain_spec_d
     enc = ABIContractEncoder()
     enc.method('transfer')
     method = enc.get()
-    gas_oracle = self.create_gas_oracle(rpc, t['address'], method=method, session=session, min_price=self.min_fee_price)
+    gas_oracle = self.create_gas_oracle(rpc, address=t['address'], method=method, session=session, min_price=self.min_fee_price)
     nonce_oracle = CustodialTaskNonceOracle(holder_address, self.request.root_id, session=session)
     c = ERC20(chain_spec, signer=rpc_signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle)
     try:

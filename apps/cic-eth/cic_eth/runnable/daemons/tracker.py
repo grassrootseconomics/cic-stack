@@ -23,6 +23,7 @@ from chainsyncer.backend.sql import SQLBackend
 from chainsyncer.driver.head import HeadSyncer
 from chainsyncer.driver.history import HistorySyncer
 from chainsyncer.db.models.base import SessionBase
+from chainsyncer.error import SyncDone
 from chainlib.eth.address import (
         is_checksum_address,
         to_checksum_address,
@@ -45,6 +46,7 @@ from cic_eth.registry import (
         connect_declarator,
         connect_token_registry,
         )
+from stateness.redis import RedisMonitor
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -79,6 +81,22 @@ except UnknownContractError as e:
     sys.exit(1)
 logg.info('connected contract registry {}'.format(config.get('CIC_REGISTRY_ADDRESS')))
 
+
+class SyncTimeRedisCache:
+
+    def __init__(self, host='localhost', port=6379, db=9999):
+        self.state = RedisMonitor('cic-eth-tracker', host=host, port=port, db=db)
+        self.state.register('lastseen', persist=True)
+
+    def cache_time(self, block, tx):
+        v = self.state.get('lastseen')
+        if v != None:
+            v = int(v.decode('utf-8'))
+            if v > block.timestamp:
+                return
+        self.state.set('lastseen', block.timestamp)
+
+
 def main():
     # Connect to blockchain with chainlib
 
@@ -98,33 +116,38 @@ def main():
 
     logg.debug('current block height {}'.format(block_offset))
 
+    sync_time_cache = SyncTimeRedisCache(config.get('REDIS_HOST'), config.get('REDIS_PORT'), config.get('REDIS_DB'))
+
     syncers = []
 
     #if SQLBackend.first(chain_spec):
     #    backend = SQLBackend.initial(chain_spec, block_offset)
     syncer_backends = SQLBackend.resume(chain_spec, block_offset)
+   
+    logg.debug('syncer backends {}'.format(syncer_backends))
 
     if len(syncer_backends) == 0:
         initial_block_start = int(config.get('SYNCER_OFFSET'))
         initial_block_offset = int(block_offset)
         if config.true('SYNCER_NO_HISTORY'):
             initial_block_start = initial_block_offset
-            initial_block_offset += 1
+            #initial_block_offset += 1
         syncer_backends.append(SQLBackend.initial(chain_spec, initial_block_offset, start_block_height=initial_block_start))
         logg.info('found no backends to resume, adding initial sync from history start {} end {}'.format(initial_block_start, initial_block_offset))
     else:
         for syncer_backend in syncer_backends:
             logg.info('resuming sync session {}'.format(syncer_backend))
 
-    syncer_backends.append(SQLBackend.live(chain_spec, block_offset+1))
+    #syncer_backends.append(SQLBackend.live(chain_spec, block_offset+1))
+    syncer_backends.append(SQLBackend.live(chain_spec, block_offset))
 
     for syncer_backend in syncer_backends:
         try:
-            syncers.append(HistorySyncer(syncer_backend, cic_eth.cli.chain_interface))
+            syncers.append(HistorySyncer(syncer_backend, cic_eth.cli.chain_interface, block_callback=sync_time_cache.cache_time))
             logg.info('Initializing HISTORY syncer on backend {}'.format(syncer_backend))
         except AttributeError:
             logg.info('Initializing HEAD syncer on backend {}'.format(syncer_backend))
-            syncers.append(HeadSyncer(syncer_backend, cic_eth.cli.chain_interface))
+            syncers.append(HeadSyncer(syncer_backend, cic_eth.cli.chain_interface, block_callback=sync_time_cache.cache_time))
 
     connect_registry(conn, chain_spec, config.get('CIC_REGISTRY_ADDRESS'))
 
@@ -172,12 +195,16 @@ def main():
         # TODO: the two following filter functions break the filter loop if return uuid. Pro: less code executed. Con: Possibly unintuitive flow break
         syncer.add_filter(tx_filter)
         syncer.add_filter(token_gas_cache_filter)
-        #syncer.add_filter(transfer_auth_filter)
         for cf in callback_filters:
             syncer.add_filter(cf)
+        #syncer.add_filter(transfer_auth_filter)
+        
+        try:
+            r = syncer.loop(int(loop_interval), conn)
+        except SyncDone as e:
+            pass
 
-        r = syncer.loop(int(loop_interval), conn)
-        sys.stderr.write("sync {} done at block {}\n".format(syncer, r))
+        logg.info("sync {} done at block {}\n".format(syncer, r))
 
         i += 1
 

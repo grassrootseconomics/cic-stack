@@ -21,16 +21,19 @@ from hexathon import (
         strip_0x,
         uniform as hex_uniform,
         )
+from chainqueue.enum import (
+    StatusEnum,
+    StatusBits,
+    status_str,
+    )
 
 # local imports
 import cic_eth.cli
 from cic_eth.api.admin import AdminApi
 from cic_eth.db.enum import (
-    StatusEnum,
-    StatusBits,
-    status_str,
     LockEnum,
 )
+
 from cic_eth.registry import connect as connect_registry
 
 logging.basicConfig(level=logging.WARNING)
@@ -54,6 +57,7 @@ cic-eth-inspect <address>
 cic-eth-inspect lock
 """)
 argparser.add_argument('--status', dest='status', type=str, action='append', default=[], help='Add status to match')
+argparser.add_argument('--not-status', dest='not_status', type=str, action='append', default=[], help='Add status to omit')
 argparser.add_argument('-f', '--format', dest='f', default=default_format, type=str, help='Output format')
 argparser.add_argument('--count', dest='count', default=10, type=int, help='Max number of transactions to return (DEFAULT=10)')
 argparser.add_argument('query', type=str, help='Transaction, transaction hash, account, "lock", if no value is passed then the latest 10 transactions (--count 10) will be returned', nargs='?')
@@ -66,6 +70,7 @@ extra_args = {
     'count': '_TX_COUNT',
     'query': '_QUERY',
     'status': '_STATUS',
+    'not_status': '_NOT_STATUS',
 }
 config = cic_eth.cli.Config.from_args(args, arg_flags, local_arg_flags, extra_args=extra_args)
 
@@ -157,6 +162,16 @@ def main():
             flag = getattr(StatusEnum, v.upper())
         status_flags |= flag
 
+
+    not_status_flags = 0
+    for v in config.get('_NOT_STATUS'):
+        flag = 0
+        try:
+            flag = getattr(StatusBits, v.upper())
+        except AttributeError:
+            flag = getattr(StatusEnum, v.upper())
+        not_status_flags |= flag
+
     query = config.get('_QUERY')
     tx_count = config.get('_TX_COUNT')
     try:
@@ -166,14 +181,14 @@ def main():
     except ValueError:
         pass
     if not query:
-        txs = admin_api.txs_latest(chain_spec, count=tx_count, renderer=render_account, status=status_flags)
+        txs = admin_api.txs_latest(chain_spec, count=tx_count, renderer=render_account, status=status_flags, not_status=not_status_flags)
         renderer = render_account
     elif len(query) > 64:
         admin_api.tx(chain_spec, tx_raw=query, renderer=renderer)
     elif len(query) > 40:
         admin_api.tx(chain_spec, tx_hash=query, renderer=renderer)
     elif len(query) == 40:
-        txs = admin_api.account(chain_spec, query, include_recipient=False, renderer=render_account, status=status_flags)
+        txs = admin_api.account(chain_spec, query, include_recipient=False, renderer=render_account, status=status_flags, not_status=not_status_flags)
         renderer = render_account
 
     elif len(query) >= 4 and query[:4] == 'lock':

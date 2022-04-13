@@ -4,6 +4,7 @@ import logging
 # external imports
 import celery
 from chainlib.chain import ChainSpec
+from chainlib.error import JSONRPCException
 from chainlib.eth.address import is_checksum_address
 from chainlib.eth.error import NotFoundEthException
 from chainlib.eth.tx import (

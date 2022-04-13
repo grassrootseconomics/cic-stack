@@ -3,6 +3,7 @@ import logging
 import datetime
 
 # external imports
+import redis
 from chainsyncer.driver.head import HeadSyncer
 from chainsyncer.backend.memory import MemBackend
 from chainsyncer.error import NoBlockForYou
@@ -39,7 +40,7 @@ class DbSessionMemBackend(MemBackend):
 
 class RetrySyncer(HeadSyncer):
 
-    def __init__(self, conn, chain_spec, chain_interface, stalled_grace_seconds, batch_size=50, failed_grace_seconds=None):
+    def __init__(self, conn, chain_spec, chain_interface, stalled_grace_seconds, sync_state_monitor, batch_size=50, failed_grace_seconds=None):
         backend = DbSessionMemBackend(chain_spec, None)
         super(RetrySyncer, self).__init__(backend, chain_interface)
         self.chain_spec = chain_spec
@@ -49,6 +50,7 @@ class RetrySyncer(HeadSyncer):
         self.failed_grace_seconds = failed_grace_seconds
         self.batch_size = batch_size
         self.conn = conn
+        self.state_monitor = sync_state_monitor
 
 
     def get(self, conn):
@@ -65,7 +67,14 @@ class RetrySyncer(HeadSyncer):
 
 
     def process(self, conn, block):
-        before = datetime.datetime.utcnow() - datetime.timedelta(seconds=self.stalled_grace_seconds)
+        delta = datetime.timedelta(seconds=self.stalled_grace_seconds)
+        before = datetime.datetime.utcnow() - delta
+        syncer_ts = int(self.state_monitor.get('lastseen'))
+        before_ts = int(before.timestamp())
+        if before_ts > syncer_ts:
+            syncer_at = before
+            before = datetime.datetime.fromtimestamp(syncer_ts) - delta
+            logg.warning('tracker is lagging! adjusting retry threshold from {} to {}'.format(syncer_at, before))
         session = SessionBase.create_session()
         stalled_txs = get_status_tx(
                 self.chain_spec,

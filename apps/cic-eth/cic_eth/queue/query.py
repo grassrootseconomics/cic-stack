@@ -169,11 +169,12 @@ def get_upcoming_tx(chain_spec, status=StatusEnum.READYSEND, not_status=None, re
         q = q.join(TxCache)
         q = q.filter(TxCache.sender==r.sender)
         q = q.filter(Otx.nonce==r.nonce)
+        q = q.filter(Otx.status.op('&')(status)==status)
 
         if before != None:
             q = q.filter(TxCache.date_checked<before)
        
-        q = q.order_by(TxCache.date_created.desc())
+        q = q.order_by(TxCache.date_checked.desc())
         o = q.first()
 
         # TODO: audit; should this be possible if a row is found in the initial query? If not, at a minimum log error.

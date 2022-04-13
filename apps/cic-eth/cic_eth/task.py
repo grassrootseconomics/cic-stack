@@ -51,9 +51,8 @@ class BaseTask(celery.Task):
                 id_generator=kwargs.get('id_generator'),
                 )
         else:
-
             x = MaxGasOracle(conn)
-            x.code_callback = x.get_fee_units
+            #x.code_callback = x.get_fee_units
 
         return x
 
@@ -141,8 +140,8 @@ class CriticalWeb3AndSignerTask(CriticalWeb3Task):
         )
 
 @celery_app.task()
-def check_health(self):
-    pass
+def check_health(self, v=None):
+    return v
 
 
 # TODO: registry / rpc methods should perhaps be moved to better named module

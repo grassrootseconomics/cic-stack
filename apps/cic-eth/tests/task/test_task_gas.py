@@ -1,5 +1,6 @@
 # standard imports
 import logging
+import time
 
 # external imports
 import celery
@@ -32,10 +33,17 @@ from chainqueue.db.models.otx import Otx
 from hexathon import strip_0x
 
 # local imports
-from cic_eth.eth.gas import cache_gas_data
-from cic_eth.error import OutOfGasError
+from cic_eth.eth.gas import (
+        cache_gas_data,
+        MAX_RESEND_ATTEMPTS,
+        )
+from cic_eth.error import (
+        OutOfGasError,
+        ResendImpossibleError,
+        )
 from cic_eth.queue.tx import queue_create
 from cic_eth.task import BaseTask
+from cic_eth.db.models.base import SessionBase
 
 logg = logging.getLogger()
 
@@ -301,3 +309,77 @@ def test_task_resend_explicit(
     tx_after = unpack(bytes.fromhex(strip_0x(otx.signed_tx)), default_chain_spec)
     logg.debug('gasprices before {} after {}'.format(tx_before['gasPrice'], tx_after['gasPrice']))
     assert tx_after['gasPrice'] > tx_before['gasPrice']
+
+
+def test_retry_impossible(
+        default_chain_spec,
+        init_database,
+        eth_rpc,
+        eth_signer,
+        agent_roles,
+        custodial_roles,
+        celery_session_worker,
+        ):
+
+    rpc = RPCConnection.connect(default_chain_spec, 'default')
+
+    gas_price = 1
+    tx_hashes = []
+    for i in range(MAX_RESEND_ATTEMPTS + 2):
+        nonce_oracle = OverrideNonceOracle(agent_roles['ALICE'], 0)
+        gas_oracle = OverrideGasOracle(price=gas_price, limit=21000)
+        c = Gas(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
+        (tx_hash_hex, tx_signed_raw_hex) = c.create(agent_roles['ALICE'], agent_roles['BOB'], 100 * (10 ** 6), tx_format=TxFormat.RLP_SIGNED)
+        tx_hashes.append(tx_hash_hex)
+
+        queue_create(
+                default_chain_spec,
+                0,
+                agent_roles['ALICE'],
+                tx_hash_hex,
+                tx_signed_raw_hex,
+                session=init_database,
+                )
+        cache_gas_data(
+                tx_hash_hex,
+                tx_signed_raw_hex,
+                default_chain_spec.asdict(),
+                )
+        gas_price += 1
+
+    init_database.commit()
+
+    tx_hash_hex = tx_hashes[0]
+
+    # manually revert state of original transaction back to queued
+    q = init_database.query(Otx)
+    q = q.filter(Otx.tx_hash==strip_0x(tx_hash_hex))
+    otx = q.first()
+    otx.status = 1
+    init_database.add(otx)
+    init_database.commit()
+
+    set_ready(default_chain_spec, tx_hash_hex, session=init_database)
+    set_reserved(default_chain_spec, tx_hash_hex, session=init_database)
+    set_sent(default_chain_spec, tx_hash_hex, session=init_database)
+
+    s = celery.signature(
+            'cic_eth.eth.gas.resend_with_higher_gas',
+            [
+                tx_hash_hex,
+                default_chain_spec.asdict(),
+                ],
+            queue=None
+            )
+    t = s.apply_async()
+
+    with pytest.raises(ResendImpossibleError):
+        t.get_leaf()
+
+    session = SessionBase.create_session()
+    q = session.query(Otx)
+    q = q.filter(Otx.tx_hash==strip_0x(tx_hash_hex))
+    otx = q.first()
+    session.close()
+
+    assert otx.status & StatusBits.UNKNOWN_ERROR.value > 0

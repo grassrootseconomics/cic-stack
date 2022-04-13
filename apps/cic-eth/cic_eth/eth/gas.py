@@ -3,6 +3,7 @@ import logging
 
 # external imports
 import celery
+import sqlalchemy.exc
 from hexathon import (
         strip_0x,
         add_0x,
@@ -47,6 +48,7 @@ from cic_eth.db.models.base import SessionBase
 from cic_eth.error import (
         AlreadyFillingGasError,
         OutOfGasError,
+        ResendImpossibleError,
         )
 from cic_eth.eth.nonce import CustodialTaskNonceOracle
 from cic_eth.queue.tx import (
@@ -72,6 +74,7 @@ from cic_eth.eth.util import MAXIMUM_FEE_UNITS
 celery_app = celery.current_app
 logg = logging.getLogger()
 
+MAX_RESEND_ATTEMPTS = 10
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
@@ -436,7 +439,7 @@ def refill_gas(self, recipient_address, chain_spec_dict):
     return tx_signed_raw_hex
 
 
-@celery_app.task(bind=True, base=CriticalSQLAlchemyAndSignerTask)
+@celery_app.task(bind=True, throws=(ResendImpossibleError,), base=CriticalSQLAlchemyAndSignerTask)
 def resend_with_higher_gas(self, txold_hash_hex, chain_spec_dict, gas=None, default_factor=1.1):
     """Create a new transaction from an existing one with same nonce and higher gas price.
 
@@ -486,25 +489,54 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_spec_dict, gas=None, defa
         new_gas_price += 1
 
     rpc_signer = RPCConnection.connect(chain_spec, 'signer')
-    gas_oracle = OverrideGasOracle(price=new_gas_price, conn=rpc)
 
-    c = TxFactory(chain_spec, signer=rpc_signer, gas_oracle=gas_oracle)
-    logg.debug('change gas price from old {} to new {} for tx {}'.format(tx['gasPrice'], new_gas_price, tx))
-    tx['gasPrice'] = new_gas_price
-    try:
-        (tx_hash_hex, tx_signed_raw_hex) = c.build_raw(tx)
-    except ConnectionError as e:
-        raise SignerError(e)
-    except FileNotFoundError as e:
-        raise SignerError(e)
-    queue_create(
-        chain_spec,
-        tx['nonce'],
-        tx['from'],
-        tx_hash_hex,
-        tx_signed_raw_hex,
-        session=session,
-            )
+    r = False
+    for i in range(MAX_RESEND_ATTEMPTS):
+        gas_oracle = OverrideGasOracle(price=new_gas_price, conn=rpc)
+
+        c = TxFactory(chain_spec, signer=rpc_signer, gas_oracle=gas_oracle)
+        logg.debug('change gas price from old {} to new {} for tx {}'.format(tx['gasPrice'], new_gas_price, tx))
+        tx['gasPrice'] = new_gas_price
+        try:
+            (tx_hash_hex, tx_signed_raw_hex) = c.build_raw(tx)
+        except ConnectionError as e:
+            raise SignerError(e)
+        except FileNotFoundError as e:
+            raise SignerError(e)
+
+        try:
+            queue_create(
+                chain_spec,
+                tx['nonce'],
+                tx['from'],
+                tx_hash_hex,
+                tx_signed_raw_hex,
+                session=session,
+                    )
+        except sqlalchemy.exc.IntegrityError as e:
+            logg.error('failed to create new transaction, attempting slight fee hike. {}'.format(e))
+            new_gas_price += 1
+            session.rollback()
+            continue
+
+        r = True
+        break
+
+    if not r:
+        session.close()
+        s = celery.signature(
+                'cic_eth.queue.state.set_fubar',
+                [
+                    chain_spec_dict,
+                    txold_hash_hex,
+                    ],
+                queue=queue,
+                )
+        t = s.apply_async()
+        logg.error('giving up resends. setting fubar task {} and need manual help'.format(t))
+        raise ResendImpossibleError(txold_hash_hex)
+
+    logg.debug('resending as tx {} {}'.format(tx_hash_hex, tx_signed_raw_hex))
     TxCache.clone(txold_hash_hex, tx_hash_hex, session=session)
     session.close()
 
@@ -519,5 +551,3 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_spec_dict, gas=None, defa
     s.apply_async()
 
     return tx_hash_hex
-
-

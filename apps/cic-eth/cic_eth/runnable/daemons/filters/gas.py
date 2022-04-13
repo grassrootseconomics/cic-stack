@@ -31,7 +31,7 @@ class GasFilter(SyncFilter):
 
     def filter(self, conn, block, tx, db_session):
         super(GasFilter, self).filter(conn, block, tx, db_session)
-        if tx.value > 0:
+        if tx.value > 0 or len(tx.payload) == 0:
             tx_hash_hex = add_0x(tx.hash)
             session = SessionBase.bind_session(db_session)
             q = session.query(TxCache.recipient)

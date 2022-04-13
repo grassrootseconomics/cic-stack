@@ -88,5 +88,10 @@ class YouAreBrokeError(Exception):
 
 
 class TrustError(Exception):
-    """Exception raised when required trust proofs are missing for a request
+    """Required trust proofs are missing for a request
+    """
+
+
+class ResendImpossibleError(Exception):
+    """Resend failed all attempts at mutating a transaction
     """

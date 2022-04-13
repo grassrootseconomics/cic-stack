@@ -58,7 +58,7 @@ def set_fubar(chain_spec_dict, tx_hash):
     session = SessionBase.create_session()
     r = chainqueue.sql.state.set_fubar(chain_spec, tx_hash, session=session)
     session.close()
-    return r
+    return 'foo ' + r
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
