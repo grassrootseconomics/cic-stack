@@ -181,7 +181,7 @@ class AdminApi:
         return s_have.apply_async()
 
 
-    def resend(self, tx_hash_hex, chain_spec, in_place=True, unlock=False, gas_price=None, gas_ratio=1.01):
+    def resend(self, tx_hash_hex, chain_spec, in_place=True, unlock=False, gas_price=None, gas_ratio=1.01, force=False):
 
         if gas_price != None:
             logg.debug('resend {} gas price {}'.format(tx_hash_hex, gas_price))
@@ -200,7 +200,7 @@ class AdminApi:
         # TODO: This check should most likely be in resend task itself
         tx_dict = s_get_tx_cache.apply_async().get()
         #if not is_alive(getattr(StatusEnum, tx_dict['status_code'])):
-        if not is_alive(tx_dict['status_code']):
+        if not force and not is_alive(tx_dict['status_code']):
             raise TxStateChangeError('Cannot resend mined or obsoleted transaction'.format(tx_hash_hex))
         
         if not in_place:
