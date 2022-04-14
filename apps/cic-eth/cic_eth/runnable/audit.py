@@ -143,7 +143,11 @@ def process_final(session, rpc=None, commit=False):
              'fubar': [],
                 }
 
-        items = final_items + inconclusive_items
+        items = {}
+        for k in final_items.keys():
+            items[k] = final_items[k]
+        for k in inconclusive_items.keys():
+            items[k] = inconclusive_items[k]
 
         final_network_item = None
         sender = v[0]
