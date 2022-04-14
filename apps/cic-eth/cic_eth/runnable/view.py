@@ -172,6 +172,7 @@ def main():
             flag = getattr(StatusEnum, v.upper())
         not_status_flags |= flag
 
+
     query = config.get('_QUERY')
     tx_count = config.get('_TX_COUNT')
     try:
