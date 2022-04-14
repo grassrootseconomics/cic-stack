@@ -54,6 +54,7 @@ from cic_eth.registry import connect as connect_registry
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
+logging.getLogger('chainlib').setLevel(logging.WARNING)
 
 default_format = 'terminal'
 
@@ -95,21 +96,21 @@ def process_final(session, rpc=None):
     r = session.execute('select tx_cache.sender, otx.nonce, bit_or(status) as statusaggr from otx inner join tx_cache on otx.id = tx_cache.otx_id group by tx_cache.sender, otx.nonce having bit_or(status) & {} > 0 and bit_or(status) != {} and bit_or(status) != {} order by tx_cache.sender, otx.nonce'.format(StatusBits.FINAL, StatusEnum.SUCCESS, StatusEnum.REVERTED))
     i = 0
     for v in r:
-        logg.info('detected unclean run {} for sender {} nonce {} status {} ({})'.format(i, v[0], v[1], status_str(v[2]), v[2]))
+        logg.info('detected unclean run {} for sender {} nonce {} aggregate status {} ({})'.format(i, v[0], v[1], status_str(v[2]), v[2]))
         i += 1
         unclean_items.append((v[0], v[1],))
     session.flush()
 
-    item_not_final_count = 0
+    item_unclean_count = 0
     item_count = len(unclean_items)
+    item_not_final_count = 0
     for v in unclean_items:
-        item_not_final_count += 1
+        item_unclean_count += 1
         items = {
              'cancel': [],
              'obsolete': [],
              'blocking': [],
              'fubar': [],
-             'needs_fubar': [],
              'network': [],
                 }
         final_network_item = None
@@ -117,6 +118,7 @@ def process_final(session, rpc=None):
         nonce = v[1]
         r = session.execute('select otx.id, tx_hash, status from otx inner join tx_cache on otx.id = tx_cache.otx_id where sender = \'{}\' and nonce = {}'.format(sender, nonce))
         for vv in r:
+            # id, hash, status, sender, nonce
             item = (vv[0], vv[1], vv[2], sender, nonce)
             typ = 'network'
             if vv[2] & StatusBits.OBSOLETE > 0:
@@ -161,63 +163,70 @@ def process_final(session, rpc=None):
 
         if final_network_item == None:
             if rpc == None:
-                logg.info('item {}/{} sender {} nonce {} has no final network state (and no rpc to check for one)'.format(item_not_final_count, item_count, sender, nonce))
+                item_not_final_count += 1 
+                logg.info('item {}/{} (total {}) sender {} nonce {} has no final network state (and no rpc to check for one)'.format(item_unclean_count, item_count, item_not_final_count, sender, nonce))
                 continue
 
 
+        edit_items = []
         for typ in ['obsolete', 'blocking', 'fubar']:
             for v in items[typ]:
-                if final_network_item != None:
-                    break
+                item = v
+                if final_network_item == None:
+                    status = v[2]
+                    found_final = False
 
-                tx_src = None
-                o = transaction(vv[1])
-                try:
-                    tx_src = rpc.do(o)
-                except JSONRPCException:
-                    pass
+                    tx_src = None
+                    o = transaction(v[1])
+                    try:
+                        tx_src = rpc.do(o)
+                    except JSONRPCException:
+                        pass
 
-                if tx_src != None:
-                    o = receipt(vv[1])
-                    rcpt = rpc.do(o)
+                    if tx_src != None:
+                        o = receipt(v[1])
+                        rcpt = rpc.do(o)
 
-                    tx = Tx(tx_src, rcpt=rcpt)
+                        tx = Tx(tx_src, rcpt=rcpt)
 
-                    if tx.status != Status.PENDING:
-                        if tx.status == Status.ERROR:
-                            v[2] |= StatusBits.NETWORK_ERROR
-                        final_network_item = v
-                    logg.info('rpc found {} state for tx {} for sender {} nonce {}'.format(tx.status.name, v[1], v[3], v[4]))
-                else:
-                    logg.debug('no tx {} found in rpc'.format(v[1]))
-
+                        if tx.status != Status.PENDING:
+                            if tx.status == Status.ERROR:
+                                status |= StatusBits.NETWORK_ERROR
+                            status |= StatusBits.IN_NETWORK
+                        item = (v[0], v[1], status, v[3], v[4], typ,)
+                        final_network_item = item
+                        logg.info('rpc found {} state for tx {} for sender {} nonce {}'.format(tx.status.name, v[1], v[3], v[4]))
+                    else:
+                        logg.debug('no tx {} found in rpc'.format(v[1]))
+                edit_items.append(item)
 
         if final_network_item == None:
-            logg.info('item {}/{} sender {} nonce {} has no final network state'.format(item_not_final_count, item_count, sender, nonce))
+            item_not_final_count += 1 
+            logg.info('item {}/{} (total {}) sender {} nonce {} has no final network state'.format(item_unclean_count, item_count, item_not_final_count, sender, nonce))
             continue
 
+    
+        for v in edit_items:
+            logg.info('processing {}'.format(v))
+            effective_typ = v[5]
+            new_status_set = StatusBits.FINAL | StatusBits.MANUAL | StatusBits.OBSOLETE
+            new_status_mask = 0xffffffff
+            if v[0] == final_network_item[0]:
+                new_status_set = StatusBits.FINAL | StatusBits.MANUAL
+                new_status_mask -= StatusBits.OBSOLETE
+                effetive_typ = 'network'
+            new_status = new_status_set & new_status_mask
+            q = session.query(Otx)
+            q = q.filter(Otx.id==v[0])
+            o = q.first()
+            o.status = o.status | new_status
+            o.date_updated = datetime.datetime.utcnow()
+            session.add(o)
 
-        for typ in ['obsolete', 'blocking', 'fubar']:
-            for v in items[typ]:
-                logg.info('processing {}'.format(v))
-                effective_typ = typ
-                new_status_set = StatusBits.FINAL | StatusBits.MANUAL | StatusBits.OBSOLETE
-                new_status_mask = 0xffffffff
-                if v[0] == final_network_item[0]:
-                    new_status_set = StatusBits.FINAL | StatusBits.MANUAL
-                    new_status_mask -= StatusBits.OBSOLETE
-                    effetive_typ = 'network'
-                new_status = new_status_set & new_status_mask
-                q = session.query(Otx)
-                q = q.filter(Otx.id==v[0])
-                o = q.first()
-                o.status = o.status | new_status
-                session.add(o)
+            oo = OtxStateLog(o)
+            session.add(oo)
 
-                oo = OtxStateLog(o)
-                session.add(oo)
-
-                logg.info('{} sender {} nonce {} tx {} status change {} ({}) -> {} ({})'.format(effective_typ, v[3], v[4], v[1], status_str(v[2]), v[2], status_str(o.status), o.status))
+            logg.info('{} sender {} nonce {} tx {} status change {} ({}) -> {} ({})'.format(effective_typ, v[3], v[4], v[1], status_str(v[2]), v[2], status_str(o.status), o.status))
 
 
 def process_incomplete(session, rpc=None):
@@ -239,25 +248,41 @@ def process_incomplete(session, rpc=None):
         sys.stdout.write(vv[0] + '\n')
 
 
+class AuditSession:
+
+    def __init__(self, dry_run=False, rpc=None, fix=False):
+        SessionBase.connect(dsn, 1)
+        self.dry_run = dry_run
+        self.dirty = True
+        self.rpc = rpc
+        self.fix = fix
+        self.session = SessionBase.create_session()
+
+
+    def __del__(self):
+        if self.dirty:
+            logg.warning('incomplete run so rolling back db calls')
+            self.session.rollback()
+        elif self.dry_run:
+            logg.warning('dry run set so rolling back db calls')
+            self.session.rollback()
+        self.session.close()
+
+
+    def run(self):
+        if self.fix:
+            process_final(self.session, rpc=self.rpc)
+        process_incomplete(self.session, rpc=self.rpc)
+        self.session.commit()
+        self.dirty = False
+
+
 def main():
-    SessionBase.connect(dsn, 1)
-    session = SessionBase.create_session()
     use_rpc = None
     if config.true('_CHECK_RPC'):
         use_rpc = conn
-    if config.true('_FIX'):
-        process_final(session, rpc=use_rpc)
-        if config.true('_DRY_RUN'):
-            session.rollback()
-        else:
-            session.commit()
-    process_incomplete(session, rpc=use_rpc)
-    if config.true('_DRY_RUN'):
-        session.rollback()
-    else:
-        session.commit()
-
-    session.close()
+    o = AuditSession(dry_run=config.true('_DRY_RUN'), rpc=use_rpc, fix=config.true('_FIX'))
+    o.run()
 
 
 if __name__ == '__main__':
