@@ -184,6 +184,8 @@ def process_final(session, rpc=None):
                     tx = Tx(tx_src, rcpt=rcpt)
 
                     if tx.status != Status.PENDING:
+                        if tx.status == Status.ERROR:
+                            v[2] |= StatusBits.NETWORK_ERROR
                         final_network_item = v
                     logg.info('rpc found {} state for tx {} for sender {} nonce {}'.format(tx.status.name, v[1], v[3], v[4]))
                 else:
