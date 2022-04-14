@@ -35,6 +35,7 @@ from chainqueue.enum import (
     StatusEnum,
     StatusBits,
     status_str,
+    all_errors,
     )
 from chainqueue.db.models.otx import Otx
 from chainqueue.db.models.state import OtxStateLog
@@ -61,6 +62,7 @@ local_arg_flags = cic_eth.cli.argflag_local_taskcallback
 argparser = cic_eth.cli.ArgumentParser(arg_flags, description="")
 argparser.add_argument('-f', '--format', dest='f', default=default_format, type=str, help='Output format')
 argparser.add_argument('--fix', action='store_true', help='Finalize all non-mined transactions for nonces having final state')
+argparser.add_argument('--dry-run', dest='dry_run', action='store_true', help='Do not commit db changes for --fix')
 argparser.add_argument('--check-rpc', dest='check_rpc', action='store_true', help='Verify finalized transactions with rpc (slow).')
 argparser.process_local_flags(local_arg_flags)
 args = argparser.parse_args()
@@ -69,6 +71,7 @@ extra_args = {
     'f': '_FORMAT',
     'fix': '_FIX',
     'check_rpc': '_CHECK_RPC',
+    'dry_run': '_DRY_RUN',
 }
 config = cic_eth.cli.Config.from_args(args, arg_flags, local_arg_flags, extra_args=extra_args)
 
@@ -97,15 +100,24 @@ def process_final(session, rpc=None):
         unclean_items.append((v[0], v[1],))
     session.flush()
 
+    item_not_final_count = 0
+    item_count = len(unclean_items)
     for v in unclean_items:
+        item_not_final_count += 1
         items = {
              'cancel': [],
              'obsolete': [],
              'blocking': [],
+             'fubar': [],
+             'needs_fubar': [],
              'network': [],
                 }
-        r = session.execute('select otx.id, tx_hash, status from otx inner join tx_cache on otx.id = tx_cache.otx_id where sender = \'{}\' and nonce = {}'.format(v[0], v[1]))
+        final_network_item = None
+        sender = v[0]
+        nonce = v[1]
+        r = session.execute('select otx.id, tx_hash, status from otx inner join tx_cache on otx.id = tx_cache.otx_id where sender = \'{}\' and nonce = {}'.format(sender, nonce))
         for vv in r:
+            item = (vv[0], vv[1], vv[2], sender, nonce)
             typ = 'network'
             if vv[2] & StatusBits.OBSOLETE > 0:
                 if vv[2] & StatusBits.FINAL > 0:
@@ -114,10 +126,18 @@ def process_final(session, rpc=None):
                     typ = 'obsolete'
             elif vv[2] & StatusBits.FINAL == 0:
                 typ = 'blocking'
-            else:
+            elif vv[2] & StatusBits.UNKNOWN_ERROR > 0:
+                typ = 'fubar'
+            elif vv[2] & all_errors() - StatusBits.NETWORK_ERROR > 0:
+                typ = 'blocking'
+            elif final_network_item != None:
+                raise RuntimeError('item {} already has final network item {}'.format(v, final_network_item))
+            else: 
                 if rpc != None:
                     o = transaction(vv[1])
                     tx_src = rpc.do(o)
+                    if tx_src == None:
+                        logg.error('tx {} sender {} nonce {} with FINAL state {} ({}) not found on network'.format(vv[1], sender, nonce, status_str(vv[2]), vv[2]))
                     tx_src = snake_and_camel(tx_src)
                     
                     o = block_by_hash(tx_src['block_hash'])
@@ -134,26 +154,68 @@ def process_final(session, rpc=None):
                     
                     logg.debug('verified rpc tx {} is in block {} index {}'.format(tx.hash, tx.block, tx.index))
 
-            items[typ].append((vv[0], vv[1], vv[2], v[0], v[1],))
-            logg.debug('registered sender {} nonce {} tx {} state {} ({}) as "{}"'.format(v[0], v[1], vv[1], status_str(vv[2]), vv[2], typ))
+                final_network_item = item
 
-        if len(items['network']) == 0:
-            logg.debug('sender {} nonce {} has no final network state'.format(v[0], v[1]))
-            continue
-       
-        for typ in ['obsolete', 'blocking']:
+            items[typ].append(item)
+            logg.debug('tx {} sender {} nonce {} registered as {}'.format(vv[1], sender, nonce, typ))
+
+        if final_network_item == None:
+            if rpc == None:
+                logg.info('item {}/{} sender {} nonce {} has no final network state (and no rpc to check for one)'.format(item_not_final_count, item_count, sender, nonce))
+                continue
+
+
+        for typ in ['obsolete', 'blocking', 'fubar']:
             for v in items[typ]:
+                if final_network_item != None:
+                    break
+
+                tx_src = None
+                o = transaction(vv[1])
+                try:
+                    tx_src = rpc.do(o)
+                except JSONRPCException:
+                    pass
+
+                if tx_src != None:
+                    o = receipt(vv[1])
+                    rcpt = rpc.do(o)
+
+                    tx = Tx(tx_src, rcpt=rcpt)
+
+                    if tx.status != Status.PENDING:
+                        final_network_item = v
+                    logg.info('rpc found {} state for tx {} for sender {} nonce {}'.format(tx.status.name, v[1], v[3], v[4]))
+                else:
+                    logg.debug('no tx {} found in rpc'.format(v[1]))
+
+
+        if final_network_item == None:
+            logg.info('item {}/{} sender {} nonce {} has no final network state'.format(item_not_final_count, item_count, sender, nonce))
+            continue
+
+
+        for typ in ['obsolete', 'blocking', 'fubar']:
+            for v in items[typ]:
+                logg.info('processing {}'.format(v))
+                effective_typ = typ
+                new_status_set = StatusBits.FINAL | StatusBits.MANUAL | StatusBits.OBSOLETE
+                new_status_mask = 0xffffffff
+                if v[0] == final_network_item[0]:
+                    new_status_set = StatusBits.FINAL | StatusBits.MANUAL
+                    new_status_mask -= StatusBits.OBSOLETE
+                    effetive_typ = 'network'
+                new_status = new_status_set & new_status_mask
                 q = session.query(Otx)
                 q = q.filter(Otx.id==v[0])
                 o = q.first()
-                o.status = o.status | StatusBits.FINAL | StatusBits.MANUAL | StatusBits.OBSOLETE
-                continue
+                o.status = o.status | new_status
                 session.add(o)
 
                 oo = OtxStateLog(o)
                 session.add(oo)
 
-                logg.info('{} sender {} nonce {} tx {} status change {} ({}) -> {} ({})'.format(typ, v[3], v[4], v[1], status_str(v[2]), v[2], status_str(o.status), o.status))
+                logg.info('{} sender {} nonce {} tx {} status change {} ({}) -> {} ({})'.format(effective_typ, v[3], v[4], v[1], status_str(v[2]), v[2], status_str(o.status), o.status))
 
 
 def process_incomplete(session, rpc=None):
@@ -183,8 +245,16 @@ def main():
         use_rpc = conn
     if config.true('_FIX'):
         process_final(session, rpc=use_rpc)
-        session.commit()
+        if config.true('_DRY_RUN'):
+            session.rollback()
+        else:
+            session.commit()
     process_incomplete(session, rpc=use_rpc)
+    if config.true('_DRY_RUN'):
+        session.rollback()
+    else:
+        session.commit()
+
     session.close()
 
 
