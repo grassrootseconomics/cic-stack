@@ -44,6 +44,7 @@ argparser.add_argument('--include', dest='include', action='append', type=str, h
 argparser.add_argument('--exclude', dest='exclude', action='append', type=str, help='Exclude audit module')
 argparser.add_argument('-o', '--output-dir', dest='o', type=str, help='Output transaction hashes to this directory')
 argparser.add_argument('--list', action='store_true', help='List available audit modules')
+argparser.add_argument('--after', type=str, help='Only match transactions after this date')
 argparser.process_local_flags(local_arg_flags)
 args = argparser.parse_args()
 
