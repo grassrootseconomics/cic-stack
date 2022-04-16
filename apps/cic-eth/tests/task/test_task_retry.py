@@ -81,7 +81,7 @@ def test_two_retries(
     block = Block.from_src(r)
 
     retry = RetrySyncer(eth_rpc, default_chain_spec, cic_eth.cli.chain_interface, 0, TimeParrot(), failed_grace_seconds=0)
-    fltr = StragglerFilter(default_chain_spec, queue=None)
+    fltr = StragglerFilter(default_chain_spec, 100000000, queue=None)
     retry.add_filter(fltr)
 
     retry.process(eth_rpc, block)
@@ -175,7 +175,7 @@ def test_a_bunch_of_retries(
 
 
     retry = RetrySyncer(eth_rpc, default_chain_spec, cic_eth.cli.chain_interface, 0, TimeParrot(), failed_grace_seconds=0)
-    fltr = StragglerFilter(default_chain_spec, queue=None)
+    fltr = StragglerFilter(default_chain_spec, 100000000, queue=None)
     retry.add_filter(fltr)
 
     i = 1
