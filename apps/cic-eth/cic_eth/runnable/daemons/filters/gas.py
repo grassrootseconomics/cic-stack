@@ -47,7 +47,7 @@ class GasFilter(SyncFilter):
                 logline = self.to_logline(block, tx, logline)
                 logg.info(logline)
                 SessionBase.release_session(session)
-                return
+                return None
 
             self.register_match()
 
@@ -70,7 +70,6 @@ class GasFilter(SyncFilter):
                 logline = 'resuming {} gas-in-waiting txs for {}'.format(len(txs), sender_target)
             else:
                 logline = 'gas refill tx {}'.format(tx)
-
 
             logline = self.to_logline(block, tx, logline)
             logg.info(logline)

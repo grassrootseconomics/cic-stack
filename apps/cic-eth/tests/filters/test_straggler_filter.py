@@ -1,3 +1,6 @@
+# standard imports
+import logging
+
 # external imports
 from chainlib.connection import RPCConnection
 from chainlib.eth.nonce import (
@@ -42,8 +45,10 @@ from cic_eth.queue.query import (
         get_account_tx_local,
         )
 
+logg = logging.getLogger()
 
-def test_tx(
+
+def test_straggler_tx(
         default_chain_spec,
         init_database,
         eth_rpc,
@@ -75,7 +80,7 @@ def test_tx(
     set_reserved(default_chain_spec, tx_hash_hex, session=init_database)
     set_sent(default_chain_spec, tx_hash_hex, session=init_database)
 
-    fltr = StragglerFilter(default_chain_spec, None)
+    fltr = StragglerFilter(default_chain_spec, 0, queue=None)
 
     o = block_latest()
     r = eth_rpc.do(o)
@@ -88,7 +93,9 @@ def test_tx(
     tx_src = unpack(tx_signed_raw_bytes, default_chain_spec)
     tx = Tx(tx_src, block=block)
     t = fltr.filter(None, block, tx, db_session=init_database)
+    logg.debug('foo')
     tx_hash_hex_successor = t.get_leaf()
+    logg.debug('bar')
 
     assert t.successful()
     assert tx_hash_hex_successor != tx_hash_hex
@@ -108,7 +115,7 @@ def test_waitforgas_tx(
         eth_rpc,
         eth_signer,
         agent_roles,
-        celery_worker,
+        celery_session_worker,
         whoever,
         ):
 

@@ -1,3 +1,6 @@
+# standard imports
+import logging
+
 # external imports
 from chainlib.connection import RPCConnection
 from chainlib.eth.nonce import OverrideNonceOracle
@@ -27,6 +30,8 @@ from cic_eth.runnable.daemons.filters.gas import GasFilter
 from cic_eth.eth.gas import cache_gas_data
 from cic_eth.encode import tx_normalize
 from cic_eth.queue.tx import queue_create
+
+logg = logging.getLogger()
 
 
 def test_filter_gas(
@@ -70,7 +75,7 @@ def test_filter_gas(
     queue_create(
             default_chain_spec,
             43,
-            agent_roles['BOB'],
+            agent_roles['CAROL'],
             tx_hash_hex,
             tx_signed_raw_hex,
             session=init_database,
@@ -80,6 +85,7 @@ def test_filter_gas(
             tx_signed_raw_hex,
             default_chain_spec.asdict(),
             )
+    init_database.commit()
 
     fltr = GasFilter(default_chain_spec, queue=None)
 
@@ -93,6 +99,11 @@ def test_filter_gas(
     tx_signed_raw_bytes = bytes.fromhex(strip_0x(tx_signed_raw_hex))
     tx_src = unpack(tx_signed_raw_bytes, default_chain_spec)
     tx = Tx(tx_src, block=block)
+
+    r = init_database.execute('select * from otx inner join tx_cache on otx.id = tx_cache.otx_id')
+    for v in r:
+        logg.info('have row {}'.format(v))
+
     t = fltr.filter(eth_rpc, block, tx, db_session=init_database)
 
     t.get_leaf()
