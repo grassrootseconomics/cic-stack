@@ -35,16 +35,15 @@ arg_flags = cic_eth.cli.argflag_std_base
 local_arg_flags = cic_eth.cli.argflag_local_taskcallback
 argparser = cic_eth.cli.ArgumentParser(arg_flags, description="")
 argparser.add_argument('-f', '--format', dest='f', default=default_format, type=str, help='Output format')
-argparser.add_argument('--exclude-block', dest='exclude_block', action='store_true', help='Exclude output of blocking transactions')
-argparser.add_argument('--exclude-error', dest='exclude_error', action='store_true', help='Exclude update of transactions caught in error state')
-#argparser.add_argument('--check-rpc', dest='check_rpc', action='store_true', help='Verify finalized transactions with rpc (slow).')
+argparser.add_argument('--include', dest='include', action='append', type=str, help='Include output of blocking transactions')
+argparser.add_argument('--exclude', dest='exclude', action='append', type=str, help='Exclude output of blocking transactions')
 argparser.process_local_flags(local_arg_flags)
 args = argparser.parse_args()
 
 extra_args = {
     'f': '_FORMAT',
-    'exclude_block': '_EXCLUDE_BLOCK',
-    'exclude_error': '_EXCLUDE_ERROR',
+    'include': '_INCLUDE',
+    'exclude': '_EXCLUDE',
 }
 config = cic_eth.cli.Config.from_args(args, arg_flags, local_arg_flags, extra_args=extra_args)
 
@@ -59,7 +58,7 @@ if args.f[:1] == 'j':
     fmt = 'json'
 elif args.f[:1] != 't':
     raise ValueError('unknown output format {}'.format(args.f))
-    
+   
 
 def process_block(session, rpc=None, commit=False):
     filter_status = StatusBits.OBSOLETE | StatusBits.FINAL | StatusBits.QUEUED | StatusBits.RESERVED
@@ -103,12 +102,33 @@ def process_error(session, rpc=None, commit=False):
 
 
 def main():
+    all_runs = [
+            'block',
+            'error',
+            ]
     runs = []
-    if not config.true('_EXCLUDE_BLOCK'):
-        runs.append(process_block)
-    if not config.true('_EXCLUDE_ERROR'):
-        runs.append(process_error)
-    o = AuditSession(config, methods=runs)
+    if config.get('_EXCLUDE') == None and config.get('_INCLUDE') == None:
+        runs = all_runs
+    else:
+        if config.get('_EXCLUDE') != None:
+            for v in all_runs:
+                if v not in config.get('_EXCLUDE'):
+                    runs.append(v)
+                else:
+                    logg.info('explicit exclude "{}"'.format(v))
+        if config.get('_INCLUDE') != None:
+            for v in config.get('_INCLUDE'):
+                if v not in runs:
+                    runs.append(v)
+                    logg.info('explicit include "{}"'.format(v))
+
+    runs_m = []
+    g = globals()
+    for v in runs:
+        m = g['process_' + v]
+        runs_m.append(m)
+
+    o = AuditSession(config, methods=runs_m)
     o.run()
 
 
