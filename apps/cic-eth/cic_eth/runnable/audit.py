@@ -64,9 +64,9 @@ arg_flags = cic_eth.cli.argflag_std_base
 local_arg_flags = cic_eth.cli.argflag_local_taskcallback
 argparser = cic_eth.cli.ArgumentParser(arg_flags, description="")
 argparser.add_argument('-f', '--format', dest='f', default=default_format, type=str, help='Output format')
-argparser.add_argument('--exclude-final', action='store_true', help='Exclude update of incomplete finality states')
-argparser.add_argument('--exclude-block', action='store_true', help='Exclude output of blocking transactions')
-argparser.add_argument('--exclude-pending', action='store_true', help='Exclude update of missing enqueueing of pending transactions')
+argparser.add_argument('--exclude-final', dest='exclude_final', action='store_true', help='Exclude update of incomplete finality states')
+argparser.add_argument('--exclude-block', dest='exclude_block', action='store_true', help='Exclude output of blocking transactions')
+argparser.add_argument('--exclude-error', dest='exclude_error', action='store_true', help='Exclude update of transactions caught in error state')
 argparser.add_argument('--dry-run', dest='dry_run', action='store_true', help='Do not commit db changes for --fix')
 argparser.add_argument('--check-rpc', dest='check_rpc', action='store_true', help='Verify finalized transactions with rpc (slow).')
 argparser.process_local_flags(local_arg_flags)
@@ -76,7 +76,7 @@ extra_args = {
     'f': '_FORMAT',
     'exclude_final': '_EXCLUDE_FINAL',
     'exclude_block': '_EXCLUDE_BLOCK',
-    'exclude_pending': '_EXCLUDE_PENDING',
+    'exclude_error': '_EXCLUDE_ERROR',
     'check_rpc': '_CHECK_RPC',
     'dry_run': '_DRY_RUN',
 }
@@ -310,11 +310,30 @@ def process_block(session, rpc=None, commit=False):
     #session.flush()
 
     for v in straggler_accounts:
-        #r = session.execute('select otx.nonce, bit_or(status) as statusaggr from otx inner join tx_cache on otx.id = tx_cache.otx_id where sender = \'{}\' group by otx.nonce having bit_or(status) & {} = 0 order by otx.nonce limit 1'.format(v, filter_status))
-        r = session.execute('select tx_hash from otx inner join tx_cache on otx.id = tx_cache.otx_id where sender = \'{}\' and nonce = {}'.format(v[0], v[1]))
+        r = session.execute('select tx_hash from otx inner join tx_cache on otx.id = tx_cache.otx_id where sender = \'{}\' and nonce = {} order by otx.date_created desc'.format(v[0], v[1]))
         vv = r.first()
         logg.debug('sender {} nonce {} -> {}'.format(v[0], v[1], vv[0]))
         sys.stdout.write(vv[0] + '\n')
+
+
+
+def process_error(session, rpc=None, commit=False):
+    filter_status = StatusBits.FINAL
+    error_status = StatusBits.LOCAL_ERROR | StatusBits.NODE_ERROR | StatusBits.UNKNOWN_ERROR
+    straggler_accounts = []
+    r = session.execute('select tx_cache.sender, otx.nonce, bit_or(status) as statusaggr from otx inner join tx_cache on otx.id = tx_cache.otx_id group by tx_cache.sender, otx.nonce having bit_or(status) & {} = 0 and bit_or(status) & {} > 0 order by otx.nonce'.format(filter_status, error_status))
+    i = 0
+    for v in r:
+        logg.info('detected errored state {} in account {} with aggregate state {} ({})'.format(i, v[0], status_str(v[2]), v[2]))
+        straggler_accounts.append((v[0], v[1],))
+        i += 1
+
+    for v in straggler_accounts:
+        r = session.execute('select tx_hash from otx inner join tx_cache on otx.id = tx_cache.otx_id where sender = \'{}\' and nonce = {} and status & {} > 0 order by otx.date_created desc'.format(v[0], v[1], error_status))
+        vv = r.first()
+        logg.debug('sender {} nonce {} -> {}'.format(v[0], v[1], vv[0]))
+        sys.stdout.write(vv[0] + '\n')
+
 
 
 class AuditSession:
@@ -357,6 +376,8 @@ def main():
         runs.append(process_final)
     if not config.true('_EXCLUDE_BLOCK'):
         runs.append(process_block)
+    if not config.true('_EXCLUDE_ERROR'):
+        runs.append(process_error)
     o = AuditSession(methods=runs, dry_run=config.true('_DRY_RUN'), rpc=use_rpc)
     o.run()
 
