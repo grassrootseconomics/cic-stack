@@ -13,7 +13,7 @@ from chainlib.eth.gas import balance
 from chainqueue.sql.query import get_tx_cache
 from chainqueue.enum import StatusBits
 
-logg = logging.getLogger(__name__)
+logg = logging.getLogger()
 
 
 class StragglerFilter:
@@ -30,18 +30,20 @@ class StragglerFilter:
             o = balance(tx.outputs[0])
             r = conn.do(o)
             gas_balance = hex_to_int(r)
+
+            t = None
             if gas_balance < self.gas_balance_threshold:
                 logg.debug('WAITFORGAS tx ignored since gas balance {} is below threshold {}'.format(gas_balance, self.gas_balance_threshold))
                 s_touch = celery.signature(
                         'cic_eth.queue.state.set_checked',
                         [
-                            tx.hash,
                             self.chain_spec.asdict(),
+                            tx.hash,
                             ],
                         queue=self.queue,
                 )
-                s_touch.apply_async()
-                return False
+                t = s_touch.apply_async()
+                return t
 
 
         try:
@@ -58,8 +60,8 @@ class StragglerFilter:
                 ],
                 queue=self.queue,
         )
-        s_send.apply_async()
-        return False
+        t = s_send.apply_async()
+        return t
 
 
     def __str__(self):
