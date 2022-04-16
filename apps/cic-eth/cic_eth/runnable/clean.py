@@ -63,6 +63,7 @@ argparser = cic_eth.cli.ArgumentParser(arg_flags, description="")
 argparser.add_argument('-f', '--format', dest='f', default=default_format, type=str, help='Output format')
 argparser.add_argument('--dry-run', dest='dry_run', action='store_true', help='Do not commit db changes for --fix')
 argparser.add_argument('--check-rpc', dest='check_rpc', action='store_true', help='Verify finalized transactions with rpc (slow).')
+argparser.add_argument('-o', '--output-dir', dest='o', type=str, help='Output transaction hashes to this directory')
 argparser.process_local_flags(local_arg_flags)
 args = argparser.parse_args()
 
@@ -70,6 +71,7 @@ extra_args = {
     'f': '_FORMAT',
     'check_rpc': '_CHECK_RPC',
     'dry_run': '_DRY_RUN',
+    'o': '_OUTPUT_DIR',
 }
 config = cic_eth.cli.Config.from_args(args, arg_flags, local_arg_flags, extra_args=extra_args)
 
@@ -87,7 +89,7 @@ elif args.f[:1] != 't':
     
 dsn = dsn_from_config(config)
 
-def process_final(session, rpc=None, commit=False):
+def process_final(session, rpc=None, commit=False, w=sys.stdout):
     unclean_items = []
     nonces = {}
 
@@ -257,6 +259,7 @@ def process_final(session, rpc=None, commit=False):
                         session.commit()
 
                     logg.info('{} sender {} nonce {} tx {} status change {} ({}) -> {} ({})'.format(v[5], v[3], v[4], v[1], status_str(v[2]), v[2], status_str(o.status), o.status))
+            w.write(sender + ',' + str(nonce) + '\n')
             continue
 
         
@@ -291,8 +294,8 @@ def process_final(session, rpc=None, commit=False):
 
 def main():
     runs = []
-    runs.append(process_final)
-    o = AuditSession(config, methods=runs, conn=conn)
+    o = AuditSession(config, conn=conn)
+    o.register('final', process_final)
     o.run()
 
 
