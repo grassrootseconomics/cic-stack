@@ -329,10 +329,13 @@ def process_error(session, rpc=None, commit=False):
         i += 1
 
     for v in straggler_accounts:
-        r = session.execute('select tx_hash from otx inner join tx_cache on otx.id = tx_cache.otx_id where sender = \'{}\' and nonce = {} and status & {} > 0 and status & {} = 0 order by otx.date_created desc'.format(v[0], v[1], error_status, StatusBits.IN_NETWORK))
+        r = session.execute('select tx_hash, status from otx inner join tx_cache on otx.id = tx_cache.otx_id where sender = \'{}\' and nonce = {} order by otx.date_created desc limit 1'.format(v[0], v[1]))
         vv = r.first()
-        logg.debug('sender {} nonce {} -> {}'.format(v[0], v[1], vv[0]))
-        sys.stdout.write(vv[0] + '\n')
+        if vv[1] & error_status > 0 and vv[1] & StatusBits.IN_NETWORK == 0:
+            logg.debug('sender {} nonce {} -> {}'.format(v[0], v[1], vv[0]))
+            sys.stdout.write(vv[0] + '\n')
+        else:
+            logg.warning('sender {} nonce {} caught in error state, but the errored tx is not the most recent one. it will need to be handled manually')
 
 
 
