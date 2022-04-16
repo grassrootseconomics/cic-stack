@@ -119,3 +119,13 @@ def obsolete(chain_spec_dict, tx_hash, final):
     r = chainqueue.sql.state.obsolete_by_cache(chain_spec, tx_hash, final, session=session)
     session.close()
     return r
+
+
+@celery_app.task(base=CriticalSQLAlchemyTask)
+def set_checked(chain_spec_dict, tx_hash):
+    tx_hash = tx_normalize.tx_hash(tx_hash)
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
+    session = SessionBase.create_session()
+    r = chainqueue.sql.state.set_updated(chain_spec, tx_hash, session=session)
+    session.close()
+    return r

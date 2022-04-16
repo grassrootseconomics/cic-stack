@@ -11,6 +11,10 @@ from chainlib.eth.connection import EthHTTPConnection
 # local imports
 import cic_eth.cli
 from cic_eth.api.admin import AdminApi
+from cic_eth.error import (
+        OutOfGasError,
+        ResendImpossibleError,
+        )
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -46,7 +50,16 @@ def main():
     api = AdminApi(conn)
     tx_details = api.tx(chain_spec, config.get('_TX_HASH'))
     t = api.resend(args.tx_hash, chain_spec, unlock=config.get('_UNLOCK'), gas_price=config.get('_FEE_PRICE'), force=config.true('_FORCE'))
-    print(t.get_leaf())
+    r = None
+    r = t.get()
+    try:
+        t.get_leaf()
+    except OutOfGasError as e:
+        logg.info('resend successfully queued, but is pending a gas refill. Expect a short delay: {}'.format(e))
+    except ResendImpossibleError as e:
+        logg.critical('resend could not be completed: {}'.format(e))
+        sys.exit(1)
+    print(r)
 
 if __name__ == '__main__':
     main()

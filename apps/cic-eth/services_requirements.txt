@@ -1,4 +1,4 @@
-chainqueue~=0.0.6rc4
+chainqueue~=0.0.6rc6
 chainsyncer[sql]~=0.1.1
 alembic==1.4.2
 confini~=0.5.3

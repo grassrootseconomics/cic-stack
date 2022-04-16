@@ -1,4 +1,4 @@
-chainqueue~=0.0.6rc3
+chainqueue~=0.0.6rc6
 redis==3.5.3
 hexathon~=0.1.5
 pycryptodome==3.10.1

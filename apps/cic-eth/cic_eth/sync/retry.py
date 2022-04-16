@@ -69,28 +69,30 @@ class RetrySyncer(HeadSyncer):
     def process(self, conn, block):
         delta = datetime.timedelta(seconds=self.stalled_grace_seconds)
         before = datetime.datetime.utcnow() - delta
-        syncer_ts = int(self.state_monitor.get('lastseen'))
+        syncer_ts = 0
+        try:
+            syncer_ts = int(self.state_monitor.get('lastseen'))
+        except TypeError:
+            pass
         before_ts = int(before.timestamp())
-        if before_ts > syncer_ts:
+        if syncer_ts == 0:
+            logg.warning('syncer not seen yet. retrier will not be doing anything until it catches up.')
+        elif before_ts > syncer_ts:
             syncer_at = before
             before = datetime.datetime.fromtimestamp(syncer_ts) - delta
             logg.warning('tracker is lagging! adjusting retry threshold from {} to {}'.format(syncer_at, before))
         session = SessionBase.create_session()
         stalled_txs = get_status_tx(
                 self.chain_spec,
-                status=StatusBits.IN_NETWORK.value,
+                status=StatusBits.IN_NETWORK.value | StatusBits.GAS_ISSUES,
                 not_status=StatusBits.FINAL.value | StatusBits.MANUAL.value | StatusBits.OBSOLETE.value,
                 before=before,
                 limit=self.batch_size,
+                compare_checked=True,
                 session=session,
                 )
         session.close()
-#        stalled_txs = get_upcoming_tx(
-#                status=StatusBits.IN_NETWORK.value, 
-#                not_status=StatusBits.FINAL | StatusBits.MANUAL | StatusBits.OBSOLETE,
-#                before=before,
-#                limit=self.batch_size,
-#                )
+
         for tx_signed_raw_hex in stalled_txs.values():
             tx_signed_raw_bytes = bytes.fromhex(strip_0x(tx_signed_raw_hex))
             tx_src = unpack(tx_signed_raw_bytes, self.chain_spec)

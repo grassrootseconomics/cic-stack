@@ -8,20 +8,42 @@ from chainqueue.sql.state import (
     set_fubar,
     )
 from chainqueue.error import TxStateChangeError
+from hexathon import to_int as hex_to_int
+from chainlib.eth.gas import balance
+from chainqueue.sql.query import get_tx_cache
+from chainqueue.enum import StatusBits
 
 logg = logging.getLogger(__name__)
 
 
-
 class StragglerFilter:
 
-    def __init__(self, chain_spec, queue='cic-eth'):
+    def __init__(self, chain_spec, gas_balance_threshold, queue='cic-eth'):
         self.chain_spec = chain_spec
         self.queue = queue
+        self.gas_balance_threshold = gas_balance_threshold
 
 
     def filter(self, conn, block, tx, db_session=None):
-        logg.debug('tx {}'.format(tx))
+        txc = get_tx_cache(self.chain_spec, tx.hash, session=db_session)
+        if txc['status_code'] & StatusBits.GAS_ISSUES > 0:
+            o = balance(tx.outputs[0])
+            r = conn.do(o)
+            gas_balance = hex_to_int(r)
+            if gas_balance < self.gas_balance_threshold:
+                logg.debug('WAITFORGAS tx ignored since gas balance {} is below threshold {}'.format(gas_balance, self.gas_balance_threshold))
+                s_touch = celery.signature(
+                        'cic_eth.queue.state.set_checked',
+                        [
+                            tx.hash,
+                            self.chain_spec.asdict(),
+                            ],
+                        queue=self.queue,
+                )
+                s_touch.apply_async()
+                return False
+
+
         try:
             obsolete_by_cache(self.chain_spec, tx.hash, False, session=db_session)
         except TxStateChangeError:
@@ -36,7 +58,8 @@ class StragglerFilter:
                 ],
                 queue=self.queue,
         )
-        return s_send.apply_async()
+        s_send.apply_async()
+        return False
 
 
     def __str__(self):

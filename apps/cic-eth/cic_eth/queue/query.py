@@ -95,8 +95,8 @@ def get_upcoming_tx_nolock_local(chain_spec, status=StatusEnum.READYSEND, not_st
     return r
 
 
-def get_status_tx(chain_spec, status, not_status=None, before=None, exact=False, limit=0, session=None):
-    return chainqueue.sql.query.get_status_tx_cache(chain_spec, status, not_status=not_status, before=before, exact=exact, limit=limit, session=session, decoder=unpack_normal)
+def get_status_tx(chain_spec, status, not_status=None, before=None, exact=False, compare_checked=False, limit=0, session=None):
+    return chainqueue.sql.query.get_status_tx_cache(chain_spec, status, not_status=not_status, before=before, exact=exact, limit=limit, compare_checked=compare_checked, session=session, decoder=unpack_normal)
 
 
 def get_paused_tx(chain_spec, status=None, sender=None, session=None, decoder=None):
