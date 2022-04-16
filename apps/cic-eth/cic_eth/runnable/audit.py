@@ -40,8 +40,8 @@ arg_flags = cic_eth.cli.argflag_std_base
 local_arg_flags = cic_eth.cli.argflag_local_taskcallback
 argparser = cic_eth.cli.ArgumentParser(arg_flags, description="")
 argparser.add_argument('-f', '--format', dest='f', default=default_format, type=str, help='Output format')
-argparser.add_argument('--include', dest='include', action='append', type=str, help='Include output of blocking transactions')
-argparser.add_argument('--exclude', dest='exclude', action='append', type=str, help='Exclude output of blocking transactions')
+argparser.add_argument('--include', dest='include', action='append', type=str, help='Include audit module')
+argparser.add_argument('--exclude', dest='exclude', action='append', type=str, help='Exclude audit module')
 argparser.add_argument('-o', '--output-dir', dest='o', type=str, help='Output transaction hashes to this directory')
 argparser.add_argument('--list', action='store_true', help='List available audit modules')
 argparser.process_local_flags(local_arg_flags)
@@ -115,7 +115,8 @@ def process_error(session, rpc=None, commit=False, w=sys.stdout):
 
 
 def main():
-    
+   
+    # This could potentially be DRY'd with data-seeding verify
     runs = []
     if config.get('_EXCLUDE') == None and config.get('_INCLUDE') == None:
         runs = all_runs
