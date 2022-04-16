@@ -184,6 +184,16 @@ def process_final(session, rpc=None, commit=False, w=sys.stdout):
             check_typ.append('cancel')
             check_typ.append('fubar')
 
+
+        # If we do not have a tx for the sender/nonce pair with a finalized network state and no rpc was provided, we cannot do anything more at this point, and must defer to manual processing
+        if final_network_item == None:
+            if rpc == None:
+                item_not_final_count += 1 
+                logg.info('item {}/{} (total {}) sender {} nonce {} has no final network state (and no rpc to check for one)'.format(item_unclean_count, item_count, item_not_final_count, sender, nonce))
+                continue
+
+
+        # Now look for whether a finalized network state has been missed by the queue for one of the existing transactions for the sender/nonce pair.
         edit_items = []
         for typ in check_typ:
             for v in items[typ]:
@@ -222,48 +232,6 @@ def process_final(session, rpc=None, commit=False, w=sys.stdout):
                         final_network_item = item
                 edit_items.append(item)
 
-
-        # If we do not have a tx for the sender/nonce pair with a finalized network state and no rpc was provided, we cannot do anything more at this point, and must defer to manual processing
-        if final_network_item == None:
-            if rpc == None:
-                item_not_final_count += 1 
-                logg.info('item {}/{} (total {}) sender {} nonce {} has no final network state (and no rpc to check for one)'.format(item_unclean_count, item_count, item_not_final_count, sender, nonce))
-                continue
-
-
-        # Now look for whether a finalized network state has been missed by the queue for one of the existing transactions for the sender/nonce pair.
-#        for typ in ['obsolete', 'blocking', 'fubar']:
-#            for v in items[typ]:
-#                item = v
-#                status = v[2]
-#                if final_network_item == None:
-#                    found_final = False
-#
-#                    tx_src = None
-#                    o = transaction(v[1])
-#                    try:
-#                        tx_src = rpc.do(o)
-#                    except JSONRPCException:
-#                        pass
-#
-#                    if tx_src != None:
-#                        o = receipt(v[1])
-#                        rcpt = rpc.do(o)
-#
-#                        tx = Tx(tx_src, rcpt=rcpt)
-#
-#                        if tx.status != Status.PENDING:
-#                            if tx.status == Status.ERROR:
-#                                status |= StatusBits.NETWORK_ERROR
-#                            status |= StatusBits.IN_NETWORK
-#                        final_network_item = item
-#                        logg.info('rpc found {} state for tx {} for sender {} nonce {}'.format(tx.status.name, v[1], v[3], v[4]))
-#                        typ = 'network'
-#                    else:
-#                        logg.debug('no tx {} found in rpc'.format(v[1]))
-#
-#                item = (item[0], item[1], status, item[3], item[4], typ,)
-#                edit_items.append(item)
 
         # If we still do not have a finalized network state for the sender/nonce pair, the only option left is to compare the nonce of the transaction with the confirmed transaction count on the network.
         # If the former is smaller thant the latter, it means there is a tx not recorded in the queue which has been confirmed.
