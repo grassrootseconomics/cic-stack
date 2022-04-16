@@ -329,7 +329,7 @@ def process_error(session, rpc=None, commit=False):
         i += 1
 
     for v in straggler_accounts:
-        r = session.execute('select tx_hash from otx inner join tx_cache on otx.id = tx_cache.otx_id where sender = \'{}\' and nonce = {} and status & {} > 0 order by otx.date_created desc'.format(v[0], v[1], error_status))
+        r = session.execute('select tx_hash from otx inner join tx_cache on otx.id = tx_cache.otx_id where sender = \'{}\' and nonce = {} and status & {} > 0 and status & {} = 0 order by otx.date_created desc'.format(v[0], v[1], error_status, StatusBits.IN_NETWORK))
         vv = r.first()
         logg.debug('sender {} nonce {} -> {}'.format(v[0], v[1], vv[0]))
         sys.stdout.write(vv[0] + '\n')
