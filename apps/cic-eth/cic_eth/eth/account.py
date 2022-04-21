@@ -19,7 +19,6 @@ from chainlib.chain import ChainSpec
 from chainlib.error import JSONRPCException
 from eth_accounts_index.registry import AccountRegistry
 from eth_accounts_index import AccountsIndex 
-from sarafu_faucet import MinterFaucet
 from chainqueue.sql.tx import cache_tx_dict
 
 # local import
@@ -192,7 +191,7 @@ def gift(self, account_address, chain_spec_dict):
     # Generate and sign transaction
     rpc_signer = RPCConnection.connect(chain_spec, 'signer')
     nonce_oracle = CustodialTaskNonceOracle(account_address, self.request.root_id, session=session) #, default_nonce)
-    gas_oracle = self.create_gas_oracle(rpc, address=ZERO_ADDRESS, code_callback=MinterFaucet.gas)
+    gas_oracle = self.create_gas_oracle(rpc, address=ZERO_ADDRESS)
     faucet = Faucet(chain_spec, signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
     (tx_hash_hex, tx_signed_raw_hex) = faucet.give_to(faucet_address, account_address, account_address, tx_format=TxFormat.RLP_SIGNED)
     rpc_signer.disconnect()
