@@ -6,6 +6,7 @@ import logging
 import celery
 
 # local imports
+from cic_ussd.account.tokens import get_cached_token_data
 from cic_ussd.account.transaction import from_wei
 from cic_ussd.notifications import Notifier
 from cic_ussd.phone_number import Support
@@ -25,11 +26,15 @@ def transaction(notification_data: dict):
     """
     role = notification_data.get('role')
     token_value = notification_data.get('token_value')
-    amount = token_value if token_value == 0 else from_wei(token_value)
+    token_symbol = notification_data.get('token_symbol')
+    blockchain_address = notification_data.get('blockchain_address')
+    token_data = get_cached_token_data(blockchain_address, token_symbol)
+    decimals = token_data.get('decimals')
+    amount = token_value if token_value == 0 else from_wei(decimals, token_value)
     balance = notification_data.get('available_balance')
     phone_number = notification_data.get('phone_number')
     preferred_language = notification_data.get('preferred_language')
-    token_symbol = notification_data.get('token_symbol')
+
     alt_metadata_id = notification_data.get('alt_metadata_id')
     metadata_id = notification_data.get('metadata_id')
     transaction_type = notification_data.get('transaction_type')

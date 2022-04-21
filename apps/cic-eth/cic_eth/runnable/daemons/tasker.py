@@ -26,6 +26,10 @@ from chainlib.chain import ChainSpec
 from chainqueue.db.models.otx import Otx
 from cic_eth_registry.error import UnknownContractError
 from cic_eth_registry.erc20 import ERC20Token
+from cic_eth.eth.util import (
+        MAXIMUM_FEE_UNITS,
+        MaxGasOracle,
+        )
 from hexathon import add_0x
 import liveness.linux
 
@@ -39,6 +43,7 @@ from cic_eth.eth import (
         nonce,
         gas,
         )
+from cic_eth import debug
 from cic_eth.admin import (
         debug,
         ctrl,
@@ -67,7 +72,10 @@ from cic_eth.registry import (
         connect_declarator,
         connect_token_registry,
         )
-from cic_eth.task import BaseTask
+from cic_eth.task import (
+        BaseTask,
+        CriticalWeb3Task,
+        )
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
@@ -76,18 +84,22 @@ arg_flags = cic_eth.cli.argflag_std_read
 local_arg_flags = cic_eth.cli.argflag_local_task
 argparser = cic_eth.cli.ArgumentParser(arg_flags)
 argparser.process_local_flags(local_arg_flags)
-argparser.add_argument('--default-token-symbol', dest='default_token_symbol', type=str, help='Symbol of default token to use')
+argparser.add_argument('--celery-worker-pool', type=str, help='Celery pool type (passed to celery as --pool)')
+argparser.add_argument('--celery-worker-count', type=int, help='Celery concurrency level (passed to celery as --concurrency)')
 argparser.add_argument('--trace-queue-status', default=None, dest='trace_queue_status', action='store_true', help='set to perist all queue entry status changes to storage')
 argparser.add_argument('--aux-all', action='store_true', help='include tasks from all submodules from the aux module path')
+argparser.add_argument('--min-fee-price', dest='min_fee_price', type=int, help='set minimum fee price for transactions, in wei')
 argparser.add_argument('--aux', action='append', type=str, default=[], help='add single submodule from the aux module path')
 args = argparser.parse_args()
 
 # process config
 extra_args = {
-    'default_token_symbol': 'CIC_DEFAULT_TOKEN_SYMBOL',
     'aux_all': None,
     'aux': None,
     'trace_queue_status': 'TASKS_TRACE_QUEUE_STATUS',
+    'min_fee_price': 'ETH_MIN_FEE_PRICE',
+    'celery_worker_count': 'CELERY_WORKER_COUNT',
+    'celery_worker_pool': 'CELERY_WORKER_POOL',
         }
 config = cic_eth.cli.Config.from_args(args, arg_flags, local_arg_flags)
 
@@ -187,6 +199,17 @@ elif len(args.aux) > 0:
         logg.info('aux module {} found in path {}'.format(v, aux_dir))
         aux.append(v)
 
+default_token_symbol = config.get('CIC_DEFAULT_TOKEN_SYMBOL')
+defaullt_token_address = None
+if default_token_symbol:
+    default_token_address = registry.by_name(default_token_symbol)
+else:
+    default_token_address = registry.by_name('DefaultToken')
+    c = ERC20Token(chain_spec, conn, default_token_address)
+    default_token_symbol = c.symbol
+    logg.info('found default token {} address {}'.format(default_token_symbol, default_token_address))
+    config.add(default_token_symbol, 'CIC_DEFAULT_TOKEN_SYMBOL', exists_ok=True)
+
 for v in aux:
     mname = 'cic_eth_aux.' + v
     mod = importlib.import_module(mname)
@@ -205,14 +228,40 @@ def main():
     argv.append(config.get('CELERY_QUEUE'))
     argv.append('--config')
     argv.append('celeryconfig')
+    argv.append('--pool')
+    argv.append(config.get('CELERY_WORKER_POOL'))
 
+    worker_count = 0
+    try:
+        worker_count = int(config.get('CELERY_WORKER_COUNT'))
+    except ValueError:
+        pass
+    if worker_count > 0:
+        argv.append('--concurrency')
+        argv.append(config.get('CELERY_WORKER_COUNT'))
 
-    BaseTask.default_token_symbol = config.get('CIC_DEFAULT_TOKEN_SYMBOL')
-    BaseTask.default_token_address = registry.by_name(BaseTask.default_token_symbol)
-    default_token = ERC20Token(chain_spec, conn, BaseTask.default_token_address)
+    logg.info('executing celery with argv: {}'.format(argv))
+
+    # TODO: More elegant way of setting queue-wide settings
+    BaseTask.default_token_symbol = default_token_symbol
+    BaseTask.default_token_address = default_token_address
+    default_token = ERC20Token(chain_spec, conn, add_0x(BaseTask.default_token_address))
     default_token.load(conn)
     BaseTask.default_token_decimals = default_token.decimals
     BaseTask.default_token_name = default_token.name
+    BaseTask.trusted_addresses = trusted_addresses
+    BaseTask.debug_log = config.true('CELERY_DEBUG_LOG')
+    MaxGasOracle.fee_units = int(config.get('ETH_MAX_FEE_UNITS'))
+
+    CriticalWeb3Task.safe_gas_refill_amount = int(config.get('ETH_GAS_HOLDER_MINIMUM_UNITS')) * int(config.get('ETH_GAS_HOLDER_REFILL_UNITS'))
+    CriticalWeb3Task.safe_gas_threshold_amount = int(config.get('ETH_GAS_HOLDER_MINIMUM_UNITS')) * int(config.get('ETH_GAS_HOLDER_REFILL_THRESHOLD'))
+    CriticalWeb3Task.safe_gas_gifter_balance = int(config.get('ETH_GAS_HOLDER_MINIMUM_UNITS')) * int(config.get('ETH_GAS_GIFTER_REFILL_BUFFER'))
+    if config.get('ETH_MIN_FEE_PRICE'):
+        BaseTask.min_fee_price = int(config.get('ETH_MIN_FEE_PRICE'))
+        CriticalWeb3Task.safe_gas_threshold_amount *= BaseTask.min_fee_price
+        CriticalWeb3Task.safe_gas_refill_amount = CriticalWeb3Task.safe_gas_refill_amount + MAXIMUM_FEE_UNITS
+        CriticalWeb3Task.safe_gas_refill_amount *= (BaseTask.min_fee_price + int(config.get('ETH_GAS_GIFT_MIN_PRICE_BUFFER')))
+        CriticalWeb3Task.safe_gas_gifter_balance *= BaseTask.min_fee_price
 
     BaseTask.run_dir = config.get('CIC_RUN_DIR')
     logg.info('default token set to {} {}'.format(BaseTask.default_token_symbol, BaseTask.default_token_address))

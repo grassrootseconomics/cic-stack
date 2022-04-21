@@ -11,6 +11,7 @@ from cic_eth_registry import CICRegistry
 from chainlib.chain import ChainSpec
 from chainlib.connection import RPCConnection
 from chainsyncer.filter import SyncFilter
+from stateness.redis import RedisMonitor
 
 # local imports
 import cic_eth.cli
@@ -39,6 +40,9 @@ extra_args = {
         }
 config = cic_eth.cli.Config.from_args(args, arg_flags, local_arg_flags, extra_args=extra_args)
 
+# connect to celery
+celery_app = cic_eth.cli.CeleryApp.from_config(config)
+
 # connect to database
 dsn = dsn_from_config(config)
 SessionBase.connect(dsn, debug=config.true('DATABASE_DEBUG'))
@@ -57,9 +61,14 @@ def main():
         stat = init_chain_stat(conn)
         loop_interval = stat.block_average()
 
-    syncer = RetrySyncer(conn, chain_spec, cic_eth.cli.chain_interface, straggler_delay, batch_size=config.get('RETRY_BATCH_SIZE'))
+    min_fee_price = int(config.get('ETH_MIN_FEE_PRICE'))
+    safe_gas_threshold_amount = int(config.get('ETH_GAS_HOLDER_MINIMUM_UNITS')) * int(config.get('ETH_GAS_HOLDER_REFILL_THRESHOLD'))
+    safe_gas_threshold_amount *= min_fee_price
+
+    sync_state_monitor = RedisMonitor('cic-eth-tracker', host=config.get('REDIS_HOST'), port=config.get('REDIS_PORT'), db=config.get('REDIS_DB'))
+    syncer = RetrySyncer(conn, chain_spec, cic_eth.cli.chain_interface, straggler_delay, sync_state_monitor, batch_size=config.get('RETRY_BATCH_SIZE'))
     syncer.backend.set(0, 0)
-    fltr = StragglerFilter(chain_spec, queue=config.get('CELERY_QUEUE'))
+    fltr = StragglerFilter(chain_spec, safe_gas_threshold_amount, queue=config.get('CELERY_QUEUE'))
     syncer.add_filter(fltr)
     syncer.loop(int(loop_interval), conn)
 

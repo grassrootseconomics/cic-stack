@@ -24,8 +24,22 @@ class AccountRole(SessionBase):
     tag = Column(Text)
     address_hex = Column(String(42))
 
-    
-    # TODO: 
+
+    @staticmethod
+    def all(session=None):
+        session = SessionBase.bind_session(session)
+
+        pairs = []
+
+        q = session.query(AccountRole.tag, AccountRole.address_hex)
+        for r in q.all():
+            pairs.append((r[1], r[0]),)
+
+        SessionBase.release_session(session)
+        
+        return pairs
+
+
     @staticmethod
     def get_address(tag, session):
         """Get Ethereum address matching the given tag

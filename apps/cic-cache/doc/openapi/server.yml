@@ -1,4 +1,4 @@
-openapi: "3.0.3"
+openapi: "3.0.2"
 info:
   title: Grassroots Economics CIC Cache
   description: Cache of processed transaction data from Ethereum blockchain and worker queues
@@ -9,17 +9,34 @@ info:
     email: will@grassecon.org
   license:
     name: GPLv3
-  version: 0.1.0
+  version: 0.2.0
 
 paths:
-  /tx/{offset}/{limit}:
-    description: Bloom filter for batch of latest transactions
+  /defaultlimit:
+    summary: The default limit value of result sets.
+    get:
+      tags:
+        - transactions
+      description:
+        Retrieve default limit
+      operationId: limit.default
+      responses:
+        200:
+          description: Limit query successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Limit"
+
+  /tx:
+    summary: Bloom filter for batch of latest transactions
+    description: Generate a bloom filter of the latest transactions in the cache. The number of maximum number of transactions returned is returned by the `/defaultlimit` API call.
     get:
       tags:
         - transactions
       description:
         Retrieve transactions
-      operationId: tx.get
+      operationId: tx.get.latest
       responses:
         200:
           description: Transaction query successful.
@@ -29,27 +46,153 @@ paths:
                 $ref: "#/components/schemas/BlocksBloom"
 
 
-    parameters:
-    - name: offset
-      in: path
-      schema:
-        type: integer
-        format: int32
-    - name: limit
-      in: path
-      schema:
-        type: integer
-        format: int32
-
-
-  /tx/{address}/{offset}/{limit}:
-    description: Bloom filter for batch of latest transactions by account
+  /tx/{limit}:
+    summary: Bloom filter for batch of latest transactions
+    description: Generate a bloom filter of the latest transactions in the cache. If `limit` is 0, the number of maximum number of transactions returned is returned by the `/defaultlimit` API call.
     get:
       tags:
         - transactions
       description:
         Retrieve transactions
-      operationId: tx.get
+      operationId: tx.get.latest.limit
+      responses:
+        200:
+          description: Transaction query successful. Results are ordered from newest to oldest.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlocksBloom"
+    parameters:
+    - name: limit
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+
+
+  /tx/{limit}/{offset}:
+    summary: Bloom filter for batch of latest transactions
+    description: Generate a bloom filter of the latest transactions in the cache. If `limit` is 0, the number of maximum number of transactions returned is returned by the `/defaultlimit` API call.
+    get:
+      tags:
+        - transactions
+      description:
+        Retrieve transactions
+      operationId: tx.get.latest.range
+      responses:
+        200:
+          description: Transaction query successful. Results are ordered from newest to oldest.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlocksBloom"
+    parameters:
+    - name: limit
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: offset
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+
+
+  /tx/{limit}/{offset}/{block_offset}:
+    summary: Bloom filter for batch of transactions since a particular block.
+    description: Generate a bloom filter of the latest transactions since a particular block in the cache. The block parameter is inclusive. If `limit` is 0, the number of maximum number of transactions returned is returned by the `/defaultlimit` API call.
+    get:
+      tags:
+        - transactions
+      description:
+        Retrieve transactions
+      operationId: tx.get.latest.range.block.offset
+      responses:
+        200:
+          description: Transaction query successful. Results are ordered from oldest to newest.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlocksBloom"
+
+    parameters:
+    - name: limit
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: offset
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: block_offset
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+
+
+  /tx/{limit}/{offset}/{block_offset}/{block_end}:
+    summary: Bloom filter for batch of transactions within a particular block range.
+    description: Generate a bloom filter of the latest transactions within a particular block range in the cache. The block parameters are inclusive. If `limit` is 0, the number of maximum number of transactions returned is returned by the `/defaultlimit` API call.
+    get:
+      tags:
+        - transactions
+      description:
+        Retrieve transactions
+      operationId: tx.get.latest.range.block.range
+      responses:
+        200:
+          description: Transaction query successful.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlocksBloom"
+
+    parameters:
+    - name: limit
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: offset
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: block_offset
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: block_end
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+
+
+  /tx/{address}:
+    summary: Bloom filter for batch of latest transactions by account.
+    description: Generate a bloom filter of the latest transactions where a specific account is the spender or beneficiary.
+    get:
+      tags:
+        - transactions
+      description:
+        Retrieve transactions
+      operationId: tx.get.user
       responses:
         200:
           description: Transaction query successful. 
@@ -58,6 +201,30 @@ paths:
               schema:
                 $ref: "#/components/schemas/BlocksBloom"
 
+    parameters:
+    - name: address
+      in: path
+      required: true
+      schema:
+        type: string
+
+
+  /tx/{address}/{limit}:
+    summary: Bloom filter for batch of latest transactions by account.
+    description: Generate a bloom filter of the latest transactions where a specific account is the spender or beneficiary. If `limit` is 0, the number of maximum number of transactions returned is returned by the `/defaultlimit` API call.
+    get:
+      tags:
+        - transactions
+      description:
+        Retrieve transactions
+      operationId: tx.get.user.limit
+      responses:
+        200:
+          description: Transaction query successful. 
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlocksBloom"
 
     parameters:
     - name: address
@@ -65,26 +232,317 @@ paths:
       required: true
       schema:
         type: string
-    - name: offset
-      in: path
-      schema:
-        type: integer
-        format: int32
     - name: limit
       in: path
+      required: true
       schema:
         type: integer
         format: int32
 
+
+  /tx/{address}/{limit}/{offset}:
+    summary: Bloom filter for batch of latest transactions by account
+    description: Generate a bloom filter of the latest transactions where a specific account is the spender or beneficiary. If `limit` is 0, the number of maximum number of transactions returned is returned by the `/defaultlimit` API call.
+    get:
+      tags:
+        - transactions
+      description:
+        Retrieve transactions
+      operationId: tx.get.user.range
+      responses:
+        200:
+          description: Transaction query successful. 
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlocksBloom"
+
+    parameters:
+    - name: address
+      in: path
+      required: true
+      schema:
+        type: string
+    - name: limit
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: offset
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+
+
+  /txa:
+    summary: Cached data for latest transactions.
+    description: Return data entries of the latest transactions in the cache. The number of maximum number of transactions returned is returned by the `/defaultlimit` API call.
+    get:
+      tags:
+        - transactions
+      description:
+        Retrieve transactions
+      operationId: txa.get.latest
+      responses:
+        200:
+          description: Transaction query successful.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionList"
+
+    
+  /txa/{limit}:
+    summary: Cached data for latest transactions.
+    description: Return data entries of the latest transactions in the cache. If `limit` is 0, the number of maximum number of transactions returned is returned by the `/defaultlimit` API call.
+    get:
+      tags:
+        - transactions
+      description:
+        Retrieve transactions
+      operationId: txa.get.latest.limit
+      responses:
+        200:
+          description: Transaction query successful.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionList"
+
+    parameters:
+    - name: limit
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+
+
+  /txa/{limit}/{offset}:
+    summary: Cached data for latest transactions.
+    description: Return data entries of the latest transactions in the cache. If `limit` is 0, the number of maximum number of transactions returned is returned by the `/defaultlimit` API call.
+    get:
+      tags:
+        - transactions
+      description:
+        Retrieve transactions
+      operationId: txa.get.latest.range
+      responses:
+        200:
+          description: Transaction query successful.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionList"
+
+    parameters:
+    - name: limit
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: offset
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+
+
+  /txa/{limit}/{offset}/{block_offset}:
+    summary: Cached data for transactions since a particular block.
+    description: Return cached data entries of transactions since a particular block. The block parameter is inclusive. If `limit` is 0, the number of maximum number of transactions returned is returned by the `/defaultlimit` API call.
+    get:
+      tags:
+        - transactions
+      description:
+        Retrieve transactions
+      operationId: txa.get.latest.range.block.offset
+      responses:
+        200:
+          description: Transaction query successful.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionList"
+
+    parameters:
+    - name: limit
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: offset
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: block_offset
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+
+  /txa/{limit}/{offset}/{block_offset}/{block_end}:
+    summary: Cached data for transactions within a particular block range.
+    description: Return cached data entries of transactions within a particular block range in the cache. The block parameters are inclusive. If `limit` is 0, the number of maximum number of transactions returned is returned by the `/defaultlimit` API call.
+    get:
+      tags:
+        - transactions
+      description:
+        Retrieve transactions
+      operationId: txa.get.latest.range.block.range
+      responses:
+        200:
+          description: Transaction query successful.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionList"
+
+    parameters:
+    - name: limit
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: offset
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: block_offset
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: block_end
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+
+
+  /txa/{address}:
+    summary: Cached data for batch of latest transactions by account.
+    description: Return cached data of the latest transactions where a specific account is the spender or beneficiary.
+    get:
+      tags:
+        - transactions
+      description:
+        Retrieve transactions
+      operationId: txa.get.user
+      responses:
+        200:
+          description: Transaction query successful. 
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionList"
+
+    parameters:
+    - name: address
+      in: path
+      required: true
+      schema:
+        type: string
+
+
+  /txa/{address}/{limit}:
+    summary: Cached data for batch of latest transactions by account.
+    description: Return cached data of the latest transactions where a specific account is the spender or beneficiary. If `limit` is 0, the number of maximum number of transactions returned is returned by the `/defaultlimit` API call.
+    get:
+      tags:
+        - transactions
+      description:
+        Retrieve transactions
+      operationId: txa.get.user.limit
+      responses:
+        200:
+          description: Transaction query successful. 
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionList"
+
+    parameters:
+    - name: address
+      in: path
+      required: true
+      schema:
+        type: string
+    - name: limit
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+
+
+  /txa/{address}/{limit}/{offset}:
+    summary: Cached data for batch of latest transactions by account.
+    description: Return cached data of the latest transactions where a specific account is the spender or beneficiary. If `limit` is 0, the number of maximum number of transactions returned is returned by the `/defaultlimit` API call.
+    get:
+      tags:
+        - transactions
+      description:
+        Retrieve transactions
+      operationId: txa.get.user.range
+      responses:
+        200:
+          description: Transaction query successful. 
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionList"
+
+    parameters:
+    - name: address
+      in: path
+      required: true
+      schema:
+        type: string
+    - name: limit
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+    - name: offset
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+
+
 components:
   schemas:
+    Limit:
+      type: integer
+      format: int32
     BlocksBloom:
       type: object
       properties:
         low:
-          type: int
+          type: integer
           format: int32
           description: The lowest block number included in the filter
+        high:
+          type: integer
+          format: int32
+          description: The highest block number included in the filter
         block_filter:
           type: string
           format: byte
@@ -97,6 +555,89 @@ components:
           type: string
           description: Hashing algorithm (currently only using sha256)
         filter_rounds:
-          type: int
+          type: integer
           format: int32
           description: Number of hash rounds used to create the filter
+    TransactionList:
+      type: object
+      properties:
+        low:
+          type: integer
+          format: int32
+          description: The lowest block number included in the result set
+        high:
+          type: integer
+          format: int32
+          description: The highest block number included in the filter
+        data:
+          type: array
+          description: Cached transaction data
+          items:
+            $ref: "#/components/schemas/Transaction"
+    Transaction:
+      type: object
+      properties:
+        block_number:
+          type: integer
+          format: int64
+          description: Block number transaction was included in.
+        tx_hash:
+          type: string
+          description: Transaction hash, in hex.
+        date_block:
+          type: integer
+          format: int32
+          description: Block timestamp.
+        sender:
+          type: string
+          description: Spender address, in hex.
+        recipient:
+          type: string
+          description: Beneficiary address, in hex.
+        from_value:
+          type: integer
+          format: int64
+          description: Value deducted from spender's balance.
+        to_value:
+          type: integer
+          format: int64
+          description: Value added to beneficiary's balance.
+        source_token:
+          type: string
+          description: Network address of token in which `from_value` is denominated.
+        destination_token:
+          type: string
+          description: Network address of token in which `to_value` is denominated.
+        success:
+          type: boolean
+          description: Network consensus state on whether the transaction was successful or not.
+        tx_type:
+          type: string
+          enum:
+            - erc20.faucet
+            - faucet.give_to
+
+  examples:
+    data_last:
+      summary: Get the latest cached transactions, using the server's default limit. 
+      value: "/txa"
+
+    data_limit:
+      summary: Get the last 42 cached transactions. 
+      value: "/txa/42"
+
+    data_range:
+      summary: Get the next 42 cached transactions, starting from the 13th (zero-indexed).
+      value: "/txa/42/13"
+
+    data_range_block_offset:
+      summary: Get the next 42 cached transactions, starting from block 1337 (inclusive).
+      value: "/txa/42/0/1337"
+
+    data_range_block_offset:
+      summary: Get the next 42 cached transactions within blocks 1337 and 1453 (inclusive).
+      value: "/txa/42/0/1337/1453"
+
+    data_range_block_range:
+      summary: Get the next 42 cached transactions after the 13th, within blocks 1337 and 1453 (inclusive).
+      value: "/txa/42/13/1337/1453"

@@ -10,12 +10,19 @@ from chainlib.eth.tx import (
         TxFormat,
         unpack,
         )
+from chainlib.eth.contract import (
+        ABIContractEncoder,
+        )
 from cic_eth_registry import CICRegistry
 from cic_eth_registry.erc20 import ERC20Token
-from hexathon import strip_0x
+from hexathon import (
+        strip_0x,
+        add_0x,
+        )
 from chainqueue.error import NotLocalTxError
 from eth_erc20 import ERC20
 from chainqueue.sql.tx import cache_tx_dict
+from okota.token_index.index import to_identifier
 
 # local imports
 from cic_eth.db.models.base import SessionBase
@@ -27,24 +34,26 @@ from cic_eth.error import (
         YouAreBrokeError,
         )
 from cic_eth.queue.tx import register_tx
-from cic_eth.eth.gas import (
-        create_check_gas_task,
-        MaxGasOracle,
-        )
+from cic_eth.eth.gas import create_check_gas_task
+from cic_eth.eth.util import CacheGasOracle
 from cic_eth.ext.address import translate_address
 from cic_eth.task import (
         CriticalSQLAlchemyTask,
         CriticalWeb3Task,
         CriticalSQLAlchemyAndSignerTask,
+        BaseTask,
     )
 from cic_eth.eth.nonce import CustodialTaskNonceOracle
+from cic_eth.encode import tx_normalize
+from cic_eth.eth.trust import verify_proofs
+from cic_eth.error import SignerError
 
 celery_app = celery.current_app
 logg = logging.getLogger()
 
 
-@celery_app.task(base=CriticalWeb3Task)
-def balance(tokens, holder_address, chain_spec_dict):
+@celery_app.task(bind=True, base=CriticalWeb3Task)
+def balance(self, tokens, holder_address, chain_spec_dict):
     """Return token balances for a list of tokens for given address
 
     :param tokens: Token addresses
@@ -62,8 +71,10 @@ def balance(tokens, holder_address, chain_spec_dict):
 
     for t in tokens:
         address = t['address']
-        token = ERC20Token(chain_spec, rpc, address)
-        c = ERC20(chain_spec)
+        logg.debug('address {} {}'.format(address, holder_address))
+        gas_oracle = self.create_gas_oracle(rpc, address=address, min_price=self.min_fee_price)
+        token = ERC20Token(chain_spec, rpc, add_0x(address))
+        c = ERC20(chain_spec, gas_oracle=gas_oracle)
         o = c.balance_of(address, holder_address, sender_address=caller_address)
         r = rpc.do(o)
         t['balance_network'] = c.parse_balance(r)
@@ -146,8 +157,12 @@ def transfer_from(self, tokens, holder_address, receiver_address, value, chain_s
     rpc_signer = RPCConnection.connect(chain_spec, 'signer')
 
     session = self.create_session()
+
     nonce_oracle = CustodialTaskNonceOracle(holder_address, self.request.root_id, session=session)
-    gas_oracle = self.create_gas_oracle(rpc, MaxGasOracle.gas)
+    enc = ABIContractEncoder()
+    enc.method('transferFrom')
+    method = enc.get()
+    gas_oracle = self.create_gas_oracle(rpc, t['address'], method=method, session=session, min_price=self.min_fee_price)
     c = ERC20(chain_spec, signer=rpc_signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle)
     try:
         (tx_hash_hex, tx_signed_raw_hex) = c.transfer_from(t['address'], spender_address, holder_address, receiver_address, value, tx_format=TxFormat.RLP_SIGNED)
@@ -217,8 +232,12 @@ def transfer(self, tokens, holder_address, receiver_address, value, chain_spec_d
     rpc_signer = RPCConnection.connect(chain_spec, 'signer')
 
     session = self.create_session()
+
+    enc = ABIContractEncoder()
+    enc.method('transfer')
+    method = enc.get()
+    gas_oracle = self.create_gas_oracle(rpc, address=t['address'], method=method, session=session, min_price=self.min_fee_price)
     nonce_oracle = CustodialTaskNonceOracle(holder_address, self.request.root_id, session=session)
-    gas_oracle = self.create_gas_oracle(rpc, MaxGasOracle.gas)
     c = ERC20(chain_spec, signer=rpc_signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle)
     try:
         (tx_hash_hex, tx_signed_raw_hex) = c.transfer(t['address'], holder_address, receiver_address, value, tx_format=TxFormat.RLP_SIGNED)
@@ -286,8 +305,12 @@ def approve(self, tokens, holder_address, spender_address, value, chain_spec_dic
     rpc_signer = RPCConnection.connect(chain_spec, 'signer')
 
     session = self.create_session()
+
     nonce_oracle = CustodialTaskNonceOracle(holder_address, self.request.root_id, session=session)
-    gas_oracle = self.create_gas_oracle(rpc, MaxGasOracle.gas)
+    enc = ABIContractEncoder()
+    enc.method('approve')
+    method = enc.get()
+    gas_oracle = self.create_gas_oracle(rpc, t['address'], method=method, session=session)
     c = ERC20(chain_spec, signer=rpc_signer, gas_oracle=gas_oracle, nonce_oracle=nonce_oracle)
     try:
         (tx_hash_hex, tx_signed_raw_hex) = c.approve(t['address'], holder_address, spender_address, value, tx_format=TxFormat.RLP_SIGNED)
@@ -371,16 +394,20 @@ def cache_transfer_data(
     tx = unpack(tx_signed_raw_bytes, chain_spec)
 
     tx_data = ERC20.parse_transfer_request(tx['data'])
-    recipient_address = tx_data[0]
+    sender_address = tx_normalize.wallet_address(tx['from'])
+    recipient_address = tx_normalize.wallet_address(tx_data[0])
     token_value = tx_data[1]
+    source_token_address = tx_normalize.executable_address(tx['to'])
+    destination_token_address = source_token_address
+
 
     session = SessionBase.create_session()
     tx_dict = {
             'hash': tx_hash_hex,
-            'from': tx['from'],
+            'from': sender_address,
             'to': recipient_address,
-            'source_token': tx['to'],
-            'destination_token': tx['to'],
+            'source_token': source_token_address,
+            'destination_token': destination_token_address,
             'from_value': token_value,
             'to_value': token_value,
             }
@@ -412,14 +439,16 @@ def cache_transfer_from_data(
     spender_address = tx_data[0]
     recipient_address = tx_data[1]
     token_value = tx_data[2]
+    source_token_address = tx_normalize.executable_address(tx['to'])
+    destination_token_address = source_token_address
 
     session = SessionBase.create_session()
     tx_dict = {
             'hash': tx_hash_hex,
             'from': tx['from'],
             'to': recipient_address,
-            'source_token': tx['to'],
-            'destination_token': tx['to'],
+            'source_token': source_token_address,
+            'destination_token': destination_token_address,
             'from_value': token_value,
             'to_value': token_value,
             }
@@ -448,16 +477,19 @@ def cache_approve_data(
     tx = unpack(tx_signed_raw_bytes, chain_spec)
 
     tx_data = ERC20.parse_approve_request(tx['data'])
-    recipient_address = tx_data[0]
+    sender_address = tx_normalize.wallet_address(tx['from'])
+    recipient_address = tx_normalize.wallet_address(tx_data[0])
     token_value = tx_data[1]
+    source_token_address = tx_normalize.executable_address(tx['to'])
+    destination_token_address = source_token_address
 
     session = SessionBase.create_session()
     tx_dict = {
             'hash': tx_hash_hex,
-            'from': tx['from'],
+            'from': sender_address,
             'to': recipient_address,
-            'source_token': tx['to'],
-            'destination_token': tx['to'],
+            'source_token': source_token_address,
+            'destination_token': destination_token_address,
             'from_value': token_value,
             'to_value': token_value,
             }
@@ -465,3 +497,93 @@ def cache_approve_data(
     session.close()
     return (tx_hash_hex, cache_id)
 
+
+@celery_app.task(bind=True, base=BaseTask)
+def token_info(self, tokens, chain_spec_dict, proofs=[]):
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
+    rpc = RPCConnection.connect(chain_spec, 'default')
+
+    i = 0
+
+    for token in tokens:
+        result_data = []
+        token_chain_object = ERC20Token(chain_spec, rpc, add_0x(token['address']))
+        token_chain_object.load(rpc)
+
+        token_symbol_proof_hex = to_identifier(token_chain_object.symbol)
+        token_proofs = [token_symbol_proof_hex]
+        if len(proofs) > 0:
+            token_proofs += proofs[i]
+
+        tokens[i] = {
+            'decimals': token_chain_object.decimals,
+            'name': token_chain_object.name,
+            'symbol': token_chain_object.symbol,
+            'address': tx_normalize.executable_address(token_chain_object.address),
+            'proofs': token_proofs,
+            'converters': tokens[i]['converters'],
+                }   
+        i += 1
+
+    return tokens
+
+
+@celery_app.task(bind=True, base=BaseTask)
+def verify_token_info(self, tokens, chain_spec_dict, success_callback, error_callback):
+    queue = self.request.delivery_info.get('routing_key')
+
+    for token in tokens:
+        s = celery.signature(
+                'cic_eth.eth.trust.verify_proofs',
+                [
+                    token,
+                    token['address'],
+                    token['proofs'],
+                    chain_spec_dict,
+                    success_callback,
+                    error_callback,
+                    ],
+                queue=queue,
+                )
+
+        if success_callback != None:
+            s.link(success_callback)
+        if error_callback != None:
+            s.on_error(error_callback)
+        s.apply_async()
+
+    return tokens
+
+
+@celery_app.task(bind=True, base=BaseTask)
+def default_token(self):
+    return {
+        'symbol': self.default_token_symbol,
+        'address': self.default_token_address,
+        'name': self.default_token_name,
+        'decimals': self.default_token_decimals,
+        }
+
+
+def parse_transfer(tx, conn, chain_spec, caller_address=ZERO_ADDRESS):
+    if not tx.payload:
+        return (None, None)
+    r = ERC20.parse_transfer_request(tx.payload)
+    transfer_data = {}
+    transfer_data['to'] = tx_normalize.wallet_address(r[0])
+    transfer_data['value'] = r[1]
+    transfer_data['from'] = tx_normalize.wallet_address(tx.outputs[0])
+    transfer_data['token_address'] = tx.inputs[0]
+    return ('transfer', transfer_data)
+
+
+def parse_transferfrom(tx, conn, chain_spec, caller_address=ZERO_ADDRESS):
+    if not tx.payload:
+        return (None, None)
+    r = ERC20.parse_transfer_from_request(tx.payload)
+    transfer_data = {}
+    transfer_data['from'] = tx_normalize.wallet_address(r[0])
+    transfer_data['to'] = tx_normalize.wallet_address(r[1])
+    transfer_data['value'] = r[2]
+    transfer_data['token_address'] = tx.inputs[0]
+    return ('transferfrom', transfer_data)

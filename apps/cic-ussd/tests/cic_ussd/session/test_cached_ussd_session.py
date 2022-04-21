@@ -46,7 +46,7 @@ def test_update_ussd_session(activated_account_ussd_session, cached_ussd_session
                                        state=activated_account_ussd_session.get('state'))
     assert ussd_session.user_input == activated_account_ussd_session.get('user_input')
     assert ussd_session.state == activated_account_ussd_session.get('state')
-    ussd_session = update_ussd_session(ussd_session=ussd_session, user_input='1*2', state='initial_pin_entry')
+    ussd_session = update_ussd_session(ussd_session=ussd_session.to_json(), user_input='1*2', state='initial_pin_entry', data={})
     assert ussd_session.user_input == '1*2'
     assert ussd_session.state == 'initial_pin_entry'
 

@@ -11,5 +11,7 @@
   "account_creation_prompt",
   "exit_successful_transaction",
   "exit_insufficient_balance",
+  "exit_invalid_guardian_addition",
+  "exit_invalid_guardian_removal",
   "complete"
 ]

@@ -12,4 +12,10 @@ class PleaseCommitFirstError(Exception):
 
 
 class NotificationSendError(Exception):
-    """Raised when a notification failed to due to some error as per the service responsible for dispatching the notification."""
+    """Raised when a notification failed to due to some error as per the service responsible for dispatching the
+    notification."""
+
+
+class SeppukuError(Exception):
+    """Exception base class for all errors that should cause system shutdown"""
+    pass

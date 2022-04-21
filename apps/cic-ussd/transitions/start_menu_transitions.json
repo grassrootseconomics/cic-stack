@@ -8,14 +8,20 @@
   {
     "trigger": "scan_data",
     "source": "start",
-    "dest": "account_management",
+    "dest": "first_account_tokens_set",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_two_selected"
   },
   {
     "trigger": "scan_data",
     "source": "start",
-    "dest": "help",
+    "dest": "account_management",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_three_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "start",
+    "dest": "help",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_four_selected"
   },
   {
     "trigger": "scan_data",

@@ -1,11 +1,11 @@
 # standard import
-import random
-
+from datetime import datetime
 # external import
 import pytest
 
 # local import
 from cic_ussd.account.balance import get_cached_available_balance
+
 
 # tests imports
 
@@ -39,11 +39,13 @@ def statement(activated_account):
             'blockchain_address': activated_account.blockchain_address,
             'token_symbol': 'GFT',
             'token_value': 25000000,
+            'token_decimals': 6,
             'role': 'sender',
             'action_tag': 'Sent',
             'direction_tag': 'To',
             'metadata_id': activated_account.standard_metadata_id(),
             'phone_number': activated_account.phone_number,
+            'timestamp': datetime.now().strftime('%d/%m/%y, %H:%M')
         }
     ]
 
@@ -62,7 +64,7 @@ def transaction_result(activated_account, load_config, valid_recipient):
         'destination_token_symbol': load_config.get('TEST_TOKEN_SYMBOL'),
         'source_token_decimals': 6,
         'destination_token_decimals': 6,
-        'chain': 'evm:bloxberg:8996'
+        'chain': load_config.get('CHAIN_SPEC')
     }
 
 
@@ -94,6 +96,30 @@ def transactions_list(activated_account, valid_recipient):
             'destination_token_decimals': 6
         },
         {
+            'tx_hash': '0x28c898b66ea30936a0d09a7bbfdb4a3374f55b3d779a209ab7e37f4a60b07e57',
+            'signed_tx': '0xf8a70406837a1200946b36ee7753311dc6cef4a1a4508c735c321e98b280b844a9059cbb000000000000000000000000a1ef7ed93afa94204380278f140263d5c4531475000000000000000000000000000000000000000000000000000000000001adb0822798a0f886d5bedcc88ff6cc78c404150ca31cf41a0635b64e36e11573d1f1aa77b668a02f6fd5760bd9e9c00b2f18f32d56767f08948cc1abe704b3584c65408def61c4',
+            'nonce': 4,
+            'status': 'OBSOLETED',
+            'status_code': 8200,
+            'source_token': '0xb708175e3f6Cd850643aAF7B32212AFad50e2549',
+            'destination_token': '0xb708175e3f6Cd850643aAF7B32212AFad50e2549',
+            'block_number': None,
+            'tx_index': None,
+            'sender': '367cB0F65137b0A845c1DB4B7Ca47D3DEF32dDe8',
+            'recipient': '103d1ed6e370dBa6267045c70d4999384c18a04A',
+            'from_value': 110000,
+            'to_value': 110000,
+            'date_created': '2021-07-14T14:14:58.117017',
+            'date_updated': '2021-07-14T14:14:58.117017',
+            'date_checked': '2021-07-14T14:14:58.603124',
+            'timestamp': 1649683437,
+            'hash': '0x28c898b66ea30936a0d09a7bbfdb4a3374f55b3d779a209ab7e37f4a60b07e57',
+            'source_token_symbol': 'SRF',
+            'source_token_decimals': 6,
+            'destination_token_symbol': 'SRF',
+            'destination_token_decimals': 6
+        },
+        {
             'tx_hash': '0x5bd3b72f07ceb55199e759e8e82006b1c70bd5b87a3d37e3327515ea27872290',
             'signed_tx': '0xf88601018323186094103d1ed6e370dba6267045c70d4999384c18a04a80a463e4bff4000000000000000000000000367cb0f65137b0a845c1db4b7ca47d3def32dde882466ca00beb6913cdd0b9b63469fbca53e2fb48dceeedf73d31d54c23c85392f01419a8a02352fff9187ba3dd6409ef6e473369dc4c3459a8baaa9bc1d68a541ca8a8f923',
             'nonce': 1,
@@ -103,8 +129,8 @@ def transactions_list(activated_account, valid_recipient):
             'destination_token': '0x0000000000000000000000000000000000000000',
             'block_number': 80,
             'tx_index': 0,
-            'sender': '0x367cB0F65137b0A845c1DB4B7Ca47D3DEF32dDe8',
-            'recipient': '0x103d1ed6e370dBa6267045c70d4999384c18a04A',
+            'sender': '367cB0F65137b0A845c1DB4B7Ca47D3DEF32dDe8',
+            'recipient': '103d1ed6e370dBa6267045c70d4999384c18a04A',
             'from_value': 0,
             'to_value': 0,
             'date_created': '2021-07-14T14:13:46.036198',
@@ -122,8 +148,8 @@ def transactions_list(activated_account, valid_recipient):
             'destination_token': '0x0000000000000000000000000000000000000000',
             'block_number': 78,
             'tx_index': 0,
-            'sender': '0xb41BfEE260693A473254D62b81aE1ADCC9E51AFb',
-            'recipient': '0x367cB0F65137b0A845c1DB4B7Ca47D3DEF32dDe8',
+            'sender': 'b41BfEE260693A473254D62b81aE1ADCC9E51AFb',
+            'recipient': '367cB0F65137b0A845c1DB4B7Ca47D3DEF32dDe8',
             'from_value': 1800000000000000,
             'to_value': 1800000000000000,
             'date_created': '2021-07-14T14:13:35.839638',
@@ -142,8 +168,8 @@ def transactions_list(activated_account, valid_recipient):
             'destination_token': '0x0000000000000000000000000000000000000000',
             'block_number': 79,
             'tx_index': 0,
-            'sender': '0x367cB0F65137b0A845c1DB4B7Ca47D3DEF32dDe8',
-            'recipient': '0x103d1ed6e370dBa6267045c70d4999384c18a04A',
+            'sender': '367cB0F65137b0A845c1DB4B7Ca47D3DEF32dDe8',
+            'recipient': '103d1ed6e370dBa6267045c70d4999384c18a04A',
             'from_value': 0,
             'to_value': 0,
             'date_created': '2021-07-14T14:13:35.638355',
@@ -152,4 +178,3 @@ def transactions_list(activated_account, valid_recipient):
             'timestamp': 1626272015,
             'hash': '0x32ca3dd3bef06463b452f4d32f5f563d083cb4759219eed90f3d2a9c1791c5fc'}
     ]
-

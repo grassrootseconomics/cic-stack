@@ -122,3 +122,13 @@ class SessionBase(Model):
             session.commit()
             session.close()
             del SessionBase.localsessions[session_key]
+
+    @staticmethod
+    def release_rollback_session(session=None):
+        session_key = str(id(session))
+        logg.debug('rollback and destroy session {}'.format(session_key))
+        if SessionBase.localsessions.get(session_key) != None:
+            del SessionBase.localsessions[session_key]
+        session.rollback()
+        session.close()
+            

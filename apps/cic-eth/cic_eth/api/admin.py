@@ -75,7 +75,6 @@ class AdminApi:
                 )
         return s_proxy.apply_async()
 
-
     
     def registry(self):
         s_registry = celery.signature(
@@ -123,7 +122,7 @@ class AdminApi:
         return s_lock.apply_async()
 
 
-    def tag_account(self, tag, address_hex, chain_spec):
+    def tag_account(self, chain_spec, tag, address):
         """Persistently associate an address with a plaintext tag.
 
         Some tags are known by the system and is used to resolve addresses to use for certain transactions. 
@@ -138,11 +137,35 @@ class AdminApi:
             'cic_eth.eth.account.set_role',
             [
                 tag,
-                address_hex,
+                address,
                 chain_spec.asdict(),
                 ],
             queue=self.queue,
             )
+        return s_tag.apply_async()
+
+
+    def get_tag_account(self, chain_spec, tag=None, address=None):
+        if address != None:
+            s_tag = celery.signature(
+                'cic_eth.eth.account.role',
+                [
+                    address,
+                    chain_spec.asdict(),
+                    ],
+                queue=self.queue,
+                )
+
+        else:
+            s_tag = celery.signature(
+                'cic_eth.eth.account.role_account',
+                [
+                    tag,
+                    chain_spec.asdict(),
+                ],
+                queue=self.queue,
+                )
+
         return s_tag.apply_async()
 
 
@@ -158,9 +181,13 @@ class AdminApi:
         return s_have.apply_async()
 
 
-    def resend(self, tx_hash_hex, chain_spec, in_place=True, unlock=False):
+    def resend(self, tx_hash_hex, chain_spec, in_place=True, unlock=False, gas_price=None, gas_ratio=1.01, force=False):
 
-        logg.debug('resend {}'.format(tx_hash_hex))
+        if gas_price != None:
+            logg.debug('resend {} gas price {}'.format(tx_hash_hex, gas_price))
+        else:
+            logg.debug('resend {} gas ratio {}'.format(tx_hash_hex, gas_ratio))
+
         s_get_tx_cache = celery.signature(
             'cic_eth.queue.query.get_tx_cache',
             [
@@ -172,8 +199,9 @@ class AdminApi:
 
         # TODO: This check should most likely be in resend task itself
         tx_dict = s_get_tx_cache.apply_async().get()
-        if not is_alive(getattr(StatusEnum, tx_dict['status']).value):
-            raise TxStateChangeError('Cannot resend mined or obsoleted transaction'.format(txold_hash_hex))
+        #if not is_alive(getattr(StatusEnum, tx_dict['status_code'])):
+        if not force and not is_alive(tx_dict['status_code']):
+            raise TxStateChangeError('Cannot resend mined or obsoleted transaction'.format(tx_hash_hex))
         
         if not in_place:
             raise NotImplementedError('resend as new not yet implemented')
@@ -182,8 +210,8 @@ class AdminApi:
             'cic_eth.eth.gas.resend_with_higher_gas',
             [
                 chain_spec.asdict(),
-                None,
-                1.01,
+                gas_price,
+                gas_ratio,
                 ],
             queue=self.queue,
             )
@@ -218,9 +246,11 @@ class AdminApi:
                 [
                     chain_spec.asdict(),
                     address,
-                    True,
-                    False,
                     ],
+                kwargs = {
+                    'as_sender': True,
+                    'as_recipient': False,
+                },
                 queue=self.queue,
                 )
         txs = s.apply_async().get()
@@ -274,9 +304,11 @@ class AdminApi:
                 [
                     chain_spec.asdict(),
                     address,
-                    True,
-                    False,
                     ],
+                kwargs={
+                    'as_sender': True,
+                    'as_recipient': False,
+                    },
                 queue=self.queue,
                 )
         txs = s.apply_async().get()
@@ -300,7 +332,7 @@ class AdminApi:
         return s_nonce.apply_async()
 
 
-    def account(self, chain_spec, address, include_sender=True, include_recipient=True, renderer=None, w=sys.stdout):
+    def account(self, chain_spec, address, include_sender=True, include_recipient=True, renderer=None, status=None, not_status=None, offset=None, limit=None, w=sys.stdout):
         """Lists locally originated transactions for the given Ethereum address.
 
         Performs a synchronous call to the Celery task responsible for performing the query.
@@ -317,6 +349,12 @@ class AdminApi:
                     chain_spec.asdict(),
                     address,
                     ],
+                kwargs={
+                    'status': status,
+                    'not_status': not_status,
+                    'offset': offset,
+                    'limit': limit,
+                },
                 queue=self.queue,
                 )
         txs = s.apply_async().get()
@@ -362,6 +400,63 @@ class AdminApi:
 
         return tx_dict_list
 
+    def txs_latest(self, chain_spec, count=10, renderer=None, status=None, not_status=None, offset=None, limit=None, w=sys.stdout):
+        """Lists latest locally originated transactions.
+
+        Performs a synchronous call to the Celery task responsible for performing the query.
+        """
+
+        last_nonce = -1
+        s = celery.signature(
+                'cic_eth.queue.query.get_latest_txs',
+                [
+                    chain_spec.asdict(),
+                ],
+                kwargs={
+                    "count": count,
+                    "status": status,
+                    "not_status": not_status,
+                    "offset": offset,
+                    "limit": limit,
+                },
+                queue=self.queue,
+                )
+        txs = s.apply_async().get()
+        tx_dict_list = []
+        for tx_hash in txs.keys():
+            errors = []
+            s = celery.signature(
+                    'cic_eth.queue.query.get_tx_cache',
+                    [
+                        chain_spec.asdict(),
+                        tx_hash,
+                        ],
+                    queue=self.queue,
+                    )
+            tx_dict = s.apply_async().get()
+            if tx_dict['nonce'] - last_nonce > 1:
+                logg.error(f"nonce gap; {tx_dict['nonce']} followed {last_nonce} for address {tx_dict['sender']} tx {tx_hash}")
+                errors.append('nonce')
+            elif tx_dict['nonce'] == last_nonce:
+                logg.info(f"nonce {tx_dict['nonce']} duplicate for address {tx_dict['sender']} in tx {tx_hash}")
+            last_nonce = tx_dict['nonce']
+
+            
+            o = {
+                'nonce': tx_dict['nonce'], 
+                'tx_hash': tx_dict['tx_hash'],
+                'status': tx_dict['status'],
+                'date_updated': tx_dict['date_updated'],
+                'date_created': tx_dict['date_created'],
+                'errors': errors,
+                    }
+            if renderer != None:
+                r = renderer(o)
+                w.write(r + '\n')
+            else:
+                tx_dict_list.append(o)
+
+        return tx_dict_list
 
     # TODO: Add exception upon non-existent tx aswell as invalid tx data to docstring 
     # TODO: This method is WAY too long
@@ -503,7 +598,7 @@ class AdminApi:
                     queue=self.queue,
                     )
                 t = s.apply_async()
-                role = t.get()
+                role = t.get()[0][1]
                 if role != None:
                     tx['sender_description'] = role
 
@@ -556,7 +651,7 @@ class AdminApi:
                     queue=self.queue,
                     )
                 t = s.apply_async()
-                role = t.get()
+                role = t.get()[0][1]
                 if role != None:
                     tx['recipient_description'] = role
 

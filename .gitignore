@@ -15,3 +15,7 @@ build/
 .idea
 **/.vim
 **/*secret.yaml
+apps/data-seeding/out/
+.envrc
+.vscode
+.python-version

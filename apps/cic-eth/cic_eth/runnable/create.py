@@ -43,10 +43,17 @@ def main():
     ps.subscribe(redis_channel)
     ps.get_message()
 
+    redis_host_callback = config.get('_REDIS_HOST_CALLBACK')
+    if redis_host_callback == None:
+        redis_host_callback = redis_host
+    redis_port_callback = config.get('_REDIS_PORT_CALLBACK')
+    if redis_port_callback == None:
+        redis_port_callback = redis_port
+        
     api = Api(
             config.get('CHAIN_SPEC'),
             queue=config.get('CELERY_QUEUE'),
-            callback_param='{}:{}:{}:{}'.format(config.get('_REDIS_HOST_CALLBACK'), config.get('_REDIS_PORT_CALLBACK'), config.get('REDIS_DB'), redis_channel),
+            callback_param='{}:{}:{}:{}'.format(redis_host_callback, redis_port_callback, config.get('REDIS_DB'), redis_channel),
             callback_task='cic_eth.callbacks.redis.redis',
             callback_queue=config.get('CELERY_QUEUE'),
             )

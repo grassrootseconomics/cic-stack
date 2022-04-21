@@ -6,6 +6,7 @@ import json
 
 # external imports
 import pytest
+from chainlib.encode import TxHexNormalizer
 
 # local imports
 from cic_cache import db
@@ -62,6 +63,8 @@ def test_cache_ranges(
 
     session = init_database
        
+    tx_normalize = TxHexNormalizer()
+
     oldest = list_defaults['block'] - 1
     mid = list_defaults['block']
     newest = list_defaults['block'] + 2
@@ -100,32 +103,39 @@ def test_cache_ranges(
     assert b[1] == mid
 
     # now check when supplying account
-    b = c.load_transactions_account(list_actors['alice'], 0, 100)
+    account = tx_normalize.wallet_address(list_actors['alice'])
+    b = c.load_transactions_account(account, 0, 100)
     assert b[0] == oldest
     assert b[1] == newest
 
-    b = c.load_transactions_account(list_actors['bob'], 0, 100)
+    account = tx_normalize.wallet_address(list_actors['bob'])
+    b = c.load_transactions_account(account, 0, 100)
     assert b[0] == mid
     assert b[1] == mid
 
-    b = c.load_transactions_account(list_actors['diane'], 0, 100)
+    account = tx_normalize.wallet_address(list_actors['diane'])
+    b = c.load_transactions_account(account, 0, 100)
     assert b[0] == oldest
     assert b[1] == newest
 
     # add block filter to the mix
-    b = c.load_transactions_account(list_actors['alice'], 0, 100, block_offset=list_defaults['block'])
+    account = tx_normalize.wallet_address(list_actors['alice'])
+    b = c.load_transactions_account(account, 0, 100, block_offset=list_defaults['block'])
     assert b[0] == mid
     assert b[1] == newest
     
-    b = c.load_transactions_account(list_actors['alice'], 0, 100, block_offset=list_defaults['block'])
+    account = tx_normalize.wallet_address(list_actors['alice'])
+    b = c.load_transactions_account(account, 0, 100, block_offset=list_defaults['block'])
     assert b[0] == mid
     assert b[1] == newest
 
-    b = c.load_transactions_account(list_actors['bob'], 0, 100, block_offset=list_defaults['block'] - 1, block_limit=list_defaults['block'])
+    account = tx_normalize.wallet_address(list_actors['bob'])
+    b = c.load_transactions_account(account, 0, 100, block_offset=list_defaults['block'] - 1, block_limit=list_defaults['block'])
     assert b[0] == mid
     assert b[1] == mid
 
-    b = c.load_transactions_account(list_actors['diane'], 0, 100, block_offset=list_defaults['block'] - 1, block_limit=list_defaults['block'])
+    account = tx_normalize.wallet_address(list_actors['diane'])
+    b = c.load_transactions_account(account, 0, 100, block_offset=list_defaults['block'] - 1, block_limit=list_defaults['block'])
     assert b[0] == oldest
     assert b[1] == oldest
 
@@ -140,6 +150,8 @@ def test_cache_ranges_data(
 
     session = init_database
        
+    tx_normalize = TxHexNormalizer()
+
     oldest = list_defaults['block'] - 1
     mid = list_defaults['block']
     newest = list_defaults['block'] + 2
@@ -203,7 +215,8 @@ def test_cache_ranges_data(
     assert b[2][1]['tx_hash'] == more_txs[1]
 
     # now check when supplying account
-    b = c.load_transactions_account_with_data(list_actors['alice'], 0, 100)
+    account = tx_normalize.wallet_address(list_actors['alice'])
+    b = c.load_transactions_account_with_data(account, 0, 100)
     assert b[0] == oldest
     assert b[1] == newest
     assert len(b[2]) == 3
@@ -211,13 +224,15 @@ def test_cache_ranges_data(
     assert b[2][1]['tx_hash'] == more_txs[1]
     assert b[2][2]['tx_hash'] == more_txs[2]
 
-    b = c.load_transactions_account_with_data(list_actors['bob'], 0, 100)
+    account = tx_normalize.wallet_address(list_actors['bob'])
+    b = c.load_transactions_account_with_data(account, 0, 100)
     assert b[0] == mid
     assert b[1] == mid
     assert len(b[2]) == 1
     assert b[2][0]['tx_hash'] == more_txs[1]
 
-    b = c.load_transactions_account_with_data(list_actors['diane'], 0, 100)
+    account = tx_normalize.wallet_address(list_actors['diane'])
+    b = c.load_transactions_account_with_data(account, 0, 100)
     assert b[0] == oldest
     assert b[1] == newest
     assert len(b[2]) == 2
@@ -225,27 +240,31 @@ def test_cache_ranges_data(
     assert b[2][1]['tx_hash'] == more_txs[2]
 
     # add block filter to the mix
-    b = c.load_transactions_account_with_data(list_actors['alice'], 0, 100, block_offset=list_defaults['block'])
+    account = tx_normalize.wallet_address(list_actors['alice'])
+    b = c.load_transactions_account_with_data(account, 0, 100, block_offset=list_defaults['block'])
     assert b[0] == mid
     assert b[1] == newest
     assert len(b[2]) == 2
     assert b[2][0]['tx_hash'] == more_txs[0]
     assert b[2][1]['tx_hash'] == more_txs[1]
 
-    b = c.load_transactions_account_with_data(list_actors['alice'], 0, 100, block_offset=list_defaults['block'])
+    account = tx_normalize.wallet_address(list_actors['alice'])
+    b = c.load_transactions_account_with_data(account, 0, 100, block_offset=list_defaults['block'])
     assert b[0] == mid
     assert b[1] == newest
     assert len(b[2]) == 2
     assert b[2][0]['tx_hash'] == more_txs[0]
     assert b[2][1]['tx_hash'] == more_txs[1]
 
-    b = c.load_transactions_account_with_data(list_actors['bob'], 0, 100, block_offset=list_defaults['block'] - 1, block_limit=list_defaults['block'])
+    account = tx_normalize.wallet_address(list_actors['bob'])
+    b = c.load_transactions_account_with_data(account, 0, 100, block_offset=list_defaults['block'] - 1, block_limit=list_defaults['block'])
     assert b[0] == mid
     assert b[1] == mid
     assert len(b[2]) == 1
     assert b[2][0]['tx_hash'] == more_txs[1]
 
-    b = c.load_transactions_account_with_data(list_actors['diane'], 0, 100, block_offset=list_defaults['block'] - 1, block_limit=list_defaults['block'])
+    account = tx_normalize.wallet_address(list_actors['diane'])
+    b = c.load_transactions_account_with_data(account, 0, 100, block_offset=list_defaults['block'] - 1, block_limit=list_defaults['block'])
     assert b[0] == oldest
     assert b[1] == oldest
     assert len(b[2]) == 1

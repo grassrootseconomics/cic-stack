@@ -5,6 +5,7 @@ omit =
 	cic_eth/db/migrations/*
 	cic_eth/sync/head.py
 	cic_eth/sync/mempool.py
+	cic_eth/runnable/*
 	cic_eth/queue/state.py
 	cic_eth/cli
 	*redis*.py

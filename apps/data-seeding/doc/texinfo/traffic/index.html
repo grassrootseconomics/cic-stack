@@ -1,0 +1,147 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created by GNU Texinfo 6.8, https://www.gnu.org/software/texinfo/ -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Untitled Document</title>
+
+<meta name="description" content="Untitled Document">
+<meta name="keywords" content="Untitled Document">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<style type="text/css">
+<!--
+a.copiable-anchor {visibility: hidden; text-decoration: none; line-height: 0em}
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+span:hover a.copiable-anchor {visibility: visible}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<div class="section" id="Overview">
+<h3 class="section">1 Overview</h3>
+
+<p>The traffic generator is a routine that enables random execution of user-defined tasks against the cic-eth custodial services.
+</p>
+
+<ul class="section-toc">
+<li><a href="#Defining-tasks" accesskey="1">Defining tasks</a></li>
+</ul>
+<div class="subsection" id="Defining-tasks">
+<h4 class="subsection">1.1 Defining tasks</h4>
+
+<p>Tasks are included by specifying python module paths under the <code>traffic</code> section in the configuration.
+</p>
+<p>The value of configuration is the task&rsquo;s <em>random selection weight</em>. This is used to control how likely each task is to be executed at any given time.
+</p>
+
+<ul class="section-toc">
+<li><a href="#Task-signature" accesskey="1">Task signature</a></li>
+<li><a href="#Configuration-example" accesskey="2">Configuration example</a></li>
+</ul>
+<div class="subsubsection" id="Task-signature">
+<h4 class="subsubsection">1.1.1 Task signature</h4>
+
+<p>The module must define a function <code>do</code> with the following signature:
+</p>
+<div class="example">
+<pre class="example">def do(token_pair, sender, recipient, sender_balance, aux, block_number)
+</pre></div>
+
+<p>The funnction must return a 3-element tuple:
+</p>
+<ol>
+<li> Error description, or <code>None</code> if no error occurred.
+</li><li> Task id to use for retrieval from the responses channel. <code>None</code> if no response is expected (or is to be discarded).
+</li><li> The effective <em>spend value</em> of the task. A positive value defines how much the <em>sender&rsquo;s</em> balance was <em>reduced</em>.
+</li></ol>
+
+<p>Refer to the code documentation in <code>traffic_local.noop</code> for further details.
+</p>
+
+</div>
+<div class="subsubsection" id="Configuration-example">
+<h4 class="subsubsection">1.1.2 Configuration example</h4>
+
+<p>Consider the following configuration:
+</p>
+<div class="example">
+<pre class="example">[traffic]
+foo.item = 9
+traffic_local.account = 1
+</pre></div>
+
+<p>Here, the task defined in python module <code>foo.item</code> will be chosen 9 out of 10 times, whereas the one in <code>traffic_local.account</code> will be chosen 1 out of 10 times.
+</p>
+
+</div>
+</div>
+</div>
+<div class="section" id="Architecture">
+<h3 class="section">2 Architecture</h3>
+
+
+<ul class="section-toc">
+<li><a href="#Components" accesskey="1">Components</a></li>
+<li><a href="#Execution-logic" accesskey="2">Execution logic</a></li>
+</ul>
+<div class="subsection" id="Components">
+<h4 class="subsection">2.1 Components</h4>
+
+<p>The traffic module components are:
+</p>
+<dl compact="compact">
+<dt><span><code>TrafficRouter</code></span></dt>
+<dd><p>Holds all defined tasks, and uses their <em>weights</em> to randomly chooses from them.
+</p></dd>
+<dt><span><code>TrafficItem</code></span></dt>
+<dd><p>Encapsulates a task item returned by the <code>TrafficRouter</code> as a task to be executed.
+</p></dd>
+<dt><span><code>TrafficProvisioner</code></span></dt>
+<dd><p>Maintains indicies of <em>accounts</em>, <em>tokens</em> and <em>balances</em>. It is consulted as reference when generating token transfer details.
+</p></dd>
+<dt><span><code>TrafficSyncHandler</code></span></dt>
+<dd><p>Contains the callbacks executed by the <code>chainsyncer</code>.
+</p></dd>
+<dt><span><code>TrafficMaker</code></span></dt>
+<dd><p>A single thread, combining the <code>TrafficRouter</code> and <code>TrafficProvisioner</code> to generate a batch of <code>TrafficItem</code> objects for execution.
+</p></dd>
+</dl>
+
+
+</div>
+<div class="subsection" id="Execution-logic">
+<h4 class="subsection">2.2 Execution logic</h4>
+
+<p>The event loop is driven by a <code>chainsyncer</code> driver instance. This instance polls the blockchain for new blocks, and calls into <code>TrafficSyncHandler</code> for every retrieved block.
+</p>
+<p>This will start a thread with a new <code>TrafficProvisioner</code> instance, refreshing its caches. If a thread is already executing, the call will return control to the <code>chainsyncer</code> immediately.
+</p>
+<p>Within the thread, <code>TrafficSyncHandler</code> will ask the <code>TrafficRouter</code> for a <code>TrafficItem</code> to execute, and continue to do so until all the execution slots are filled. It will then retrieve all pending asynchronous responses from each task, freeing up each slot as they are received. It resposne retrieval times out, control is handed back to the chainsyncer.
+</p>
+
+<hr></div>
+</div>
+
+
+
+</body>
+</html>

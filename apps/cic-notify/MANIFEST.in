@@ -1,0 +1,2 @@
+include cic_notify/data/config/* cic_notify/data/config/tasks/*
+

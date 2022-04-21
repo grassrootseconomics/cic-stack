@@ -1,0 +1,125 @@
+[
+  {
+    "trigger": "scan_data",
+    "source": "guard_pin",
+    "dest": "guardian_list_pin_authorization",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_one_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "guardian_list_pin_authorization",
+    "dest": "guardian_list",
+    "conditions": "cic_ussd.state_machine.logic.pin.is_authorized_pin"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "guardian_list_pin_authorization",
+    "dest": "exit_pin_blocked",
+    "conditions": "cic_ussd.state_machine.logic.pin.is_blocked_pin"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "guard_pin",
+    "dest": "add_guardian",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_two_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "add_guardian",
+    "dest": "add_guardian_pin_authorization",
+    "after": [
+      "cic_ussd.state_machine.logic.pin_guard.save_guardian_to_session_data",
+      "cic_ussd.state_machine.logic.pin_guard.retrieve_person_metadata"
+    ],
+    "conditions": "cic_ussd.state_machine.logic.pin_guard.is_valid_guardian_addition"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "add_guardian",
+    "dest": "exit_invalid_guardian_addition",
+    "unless": "cic_ussd.state_machine.logic.pin_guard.is_valid_guardian_addition"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "add_guardian_pin_authorization",
+    "dest": "exit_guardian_addition_success",
+    "after": "cic_ussd.state_machine.logic.pin_guard.add_pin_guardian",
+    "conditions": "cic_ussd.state_machine.logic.pin.is_authorized_pin"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "add_guardian_pin_authorization",
+    "dest": "exit_pin_blocked",
+    "conditions": "cic_ussd.state_machine.logic.pin.is_locked_account"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "guard_pin",
+    "dest": "remove_guardian",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_three_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "remove_guardian",
+    "dest": "remove_guardian_pin_authorization",
+    "after": [
+      "cic_ussd.state_machine.logic.pin_guard.save_guardian_to_session_data",
+      "cic_ussd.state_machine.logic.pin_guard.retrieve_person_metadata"
+    ],
+    "conditions": "cic_ussd.state_machine.logic.pin_guard.is_dialers_pin_guardian"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "remove_guardian",
+    "dest": "exit_invalid_guardian_removal",
+    "unless": "cic_ussd.state_machine.logic.pin_guard.is_dialers_pin_guardian"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "remove_guardian_pin_authorization",
+    "dest": "exit_guardian_removal_success",
+    "after": "cic_ussd.state_machine.logic.pin_guard.remove_pin_guardian",
+    "conditions": "cic_ussd.state_machine.logic.pin.is_authorized_pin"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "remove_guardian_pin_authorization",
+    "dest": "exit_pin_blocked",
+    "conditions": "cic_ussd.state_machine.logic.pin.is_locked_account"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "exit_guardian_addition_success",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_nine_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "exit_guardian_removal_success",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_nine_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "exit_invalid_guardian_addition",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_nine_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "exit_invalid_guardian_removal",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_nine_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "guardian_list",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_nine_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "guard_pin",
+    "dest": "exit_invalid_menu_option"
+  }
+]

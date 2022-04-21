@@ -41,11 +41,21 @@ while True:
     services_requirements.append(l.rstrip())
 f.close()
 
+server_requirements = []
+f = open('server_requirements.txt', 'r')
+while True:
+    l = f.readline()
+    if l == '':
+        break
+    services_requirements.append(l.rstrip())
+f.close()
+
 setup(
     install_requires=requirements,
     extras_require = {
         'tools': tools_requirements,
         'admin_api': admin_requirements,
         'services': services_requirements,
+        'server': server_requirements,
         }
     )

@@ -18,10 +18,20 @@ from eth_erc20 import ERC20
 from sarafu_faucet import MinterFaucet
 from eth_accounts_index.registry import AccountRegistry
 from potaahto.symbols import snake_and_camel
-from hexathon import add_0x
+from hexathon import (
+        add_0x,
+        strip_0x,
+        )
 
 # local imports
 from cic_eth.runnable.daemons.filters.callback import CallbackFilter
+from cic_eth.eth.erc20 import (
+        parse_transfer,
+        parse_transferfrom,
+        )
+from cic_eth.eth.account import (
+        parse_giftto,
+        )
 
 logg = logging.getLogger()
 
@@ -60,7 +70,7 @@ def test_transfer_tx(
     tx.apply_receipt(rcpt)
 
     fltr = CallbackFilter(default_chain_spec, None, None, caller_address=contract_roles['CONTRACT_DEPLOYER'])
-    (transfer_type, transfer_data) = fltr.parse_transfer(tx, eth_rpc)
+    (transfer_type, transfer_data) = parse_transfer(tx, eth_rpc, fltr.chain_spec, fltr.caller_address)
 
     assert transfer_type == 'transfer'
 
@@ -107,7 +117,7 @@ def test_transfer_from_tx(
     tx.apply_receipt(rcpt)
 
     fltr = CallbackFilter(default_chain_spec, None, None, caller_address=contract_roles['CONTRACT_DEPLOYER'])
-    (transfer_type, transfer_data) = fltr.parse_transferfrom(tx, eth_rpc)
+    (transfer_type, transfer_data) = parse_transferfrom(tx, eth_rpc, fltr.chain_spec, fltr.caller_address)
 
     assert transfer_type == 'transferfrom'
 
@@ -154,13 +164,13 @@ def test_faucet_gift_to_tx(
     tx.apply_receipt(rcpt)
 
     fltr = CallbackFilter(default_chain_spec, None, None, caller_address=contract_roles['CONTRACT_DEPLOYER'])
-    (transfer_type, transfer_data) = fltr.parse_giftto(tx, eth_rpc)
+    (transfer_type, transfer_data) = parse_giftto(tx, eth_rpc, fltr.chain_spec, fltr.caller_address)
 
     assert transfer_type == 'tokengift'
     assert transfer_data['token_address'] == foo_token
 
 
-def test_callback_filter(
+def test_callback_filter_filter(
         default_chain_spec,
         init_database,
         eth_rpc,
@@ -213,6 +223,7 @@ def test_callback_filter(
 
         def call_back(self, transfer_type, result):
             self.results[transfer_type] = result
+            logg.debug('result {}'.format(result))
             return self
 
     mock = CallbackMock()
@@ -221,4 +232,4 @@ def test_callback_filter(
     fltr.filter(eth_rpc, mockblock, tx, init_database)
 
     assert mock.results.get('transfer') != None
-    assert mock.results['transfer']['destination_token'] == foo_token
+    assert mock.results['transfer']['destination_token'] == strip_0x(foo_token)

@@ -1,0 +1,171 @@
+digraph {
+
+	EVM_SYNCER {
+		label = "EVM SYNCER";
+		shape = "rectamgle";
+	}
+
+	block [
+		
+	];
+
+	thread [
+		label = "traffic maker thread";
+		shape = "rectangle";
+	];
+
+	provisioner [
+		label = "new traffic provisioner";
+	];
+
+	cache_tokens [
+		label = "cache new tokens";	
+	];
+
+	cache_accounts [
+		label = "cache new accounts";	
+	];
+
+	is_first [
+		label = "is first run?";
+		shape = "diamond";
+	];
+	
+	balances [
+		label = "cache all balances";
+	];
+
+	is_reserve [
+		label = "item slots remaining?";
+		shape = "diamond";
+	];
+
+	random_item [
+		label = "choose random weighted item";
+	];
+
+	add_reserve [
+		label = "reserve slot";
+	]
+
+	token_pair [
+		label = "choose token pair";
+	];
+
+	sender [
+		label = "choose random sender";
+	];
+
+	balance_sender [
+		label = "cache sender balance";
+	];
+
+	recipient [
+		label = "choose random recipient";
+	];
+
+	call [
+		label = "call traffic item";
+	];
+
+	is_call_error [
+		label = "error?";
+		shape = "diamond";
+	];
+
+	cic_eth_task [
+		label = "cic-eth task";
+		shape = "rectangle";	
+	];
+
+	task [
+		label = "";
+		shape = "point";
+	];
+
+	ext_task [
+		label = "external task";
+		shape = "rectangle";
+	];
+
+	call_release [
+		label = "release task slot";
+	];
+
+	call_log [
+		label = "log result";
+	];
+
+	is_spend [
+		label = "sender token spend?";
+		shape = "diamond";
+	];
+	
+	balance_update [
+		label = "update balance cache";
+	];
+
+	sender_cache [
+		label = "add recipient to sender index";
+	];
+
+	get_api_result [
+		label = "request api result";
+	];
+	
+	is_timeout [
+		label = "timeout?";
+		shape = "diamond";
+	];
+
+	collect_release_item [
+		label = "releaase task item";
+	];
+
+	collect_log [
+		label = "log result";
+	];
+
+
+	EVM_SYNCER -> block -> thread -> provisioner -> cache_tokens -> cache_accounts -> is_first;
+
+	is_first -> balances [ label = "yes" ];
+
+	is_first -> is_reserve [ label = "no" ];
+
+	balances -> is_reserve;
+
+	is_reserve -> random_item [label = "yes"];
+
+	random_item -> add_reserve -> token_pair -> sender -> balance_sender -> recipient -> call -> is_call_error;
+
+	is_call_error -> call_release [ label = "yes" ];
+
+	is_call_error -> task [ label = "no" ];
+
+	task -> is_spend;
+
+	task -> cic_eth_task;
+
+	task -> ext_task;
+
+	ext_task -> "?" [ style = "dotted"; ];
+
+	is_spend -> call_release [label = "no"; ];
+
+	is_spend -> balance_update [ label = "yes"; ];
+
+	balance_update -> sender_cache -> call_release;
+
+	call_release -> call_log -> is_reserve;
+
+	cic_eth_task -> get_api_result [ style = "dotted"; ];
+
+	is_reserve -> get_api_result [ label = "no"; ];
+
+	get_api_result -> is_timeout;
+
+	is_timeout -> block [ label = "yes" ];
+
+	is_timeout -> collect_release_item -> collect_log -> get_api_result;
+}

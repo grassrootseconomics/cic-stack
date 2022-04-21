@@ -1,40 +1,25 @@
-# cic-internal-integration
+## Community Inclusion Currency Stack (CIC Stack)
 
-## Getting started 
+A custodial wallet and blockchain bidirectional interface engine for community inclusion currencies. Check the [CIC Stack summary](https://docs.grassecon.org/software) page for more information.
 
-This repo uses docker-compose and docker buildkit. Set the following environment variables to get started:
 
-```
-export COMPOSE_DOCKER_CLI_BUILD=1
-export DOCKER_BUILDKIT=1
-```
+### Contributing
 
-start services, database, redis and local ethereum node
-```
-docker-compose up -d
-```
+See our [contribution guidelines](https://docs.grassecon.org/community/contrib/) for more details on:
 
-Run app/contract-migration to deploy contracts
-```
-RUN_MASK=3 docker-compose up contract-migration
-```
+- Environment setup
+- Source Code Management (SCM) guidelines
+- Filing issues
 
-stop cluster
-```
-docker-compose down
-```
+#### Code of Conduct
 
-stop cluster and delete data
-```
-docker-compose down -v --remove-orphans
-```
+This project is released with a [Code of Conduct](https://docs.grassecon.org/community/conduct/). By participating in this project you agree to abide by its terms.
 
-rebuild an images
-```
-docker-compose up --build <service_name>
-```
+### Community
 
-to delete the buildkit cache
-```
-docker builder prune --filter type=exec.cachemount
-```
+- [Mattermost](https://chat.grassrootseconomics.net/cic/channels/dev)
+- [Discord](https://discord.gg/ud32KMgH76)
+
+### License
+
+Licensed under [GNU AGPLv3](https://gitlab.com/grassrootseconomics/cic-internal-integration/-/blob/master/LICENSE).

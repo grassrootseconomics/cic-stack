@@ -58,5 +58,17 @@
     "source": "exit_successful_transaction",
     "dest": "exit",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_ninety_nine_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "exit_successful_token_selection",
+    "dest": "start",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "exit_successful_token_selection",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_ninety_nine_selected"
   }
 ]

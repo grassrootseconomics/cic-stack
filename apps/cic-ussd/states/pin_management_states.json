@@ -1,0 +1,16 @@
+[
+  "pin_management",
+  "reset_guarded_pin",
+  "reset_guarded_pin_authorization",
+  "exit_pin_reset_initiated_success",
+  "exit_not_authorized_for_pin_reset",
+  "guard_pin",
+  "guardian_list_pin_authorization",
+  "guardian_list",
+  "add_guardian",
+  "add_guardian_pin_authorization",
+  "exit_guardian_addition_success",
+  "remove_guardian",
+  "remove_guardian_pin_authorization",
+  "exit_guardian_removal_success"
+]

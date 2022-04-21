@@ -16,74 +16,82 @@ import confini
 import celery
 from chainlib.chain import ChainSpec
 from chainlib.eth.connection import EthHTTPConnection
-from hexathon import add_0x
+from hexathon import (
+        add_0x,
+        strip_0x,
+        uniform as hex_uniform,
+        )
+from chainqueue.enum import (
+    StatusEnum,
+    StatusBits,
+    status_str,
+    status_all,
+    )
 
 # local imports
+import cic_eth.cli
 from cic_eth.api.admin import AdminApi
 from cic_eth.db.enum import (
-    StatusEnum,
-    status_str,
     LockEnum,
 )
+
 from cic_eth.registry import connect as connect_registry
 
 logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
 default_format = 'terminal'
-default_config_dir = os.environ.get('CONFINI_DIR', '/usr/local/etc/cic')
 
-argparser = argparse.ArgumentParser()
-argparser.add_argument('-p', '--provider', dest='p', default='http://localhost:8545', type=str, help='Web3 provider url (http only)')
-argparser.add_argument('-r', '--registry-address', dest='r', type=str, help='CIC registry address')
+arg_flags = cic_eth.cli.argflag_std_base
+local_arg_flags = cic_eth.cli.argflag_local_taskcallback
+argparser = cic_eth.cli.ArgumentParser(arg_flags, description="""
+# Examples
+cic-eth-inspect # Returns the lastest 10 transactions
+cic-eth-inspect --count 20  # Returns the lastest 20 transactions
+
+cic-eth-inspect <transaction>
+
+cic-eth-inspect <transaction_hash>
+
+cic-eth-inspect <address>
+
+cic-eth-inspect lock
+""")
+argparser.add_argument('--status', dest='status', type=str, action='append', default=[], help='Add status to match')
+argparser.add_argument('--not-status', dest='not_status', type=str, action='append', default=[], help='Add status to omit')
 argparser.add_argument('-f', '--format', dest='f', default=default_format, type=str, help='Output format')
-argparser.add_argument('--status-raw', dest='status_raw', action='store_true', help='Output status bit enum names only')
-argparser.add_argument('-c', type=str, default=default_config_dir, help='config root to use')
-argparser.add_argument('-i', '--chain-spec', dest='i', type=str, help='chain spec')
-argparser.add_argument('-q', type=str, default='cic-eth', help='celery queue to submit transaction tasks to')
-argparser.add_argument('--env-prefix', default=os.environ.get('CONFINI_ENV_PREFIX'), dest='env_prefix', type=str, help='environment prefix for variables to overwrite configuration')
-argparser.add_argument('-v', action='store_true', help='Be verbose')
-argparser.add_argument('-vv', help='be more verbose', action='store_true')
-argparser.add_argument('query', type=str, help='Transaction, transaction hash, account or "lock"')
+argparser.add_argument('--count', dest='count', default=10, type=int, help='Max number of transactions to return (DEFAULT=10)')
+argparser.add_argument('--offset', dest='offset', type=str, help='Return transactions with the given nonce or higher, inclusive')
+argparser.add_argument('--until', dest='until', type=str, help='Return transactions up to the given nonce, inclusive')
+argparser.add_argument('query', type=str, help='Transaction, transaction hash, account, "lock", if no value is passed then the latest 10 transactions (--count 10) will be returned', nargs='?')
+argparser.process_local_flags(local_arg_flags)
 args = argparser.parse_args()
 
-if args.v == True:
-    logging.getLogger().setLevel(logging.INFO)
-elif args.vv == True:
-    logging.getLogger().setLevel(logging.DEBUG)
 
+extra_args = {
+    'f': '_FORMAT',
+    'count': '_TX_COUNT',
+    'query': '_QUERY',
+    'status': '_STATUS',
+    'not_status': '_NOT_STATUS',
+    'offset': '_OFFSET',
+    'until': '_UNTIL',
+}
+config = cic_eth.cli.Config.from_args(args, arg_flags, local_arg_flags, extra_args=extra_args)
 
-config_dir = os.path.join(args.c)
-os.makedirs(config_dir, 0o777, True)
-config = confini.Config(config_dir, args.env_prefix)
-config.process()
-args_override = {
-        'ETH_PROVIDER': getattr(args, 'p'),
-        'CIC_CHAIN_SPEC': getattr(args, 'i'),
-        'CIC_REGISTRY_ADDRESS': getattr(args, 'r'),
-        }
-# override args
-config.dict_override(args_override, 'cli args')
-config.censor('PASSWORD', 'DATABASE')
-config.censor('PASSWORD', 'SSL')
-logg.debug('config loaded from {}:\n{}'.format(config_dir, config))
+celery_app = cic_eth.cli.CeleryApp.from_config(config)
+queue = config.get('CELERY_QUEUE')
 
-try:
-    config.add(add_0x(args.query), '_QUERY', True)
-except:
-    config.add(args.query, '_QUERY', True)
+chain_spec = ChainSpec.from_chain_str(config.get('CHAIN_SPEC'))
 
-celery_app = celery.Celery(broker=config.get('CELERY_BROKER_URL'), backend=config.get('CELERY_RESULT_URL'))
+# connect to celery
+celery_app = cic_eth.cli.CeleryApp.from_config(config)
 
-queue = args.q
+# set up rpc
+rpc = cic_eth.cli.RPC.from_config(config) #, use_signer=True)
+conn = rpc.get_default()
 
-chain_spec = ChainSpec.from_chain_str(config.get('CIC_CHAIN_SPEC'))
-
-rpc = EthHTTPConnection(args.p)
-
-#registry_address = config.get('CIC_REGISTRY_ADDRESS')
-
-admin_api = AdminApi(rpc)
+admin_api = AdminApi(conn)
 
 t = admin_api.registry()
 registry_address = t.get()
@@ -113,18 +121,13 @@ def render_tx(o, **kwargs):
     
     for v in o.get('status_log', []):
         d = datetime.datetime.fromisoformat(v[0])
-        e = status_str(v[1], args.status_raw)
+        e = status_str(v[1], config.get('_RAW'))
         content += '{}: {}\n'.format(d, e)
 
     return content
 
 def render_account(o, **kwargs):
-    s = '{} {} {} {}'.format(
-            o['date_updated'],
-            o['nonce'],
-            o['tx_hash'],
-            o['status'],
-            )
+    s = f"{o['date_updated']} {o['nonce']} {o['tx_hash']} {o['status']}"
     if len(o['errors']) > 0:
         s += ' !{}'.format(','.join(o['errors']))
 
@@ -154,20 +157,65 @@ def render_lock(o, **kwargs):
 def main():
     txs  = []
     renderer = render_tx
-    if len(config.get('_QUERY')) > 66:
-        #registry = connect_registry(rpc, chain_spec, registry_address)
-        #admin_api.tx(chain_spec, tx_raw=config.get('_QUERY'), registry=registry, renderer=renderer)
-        admin_api.tx(chain_spec, tx_raw=config.get('_QUERY'), renderer=renderer)
-    elif len(config.get('_QUERY')) > 42:
-        #registry = connect_registry(rpc, chain_spec, registry_address)
-        #admin_api.tx(chain_spec, tx_hash=config.get('_QUERY'), registry=registry, renderer=renderer)
-        admin_api.tx(chain_spec, tx_hash=config.get('_QUERY'), renderer=renderer)
 
-    elif len(config.get('_QUERY')) == 42:
-        #registry = connect_registry(rpc, chain_spec, registry_address)
-        txs = admin_api.account(chain_spec, config.get('_QUERY'), include_recipient=False, renderer=render_account)
+    range_type = None
+    offset = config.get('_OFFSET')
+    try:
+        offset = int(offset)
+        range_type = 'numeric'
+    except:
+        range_type = 'date'
+
+    limit = config.get('_UNTIL')
+    if limit != None and range_type == 'numeric':
+        limit = int(limit)
+
+    status_flags = 0
+    for v in config.get('_STATUS'):
+        flag = 0
+        try:
+            flag = getattr(StatusBits, v.upper())
+        except AttributeError:
+            flag = getattr(StatusEnum, v.upper())
+        status_flags |= flag
+
+    #nonce_offset = config.get('_OFFSET')
+    #nonce_limit = config.get('_UNTIL')
+
+
+    not_status_flags = 0
+    for v in config.get('_NOT_STATUS'):
+        flag = 0
+        try:
+            flag = getattr(StatusBits, v.upper())
+        except AttributeError:
+            flag = getattr(StatusEnum, v.upper())
+        not_status_flags |= flag
+
+    if status_flags == 0 and len(config.get('_STATUS')) and len(config.get('_NOT_STATUS')) == 0:
+        not_status_flags = status_all()
+        logg.info('translating request for PENDING txs to --not-status flag {}'.format(status_all()))
+
+    query = config.get('_QUERY')
+    tx_count = config.get('_TX_COUNT')
+    try:
+        query = hex_uniform(strip_0x(query))
+    except TypeError:
+        pass
+    except ValueError:
+        pass
+    if not query:
+        txs = admin_api.txs_latest(chain_spec, count=tx_count, renderer=render_account, status=status_flags, not_status=not_status_flags, offset=offset, limit=limit)
         renderer = render_account
-    elif len(config.get('_QUERY')) >= 4 and config.get('_QUERY')[:4] == 'lock':
+    elif len(query) > 64:
+        admin_api.tx(chain_spec, tx_raw=query, renderer=renderer)
+    elif len(query) > 40:
+        admin_api.tx(chain_spec, tx_hash=query, renderer=renderer)
+    elif len(query) == 40:
+        txs = admin_api.account(chain_spec, query, include_recipient=False, renderer=render_account, status=status_flags, not_status=not_status_flags, offset=offset, limit=limit)
+        renderer = render_account
+
+    elif len(query) >= 4 and query[:4] == 'lock':
         t = admin_api.get_lock()
         txs = t.get()
         renderer = render_lock
@@ -175,8 +223,7 @@ def main():
             r = renderer(txs)
             sys.stdout.write(r + '\n')
     else:
-        raise ValueError('cannot parse argument {}'.format(config.get('_QUERY')))
-                   
+        raise ValueError('cannot parse argument {}'.format(query))
 
 if __name__ == '__main__':
     main()

@@ -1,0 +1,20 @@
+[
+  {
+    "trigger": "scan_data",
+    "source": "pin_management",
+    "dest": "enter_current_pin",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_one_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "pin_management",
+    "dest": "reset_guarded_pin",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_two_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "pin_management",
+    "dest": "guard_pin",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_three_selected"
+  }
+]

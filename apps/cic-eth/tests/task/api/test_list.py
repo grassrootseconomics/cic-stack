@@ -6,6 +6,7 @@ import pytest
 from chainlib.eth.nonce import RPCNonceOracle
 from eth_erc20 import ERC20
 from chainlib.eth.tx import receipt
+from hexathon import strip_0x
 
 # local imports
 from cic_eth.api.api_task import Api
@@ -23,7 +24,6 @@ from cic_eth.pytest.mock.filter import (
 logg = logging.getLogger()
 
 
-@pytest.mark.xfail()
 def test_list_tx(
         default_chain_spec,
         init_database,
@@ -34,8 +34,10 @@ def test_list_tx(
         agent_roles,
         foo_token,
         register_tokens,
+        register_lookups,
         init_eth_tester,
         celery_session_worker,
+        init_celery_tasks,
         ):
 
     tx_hashes = []
@@ -63,13 +65,16 @@ def test_list_tx(
     o = receipt(tx_hash_hex)
     r = eth_rpc.do(o)
     assert r['status'] == 1
+
     a = r['block_number']
-    block_filter.add(a.to_bytes(4, 'big'))
+    ab = a.to_bytes(4, 'big')
+    block_filter.add(ab)
 
-    a = r['block_number'] + r['transaction_index']
-    tx_filter.add(a.to_bytes(4, 'big'))
+    bb = r['transaction_index'].to_bytes(4, 'big')
+    cb = ab + bb
+    tx_filter.add(cb)
 
-    tx_hashes.append(tx_hash_hex)
+    tx_hashes.append(strip_0x(tx_hash_hex))
 
     # external tx two
     Nonce.next(agent_roles['ALICE'], 'foo', session=init_database)
@@ -83,26 +88,29 @@ def test_list_tx(
     o = receipt(tx_hash_hex)
     r = eth_rpc.do(o)
     assert r['status'] == 1
+
     a = r['block_number']
-    block_filter.add(a.to_bytes(4, 'big'))
+    ab = a.to_bytes(4, 'big')
+    block_filter.add(ab)
 
-    a = r['block_number'] + r['transaction_index']
-    tx_filter.add(a.to_bytes(4, 'big'))
+    bb = r['transaction_index'].to_bytes(4, 'big')
+    cb = ab + bb
+    tx_filter.add(cb)
 
-    tx_hashes.append(tx_hash_hex)
+    tx_hashes.append(strip_0x(tx_hash_hex))
 
     init_eth_tester.mine_blocks(28)
 
     # custodial tx 1
     api = Api(str(default_chain_spec), queue=None)
-    t = api.transfer(agent_roles['ALICE'], agent_roles['CAROL'], 64, 'FOO') #, 'blinky')
+    t = api.transfer(agent_roles['ALICE'], agent_roles['CAROL'], 64, 'FOO')
     r = t.get_leaf()
     assert t.successful()
     tx_hashes.append(r)
 
     # custodial tx 2
     api = Api(str(default_chain_spec), queue=None)
-    t = api.transfer(agent_roles['ALICE'], agent_roles['DAVE'], 16, 'FOO') #, 'blinky')
+    t = api.transfer(agent_roles['ALICE'], agent_roles['DAVE'], 16, 'FOO')
     r = t.get_leaf()
     assert t.successful()
     tx_hashes.append(r)
@@ -117,7 +125,8 @@ def test_list_tx(
     assert len(r) == 3
     logg.debug('rrrr {}'.format(r))
 
+    logg.debug('testing against hashes {}'.format(tx_hashes))
     for tx in r:
         logg.debug('have tx {}'.format(tx))
-        tx_hashes.remove(tx['hash'])
+        tx_hashes.remove(strip_0x(tx['hash']))
     assert len(tx_hashes) == 1

@@ -1,19 +1,23 @@
-# syntax = docker/dockerfile:1.2
-#FROM node:15.3.0-alpine3.10
-FROM node:lts-alpine3.14
+FROM node:15.3.0-alpine3.10
 
 WORKDIR /root
 
 RUN apk add --no-cache postgresql bash
 
-# copy the dependencies
-COPY package.json package-lock.json .
-RUN --mount=type=cache,mode=0755,target=/root/.npm \
-    npm set cache /root/.npm && \
-    npm ci
+ARG NPM_REPOSITORY=${NPM_REPOSITORY:-https://registry.npmjs.org}
+RUN npm config set snyk=false
+#RUN npm config set registry={NPM_REPOSITORY}
+RUN npm config set registry=${NPM_REPOSITORY}
 
-COPY webpack.config.js .
-COPY tsconfig.json . 
+# copy the dependencies
+COPY package.json package-lock.json ./
+#RUN --mount=type=cache,mode=0755,target=/root/.npm \
+RUN    npm set cache /root/.npm && \
+    npm cache verify && \
+    npm ci --verbose
+
+COPY webpack.config.js ./
+COPY tsconfig.json ./
 ## required to build the cic-client-meta module
 COPY . .
 COPY tests/*.asc /root/pgp/

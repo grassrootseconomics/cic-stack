@@ -1,0 +1,1098 @@
+keys,en,sw,kam,kik,miji,luo,bor
+initial_language_selection,"CON Welcome to Sarafu Network!
+%{first_language_set}
+11. Next
+00. Exit","CON Karibu Sarafu Network!
+%{first_language_set}
+11. Mbele
+00. Ondoka","CON Kalivu mutandao wa Sarafu!
+%{first_language_set}
+11. Mbee
+00. Uma","CON Karibu Sarafu Network!
+%{first_language_set}
+11. Mbere
+00. Uma","CON Karibu Sarafu Network!
+%{first_language_set}
+11. Mbere
+00. Ombola","CON Machiegni e Sarafu Network!
+%{first_language_set} 
+11. Nyime
+00. Wuok","CON Sarafu Network Diaad! 
+%{first_language_set}
+11. Dhuur
+00.Bai"
+initial_pin_entry,CON Please enter a new four number PIN for your account.,CON Tafadhali weka pin mpya yenye nambari nne kwa akaunti yako,CON Tafathali ikia pin yumbya ila ina namba inya ,CON Ikira namba yaku ya thiri njeru ina namba inna.,CON Ika piniyo ya namba Nee kwa akaunti yakwako.,CON Kiyie to ket namba ni mopondo manyien e akaunt ni.,CON Tafadhal pin hareti kekhae ka namba afuri fulaa akaunti kake
+initial_pin_confirmation,CON Enter your four number PIN again,CON Weka PIN yako tena,CON Ikia PIN yaku ya namba inya ingi,CON Ikira PIN yaku ringi,CON ika nambazo nee kaheri,CON Ket namba ni mopondo manyien kendo,CON PIN kekhae Marro Dibii
+enter_given_name,"CON Enter first name
+0. Back",CON Weka jina lako la kwanza,"CON Andika isyitwa yaku ya mbee
+0. Itina","CON Ikira ritwa ria mbere
+0. Thutha","CON Injiza dzinaro ra kwanza
+0. Uya nyuma","CON Enter first name
+0. Chien","CON Makhaa karaa kor
+0.Dheebi"
+enter_family_name,"CON Enter family name
+0. Back","CON Weka jina lako la mwisho
+0. Rudi","CON Ikia isyitwa yaku ya muthya
+0. Itina","CON Ikira ritwa rwaku ria mwisho
+0. Thutha","CON Injiza dzinaro ra mbarini
+0. Uya nyuma","CON Ket nyingi mogik.
+0. Chien","CON Makhaa ka egee
+0. Dhebii"
+enter_date_of_birth,"CON Enter year of birth
+0. Back","CON Weka mwaka wa kuzaliwa
+0. Rudi","CON Ikia mwaka wa kusyawa
+0. Itina","CON Ikira mwaka waku wa guciarwo
+0. Thutha","CON Ika mwaka wakuvyalwa
+0. Uya Nyuma","CON Ket iki mar nyuol
+0. Chien","CON Gan kake ka athdalat kor
+0. Dheebi"
+enter_gender,"CON Enter gender
+1. Male
+2. Female
+3. Other
+0. Back","CON Weka jinsia yako
+1. Mwanaume
+2. Mwanamke
+3. Nyingine
+0. Rudi","CON Ikia muvai waku
+1. Mundume
+2. Mundumuka
+3. Ingi
+0. Itina","CON Ikira huura yaku
+1.Mudurume
+2.Mutumia
+3.Ingi
+0. Thutha","CON Ika kala Umulume.
+1. Mulume
+2. Muche
+3. Vinjine
+0. Uya Nyuma","CON Ket kit chwech mari
+1. Dichuo
+2. Dhako
+3. Moko
+0. Chien","CON Athin Dir mo Dubr
+1. Dir
+2. Dubr
+3. Ka dibii
+0. Dheebi"
+enter_location,"CON Enter your location,
+0. Back","CON Weka eneo lako
+0. Rudi","CON Andika utui waku
+0. Itina","CON Ikira Itura riaku
+0. Thutha","CON Ika enero wombolako.
+0. Uya nyuma","CON Ket kumaidake
+0. Chien","CON Fulaa athin kubat kor
+0. Dhebii"
+enter_products,"CON Please enter a product or service you offer
+0. Back","CON Weka bidhaa ama huduma unauza
+0. Rudi","CON Andika syindu kana huduma ila unenganae kana kuta
+0. Itina","CON Ikira Kindu kana wira uria urendia
+0. Thutha","CON Ika Miyoo ama utu uhendao
+0. Uya Nyuma","CON Ket gima iuso kata tich mitimo
+0. Chien","CON Waan gurgurt okan namaa kenit khes khae
+0. Dheebi"
+start,"CON Balance %{account_balance} %{account_token_name}
+1. Send
+2. My Sarafu
+3. My Account
+4. Help","CON Salio %{account_balance} %{account_token_name}
+1. Tuma
+2. Sarafu yangu
+3. Akaunti yangu
+4. Usaidizi","CON Mbalansi yaku %{account_balance} %{account_token_name}
+1. Kutuma
+2. Sarafu yakwa
+3. Kinandu chakwa
+4. Utethyo","CON Matigari %{account_balance} %{account_token_name}
+1. Tuma
+2. Sarafu yakwa
+3. Akaunti yakwa
+4. Uteithio","CON Sazo %{account_balance} %{account_token_name}
+1. Huma
+2. Sarafu zangu
+3. Akaunti yangu
+4. Avizwa","CON Balance %{account_balance} %{account_token_name}
+1. Or
+2. Sarafu na
+3. Akaont na
+4. Kony","CON Balans %{account_balance} %{account_token_name}
+1. Erg
+2. Sarafu khiy
+3. Akaunt Khiy
+4.Qarqars"
+enter_transaction_recipient,"CON Enter phone number
+0. Back","CON Weka nambari ya simu
+0. Rudi","CON Ikia namba ya simu
+0. Itina","CON Ikira namba ya thimu
+0. Thutha","CON Ika namba ya simu.
+0. Uya Nyuma","CON Ket namba simu ngama iorone
+0. Chien","CON Namba simuu kekhai
+0. Dheebi"
+enter_transaction_amount,"CON Enter amount
+0. Back","CON Weka kiwango
+0. Rudi","CON Ikia kiwango
+0. Itina","CON Ikira muigana
+0. Thutha","CON Ika chaasi cha kuhuma.
+0. Uya nyuma","CON Ket giko mari
+0. Chien","CON Agham kekhai
+0. Dheebi"
+first_account_tokens_set,"CON Choose a number or symbol from your balances:
+%{first_account_tokens_set}
+0. Back
+11. Next
+00. Exit","CON Chagua nambari au ishara kutoka kwa salio zako:
+%{first_account_tokens_set}
+0. Rudi
+11. Mbele
+00. Ondoka","CON Sakua namba kana uvano kuma kwa mbalansi yaku:
+%{first_account_tokens_set}
+0. Itina
+11. Mbee
+00. Uma","CON Shagura namba kana kionereria hari matigari maku:
+%{first_account_tokens_set}
+0. Thutha
+11. Ikinya ringi
+00. Uma","CON Tsagula namba au ndzora kulaa kwa sazoro:
+%{first_account_tokens_set}
+0. Uya nyuma
+11. Mbere
+00. Ombola","CON Choose a number or symbol from your balances:
+%{first_account_tokens_set}
+0. Chien
+11. Nyime
+00. Wuok","CON Namba Chaguad fulaa balans kake. % first_account_tokens_set}
+0. Dheebi
+11. Dhuur
+00.Bai"
+middle_account_tokens_set,"CON Choose a number or symbol from your balances:
+%{middle_account_tokens_set}
+11. Next
+22. Previous
+00. Exit","CON Chagua nambari au ishara kutoka kwa salio zako:
+%{middle_account_tokens_set}
+11. Mbele
+22. Rudi
+00. Ondoka","CON Sakua namba kana uvano kuma kwa mbalansi yaku:
+%{first_account_tokens_set}
+11. Mbee
+22. Itina
+00. Uma","CON Cagura namba kana kionereria hari matigari maku:
+%{middle_account_tokens_set}
+11. Ikinya ringi
+22. Thutha
+00. Uma","CON Tsagula Sarafu:
+ %{middle_account_tokens_set}
+11.Mbere
+22.Uya nyuma
+00.Ombola","CON Choose a number or symbol from your balances:
+%{middle_account_tokens_set}
+11. Nyime
+22. Mokalo
+00. Wuok","CON Namba Chaguad fulaa balans kake.%{middle_account_tokens_set}
+11. Dhuur 
+22.Waan Dabraan
+00.Bai"
+last_account_tokens_set,"CON Choose a number or symbol from your balances:
+%{last_account_tokens_set}
+22. Previous
+00. Exit","CON Chagua nambari au ishara kutoka kwa salio zako:
+%{last_account_tokens_set}
+22. Rudi
+00. Ondoka","CON Sakua namba kana uvano kuma kwa mbalansi yaku:
+%{last_account_tokens_set}
+22. Syoka itina
+00. Uma","CON Cagura namba kana kionereria hari matigari maku:
+%{last_account_tokens_set}
+22. Coka thutha
+00. Uma ","CON Tsagula Sarafu:
+ %{last_account_tokens_set}
+22. Uya Nyuma
+00.Ombola","CON Choose a number or symbol from your balances:
+%{last_account_tokens_set}
+22. Mokalo
+00. Wuok","CON Namba Chaguad fulaa balans kake.%{last_account_tokens_set}
+22.Waan Dabraan
+00. Bai"
+token_selection_pin_authorization.first,"CON %{token_data}
+Enter pin to select:
+0. Back","CON %{token_data}
+Weka nambari ya siri kuchagua:
+0. Back","CON %{token_data}
+Ikia pin yaku kusakua:
+0. Itina","CON %{token_data}
+Ikira pin yaku gucaghura:
+0. Thutha","CON %{token_data}
+Ika piniyo kutsagula Sarafu:
+0. Uya Nyuma","CON %{token_data}
+Ket namba ni mopondo mondo iyier:","CON %{token_data}
+Pin kake  khai 
+"
+token_selection_pin_authorization.retry,%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry}
+account_management,"CON My account
+1. My profile
+2. Change language
+3. Check balance
+4. Check statement
+5. PIN options
+0. Back","CON Akaunti yangu
+1. Wasifu wangu
+2. Chagua lugha
+3. Angalia salio
+4. Angalia taarifa
+5. Mipangilio ya PIN
+0. Rudi","CON Kinandu chakwa
+1. Welesyo wakwa
+2. Sakua luka
+3. Sisya mbalansi
+4. Sisya welesyo
+5. Welesyo wa PIN
+0. Itina","CON Akaunti yakwa
+1. Maritwa makwa
+2. Cagura rothiumu
+3. Rora matigari
+4. Rora rugano
+5. Cenjia PIN
+0. Thutha","CON Akaunti yangu
+1. Malagizo gangu
+2. Tsagula luga
+3. Lola sazo
+4. Lola tarifa
+5. Galuza PIN
+0. Uya Nyuma","CON Akaont na
+1. Nyanonro mara
+2. Yier dhok
+3. Ngi midong go
+4. N'gi chal
+5. Lok PIN
+0. Chien","CON Akaunti khiy
+1. Profile khiy
+2. Afaan chaguad
+3. Balansi laalad
+4. Odhuu jalkaba laal
+5. Pin ta atin feet
+0. Dheebi"
+metadata_management,"CON My profile
+1. Edit name
+2. Edit gender
+3. Edit age
+4. Edit location
+5. Edit products
+6. View profile
+0. Back","CON Wasifu wangu
+1. Weka jina
+2. Weka jinsia
+3. Weka umri
+4. Weka eneo
+5. Weka bidhaa
+6. Angalia wasifu wako
+0. Rudi","CON Welesyo wakwa
+1. Ikia isyitwa
+2. Ikia muvai
+3. Ikia miaka
+4. Ikia utui
+5. Ikia syindu
+6. Sisya welesyo waku
+0. Itina","CON Maondu maku
+1. Ikira ritwa
+2. Ikira huura
+3. Miaka yaku
+4. Itura riaku
+5. Wendagia ki
+6. Rora maundu
+0. Thutha","CON Malagizo Gangu
+1. Ika dzinaro
+2. Ika kala umulume
+3. Ika umurio
+4. Ika eneoro
+5. Ika miyo
+6. Lola malagizo
+0. Uya nyuma","CON Wasifu wangu
+1. Ket nyingi
+2. Ket kit chuech mari
+3. Ket iki
+4. Ket kumaidake
+5. Ket gikmaiuso
+6. Ng'i nyanonro
+0. Chien","CON Odhuu Khiy
+1. Maqa kekhai
+2. Dir mo dubr
+3. Gan kekhai
+4. Fulaa kubaat kai
+5. Mih kai
+6. Profile khiy laal
+0. Dheebi"
+display_user_metadata,"CON Profile:
+Name: %{full_name}
+Gender: %{gender}
+Age: %{age}
+Location: %{location}
+You sell: %{products}
+0. Back","CON Wasifu:
+Jina: %{full_name}
+Jinsia: %{gender}
+Umri: %{age}
+Eneo: %{location}
+Unauza: %{products}
+0. Rudi","CON Welesyo wakwa :
+Isyitwa: %{full_name}
+Muvai: %{gender}
+Miaka %{age}
+Utui: %{location}
+Wita kyau: %{products}
+0. Itina","CON Maundu:
+Maritwa: %{full_name}
+Huura: %{gender}
+Miaka: %{age}
+Itura: %{location}
+Kiria uendagia : %{products}
+0. Thutha","CON Malagizo:
+Dzina: %{full_name}
+Umuche: %{gender}
+Umuri: %{age}
+Umbolako: %{location}
+Miyo uguzayo: %{products}
+0. Uya nyuma","CON Nyanonro:
+Nying: %{full_name}
+Kit chuech: %{gender}
+Iga: %{age}
+Kumidake: %{location}
+Gima iuso: %{products}
+0. Chien","CON Profile:
+Makha: %{full_name}
+Dir mo Dubr: %{gender}
+Gan: %{age}
+Fulaa : %{location}
+Maan gurgurt: %{products}
+0. Dheebi"
+select_preferred_language,"CON Choose language:
+%{first_language_set}
+0. Back
+11. Next
+00. Exit","CON Chagua lugha:
+%{first_language_set}
+0. Rudi
+11. Mbele
+00. Ondoka","CON Sakua luka:
+%{first_language_set}
+0. Itina
+11. Mbee
+00. Uma","CON Cagura ruthiomi
+%{first_language_set}
+0. Thutha
+11. Mbere
+00. Uma","CON Tsagula Luga
+%{first_language_set}
+0.Uya nyuma
+11.Mbere
+00.Ombola","CON Yier dhok:
+%{first_language_set}
+0. Chien
+11. Nyime
+00. Wuok","CON Afaan chaguaad
+%{first_language_set}
+0.Dheebi
+11.Dhuur
+00.Bai"
+retry_pin_entry,"CON Incorrect PIN entered, please try again.You have %{remaining_attempts} attempts remaining.
+0. Back","CON Nambari uliyoweka si sahihi, jaribu tena. Una majaribio %{remaining_attempts} yaliyobaki.
+0. Rudi","CON Namba ila wekiya iyaile, tata ingi. Mala %{remaining_attempts} nimo matyele.
+0. Itina","CON Namba uikirite ti njega, geria ringi. Wina maita %{remaining_attempts} matigarete.
+0. Thutha","CON Nambari fitse urioika seyo, jeza kaheri. Usere Majezo %{remaining_attempts} Gaserego.
+0. Uya nyuma","CON Namba miketo oknikare, tem kendo. Idong gi temo di %{remaining_attempts} modong.
+0. Chien","CON Namba at keket suninit,mar dibii itdheebi.Nafaas kaitdheebit %tanaataf
+0. Dheebi"
+pin_management,"CON Pin options
+1. Change my PIN
+2. Reset other PIN
+3. Guard my PIN
+0. Back","CON Pin options
+1. Badilisha PIN yangu
+2. Badilisha PIN ya mwingine
+3. Linda PIN yangu
+0. Rudi","CON Welesyo yulu wa PIN
+1. Kuvindua PIN yakwa
+2. Kusovesya mundu PIN 
+3. Kusuvia PIN yakwa
+0. Itina","CON Mweke wa PIN
+1. Guchenjia PIN
+2. Kugarura  PIN
+3. Kugitira PIN
+0. Thutha","CON Tsaguzi kwenye pini
+1. Galuza pini
+2. Ikato pini
+3. Imira pini
+0. Uya nyuma","CON Pin options
+1. Lok PIN na
+2. Los PIN
+3. Rit PIN na
+0. Chien","CON pin ta atin feet
+1.Pin badilifaad
+2.Pin nam dibii badilifaad
+3.Pin Korkorad
+0.Dheebi"
+enter_current_pin.first,"CON Enter current PIN.
+0. Back","CON Weka nambari ya siri.
+0. Rudi","CON Ikia namba yaku ya siri.
+0. Itina","CON Ikira namba ya thiri
+0. Thutha","CON Ika namba Pini.
+0. Uya Nyuma","CON Ket PIN ni masani
+0. Chien","CON Pin tate kekhai
+0. Dheebi"
+enter_current_pin.retry,%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry}
+enter_new_pin,"CON Enter your new four number PIN
+0. Back","CON Weka PIN mpya ya nambari nne
+0. Rudi","CON Ikia PIN yaku yumbya ya namba inya
+0. Itina","CON Ikira namba njeru ya thiri
+0. Thutha","CON Ika namba pini mbisha
+0. Uya nyuma","CON Ket PIN ni maanyien.
+0. Chien","CON Pin hareti ta namba afuuri kai
+0. Dheebi"
+new_pin_confirmation,"CON Enter your new four number PIN again
+0. Back","CON Weka nambari yako ya siri tena
+0. Rudi","CON Ikia namba yaku ya siri ingi
+0. Itina","CON Ikira namba yaku ya thiri renge
+0. Thutha","CON Uyira kuika lwaphiri
+0. Uya Nyuma","CON Ket PIN ni kendo
+0. Chien","CON Pin hareti ta namba afuuri itdheebi
+0. Dheebi"
+reset_guarded_pin,"CON Enter phone number you are the guardian of reset their pin
+0. Back","CON Weka nambari ya simu ili kutuma ombi la kubalisha nambari ya siri.
+0. Rudi","CON Ikia namba yaku ya simu ta mutethesya wa kusovya pin
+0. Itina","CON Ikira namba ya thimu gutuma ihoya ria gucejia namba ya thiri
+0. Thutha","CON Ika namba ya simu muimirizi wako kugaluza piniyo
+0. Uya Nyuma","CON Ket namba simu ma irito PIN ne
+0. Chien","CON Namba ta atin korkorad kekeyaad ta pin badilifaad
+0.Dheebi"
+reset_guarded_pin_authorization.first,"CON Enter YOUR pin to confirm %{guarded_account_information}'s pin reset
+0. Back","CON Weka nambari YAKO ya siri ili kudhibitisha ombi la kubadilisha nambari ya siri ya %{guarded_account_information}
+0. Rudi","CON Ikia pin YAKU kwikiithya %{guarded_account_information} kusovwa kwa pin
+0. Itina","CON Ikira PIN yaku  %{guarded_account_information} cejia
+0. Thutha","CON Injiza piniyo uhakikishe %{guarded_account_information} unampaluzira
+0. Uya nyuma","CON Ket PIN manyiso loko PIN mar %{guarded_account_information}
+0. Chien","CON Pin kake kekhai %{guarded_account_information} badilifaad
+0.Dheebi"
+reset_guarded_pin_authorization.retry,%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry}
+exit_pin_reset_initiated_success,"CON Success: You have initiated a PIN reset for %{guarded_account_information}
+0. Back
+9. Exit","CON Ombi lako la kubadili PIN ya %{guarded_account_information} limetumwa.
+0. Rudi
+9. Ondoka","CON Niwetikilwa: Niwambiisya kusovwa kwa PIN ya %{guarded_account_information}
+0. Itina
+9. Uma","CON Kugaacira: Niwetikeria ucejanio wa PIN ya  %{guarded_account_information}
+0. Thutha
+9. Uma","CON Uweza: Umuhumira pini agaluze %{guarded_account_information}
+0. Uya nyuma
+9. Ombola","CON Kwayo mari mar loko namba mopondo mar %{guarded_account_information} oseor
+0. Chien
+9. Wuok","CON.Yadandeeth:Yaa pin badilifadu ergan%{guarded_account_information}
+0.Dheebi
+9.Bai"
+exit_not_authorized_for_pin_reset,"CON Failure: You are not authorized to reset that PIN. You must be a guardian!
+0. Back
+9. Exit","CON Huruhusiwi kutuma ombi la kubadilisha PIN
+0. Rudi
+9. Ondoka","CON Ndwitikilitwe kusovya PIN. Ni lasima withiwe wi mutethesya!
+0. Itina
+9. Uma","CON Kugua: Nduitikiritio kucejia PIN iyo. Ni muhaka utuike mugiteri !
+0. Thutha
+9. Uma","CON Kuwezere: Kuruhusiwa kugaluza yo pini. Ni lazima ukale mwimirizi.
+0. Uya nyuma
+9. Ombola.","CON Otamore: Okoyieni oro kwayo mar loko PIN ni. Nyaka ibed jarit
+0. Chien
+9. Wuok","Dasanitt Pin badilifaadu indandeth. Lazima atin korkorada taat
+0.Dheebi
+9.Bai"
+guard_pin,"CON PIN guardians
+1. View
+2. Add
+3. Remove
+0. Back","CON Walinzi wa PIN
+1. Ona
+2. Ongeza
+3. Ondoa
+0. Rudi","CON Atetheesya ma PIN
+1. Sisya
+2. Ongela
+3. Umya
+0. Itina","CON Agiteri PIN
+1. Rora
+2. Ikira
+3. Eheria
+0. Thutha","CON Kinjira PIN
+1. Lola
+2. Ika
+3. Usa
+0. Uya nyuma","CON Arita PIN
+1. Ng'i
+2. Med
+3. Gol
+0. Chien","CON PIN korkorad
+1. laaalad
+2. Darad
+3.Baas
+0.Dheebi"
+guardian_list_pin_authorization.first,"CON Enter your pin to view set guardians
+0. Back","CON Weka nambari yako ya siri ili kuona walinzi uliowaongeza
+0. Rudi","CON Ikia pin yaku kuisya atetheesya ala wandikithitye
+0. Itina","CON Ikira PIN kurora agiteri aku
+0. Thutha","CON Injiza piniyo kulolera mwimirizi
+0. Uya nyuma","CON Ket PIN ine jorit miketo
+0. Chien","CON pin kake kekhai nam at korkorad lalaad
+0.Dheebi"
+guardian_list_pin_authorization.retry,%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry}
+guardian_list,"CON %{guardians_list}
+0. Back
+9. Exit","CON %{guardians_list}
+0. Rudi
+9. Ondoka","CON %{guardians_list}
+0. Itina
+9. Uma","CON %{guardians_list}
+0. Thutha
+9. Uma","CON %{guardians_list}
+0. Uya nyuma
+9. Ombola","CON %{guardians_list}
+0. Chien
+9. Wuok","CON %{guardians_list}
+0.Dheebi
+9.Bai"
+add_guardian,"CON Enter phone number to add as pin reset guardian
+0. Back","CON Weka nambari ya simu ili kuongeza mlinzi
+0. Rudi","CON Ikia namba ya simu kwongela mutethesya wa kusovya pin
+0. Itina","CON Ikera namba ya thimu kuongerera mugiteri wa gucenjia  PIN
+0. Back","CON Injiza namba ya simu ikale namba ya mwimirizi
+0. Uya nyuma","CON Ket namba simu mondo imed jarit namba ni mopondo
+0. Chien","CON number kekhai ta nam atin Korkorad ta pin badilifaad feet
+0.Bai"
+add_guardian_pin_authorization.first,"CON Enter your pin to add %{guardian_information} as your PIN reset guardian
+0. Back","CON Weka nambari YAKO ya siri ili kumwongeza %{guardian_information} kama mlinzi
+0. Rudi","CON Ikia pin yaku kwongela %{guardian_information} ta mutetheesya
+0. Itina","CON Ikera pin yaku kuogerera %{guardian_information}  ta mugiteri wa gucenjia pin yaku
+0. Thutha","CON Injiza piniyo kuika %{guardian_information} akale mwimirizi wa piniyo
+0. Uya nyuma","CON Ket PIN mondo imed %{guardian_information} kaka jarit namba mar loko PIN ni
+0. Back","pin kekhai dhuumi darad %{guardian_information}  ta nam si korkorad.
+0.Dheebi"
+add_guardian_pin_authorization.retry,%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry}
+exit_guardian_addition_success,"CON Success: %{guardian_information} can now reset your PIN
+0. Back
+9. Exit","CON Ombi lako la kumwongeza: %{guardian_information} kama mlinzi limefanikiwa
+0. Rudi
+9. Ondoka","CON Niwetikilwa kwandikithya %{guardian_information} ta mutetheesya wa kusovya PIN
+0. Itina
+9. Uma","CON Niwahota: %{guardian_information} No acenjie PIN yaku
+0. Thutha
+9. Uma","CON Uweza: %{guardian_information} vivi unadima kugaluza pini.
+0. Uya nyuma
+9. Ombola","CON Kwayoni mar medo: %{guardian_information} kaka jarit PIN mari ni kare
+0. Chien
+9. Wuok","Ya dandeeth.%guardian_information.Pin tate badlifaad dandeeth.
+0.Dheebi.
+9.Bai"
+exit_invalid_guardian_addition,"CON %{error_exit}
+0. Back
+9. Exit","CON %{error_exit}
+0. Rudi
+9. Ondoka","CON %{error_exit}
+0. Itina
+9. Uma","CON %{error_exit}
+0. Thutha
+9. Uma","CON %{error_exit}
+0. Uya nyuma
+9. Ombola","CON %{error_exit}
+0. Chien
+9. Wuok","CON %{error_exit}. 
+0.Dheebi
+9.Bai"
+remove_guardian,"CON Enter phone number to revoke guardianship:
+0. Back","CON Weka nambari ya simu ili kuondoa mlinzi
+0. Rudi","CON Ikia namba ya simu kumya mutetheesya:
+0. Itina","CON Ikera namba ya thimu kuruta mugiteri:
+0. Thutha","CON Ika namba ya simu kumuomboza Mwimirizi:
+0. Uya nyuma","CON Ket namba mar simu mondo igol jarit:
+0. Chien","CON Namba simu keyaadi ta korkorad irabasu feet.
+00.Dheebi"
+remove_guardian_pin_authorization.first,"CON Enter your pin to remove %{guardian_information} as your PIN reset guardian
+0. Back","CON Weka PIN yako ili kumwondoa %{guardian_information} kama mlinzi ya PIN yako
+0. Rudi","CON Ikia pin yaku kumya %{guardian_information} ta mutetheesya wa kusovya PIN 
+0. Itina","CON Ekera pin yaku kuruta %{guardian_information} ta mugiteri wa gucenjia pin yaku
+0. Thutha","CON Injiza piniyo kumuomboza %{guardian_information} dza mwimirizi wa piniyo.
+0. Uya nyuma","CON Ket PIN mondo igol %{guardian_information} kaka jarit
+0. Chien","Pin simu keyaadi.
+ 0.Dheebi"
+remove_guardian_pin_authorization.retry,%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry}
+exit_guardian_removal_success,"CON Success: %{guardian_information} PIN reset guardianship is revoked
+0. Back
+9. Exit","CON Ombi lako la kumwondoa: %{guardian_information} kama mlinzi limefanikiwa
+0. Rudi
+9. Ondoka","CON Niwetikilwa: %{guardian_information} niwaumwa ta mutetheesya waku wa kusovya PIN
+0. Itina
+9. Uma","CON Niwahota: %{guardian_information} Ugiteri wa gucenjia PIN niwarutwo
+0. Thutha
+9. Uma","CON Uweza: %{guardian_information} Mwimirizi wa piniyo umomboza.
+0. Uya nyuma
+9. Ombola","CON Kwayo mari mar golo %{guardian_information} kaka jarit odhikare
+0. Chien
+9. Wuok","CON yadandeeth. %{guardian_information} simu ta korkorad ya irabasan.
+0. Dheebi
+9.Bai"
+exit_invalid_guardian_removal,"CON %{error_exit}
+0. Back
+9. Exit","CON %{error_exit}
+0. Rudi
+9. Ondoka","CON %{error_exit}
+0. Itina
+9. Uma","CON %{error_exit}
+0. Thutha
+9. Uma","CON %{error_exit}
+0. Uya nyuma
+9. Ombola","CON %{error_exit}
+0. Chien
+9. Wuok","CON %{error_exit}. 
+0.Dheebi
+9.Bai"
+transaction_pin_authorization.first,"CON %{recipient_information} will receive %{transaction_amount} %{token_symbol} from %{sender_information}.
+Please enter your PIN to confirm.
+0. Back","CON %{recipient_information} atapokea %{transaction_amount} %{token_symbol} kutoka kwa %{sender_information}
+Tafadhali weka PIN yako kudhibitisha
+0. Rudi","CON %{recipient_information} nukwata %{transaction_amount} %{token_symbol} kuma kwa %{sender_information}
+Ikia PIN yaku kuvitukithya
+0. Itina","CON %{recipient_information} akuamukira %{transaction_amount} %{token_symbol} kuuma kwa %{sender_information}
+Ekera PIN yaku kuetekeria
+0. Thutha","CON %{recipient_information} yundahokera %{transaction_amount} %{token_symbol} kulaa kwa %{sender_information}.
+ika PIN kala usawa
+0. Uya nyuma.","CON %{recipient_information} dhiyudo %{transaction_amount} %{token_symbol} kowuok kuom %{sender_information}.
+Kiyie to ket PIN mondo iyie:
+0. Chien","CON %{recipient_information} in argad%{transaction_amount} %{token_symbol} ir %{sender_information}.
+PIN kekhai:
+0. Dheebi"
+transaction_pin_authorization.retry,%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry}
+display_metadata_pin_authorization.first,"CON Please enter your PIN
+0. Back","CON Tafadhali weka PIN yako
+0. Rudi","CON Tafathali ikia PIN yaku
+0. Itina","CON Ikera PIN yaku
+0. Thutha","CON Unavoywa kuika piniyo.
+0. Uya Nyuma","CON Kiyie to ket PIN ni
+0. Chien","CON Pin kekhai
+0. Dheebi"
+display_metadata_pin_authorization.retry,%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry}
+account_balances_pin_authorization.first,"CON Please enter your PIN to view balances
+0. Back","CON Tafadhali weka PIN yako kuona salio.
+0. Rudi","CON Kuisya mbalansi ikia PIN yaku .
+0. Itina","CON Ikera pin yaku kuona matigari maku
+0. Thutha","CON Unavoywa piniyo kulola Sazoro.
+0. Uya nyuma","CON  Kiyie to ket PIN mondo ine modong'
+0. Chien","CON Pinkekhai  ak balansi kake lalt
+0. Dheebi"
+account_balances_pin_authorization.retry,%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry}
+account_statement_pin_authorization.first,"CON Please enter your PIN to view statement
+0. Back","CON Tafadhali weka PIN yako kuona taarifa ya matumizi.
+0. Rudi","CON Ikia PIN yaku kwona welesyo wa utumii.
+0. Itina","CON Ikera PIN yaku kuona rugano rwa mahuthira maku
+0. Thutha","CON Unavoywa piniyo kupata maerezo mahumizi Gako.
+0. Uya Nyuma","CON Kiyie to ket PIN mondo ine chenro.
+0. Chien","CON Tafadhali pin kake kekhai odhuu jalkaba lalaad.
+0. Dheebi"
+account_statement_pin_authorization.retry,%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry}
+name_edit_pin_authorization.first,"CON Please enter your PIN
+0. Back","CON Tafadhali weka PIN yako
+0. Rudi","CON Tafathali ikia PIN yaku
+0. Itina","CON Ikera pin yaku
+0. Thutha","CON Unavoywa piniyo
+0. Uya Nyuma","CON Ket PIN
+0. Chien","CON Pin kekhai
+0. Dheebi"
+name_edit_pin_authorization.retry,%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry}
+dob_edit_pin_authorization.first,"CON Please enter your PIN
+0. Back","CON Tafadhali weka PIN yako
+0. Rudi","CON Tafathali ikia PIN yaku
+0. Itina","CON Ikera PIN yaku
+0. Thutha","CON Unavoywa piniyo
+0. Uya nyuma","CON Kiyie to ket PIN
+0. Chien","CON pin kekhai
+0. Dheebi"
+dob_edit_pin_authorization.retry,%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry}
+gender_edit_pin_authorization.first,"CON Please enter your PIN
+0. Back","CON Tafadhali weka PIN yako
+0. Rudi","CON Tafathali ikia PIN yaku
+0. Itina","CON Ikera PIN yaku
+0. Thutha",CON Unavoywa piniyo 0. Uya nyuma,"CON Kiyie to ket PIN
+0. Chien","CON pin kekhai
+0. Dheebi"
+gender_edit_pin_authorization.retry,%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry}
+location_edit_pin_authorization.first,"CON Please enter your PIN
+0. Back","CON Tafadhali weka PIN yako
+0. Rudi","CON Tafathali ikia PIN yaku
+0. Itina","CON Ikera PIN yaku
+0. Thutha","CON Unavoywa piniyo
+0. Uya nyuma","CON Kiyie to ket PIN
+0. Chien","CON Pin kekhai
+0. Dheebi"
+location_edit_pin_authorization.retry,%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry}
+products_edit_pin_authorization.first,"CON Please enter your PIN
+0. Back","CON Tafadhali weka PIN yako
+0. Rudi","CON Tafathali ikia PIN yaku
+0. Itina","CON Ikera PIN yaku
+0. Thutha","CON Unavoywa piniyo
+0. Uya nyuma","CON Kiyie to ket PIN
+0. Chien","CON Pin kekhai
+0. Dheebi"
+products_edit_pin_authorization.retry,%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry},%{retry_pin_entry}
+account_balances.available_balance,"CON Your balances are as follows:
+  %{available_balance} %{token_symbol}
+0. Back","CON Salio zako ni zifuatazo:
+  %{available_balance} %{token_symbol}
+0. Rudi","CON Mbalansi syaku nisyo ii:
+  %{available_balance} %{token_symbol}
+0. Itina","CON Matigari maku ni maya:
+ matigari: %{available_balance} %{token_symbol}
+0. Thutha","CON Masazogo nidzavivyo gatuwiravyo:
+ Sazo: %{available_balance} %{token_symbol}
+0. Uya Nyuma","CON Dong mari en kama: %{available_balance} %{token_symbol}
+0. Dog chien","CON Balansi kake akan
+ salio: %{available_balance} %{token_symbol}
+0. Dheebi"
+account_balances.with_fees,"CON Your balances are as follows:
+balances: %{available_balance} %{token_symbol}
+fees: %{tax} %{token_symbol}
+0. Back","CON Salio zako ni zifuatazo:
+  salio: %{available_balance} %{token_symbol}
+  ushuru: %{tax} %{token_symbol}
+0. Rudi","CON Mbalansi syaku nisyo ii:
+ mbalansi: %{available_balance} %{token_symbol}
+ yelo: %{tax} %{token_symbol}
+0. Itina","CON Matigari maku ni maya:
+ matigari: %{available_balance} %{token_symbol}
+ ushuru: %{tax} %{token_symbol}
+0. Thutha","CON Masazogo ni gatuwirago:
+ Masazo: %{available_balance} %{token_symbol}
+ Ushuuru: %{tax} %{token_symbol}
+0. Uya nyuma","CON Dong mari en:
+ Dong: %{available_balance} %{token_symbol}
+ osuru: %{tax} %{token_symbol}
+0. Chien","CON Balansi kake akan
+ salio: %{available_balance} %{token_symbol}
+ ushuru: %{tax} %{token_symbol}
+0. Dheebi"
+account_balances.with_rewards,"CON Your balances are as follows:
+balance: %{available_balance} %{token_symbol}
+fees: %{tax} %{token_symbol}
+rewards: %{bonus} %{token_symbol}
+0. Back","CON Salio zako ni zifuatazo:
+  salio: %{available_balance} %{token_symbol}
+  ushuru: %{tax} %{token_symbol}
+  tuzo: %{bonus} %{token_symbol}
+0. Rudi","CON  Mbalansi syaku nisyo ii:
+ mbalansi: %{available_balance} %{token_symbol}
+ yelo: %{tax} %{token_symbol}
+ muthinzio: %{bonus} %{token_symbol}
+0. Itina","CON Matigari maku ni:
+ Matigari: %{available_balance} %{token_symbol}
+ ushuru: %{tax} %{token_symbol}
+ tuzo: %{bonus} %{token_symbol}
+0. Thutha","CON Sazoro ni rituwiraro:
+ Sazo: %{available_balance} %{token_symbol}
+ Ushuuru: %{tax} %{token_symbol}
+ Zawadi: %{bonus} %{token_symbol}
+0. Uya Nyuma","CON Dong mari en kama:
+ Dong: %{available_balance} %{token_symbol}
+ osuru: %{tax} %{token_symbol}
+ mich: %{bonus} %{token_symbol}
+0. Chien","CON Balansi kake akan
+ salio: %{available_balance} %{token_symbol}
+ ushuru: %{tax} %{token_symbol}
+ tuzo: %{bonus} %{token_symbol}
+0. Dheebi"
+first_transaction_set,"CON %{first_transaction_set}
+0. Back
+11. Next
+00. Exit","CON %{first_transaction_set}
+0. Rudi
+11. Mbele
+00. Ondoka","CON %{first_transaction_set}
+0. Itina
+11. Mbee
+00. Uma","CON %{first_transaction_set}
+0. Thutha
+11. Mbere
+00. uma","CON %{first_transaction_set}
+0. Uma nyuma
+11. Mbere
+00. Ombola","CON %{first_transaction_set}
+0. Chien
+11. Nyime
+00. Wuok","CON %{first_transaction_set}
+0. Dheebi
+11. Dhuur
+00. Bai"
+middle_transaction_set,"CON %{middle_transaction_set}
+11. Next
+22. Previous
+00. Exit","CON %{middle_transaction_set}
+11. Mbele
+22. Rudi
+00. Ondoka","CON %{middle_transaction_set}
+11. Mbee
+22. Itina
+00. Uma","CON %{middle_transaction_set}
+1. Mbere
+2. Thutha
+00. Uma","CON %{middle_transaction_set}
+11. Mbere
+22. Uya nyuma
+00. Ombola","CON %{middle_transaction_set}
+11. Nyime
+22. Mokalo
+00. Wuok","CON %{middle_transaction_set}
+11. Dhuur
+22. Waan dhabran
+00. Bai"
+last_transaction_set,"CON %{last_transaction_set}
+22. Previous
+00. Exit","CON %{last_transaction_set}
+22. Rudi
+00. Ondoka","CON %{last_transaction_set}
+22. Itina
+00. Uma","CON %{last_transaction_set}
+22. Thutha
+00. Uma","CON %{last_transaction_set}
+22. Uya Nyuma
+00.Ombola","CON %{last_transaction_set}
+22. Mokalo
+00. Wuok","CON %{last_transaction_set}
+22. Waan dharban
+00. Bai"
+exit,END Thank you for using the service.,END Asante kwa kutumia huduma,END Ni muvea kwa kutumia huduma ii,END  Thegio ni kuhuthira mutabo,END. Namvera kwa mahumizi ga ii huduma.,END Erokamano kuom tiyo gi huduma ni,END Galatom.
+exit_invalid_request,END Invalid request.,END Chaguo si sahihi,END Usakuo waku uyaile.,END shaguro riaku ti riega,END. Tsagulo karisawa sawa,END Yiero okni kare,END Ka at chaquad suninit
+exit_invalid_menu_option,"CON Invalid menu option. For help,call %{support_phone}.
+00. Back
+99. Exit","CON Chaguo lako sio sahihi. Kwa usaidizi piga simu %{support_phone}
+00. Rudi
+99. Ondoka","CON Usakuo waku uyaile. Kwa utethyo kuna %{support_phone}
+00. Itina
+99. Uma","CON Shaguro riaku ti riega.Kwa uteithio hura %{support_phone}
+00. Thutha
+99. Uma","CON Tsaguloro karisawa sawa. Kuavizwa piga %{support_phone}
+00. Uya Nyuma
+99. Ombola","CON Yiero ni oknikare. Kuom kony go simu e %{support_phone}
+00. Chien
+99. Wuok","CON Ka at chaguad suninit.qarqarsa simu dai%{support_phone}
+00. Dheebi
+99. Bai"
+exit_invalid_input,"CON Invalid input. Nothing selected
+00. Back
+99. Exit","CON Chaguo lako halipatikani. Hakuna kilichochaguliwa.
+00. Rudi
+99. Ondoka","CON Usakuo waku wiikwonekana.Vaii kindu kisakue.
+00. Itina
+99. Uma","CON Shaguro riaku ritironekana. Hatiri kindu washaghura.
+00. Thutha
+99. Uma","CON Tsaguloro karipatikana. Kakuna Kutsagurire chochosi.
+00. Uya nyuma
+99. Ombola","CON Yiero ni okyudre. Onge gima iyiero.
+00. Chien
+99. Wuok","CON Ka at chaguad injirt. oo
+00. dheebi
+99. Bai"
+exit_pin_blocked,"END Your PIN has been blocked. For help, please call %{support_phone}.",END PIN yako imefungwa. Kwa usaidizi tafadhali piga simu %{support_phone}.,END PIN yaku niyavingwa. Kutethwa kuna simu %{support_phone}.,END PIN yaku niyahingwo. Kwa uteithio hura thimu %{support_phone}.,END. Piniyo ifungwa. Kwa kuavizwa unaangwa upige simu %{support_phone}.,END PIN ni olor. Kuom kony go simu e %{support_phone}.,END Pin kake yahidat. Qarqarsa simu dai %{support_phone}.
+exit_invalid_pin,"END The PIN you have entered is invalid. PIN must consist of 4 digits. For help, call %{support_phone}.",END PIN uliyobonyeza sio sahihi. PIN lazima iwe na nambari nne. Kwa usaidizi piga simu %{support_phone}.,END PIN ila wekia iyaile. Ni lasima PIN ithiwe na namba inya. Kutethwa kuna %{support_phone}.,END  PIN  iria wekera tii njega. PIN nomohaka ikorwo na namba inya. Kwa uteithio hura thimu %{support_phone}.,"END Namba fitse urohofya seyo, kaisawa. Namba fitswe inamalwa ikale na namba nee. Kwa kuvizwa, piga simu%{support_phone}.",END. PIN miketo oknikare. Nyaka obed gi nembni ang'wen. Kuom kony go simu e %{support_phone}.,END PIN ka at keket suninit. PIN Pin namba afuuri tatatu. Qarqarsa simu dai %{support_phone}.
+exit_invalid_new_pin,"END The PIN you have entered is invalid. PIN must be different from your current PIN. For help, call %{support_phone}.",END PIN uliyobonyeza sio sahihi. PIN lazima iwe tofauti na pin yako ya sasa. Kwa usaidizi piga simu %{support_phone}.,END PIN ila wekia iyaile. PIN ni lasima ithiwe tofauti na pin yaku ya oyu. Kutethwa kuna %{support_phone}.,END  PIN iria wekera ti njega. PIN nomohaka ikorwo na namba ndiganu na ya riu . Kwa uteithio hora thimu %{support_phone}.,END Pini uriyo hopya kai karakara. Piniyo inahenzekana ikale itofauti na uhumirayo vivi. Kwa maavizo piga simu %{support_phone}.,END PIN miketo oknikare. Nyaka obed mopogore gi nambani mopondo masani. Kuom kony gochi e %{support_phone}.,END PIN ka at keket suninit.Pin kake walinfakaatin.Qarqars simu dai %{support_phone}.
+exit_pin_mismatch,"END The new PIN does not match the one you entered. Please try again. For help, call %{support_phone}.",END PIN mpya na udhibitisho wa pin mpya hazilingani. Tafadhali jaribu tena. Kwa usaidizi piga simu %{support_phone}.,END PIN yumbya na kwikiithya kwayo syivwanene. Tata ingi. Kutethwa kuna %{support_phone}.,END PIN njeru na pin ya guetekeria shitira hianana . Geria ringi. Kwa uteithio hora thimu %{support_phone}.,END Pini uzdoinjiza kaikara kara na uriyohopya laphiri. Unavoywa ujeze kaheri. Kwa kuavizwa piga simu %{support_phone}.,GIKO. PIN miketo opogore gi manikuongo keto. Kiyie to ket kendo. Kuom kony gochi e %{support_phone}.,END Pin hareti ka at kekeet walinfakan. it dheebi amaale.Qarqars simu dai%{support_phone}.
+exit_invalid_recipient,"CON Recipient's phone number is not registered or is invalid:
+00. Retry
+99. Exit","CON Mpokeaji wa nambari hapatikani au sio sahihi.
+00. Jaribu tena
+99. Ondoka","CON Mukwati wa namba timwandikithye kana namba iyaile
+00. Tata ingi
+99. Uma","CON Namba ya mwamukeri ndiandekithetio kana ti njega 
+00. Geria ringi
+99. Uma","CON Muphokezi wa namba kasajilirwe ama nambaye kai karakara
+00. Jeza Kaheri
+99. Ombola","CON Jayuto mar nambani okyudre kata oknikare.
+00. Tem kendo
+99. Wuok","CON Nam atin ergu jiraa injirt.
+00.Jarib amale
+99. Ondoka"
+exit_successful_transaction,"CON Your request has been sent. %{recipient_information} will receive %{transaction_amount} %{token_symbol} from %{sender_information}.
+00. Back
+99. Exit","CON Ombi lako limetumwa. %{recipient_information} atapokea %{transaction_amount} %{token_symbol} kutoka kwa %{sender_information}
+00. Rudi
+99. Ondoka","CON Woni niwatumwa. %{recipient_information} nukukwata %{transaction_amount} %{token_symbol} kuma kwa %{sender_information}
+00. Itina
+99. Uma","CON Mahoya maku nimatomwo. %{recipient_information} akuamukira%{transaction_amount} %{token_symbol} kuma kwa %{sender_information}
+00. Thutha
+99. Uma","CON Mavoyogo gahumwa. %{recipient_information} undaphokera %{transaction_amount} %{token_symbol} kuombola kwa %{sender_information}.
+00. Uya Nyuma
+99. Ombola","CON Kwayo ni oseor. %{recipient_information} oboyudo %{transaction_amount} %{token_symbol} kowuok kuom %{sender_information}
+00. Dog chien
+99. Wuogi","CON Qarqar kake yaergad. %{recipient_information} inargat %{transaction_amount} %{token_symbol} kutoka kwa %{sender_information}
+00. Dheebi
+99. Bai"
+exit_insufficient_balance,"CON Payment of %{amount} %{token_symbol} to %{recipient_information} has failed due to insufficient balance
+Balance: %{token_balance}
+00. Back
+99. Exit","CON Malipo ya %{amount} %{token_symbol} kwa %{recipient_information} halijakamilika kwa sababu salio lako haitoshi
+Salio: %{token_balance}
+00. Rudi
+99. Ondoka","CON Ndivi ya %{amount} %{token_symbol} kwa %{recipient_information} iitonyeka, utyalyo waku ni munini.
+Utyalyo: %{token_balance}
+00. Itina
+99. Uma","CON Marehi ma %{amount} %{token_symbol} kwa %{recipient_information} nimarega tondu matigari maku ni manini
+Salio: %{token_balance}
+00. Thutha
+99. Uma","CON Maripho ga %{amount} %{token_symbol} kwa %{recipient_information}  Kagadzangwe kukamirika Kwaukala sazoro Karitosha.
+Sazo: %{token_balance}
+00. Uya nyuma
+99. Ombola","CON Chudo mar %{amount} %{token_symbol} ne %{recipient_information} okotieki nikech dong ni okrom
+Akaont ni gi dong mar: %{token_balance}
+00. Chien
+99. Wuok","CON Malipo ta%{amount} %{token_symbol} kwa %{recipient_information} Inkamilikee balansi ingau
+Akaunti balansi akan: %{token_balance}
+00. Dheebi
+99. Bai"
+exit_successful_token_selection,"CON Success! %{token_symbol} is your active Sarafu.
+00. Back
+99. Exit","CON Chaguo lako limekamilika, %{token_symbol} ni sarafu itakayotumika
+00. Rudi
+99. Ondoka","CON Woni waku niwetikilwa! %{token_symbol} ii niyo Sarafu yaku ya kutumia.
+00. Itina
+99. Uma","CON Niwahota ! %{token_symbol} Sarafu ciaku ni
+00. Thutha
+99. Uma","CON uweza %{token_symbol} ndo sazoro rihumikanaro.
+00. Uya nyuma
+99. Ombola","CON Kwayo mari odhi kare! %{token_symbol} e Sarafu ni modong
+00. Chien
+99. Wuok","CON yadandeeth!%{token_symbol}Sarafu kake.
+00. Dheebi
+9.Bai"
+invalid_service_code,Please dial %{valid_service_code} to access Sarafu Network,Bonyeza %{valid_service_code} kutumia mtandao wa Sarafu,Vinyia %{valid_service_code} kutumia mutandao wa Sarafu,Hihinya%{valid_service_code} kuhudhira mutabo wa Sarafu,Hofya %{valid_service_code} Kuhumira Mutandao wa sarafu,Dii %{valid_service_code} mondo iti gi Sarafu,Bonyeza %{valid_service_code} kutumia mtandao wa Sarafu
+help,"CON For assistance call %{support_phone}
+00. Back
+99. Exit","CON Kwa usaidizi piga simu %{support_phone}
+00. Rudi
+99. Ondoka","CON Kwa utethyo kuna simu %{support_phone}
+00. Itina
+99. Uma","CON Kwa uteithio hora thimu %{support_phone}
+00. Thutha
+99. Uma","CON Kwa Kuavizwa piga simu  %{support_phone}
+00. Uya nyuma
+99. Ombola","CON Kuom kony go simu e %{support_phone}
+00. Chien
+99. Wuok","CON Qarqars simu dai%{support_phone}
+00. Dheebi
+99. Bai"
+complete,"CON Your request has been sent. You will receive an SMS shortly.
+00. Back
+99. Exit","CON Ombi lako limetumwa. Utapokea uthibitishaji wa SMS kwa muda mfupi.
+00. Rudi
+99. Ondoka","CON Woni waku niwatumwa. Nukwata SMS ivinda ite yasa.
+00. Itina
+99. Uma","CON Mahoya maku nimatomwo. Niukuamukira SMS  ihinda ikuhi .
+00. Thutha
+99. Uma","CON Vyoyoro rihumwa. Undaphokera Uthibitishaji wa SMS kwa muda mufuhi.
+00. Uya nyuma
+99. Ombola","CON Kwayo ni oseor. Iboyudo mesej mar ote ni bang' saa matin.
+00. Chien
+99. Wuok","CON Qarqars kake yaergad. Utapokea uthibitishaji wa SMS kwa muda mfupi.
+00. Dheebi
+99. Bai"
+account_creation_prompt,END Your account is being created. You will receive an SMS when your account is ready.,END Akaunti yako ya Sarafu inatayarishwa. Utapokea ujumbe wa SMS akaunti yako ikiwa tayari.,END Kinandu chaku cha Sarafu chendeye usovwa. Nukwata SMS kinandu chaku chasovwa.,END Akaunti yaku ya Sarafu niiraharirio.Niugutumirwo SMS akauti yaku ya rikio kuharirio,END Akauntiyo ya sarafu idzikoni. Undaphokera  ujumbe wa SMS ichikala tayari.,END Akaont ni mar Sarafu iloso. Iboyudo mesej ka akaont ni otieki.,END Akaunt kake ta Sarafu midasaan jiraa.Meseji siergan ojaa tayar taat
+initial_middle_language_set,"CON Choose language:
+%{middle_language_set}
+11. Next
+22. Previous
+00. Exit","CON Chagua lugha:
+%{middle_language_set}
+11. Mbele
+22. Rudi
+00. Ondoka","CON Sakua luka:
+%{middle_language_set}
+11. Mbee
+22. Itina
+00. Uma","CON Cagura ruthiomi:
+%{middle_language_set}
+11. Ikinya ringi
+22. Thutha
+00. Uma","CON Tsagula Luga:
+%{middle_language_set}
+11. Mbere
+22. Uyira ya nyuma
+00. Ombola","CON Yier dhok:
+%{middle_language_set}
+11. Nyime
+22. Mokalo
+00. Wuok","CON afaan chaguad
+.%{middle_language_set}
+11. Dhuur
+22.Waan dhabran
+00.Bai"
+initial_last_language_set,"CON Choose language:
+%{last_language_set}
+22. Previous
+00. Exit","CON Choose language:
+%{last_language_set}
+22. Rudi
+00. Ondoka","CON Sakua luka:
+%{last_language_set}
+22. Itina 
+00. Uma","CON : Cagura ruthiomi
+%{last_language_set}
+22. Thutha
+00. Uma","CON Tsagula luga:
+%{last_language_set}
+22. Uyira ya nyuma
+00. Ombola","CON Yier dhok:
+%{last_language_set}
+22. Mokalo
+00. Wuok","CON Afaan chaguad.
+%last_language_set
+22.Dheebi
+00.Bai"
+middle_language_set,"CON Choose language:
+%{middle_language_set}
+11. Next
+22. Previous
+00. Exit","CON Chagua lugha:
+%{middle_language_set}
+11. Mbele
+22. Rudi
+00. Ondoka","CON Sakua luka:
+%{middle_language_set}
+11. Mbee
+22. Itina
+00. Uma","CON : Cagura ruthiomi
+%{middle_language_set}
+11. Ikinya ringi
+22. Thutha
+00. Uma","CON Tsagula luga:
+%{middle_language_set}
+11. Mbere
+22. Uyira ya nyuma
+00. Ombola","CON Yier dhok:
+%{middle_language_set}
+11. Nyime
+22. Mokalo
+00. Wuok","CON Afaan chaguad: %{middle_language_set}
+11.Dhuur
+22.Dheebi
+00.Bai"
+last_language_set,"CON Choose language:
+%{last_language_set}
+22. Previous
+00. Exit","CON Choose language:
+%{last_language_set}
+22. Rudi
+00. Ondoka","CON Sakua luka:
+%{last_language_set}
+22. Itina
+00. Uma","CON : Cagura ruthiomi
+%{last_language_set}
+22. Thutha
+00. Uma","CON Tsagula luga:
+%{last_language_set}
+22. Uyira ya nyuma
+00. Ombola","CON Yier dhok:
+%{last_language_set}
+22. Mokalo
+00. Wuok","CON Afaan chaguad:
+%{last_language_set}
+22.Waan dhabran
+00.Bai"

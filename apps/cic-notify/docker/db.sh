@@ -1,3 +1,3 @@
 #!/bin/bash
 set -e
-python scripts/migrate.py -c /usr/local/etc/cic-notify --migrations-dir /usr/local/share/cic-notify/alembic -vv
+python scripts/migrate.py -c /usr/src/cic_notify/data/config --migrations-dir /usr/local/share/cic-notify/alembic -vv

@@ -1,5 +1,4 @@
 # standard imports
-from decimal import Decimal
 
 # external imports
 import pytest
@@ -37,11 +36,11 @@ def test_aux_transaction_data(preferences, set_locale_files, transactions_list):
 
 
 @pytest.mark.parametrize("value, expected_result", [
-    (50000000, Decimal('50.00')),
-    (100000, Decimal('0.10'))
+    (50000000, 50.0),
+    (100000, 0.1)
 ])
 def test_from_wei(cache_default_token_data, expected_result, value):
-    assert from_wei(value) == expected_result
+    assert from_wei(6, value) == expected_result
 
 
 @pytest.mark.parametrize("value, expected_result", [
@@ -49,7 +48,7 @@ def test_from_wei(cache_default_token_data, expected_result, value):
     (0.10, 100000)
 ])
 def test_to_wei(cache_default_token_data, expected_result, value):
-    assert to_wei(value) == expected_result
+    assert to_wei(6, value) == expected_result
 
 
 @pytest.mark.parametrize("decimals, value, expected_result", [
@@ -108,8 +107,8 @@ def test_outgoing_transaction_processor(activated_account,
                                                 activated_account.blockchain_address,
                                                 valid_recipient.blockchain_address)
 
-    outgoing_tx_processor.transfer(amount, token_symbol)
+    outgoing_tx_processor.transfer(amount, 6, token_symbol)
     assert mock_transfer_api.get('from_address') == activated_account.blockchain_address
     assert mock_transfer_api.get('to_address') == valid_recipient.blockchain_address
-    assert mock_transfer_api.get('value') == to_wei(amount)
+    assert mock_transfer_api.get('value') == to_wei(6, amount)
     assert mock_transfer_api.get('token_symbol') == token_symbol

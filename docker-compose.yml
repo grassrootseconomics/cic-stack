@@ -1,22 +1,18 @@
 version: "3"
 
 volumes:
-  ganache-db: {}
   postgres-db: {}
-  bee-data: {}
   signer-data: {}
   bloxberg-data: {}
-  contract-config: {} 
-
-networks:
-  default:
-    name: cic-network
+  contract-config: {}
 
 services:
-  eth:
-    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/bloxberg-node:${TAG:-latest}
+  evm:
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/bloxberg-node:${TAG:-latest}
     build:
       context: apps/bloxbergValidatorSetup
+      args:
+          DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-docker.io}
     restart: unless-stopped
     ports:
       - ${DEV_ETH_PORT_HTTP:-63545}:8545
@@ -26,528 +22,510 @@ services:
       - ./apps/bloxbergValidatorSetup/keys:/root/keys # stores the signing key locally
       - bloxberg-data:/root/.local/share/io.parity.ethereum/
 
-  # See contents of /initdb/create_db.sql for app user, password and databases
   postgres:
-    image: postgres:12.5-alpine
+    image: ${IMAGE_BASE_URL:-docker.io}/postgres:12.5-alpine
     environment:
-      POSTGRES_HOST_AUTH_METHOD: trust # for postgres user access w/o password. Obvioulsy not safe but allows easy elevated debugging.  
+      POSTGRES_HOST_AUTH_METHOD: trust # for postgres user access w/o password. Obvioulsy not safe but allows easy elevated debugging.
       # PGDATA: /tmp/cic/postgres
     ports:
       - ${DEV_POSTGRES_PORT:-63432}:5432
     command: [ "-c", "max_connections=200" ]
     volumes:
-      - ./scripts/initdb/create_db.sql:/docker-entrypoint-initdb.d/1-create_all_db.sql 
+      - ./scripts/initdb/create_db.sql:/docker-entrypoint-initdb.d/1-create_all_db.sql
       - postgres-db:/var/lib/postgresql/data
 
   redis:
-    image: redis:6.0.9-alpine
+    image: ${IMAGE_BASE_URL:-docker.io}/redis:6.0.9-alpine
     ports:
       - ${DEV_REDIS_PORT:-63379}:6379
     command: "--loglevel verbose"
 
-  bee:
-    image: ethersphere/bee:0.4.1
-    container_name: bee
-    environment:
-      BEE_NETWORK_ID: ${BEE_NETWORK_ID:-313}
-      BEE_PASSWORD: ${BEE_PASSWORD:-password}
-    ports:
-      - ${DEV_BEE_PORT:-63633}:1633
-      - ${DEV_BEE_PORT_DEBUG:-63635}:1635
-    command: "start --swap-enable=false --standalone"
-    volumes:
-      - bee-data:/tmp/cic/bee
 
-  contract-migration:
-    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:${TAG:-latest}
+  bootstrap:
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/contract-migration:${TAG:-latest}
     build:
       context: apps/contract-migration
       dockerfile: docker/Dockerfile
       args:
-        pip_index_url: ${PIP_DEFAULT_INDEX_URL:-https://pypi.org/simple}
-        pip_extra_args: $PIP_EXTRA_ARGS
-        EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
-        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
-    # image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/contract-migration:latest
+          DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+          PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+          EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net}
+          EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     environment:
-      RPC_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
-      ETH_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
-      RPC_HTTP_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
-      DEV_USE_DOCKER_WAIT_SCRIPT: 1
-      CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
-      CIC_CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
       DEV_DATA_DIR: ${DEV_DATA_DIR:-/tmp/cic/config}
       DEV_CONFIG_RESET: $DEV_CONFIG_RESET
-      DATABASE_HOST: ${DATABASE_HOST:-postgres}
-      DATABASE_PORT: ${DATABASE_PORT:-5432}
-      DATABASE_NAME: ${DEV_DATABASE_NAME_CIC_ETH:-cic_eth}
-      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgresql}
-      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
-      DATABASE_USER: ${DATABASE_USER:-postgres}
+      DEV_FEE_PRICE: $DEV_FEE_PRICE
+      DEV_FEE_LIMIT_CALL: ${DEV_FEE_LIMIT_CALL:-8000000}
+      DEV_DEBUG_LEVEL: ${DEV_DEBUG_LEVEL:-0}
+      DEV_TX_WAIT: $DEV_TX_WAIT
+      DEV_GAS_AMOUNT: $DEV_GAS_AMOUNT
+      DEV_TOKEN_DATA_PATH: $DEV_TOKEN_DATA_PATH
+      RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
       REDIS_HOST: ${REDIS_HOST:-redis}
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_DB: ${REDIS_DB:-0}
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379}
       CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis:6379}
-      DEV_PIP_EXTRA_INDEX_URL: ${DEV_PIP_EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
-      RUN_MASK: ${RUN_MASK:-0} # bit flags; 1: contract migrations 2: seed data
-      DEV_FAUCET_AMOUNT: ${DEV_FAUCET_AMOUNT:-50000000}
-      DEV_ETH_GAS_PRICE: $DEV_ETH_GAS_PRICE
-      TOKEN_NAME: ${TOKEN_NAME:-Giftable Token}
-      TOKEN_SYMBOL: ${TOKEN_SYMBOL:-GFT}
+      RUN_MASK: ${RUN_MASK:-0}
+      TOKEN_NAME: $TOKEN_NAME
+      TOKEN_SYMBOL: $TOKEN_SYMBOL
       TOKEN_TYPE: ${TOKEN_TYPE:-giftable_erc20_token}
       TOKEN_DECIMALS: $TOKEN_DECIMALS
-      TOKEN_REDISTRIBUTION_PERIOD: $TOKEN_DEMURRAGE_REDISTRIBUTION_PERIOD
-      TASKS_TRANSFER_CALLBACKS: ${TASKS_TRANSFER_CALLBACKS:-"cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback"}
+      TOKEN_REDISTRIBUTION_PERIOD: $TOKEN_REDISTRIBUTION_PERIOD
       TOKEN_SUPPLY_LIMIT: $TOKEN_SUPPLY_LIMIT
       TOKEN_DEMURRAGE_LEVEL: $TOKEN_DEMURRAGE_LEVEL
       TOKEN_SINK_ADDRESS: $TOKEN_SINK_ADDRESS
-      SIGNER_PROVIDER: ${SIGNER_SOCKET_PATH:-http://cic-eth-signer:8000}
-    restart: on-failure 
+      REDIS_HOST_CALLBACK: ${REDIS_HOST_CALLBACK:-redis}
+      REDIS_PORT_CALLBACK: ${REDIS_PORT_CALLBACK:-6379}
+      FAUCET_AMOUNT: ${FAUCET_AMOUNT:-0}
+      WALLET_KEY_FILE: ${WALLET_KEY_FILE:-/root/keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c}
+      WALLET_PASSPHRASE: $WALLET_PASSPHRASE
+      META_URL: http://meta:8000
+      LOGLEVEL: ${LOGLEVEL:-info}
+      SYNCER_OFFSET: ${SYNCER_OFFSET:-0}
+      PGP_PRIVATEKEY_FILE: $PGP_PRIVATEKEY_FILE
+      PGP_FINGERPRINT: $PGP_FINGERPRINT
+      PGP_PASSPHRASE: merman
     command: ["./run_job.sh"]
-        #command: ["./reset.sh"]
     depends_on:
-      - eth
+      - evm
       - postgres
       - redis
+      - cic-meta-server
       - cic-eth-tasker
     volumes:
       - contract-config:/tmp/cic/config
+      - ./apps/contract-migration/testdata/pgp/:/tmp/cic/pgp
+      - ./apps/contract-migration/:/root/
 
 
-  data-seeding:
-    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/data-seeding:${TAG:-latest}
+  cic-signer:
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/funga-eth:${TAG:-latest}
     build:
-      context: apps/data-seeding
-      dockerfile: docker/Dockerfile
+      context: apps/cic-signer
+      dockerfile: Dockerfile
       args:
-        pip_index_url: ${PIP_DEFAULT_INDEX_URL:-https://pypi.org/simple}
-        pip_extra_args: $PIP_EXTRA_ARGS
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     environment:
-      CIC_REGISTRY_ADDRESS: ${CIC_REGISTRY_ADDRESS:-0xea6225212005e86a4490018ded4bf37f3e772161}
-      OUT_DIR: out
-      NUMBER_OF_USERS: 10
-      CONFIG: /usr/local/etc/data-seeding
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
-      ETH_PROVIDER: ${CIC_HTTP_PROVIDER:-http://eth:8545}
-      TOKEN_SYMBOL: GFT 
-      KEYSTORE_PATH: keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c
-      USSD_HOST: cic-user-ussd-server 
-      USSD_PORT: 9000
-      INCLUDE_BALANCES: y
-      USSD_SSL: n
-      DATABASE_NAME: ${DATABASE_NAME:-cic_ussd}
-      DATABASE_USER: ${DATABASE_USER:-grassroots}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala} # this is is set at initdb see: postgres/initdb/create_db.sql
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
-      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379}
-      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis:6379}
-      NOTIFY_DATABASE_NAME: cic_notify
-      REDIS_HOST: redis 
+      DATABASE_NAME: ${DATABASE_NAME:-cic_signer}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
+      SIGNER_SOCKET_PATH: ${SIGNER_SOCKET_PATH:-http://0.0.0.0:8000}
+      SIGNER_SECRET: ${SIGNER_SECRET:-deadbeef}
+      LOGLEVEL: ${LOGLEVEL:-info}
+    depends_on:
+      - postgres
+    volumes:
+      - signer-data:/run/crypto-dev-signer
+      - contract-config:/tmp/cic/config/:ro
+    command: ["python", "/usr/local/bin/funga-ethd", "-vv"]
+
+  # queue handling for outgoing transactions and incoming transactions
+  cic-eth-tasker:
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:${TAG:-latest}
+    build:
+      context: apps/cic-eth
+      dockerfile: docker/Dockerfile
+      args:
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+    environment:
+      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
+      RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_eth}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
       REDIS_PORT: 6379
-      REDIS_DB: 0
-      META_HOST: meta
-      META_PORT: 8000
-      META_URL: http://meta:8000
-      USSD_PROVIDER: http://cic-user-ussd-server:9000
-      CELERY_QUEUE: cic-import-ussd
-      EXCLUSIONS: ussd
-    command: bash import_ussd.sh
+      REDIS_HOST: redis
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
+      CELERY_DEBUG: ${CELERY_DEBUG:-1}
+      SIGNER_PROVIDER: ${SIGNER_PROVIDER:-http://cic-signer:8000}
+      SIGNER_SECRET: ${SIGNER_SECRET:-deadbeef}
+      TASKS_TRACE_QUEUE_STATUS: ${TASKS_TRACE_QUEUE_STATUS:-1}
+      ETH_MIN_FEE_PRICE: ${ETH_MIN_FEE_PRICE:-1000000000}
+      LOGLEVEL: ${LOGLEVEL:-info}
+    restart: unless-stopped
+    depends_on:
+      - evm
+      - postgres
+      - redis
+      - cic-signer
+    volumes:
+      - signer-data:/run/crypto-dev-signer
+      - contract-config:/tmp/cic/config/:ro
+    command:
+        - /bin/bash
+        - -c
+        - |
+            set -a
+            if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi
+            set +a
+            ./start_tasker.sh --aux-all -q cic-eth  -vv
+
+  cic-eth-server:
+    image: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}/cic-eth-server:${TAG:-latest}
+    ports:
+      - 5000:5000
+    build:
+      context: apps/cic-eth
+      dockerfile: docker/Dockerfile_server
+      args:
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+    environment:
+      REDIS_PORT: 6379
+      REDIS_HOST: redis
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
+      CELERY_DEBUG: ${CELERY_DEBUG:-1}
+      LOGLEVEL: ${LOGLEVEL:-info}
+    restart: unless-stopped
+    depends_on:
+      - cic-eth-tasker
+
+    volumes:
+      # - ./apps/cic-eth/:/root
+      - signer-data:/run/crypto-dev-signer
+      - contract-config:/tmp/cic/config/:ro
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -a
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi
+        set +a
+        ./start_server.sh -vv
+
+  cic-eth-tracker:
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:${TAG:-latest}
+    build:
+      context: apps/cic-eth
+      dockerfile: docker/Dockerfile
+      args:
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+    environment:
+      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
+      RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_eth}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
+      CELERY_DEBUG: ${CELERY_DEBUG:-1}
+      CELERY_QUEUE: ${CELERY_QUEUE:-cic-eth}
+      SYNCER_LOOP_INTERVAL: ${SYNCER_LOOP_INTERVAL:-5}
+      SYNCER_NO_HISTORY: ${SYNCER_NO_HISTORY:-1}
+      SYNCER_OFFSET: ${SYNCER_OFFSET:-0}
+      TASKS_TRANSFER_CALLBACKS: ${TASKS_TRANSFER_CALLBACKS:-cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback}
+      LOGLEVEL: ${LOGLEVEL:-info}
+    restart: unless-stopped
+    depends_on:
+      - evm
+      - postgres
+      - redis
     volumes:
       - contract-config:/tmp/cic/config/:ro
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -a
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi
+        set +a
+        ./start_tracker.sh -vv
+
+
+  cic-eth-dispatcher:
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:${TAG:-latest}
+    build:
+      context: apps/cic-eth
+      dockerfile: docker/Dockerfile
+      args:
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+    environment:
+      RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_eth}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
+      CELERY_DEBUG: ${CELERY_DEBUG:-1}
+      CELERY_QUEUE: ${CELERY_QUEUE:-cic-eth}
+      DISPATCHER_LOOP_INTERVAL: ${DISPATCHER_LOOP_INTERVAL:-1}
+      LOGLEVEL: ${LOGLEVEL:-info}
+    restart: unless-stopped
+    depends_on:
+      - evm
+      - postgres
+      - redis
+    volumes:
+      - contract-config:/tmp/cic/config/:ro
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -a
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi
+        set +a
+        ./start_dispatcher.sh -vv
+
+
+  cic-eth-retrier:
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-eth:${TAG:-latest}
+    build:
+      context: apps/cic-eth
+      dockerfile: docker/Dockerfile
+      args:
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+    environment:
+      RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_eth}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
+      CELERY_DEBUG: ${CELERY_DEBUG:-1}
+      CELERY_QUEUE: ${CELERY_QUEUE:-cic-eth}
+      SYNCER_LOOP_INTERVAL: ${SYNCER_LOOP_INTERVAL:-20}
+      RETRY_DELAY: ${RETRY_DELAY:-60}
+      RETRY_BATCH_SIZE: ${RETRY_BATCH_SIZE:-100}
+      LOGLEVEL: ${LOGLEVEL:-info}
+    restart: unless-stopped
+    depends_on:
+      - evm
+      - postgres
+      - redis
+    volumes:
+      - contract-config:/tmp/cic/config/:ro
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -a
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi
+        set +a
+        ./start_retry.sh -vv
+
+
 
   cic-cache-tracker:
-    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-cache:${TAG:-latest}
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-cache:${TAG:-latest}
     build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
       args:
-        EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     environment:
-      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS # supplied at contract-config after contract provisioning
-      ETH_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
-      RPC_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
-      DATABASE_USER: ${DATABASE_USER:-grassroots}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala} # this is is set at initdb see: postgres/initdb/create_db.sql
+      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
+      RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
-      DATABASE_NAME: ${DATABASE_NAME_CIC_CACHE:-cic_cache}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_cache}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
-      DATABASE_DEBUG: 1
-      CIC_TRUST_ADDRESS: ${DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER:-0xEb3907eCad74a0013c259D5874AE7f22DcBcC95C}
-      CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
-      CIC_CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
-      CELERY_BROKER_URL: redis://redis:6379
-      CELERY_RESULT_URL: redis://redis:6379
-    restart: on-failure 
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
+      CELERY_DEBUG: ${CELERY_DEBUG:-1}
+      CELERY_QUEUE: ${CELERY_QUEUE:-cic-eth}
+      SYNCER_LOOP_INTERVAL: ${SYNCER_LOOP_INTERVAL:-5}
+      SYNCER_OFFSET: ${SYNCER_OFFSET:-0}
+      SYNCER_NO_HISTORY: ${SYNCER_NO_HISTORY:-1}
+      TASKS_TRANSFER_CALLBACKS: ${TASKS_TRANSFER_CALLBACKS:-cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback}
+      LOGLEVEL: ${LOGLEVEL:-info}
+    restart: unless-stopped
     depends_on:
-      - redis
+      - evm
       - postgres
-      - eth
+      - redis
+    volumes:
+      - contract-config:/tmp/cic/config/:ro
     command:
       - /bin/bash
       - -c
       - |
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
-        ./start_tracker.sh -c /usr/local/etc/cic-cache -vv
-    volumes:
-      - contract-config:/tmp/cic/config/:ro
+        set -a
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi
+        set +a
+        ./start_tracker.sh -vv
+
 
   cic-cache-tasker:
-    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-cache:${TAG:-latest}
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-cache:${TAG:-latest}
     build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
       args:
-        EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     environment:
-      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS # supplied at contract-config after contract provisioning
-      ETH_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
-      DATABASE_USER: ${DATABASE_USER:-grassroots}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala} # this is is set at initdb see: postgres/initdb/create_db.sql
+      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
+      RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
-      DATABASE_NAME: ${DATABASE_NAME_CIC_CACHE:-cic_cache}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_cache}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
       DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
-      DATABASE_DEBUG: 1
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
       DATABASE_POOL_SIZE: 0
-      CIC_TRUST_ADDRESS: ${DEV_ETH_ACCOUNT_CONTRACT_DEPLOYER:-0xEb3907eCad74a0013c259D5874AE7f22DcBcC95C}
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
-      CELERY_BROKER_URL: redis://redis:6379
-      CELERY_RESULT_URL: redis://redis:6379
-    restart: unless-stopped 
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
+      CELERY_DEBUG: ${CELERY_DEBUG:-1}
+      CELERY_QUEUE: ${CELERY_QUEUE:-cic-eth}
+      LOGLEVEL: ${LOGLEVEL:-info}
+    restart: unless-stopped
     depends_on:
-      - redis
+      - evm
       - postgres
-      - eth
+      - redis
+    volumes:
+      - contract-config:/tmp/cic/config/:ro
     command:
       - /bin/bash
       - -c
       - |
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
+        set -a
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi
+        set +a
         /usr/local/bin/cic-cache-taskerd -vv
-    volumes:
-      - contract-config:/tmp/cic/config/:ro
+#        "/usr/local/bin/uwsgi" \
+#        --wsgi-file /root/cic_cache/runnable/daemons/server.py \
+#        --http :8000 \
+#        --pyargv "-vv"
+
 
   cic-cache-server:
-    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-cache:${TAG:-latest}
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-cache:${TAG:-latest}
     build:
       context: apps/cic-cache
       dockerfile: docker/Dockerfile
       args:
-        EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     environment:
-      DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
-        #DATABASE_PASSWORD: ${DATABASE_PASSWORD:-
-      DATABASE_NAME: ${DATABASE_NAME_CIC_CACHE:-cic_cache}
-      DATABASE_DEBUG: 1
-        #PGPASSWORD: $DATABASE_PASSWORD
+      DATABASE_NAME: ${DATABASE_NAME:-cic_cache}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
       SERVER_PORT: 8000
-    restart: on-failure 
+      LOGLEVEL: ${LOGLEVEL:-info}
+    restart: on-failure
     ports:
-      - ${HTTP_PORT_CIC_CACHE:-63313}:8000
+      - ${DEV_CIC_CACHE_SERVER_PORT:-63313}:8000
     depends_on:
       - postgres
-      - cic-cache-tasker
       - cic-cache-tracker
     command:
       - /bin/bash
       - -c
       - |
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
-        "/usr/local/bin/uwsgi" \
+        set -a
+        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi
+        set +a
+        /usr/local/bin/uwsgi \
         --wsgi-file /root/cic_cache/runnable/daemons/server.py \
         --http :8000 \
         --pyargv "-vv"
 
-
-  cic-eth-tasker:
-    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth:${TAG:-latest}
-    build: 
-        context: apps/cic-eth
-        dockerfile: docker/Dockerfile
-        target: dev
-        args:
-          EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
-    environment:
-      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
-      ETH_GAS_PROVIDER_ADDRESS: $DEV_ETH_ACCOUNT_GAS_PROVIDER
-      ETH_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
-      RPC_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
-      DATABASE_USER: ${DATABASE_USER:-grassroots}
-      DATABASE_HOST: ${DATABASE_HOST:-postgres}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
-      DATABASE_NAME: ${DATABASE_NAME_CIC_ETH:-cic_eth}
-      DATABASE_PORT: ${DATABASE_PORT:-5432}
-      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
-      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
-      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
-      DATABASE_POOL_SIZE: 0
-      REDIS_PORT: 6379
-      REDIS_HOST: redis
-      PGPASSWORD: ${DATABASE_PASSWORD:-tralala}
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
-      CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
-      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
-      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
-      CELERY_DEBUG: ${CELERY_DEBUG:-1}
-      #SIGNER_SOCKET_PATH: ${SIGNER_SOCKET_PATH:-http://cic-eth-signer:8000}
-      SIGNER_PROVIDER: ${SIGNER_PROVIDER:-http://cic-eth-signer:8000}
-      SIGNER_SECRET: ${SIGNER_SECRET:-deadbeef}
-      ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER: ${DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER:-0xACB0BC74E1686D62dE7DC6414C999EA60C09F0eA}
-      TASKS_TRACE_QUEUE_STATUS: ${TASKS_TRACE_QUEUE_STATUS:-1}
-      CIC_DEFAULT_TOKEN_SYMBOL: ${CIC_DEFAULT_TOKEN_SYMBOL:-GFT}
-    restart: unless-stopped 
-    depends_on:
-      - eth
-      - postgres
-      - redis
-      - cic-eth-signer
-    volumes:
-      - signer-data:/run/crypto-dev-signer
-      - contract-config:/tmp/cic/config/:ro
-        #command: ["/usr/local/bin/cic-eth-taskerd"]
-        #command: ["sleep", "3600"]
-    command:
-      - /bin/bash
-      - -c
-      - |
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
-        ./start_tasker.sh --aux-all -q cic-eth  -vv
-    
-  cic-eth-signer:
-    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth:${TAG:-latest}
-    build: 
-        context: apps/cic-eth
-        dockerfile: docker/Dockerfile
-        target: dev
-        args:
-          EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
-    environment:
-      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
-      ETH_GAS_PROVIDER_ADDRESS: $DEV_ETH_ACCOUNT_GAS_PROVIDER
-      ETH_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
-      RPC_PROVIDER: ${ETH_PROVIDER:-http://eth:8545}
-      DATABASE_USER: ${DATABASE_USER:-grassroots}
-      DATABASE_HOST: ${DATABASE_HOST:-postgres}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
-      DATABASE_NAME: ${DATABASE_NAME_CIC_ETH:-cic_eth}
-      DATABASE_PORT: ${DATABASE_PORT:-5432}
-      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
-      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
-      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
-      DATABASE_POOL_SIZE: 0
-      REDIS_PORT: 6379
-      REDIS_HOST: redis
-      PGPASSWORD: ${DATABASE_PASSWORD:-tralala}
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
-      CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
-      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
-      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
-      CELERY_DEBUG: ${CELERY_DEBUG:-1}
-      SIGNER_SOCKET_PATH: ${SIGNER_SOCKET_PATH:-http://0.0.0.0:8000}
-      SIGNER_PROVIDER: ${SIGNER_SOCKET_PATH:-http://0.0.0.0:8000}
-      SIGNER_SECRET: ${SIGNER_SECRET:-deadbeef}
-      ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER: ${DEV_ETH_ACCOUNT_ACCOUNTS_INDEX_WRITER:-0xACB0BC74E1686D62dE7DC6414C999EA60C09F0eA}
-      TASKS_TRACE_QUEUE_STATUS: ${TASKS_TRACE_QUEUE_STATUS:-1}
-      CIC_DEFAULT_TOKEN_SYMBOL: ${CIC_DEFAULT_TOKEN_SYMBOL:-GFT}
-    restart: on-failure 
-    depends_on:
-      - eth
-      - postgres
-      - redis
-    volumes:
-      - signer-data:/run/crypto-dev-signer
-      - contract-config:/tmp/cic/config/:ro
-    command: ["python", "/usr/local/bin/crypto-dev-daemon", "-c", "/usr/local/etc/crypto-dev-signer", "-vv"]
-        #command:
-        #  - /bin/bash
-        #  - -c
-        #  - |
-        #    if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
-        #    ./start_tasker.sh --aux-all -q cic-eth  -vv
-    # command: [/bin/sh, "./start_tasker.sh", -q, cic-eth, -vv ]
-
-  cic-eth-tracker:
-    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth:${TAG:-latest}
-    build:
-        context: apps/cic-eth
-        dockerfile: docker/Dockerfile
-        target: dev
-        args:
-          EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
-    environment:
-      RPC_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
-      ETH_PROVIDER: ${RPC_PROVIDER:-http://eth:8545}
-      DATABASE_USER: ${DATABASE_USER:-grassroots}
-      DATABASE_HOST: ${DATABASE_HOST:-postgres}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
-      DATABASE_NAME: ${DATABASE_NAME_CIC_CACHE:-cic_eth}
-      DATABASE_PORT: ${DATABASE_PORT:-5432}
-      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
-      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
-      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
-      CIC_CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
-      CHAIN_SPEC: ${CHAIN_SPEC:-evm:bloxberg:8996}
-      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
-      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
-      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
-      TASKS_TRANSFER_CALLBACKS: ${TASKS_TRANSFER_CALLBACKS:-"cic-eth:cic_eth.callbacks.noop.noop,cic-ussd:cic_ussd.tasks.callback_handler.transaction_callback"}
-    restart: on-failure 
-    depends_on:
-      - eth
-      - postgres
-      - redis
     volumes:
       - contract-config:/tmp/cic/config/:ro
-    command:
-      - /bin/bash
-      - -c
-      - |
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
-        #./start_tracker.sh -vv -c /usr/local/etc/cic-eth
-        ./start_tracker.sh -vv
-    # command: "/root/start_manager.sh head -vv"
 
 
-  cic-eth-dispatcher:
-    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth:${TAG:-latest}
-    build:
-        context: apps/cic-eth
-        dockerfile: docker/Dockerfile
-        target: dev
-        args:
-          EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
-    environment:
-      ETH_PROVIDER: http://eth:8545
-      RPC_PROVIDER: http://eth:8545
-      DATABASE_USER: ${DATABASE_USER:-grassroots}
-      DATABASE_HOST: ${DATABASE_HOST:-postgres}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
-      DATABASE_NAME: ${DATABASE_NAME_CIC_CACHE:-cic_eth}
-      DATABASE_PORT: ${DATABASE_PORT:-5432}
-      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
-      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
-      CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
-      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
-        #BANCOR_DIR: $BANCOR_DIR
-      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
-      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
-      TASKS_TRANSFER_CALLBACKS: $TASKS_TRANSFER_CALLBACKS
-      DATABASE_DEBUG: ${DATABASE_DEBUG:-false}
-        #DATABASE_DEBUG: 1
-    restart: on-failure 
-    depends_on:
-      - eth
-      - postgres
-      - redis
-    volumes:
-        - contract-config:/tmp/cic/config/:ro
-    command:
-      - /bin/bash
-      - -c
-      - |
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
-        ./start_dispatcher.sh -q cic-eth -vv
-    # command: "/root/start_dispatcher.sh -q cic-eth -vv"
-    
-
-
-  cic-eth-retrier:
-    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-eth:${TAG:-latest}
-    build:
-        context: apps/cic-eth
-        dockerfile: docker/Dockerfile
-        target: dev
-        args:
-          EXTRA_INDEX_URL: ${EXTRA_INDEX_URL:-https://pip.grassrootseconomics.net:8433}
-    environment:
-      ETH_PROVIDER: http://eth:8545
-      RPC_PROVIDER: http://eth:8545
-      DATABASE_USER: ${DATABASE_USER:-grassroots}
-      DATABASE_HOST: ${DATABASE_HOST:-postgres}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
-      DATABASE_NAME: ${DATABASE_NAME_CIC_CACHE:-cic_eth}
-      DATABASE_PORT: ${DATABASE_PORT:-5432}
-      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
-      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
-      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
-      CIC_CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
-      CHAIN_SPEC: ${CIC_CHAIN_SPEC:-evm:bloxberg:8996}
-      CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
-        #BANCOR_DIR: $BANCOR_DIR
-      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
-      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
-      TASKS_TRANSFER_CALLBACKS: $TASKS_TRANSFER_CALLBACKS
-      CIC_TX_RETRY_DELAY: 60
-      BATCH_SIZE: ${RETRIER_BATCH_SIZE:-50}
-        #DATABASE_DEBUG: 1
-    restart: on-failure 
-    depends_on:
-      - eth
-      - postgres
-      - redis
-    volumes:
-        - contract-config:/tmp/cic/config/:ro
-    command:
-      - /bin/bash
-      - -c
-      - |
-        if [[ -f /tmp/cic/config/env_reset ]]; then source /tmp/cic/config/env_reset; fi 
-        ./start_retry.sh -vv 
-    # command: "/root/start_retry.sh -q cic-eth -vv"
-
-
-
-  cic-notify-tasker:
-    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-notify:${TAG:-latest}
-    build:
-      context: apps/cic-notify
-      dockerfile: docker/Dockerfile
-    environment:
-      DATABASE_USER: ${DATABASE_USER:-grassroots}
-      DATABASE_HOST: ${DATABASE_HOST:-postgres}
-      DATABASE_PORT: ${DATABASE_PORT:-5432}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
-      DATABASE_NAME: ${DATABASE_NAME_CIC_NOTIFY:-cic_notify}
-      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
-      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
-      DATABASE_POOL_SIZE: 0
-      PGPASSWORD: ${DATABASE_PASSWORD:-tralala}
-      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
-      CELERY_RESULT_URL: ${CELERY_BROKER_URL:-redis://redis}
-      AFRICASTALKING_API_USERNAME: $AFRICASTALKING_API_USERNAME
-      AFRICASTALKING_API_KEY: $AFRICASTALKING_API_KEY
-      AFRICASTALKING_API_SENDER_ID: $AFRICASTALKING_API_SENDER_ID
-    restart: unless-stopped 
-    depends_on:
-      - postgres
-      - redis
-    command: "/root/start_tasker.sh -q cic-notify -vv"
-
-
+  # metadata replacement server for swarm
   cic-meta-server:
-    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-meta:${TAG:-latest}
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-meta:${TAG:-latest}
     hostname: meta
     build:
       context: apps/cic-meta
       dockerfile: docker/Dockerfile
+      args:
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        NPM_REPOSITORY: ${DEV_NPM_REPOSITORY:-https://registry.npmjs.org}
     environment:
-      DATABASE_NAME: ${DATABASE_NAME:-cic_meta}
-      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
-      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
-      DATABASE_USER: ${DATABASE_USER:-grassroots}
       DATABASE_HOST: ${DATABASE_HOST:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_meta}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
+      DATABASE_SCHEMA_SQL_PATH: ""
       SERVER_HOST: localhost
       SERVER_PORT: 8000
-      DATABASE_SCHEMA_SQL_PATH: ""
       PGP_EXPORTS_DIR: /root/tests/
       PGP_PRIVATEKEY_FILE: privatekeys.asc
       PGP_PASSPHRASE: merman
@@ -555,89 +533,214 @@ services:
       PGP_PUBLICKEY_ACTIVE_FILE: publickeys.asc
       PGP_PUBLICKEY_ENCRYPT_FILE: publickeys.asc
       SCHEMA_SQL_PATH: scripts/initdb/server.postgres.sql
-    restart: on-failure 
+    restart: on-failure
     ports:
-      - ${HTTP_PORT_CIC_META:-63380}:8000
+      - ${DEV_CIC_META_SERVER_PORT:-63380}:8000
     depends_on:
       - postgres
     volumes:
       - ./apps/contract-migration/testdata/pgp/:/tmp/cic/pgp
-    # command: "/root/start_server.sh -vv"
 
-  cic-user-ussd-server:
-    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-ussd:${TAG:-latest}
+
+  cic-user-tasker:
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-user:${TAG:-latest}
     build:
       context: apps/cic-ussd
       dockerfile: docker/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
     environment:
-      APP_PASSWORD_PEPPER: ${APP_PASSWORD_PEPPER:-"QYbzKff6NhiQzY3ygl2BkiKOpER8RE/Upqs/5aZWW+I="}
-      DATABASE_USER: grassroots
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      DATABASE_PASSWORD: tralala
-      DATABASE_NAME: cic_ussd
-      DATABASE_ENGINE: postgresql
-      DATABASE_DRIVER: psycopg2
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_ussd}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
+      APP_PASSWORD_PEPPER: ${APP_PASSWORD_PEPPER:-QYbzKff6NhiQzY3ygl2BkiKOpER8RE/Upqs/5aZWW+I=}
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
       CELERY_RESULT_URL: ${CELERY_BROKER_URL:-redis://redis}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
+      REDIS_PORT: 6379
+      REDIS_HOST: redis
       PGP_PASSPHRASE: merman
-      SERVER_PORT: 9000
       CIC_META_URL: ${CIC_META_URL:-http://meta:8000}
-    restart: on-failure 
-    ports:
-      - ${HTTP_PORT_CIC_USER_USSD_SERVER:-63315}:9000
+    restart: unless-stopped
     depends_on:
       - postgres
       - redis
+        #- cic-meta-server
+        #- cic-eth-tasker
+        #- cic-cache-tasker
+    volumes:
+      - ./apps/contract-migration/testdata/pgp/:/usr/src/secrets/
+    command: "/root/start_cic_user_tasker.sh -q cic-ussd -vv"
+
+
+  cic-user-server:
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-user:${TAG:-latest}
+    build:
+      context: apps/cic-ussd
+      dockerfile: docker/Dockerfile
+      args:
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+    environment:
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_ussd}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
+      SERVER_PORT: 9500
+    restart: on-failure
+    ports:
+      - ${DEV_CIC_USER_SERVER_PORT:-63415}:9500
+      - 5050:5050
+    depends_on:
+      - postgres
+      - redis
+    command: "/root/start_cic_user_server.sh -vv"
+
+
+  cic-user-ussd-server:
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-user:${TAG:-latest}
+    build:
+      context: apps/cic-ussd
+      dockerfile: docker/Dockerfile
+      args:
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+    environment:
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_ussd}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+      DATABASE_POOL_SIZE: 0
+      APP_PASSWORD_PEPPER: ${APP_PASSWORD_PEPPER:-QYbzKff6NhiQzY3ygl2BkiKOpER8RE/Upqs/5aZWW+I=}
+      CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
+      REDIS_PORT: 6379
+      REDIS_HOST: redis
+      SERVER_PORT: 9000
+    restart: on-failure
+    depends_on:
+      - postgres
+      - redis
+      - cic-eth-tasker
+      - cic-cache-tasker
+    ports:
+      - ${DEV_CIC_USER_USSD_SERVER_PORT:-63315}:9000
+      - 5051:5050
     volumes:
       - ./apps/contract-migration/testdata/pgp/:/usr/src/secrets/
     command: "/root/start_cic_user_ussd_server.sh -vv"
 
-  cic-user-server:
-    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-ussd:${TAG:-latest}
-    build:
-      context: apps/cic-ussd
-      dockerfile: docker/Dockerfile
-    environment:
-      APP_PASSWORD_PEPPER: ${APP_PASSWORD_PEPPER:-"QYbzKff6NhiQzY3ygl2BkiKOpER8RE/Upqs/5aZWW+I="}
-      DATABASE_USER: grassroots
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      DATABASE_PASSWORD: tralala
-      DATABASE_NAME: cic_ussd
-      DATABASE_ENGINE: postgresql
-      DATABASE_DRIVER: psycopg2
-      DATABASE_POOL_SIZE: 0
-    restart: on-failure 
-    ports:
-      - ${HTTP_PORT_CIC_USER_SERVER:-63415}:9500
-    depends_on:
-      - postgres
-    command: "/root/start_cic_user_server.sh -vv"
 
-  cic-user-tasker:
-    image: registry.gitlab.com/grassrootseconomics/cic-internal-integration/cic-ussd:${TAG:-latest}
+  cic-notify-tasker:
+    image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/cic-notify:${TAG:-latest}
     build:
-      context: apps/cic-ussd/
+      context: apps/cic-notify
       dockerfile: docker/Dockerfile
+      args:
+        DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net}
+        EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
     environment:
-      APP_PASSWORD_PEPPER: ${APP_PASSWORD_PEPPER:-"QYbzKff6NhiQzY3ygl2BkiKOpER8RE/Upqs/5aZWW+I="}
-      DATABASE_USER: grassroots
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      DATABASE_PASSWORD: tralala
-      DATABASE_NAME: cic_ussd
-      DATABASE_ENGINE: postgresql
-      DATABASE_DRIVER: psycopg2
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-cic_notify}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+      DATABASE_USER: ${DATABASE_USER:-grassroots}
+      DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+      DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+      DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
       DATABASE_POOL_SIZE: 0
+      TASKS_SMS: $TASK_SMS
+      AFRICASTALKING_API_USERNAME: $AFRICASTALKING_API_USERNAME
+      AFRICASTALKING_API_KEY: $AFRICASTALKING_API_KEY
+      AFRICASTALKING_API_SENDER_ID: $AFRICASTALKING_API_SENDER_ID
       CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis}
-      CELERY_RESULT_URL: ${CELERY_BROKER_URL:-redis://redis}
-      PGP_PASSPHRASE: merman
-      CIC_META_URL: ${CIC_META_URL:-http://meta:8000}
-    restart: unless-stopped 
+      CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis}
+    restart: unless-stopped
     depends_on:
       - postgres
       - redis
-    volumes:
-      - ./apps/contract-migration/testdata/pgp/:/usr/src/secrets/
-    command: "/root/start_cic_user_tasker.sh -q cic-ussd -vv"
+    command: "/usr/src/start_tasker.sh -q cic-notify -vv"
+
+  data-seeding:
+      image: ${IMAGE_BASE_URL:-registry.gitlab.com/grassrootseconomics/cic-internal-integration}/data-seeding:${TAG:-latest}
+      build:
+        context: apps/data-seeding
+        dockerfile: docker/Dockerfile
+        args:
+          NPM_REPOSITORY: ${DEV_NPM_REPOSITORY:-https://registry.npmjs.org}
+          DOCKER_REGISTRY: ${DEV_DOCKER_REGISTRY:-registry.gitlab.com/grassrootseconomics}
+          PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+          EXTRA_PIP_INDEX_URL: ${EXTRA_PIP_INDEX_URL:-https://pip.grassrootseconomics.net}
+          EXTRA_PIP_ARGS: $EXTRA_PIP_ARGS
+      container_name: data-seeding
+      environment:
+        DATABASE_HOST: ${DATABASE_HOST:-postgres}
+        DATABASE_PORT: ${DATABASE_PORT:-5432}
+        DATABASE_NAME: ${DATABASE_NAME:-cic_ussd}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD:-tralala}
+        DATABASE_USER: ${DATABASE_USER:-grassroots}
+        DATABASE_ENGINE: ${DATABASE_ENGINE:-postgres}
+        DATABASE_DRIVER: ${DATABASE_DRIVER:-psycopg2}
+        DATABASE_DEBUG: ${DATABASE_DEBUG:-0}
+        DATABASE_POOL_SIZE: 0
+        CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379}
+        CELERY_RESULT_URL: ${CELERY_RESULT_URL:-redis://redis:6379}
+        CIC_REGISTRY_ADDRESS: $CIC_REGISTRY_ADDRESS
+        RPC_PROVIDER: ${RPC_PROVIDER:-http://evm:8545}
+          #OUT_DIR: out
+        NUMBER_OF_USERS: ${NUMBER_OF_USERS:-10}
+          #CONFIG_DIR: config
+        CHAIN_SPEC: ${CHAIN_SPEC:-evm:byzantium:8996:bloxberg}
+        TOKEN_SYMBOL: $TOKEN_SYMBOL
+          #KEYSTORE_PATH: keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c
+        WALLET_KEY_FILE: ${WALLET_KEY_FILE:-/root/keystore/UTC--2021-01-08T17-18-44.521011372Z--eb3907ecad74a0013c259d5874ae7f22dcbcc95c}
+        USSD_HOST: cic-user-ussd-server
+        USSD_PORT: 9000
+        INCLUDE_BALANCES: y
+        GIFT_THRESHOLD: ${GIFT_THRESHOLD:-0}
+        USSD_SSL: $USSD_SSL
+        DATABASE_NAME_NOTIFY: cic_notify
+        REDIS_HOST: redis
+        REDIS_PORT: 6379
+        REDIS_DB: 0
+        META_HOST: meta
+        META_PORT: 8000
+        META_URL: http://meta:8000
+          # TODO: this should be generated from host/port/ssl
+        USSD_PROVIDER: http://cic-user-ussd-server:9000
+        CELERY_QUEUE: cic-import-ussd
+        # TODO put env's here for the cli tools
+      command: bash -c "while true; do echo 'For interactive use -- docker exec -it data-seeding bash'; sleep 15; done"
+      depends_on:
+        - cic-eth-dispatcher
+        - cic-eth-tracker
+        - cic-eth-tasker
+        - cic-meta-server
+      volumes:
+        - contract-config:/tmp/cic/config/:ro
+        - ./apps/data-seeding:/root/

@@ -1,5 +1,9 @@
-pytest~=6.0.1
-pytest-celery~=0.0.0a1
-pytest-mock~=3.3.1
-pysqlite3~=0.4.3
-pytest-cov==2.10.1
+Faker==11.1.0
+faker-e164==0.1.0
+pytest==6.2.5
+pytest-celery~=0.0.0
+pytest-mock==3.6.1
+pysqlite3~=0.4.6
+pytest-cov==3.0.0
+pytest-alembic==0.7.0
+requests-mock==1.9.3

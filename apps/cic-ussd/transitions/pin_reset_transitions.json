@@ -1,0 +1,43 @@
+[
+  {
+    "trigger": "scan_data",
+    "source": "reset_guarded_pin",
+    "dest": "reset_guarded_pin_authorization",
+    "after": [
+      "cic_ussd.state_machine.logic.pin_guard.save_guarded_account_session_data",
+      "cic_ussd.state_machine.logic.pin_guard.retrieve_person_metadata"
+    ],
+    "conditions": "cic_ussd.state_machine.logic.pin_guard.is_others_pin_guardian"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "reset_guarded_pin_authorization",
+    "dest": "exit_pin_reset_initiated_success",
+    "after": "cic_ussd.state_machine.logic.pin_guard.initiate_pin_reset",
+    "conditions": "cic_ussd.state_machine.logic.pin.is_authorized_pin"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "exit_pin_reset_initiated_success",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_nine_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "reset_guarded_pin_authorization",
+    "dest": "exit_pin_blocked",
+    "conditions": "cic_ussd.state_machine.logic.pin.is_locked_account"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "reset_guarded_pin",
+    "dest": "exit_not_authorized_for_pin_reset",
+    "unless": "cic_ussd.state_machine.logic.pin_guard.is_others_pin_guardian"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "exit_not_authorized_for_pin_reset",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_nine_selected"
+  }
+]

@@ -21,9 +21,14 @@ from erc20_faucet import Faucet
 # local imports
 from .base import SyncFilter
 from cic_eth.eth.meta import ExtendedTx
+from cic_eth.encode import tx_normalize
+from cic_eth.eth.erc20 import (
+        parse_transfer,
+        parse_transferfrom,
+        )
+from cic_eth.eth.account import parse_giftto
 
-logg = logging.getLogger().getChild(__name__)
-
+logg = logging.getLogger(__name__)
 
 
 class CallbackFilter(SyncFilter):
@@ -31,58 +36,11 @@ class CallbackFilter(SyncFilter):
     trusted_addresses = []
 
     def __init__(self, chain_spec, method, queue, caller_address=ZERO_ADDRESS):
+        super(CallbackFilter, self).__init__()
         self.queue = queue
         self.method = method
         self.chain_spec = chain_spec
         self.caller_address = caller_address
-
-
-    def parse_transfer(self, tx, conn):
-        if not tx.payload:
-            return (None, None)
-        r = ERC20.parse_transfer_request(tx.payload)
-        transfer_data = {}
-        transfer_data['to'] = r[0]
-        transfer_data['value'] = r[1]
-        transfer_data['from'] = tx.outputs[0]
-        transfer_data['token_address'] = tx.inputs[0]
-        return ('transfer', transfer_data)
-
-
-    def parse_transferfrom(self, tx, conn):
-        if not tx.payload:
-            return (None, None)
-        r = ERC20.parse_transfer_from_request(tx.payload)
-        transfer_data = {}
-        transfer_data['from'] = r[0]
-        transfer_data['to'] = r[1]
-        transfer_data['value'] = r[2]
-        transfer_data['token_address'] = tx.inputs[0]
-        return ('transferfrom', transfer_data)
-
-
-    def parse_giftto(self, tx, conn):
-        if not tx.payload:
-            return (None, None)
-        r = Faucet.parse_give_to_request(tx.payload)
-        transfer_data = {}
-        transfer_data['to'] = r[0]
-        transfer_data['value'] = tx.value
-        transfer_data['from'] = tx.outputs[0]
-        #transfer_data['token_address'] = tx.inputs[0]
-        faucet_contract = tx.inputs[0]
-
-        c = Faucet(self.chain_spec)
-
-        o = c.token(faucet_contract, sender_address=self.caller_address)
-        r = conn.do(o)
-        transfer_data['token_address'] = add_0x(c.parse_token(r))
-
-        o = c.token_amount(faucet_contract, sender_address=self.caller_address)
-        r = conn.do(o)
-        transfer_data['value'] = c.parse_token_amount(r)
-
-        return ('tokengift', transfer_data)
 
 
     def call_back(self, transfer_type, result):
@@ -96,17 +54,6 @@ class CallbackFilter(SyncFilter):
             ],
             queue=self.queue,
             )
-#        s_translate = celery.signature(
-#            'cic_eth.ext.address.translate',
-#            [
-#                result,
-#                self.trusted_addresses,
-#                chain_str,
-#                ],
-#            queue=self.queue,
-#            )
-#        s_translate.link(s)
-#        s_translate.apply_async()
         t = s.apply_async()
         return t
 
@@ -120,13 +67,13 @@ class CallbackFilter(SyncFilter):
         logg.debug('tx status {}'.format(tx.status))
 
         for parser in [
-                self.parse_transfer,
-                self.parse_transferfrom,
-                self.parse_giftto,
+                parse_transfer,
+                parse_transferfrom,
+                parse_giftto,
                 ]:
             try:
                 if tx:
-                    (transfer_type, transfer_data) = parser(tx, conn)
+                    (transfer_type, transfer_data) = parser(tx, conn, self.chain_spec, self.caller_address)
                     if transfer_type == None:
                         continue
                 break
@@ -143,6 +90,7 @@ class CallbackFilter(SyncFilter):
 
 
     def filter(self, conn, block, tx, db_session=None):
+        super(CallbackFilter, self).filter(conn, block, tx, db_session)
         transfer_data = None
         transfer_type = None
         try:
@@ -156,7 +104,8 @@ class CallbackFilter(SyncFilter):
             return
 
         logg.debug('checking callbacks filter input {}'.format(tx.payload[:8]))
-
+    
+        t = None
         if transfer_data != None:
             token_symbol = None
             result = None
@@ -170,12 +119,16 @@ class CallbackFilter(SyncFilter):
                     tokentx.set_status(0)
                 result = tokentx.asdict()
                 t = self.call_back(transfer_type, result)
-                logg.info('callback success task id {} tx {} queue {}'.format(t, tx.hash, t.queue))
+                self.register_match()
+                logline = 'callback success task id {} tx {} queue {}'.format(t, tx.hash, t.queue)
+                logline = self.to_logline(block, tx, logline)
+                logg.info(logline)
             except UnknownContractError:
                 logg.debug('callback filter {}:{} skipping "transfer" method on unknown contract {} tx {}'.format(self.queue, self.method, transfer_data['to'], tx.hash))
             except NotAContractError:
                 logg.debug('callback filter {}:{} skipping "transfer" on non-contract address {} tx {}'.format(self.queue, self.method, transfer_data['to'], tx.hash))
-
+    
+        return t
 
     def __str__(self):
-        return 'cic-eth callbacks'
+        return 'callbackfilter'

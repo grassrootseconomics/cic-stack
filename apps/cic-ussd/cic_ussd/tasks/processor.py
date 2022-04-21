@@ -2,10 +2,10 @@
 import json
 import logging
 
-# third-party imports
+# external imports
 import celery
 import i18n
-from chainlib.hash import strip_0x
+from cic_types.condiments import MetadataPointer
 
 # local imports
 from cic_ussd.account.metadata import get_cached_preferred_language
@@ -24,17 +24,13 @@ logg = logging.getLogger(__file__)
 def generate_statement(self, querying_party: str, transaction: dict):
     """"""
     queue = self.request.delivery_info.get('routing_key')
-
-    s_preferences = celery.signature(
-        'cic_ussd.tasks.metadata.query_preferences_metadata', [querying_party], queue=queue
-    )
     s_parse_transaction = celery.signature(
         'cic_ussd.tasks.processor.parse_transaction', [transaction], queue=queue
     )
     s_cache_statement = celery.signature(
         'cic_ussd.tasks.processor.cache_statement', [querying_party], queue=queue
     )
-    celery.chain(s_preferences, s_parse_transaction, s_cache_statement).apply_async()
+    celery.chain(s_parse_transaction, s_cache_statement).apply_async()
 
 
 @celery_app.task
@@ -51,10 +47,11 @@ def cache_statement(parsed_transaction: dict, querying_party: str):
     statement_transactions = []
     if cached_statement:
         statement_transactions = json.loads(cached_statement)
-    statement_transactions.append(parsed_transaction)
+    if parsed_transaction not in statement_transactions:
+        statement_transactions.append(parsed_transaction)
     data = json.dumps(statement_transactions)
-    identifier = bytes.fromhex(strip_0x(querying_party))
-    key = cache_data_key(identifier, ':cic.statement')
+    identifier = bytes.fromhex(querying_party)
+    key = cache_data_key(identifier, MetadataPointer.STATEMENT)
     cache_data(key, data)
 
 
@@ -78,6 +75,14 @@ def parse_transaction(transaction: dict) -> dict:
     role = transaction.get('role')
     alt_blockchain_address = transaction.get('alt_blockchain_address')
     blockchain_address = transaction.get('blockchain_address')
+    identifier = bytes.fromhex(blockchain_address)
+    token_symbol = transaction.get('token_symbol')
+    if role == 'recipient':
+        key = cache_data_key(identifier=identifier, salt=MetadataPointer.TOKEN_LAST_RECEIVED)
+        cache_data(key, token_symbol)
+    if role == 'sender':
+        key = cache_data_key(identifier=identifier, salt=MetadataPointer.TOKEN_LAST_SENT)
+        cache_data(key, token_symbol)
     account = validate_transaction_account(blockchain_address, role, session)
     alt_account = session.query(Account).filter_by(blockchain_address=alt_blockchain_address).first()
     if alt_account:

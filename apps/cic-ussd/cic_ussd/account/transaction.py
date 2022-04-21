@@ -1,7 +1,6 @@
 # standard import
-import decimal
-import json
 import logging
+from math import trunc
 from typing import Dict, Tuple
 
 # external import
@@ -9,8 +8,6 @@ from cic_eth.api import Api
 from sqlalchemy.orm.session import Session
 
 # local import
-from cic_ussd.account.chain import Chain
-from cic_ussd.account.tokens import get_cached_default_token
 from cic_ussd.db.models.account import Account
 from cic_ussd.db.models.base import SessionBase
 from cic_ussd.error import UnknownUssdRecipient
@@ -55,32 +52,32 @@ def aux_transaction_data(preferred_language: str, transaction: dict) -> dict:
     return transaction
 
 
-def from_wei(value: int) -> float:
+def from_wei(decimals: int, value: int) -> float:
     """This function converts values in Wei to a token in the cic network.
+    :param decimals: The decimals required for wei values.
+    :type decimals: int
     :param value: Value in Wei
     :type value: int
     :return: SRF equivalent of value in Wei
     :rtype: float
     """
-    cached_token_data = json.loads(get_cached_default_token(Chain.spec.__str__()))
-    token_decimals: int = cached_token_data.get('decimals')
-    value = float(value) / (10**token_decimals)
+    value = float(value) / (10**decimals)
     return truncate(value=value, decimals=2)
 
 
-def to_wei(value: int) -> int:
+def to_wei(decimals: int, value: int) -> int:
     """This functions converts values from a token in the cic network to Wei.
+    :param decimals: The decimals required for wei values.
+    :type decimals: int
     :param value: Value in SRF
     :type value: int
     :return: Wei equivalent of value in SRF
     :rtype: int
     """
-    cached_token_data = json.loads(get_cached_default_token(Chain.spec.__str__()))
-    token_decimals: int = cached_token_data.get('decimals')
-    return int(value * (10**token_decimals))
+    return int(value * (10**decimals))
 
 
-def truncate(value: float, decimals: int):
+def truncate(value: float, decimals: int) -> float:
     """This function truncates a value to a specified number of decimals places.
     :param value: The value to be truncated.
     :type value: float
@@ -89,9 +86,8 @@ def truncate(value: float, decimals: int):
     :return: The truncated value.
     :rtype: int
     """
-    decimal.getcontext().rounding = decimal.ROUND_DOWN
-    contextualized_value = decimal.Decimal(value)
-    return round(contextualized_value, decimals)
+    stepper = 10.0**decimals
+    return trunc(stepper*value) / stepper
 
 
 def transaction_actors(transaction: dict) -> Tuple[Dict, Dict]:
@@ -104,14 +100,17 @@ def transaction_actors(transaction: dict) -> Tuple[Dict, Dict]:
     """
     destination_token_symbol = transaction.get('destination_token_symbol')
     destination_token_value = transaction.get('destination_token_value') or transaction.get('to_value')
+    destination_token_decimals = transaction.get('destination_token_decimals')
     recipient_blockchain_address = transaction.get('recipient')
     sender_blockchain_address = transaction.get('sender')
     source_token_symbol = transaction.get('source_token_symbol')
     source_token_value = transaction.get('source_token_value') or transaction.get('from_value')
+    source_token_decimals = transaction.get('source_token_decimals')
 
     recipient_transaction_data = {
         "token_symbol": destination_token_symbol,
         "token_value": destination_token_value,
+        "token_decimals": destination_token_decimals,
         "blockchain_address": recipient_blockchain_address,
         "role": "recipient",
     }
@@ -119,6 +118,7 @@ def transaction_actors(transaction: dict) -> Tuple[Dict, Dict]:
         "blockchain_address": sender_blockchain_address,
         "token_symbol": source_token_symbol,
         "token_value": source_token_value,
+        "token_decimals": source_token_decimals,
         "role": "sender",
     }
     return recipient_transaction_data, sender_transaction_data
@@ -166,14 +166,16 @@ class OutgoingTransaction:
         self.from_address = from_address
         self.to_address = to_address
 
-    def transfer(self, amount: int, token_symbol: str):
+    def transfer(self, amount: int, decimals: int, token_symbol: str):
         """This function initiates standard transfers between one account to another
         :param amount: The amount of tokens to be sent
         :type amount: int
+        :param decimals: The decimals for the token being transferred.
+        :type decimals: int
         :param token_symbol: ERC20 token symbol of token to send
         :type token_symbol: str
         """
         self.cic_eth_api.transfer(from_address=self.from_address,
                                   to_address=self.to_address,
-                                  value=to_wei(value=amount),
+                                  value=to_wei(decimals=decimals, value=amount),
                                   token_symbol=token_symbol)

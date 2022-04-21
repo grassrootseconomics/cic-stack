@@ -1,13 +1,13 @@
 # standard imports
 
 # external imports
-import celery
+from cic_types.condiments import MetadataPointer
 
 # local imports
-from .base import MetadataRequestsHandler
+from .base import UssdMetadataHandler
 
 
-class PreferencesMetadata(MetadataRequestsHandler):
+class PreferencesMetadata(UssdMetadataHandler):
 
     def __init__(self, identifier: bytes):
-        super().__init__(cic_type=':cic.preferences', identifier=identifier)
+        super().__init__(cic_type=MetadataPointer.PREFERENCES, identifier=identifier)

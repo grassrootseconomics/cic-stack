@@ -17,6 +17,7 @@ from cic_eth_registry.error import UnknownContractError
 # local imports
 from cic_eth.error import SeppukuError
 from cic_eth.db.models.base import SessionBase
+from cic_eth.eth.util import CacheGasOracle, MaxGasOracle
 
 #logg = logging.getLogger().getChild(__name__)
 logg = logging.getLogger()
@@ -24,17 +25,45 @@ logg = logging.getLogger()
 celery_app = celery.current_app
 
 
+
 class BaseTask(celery.Task):
 
     session_func = SessionBase.create_session
     call_address = ZERO_ADDRESS
-    create_nonce_oracle = RPCNonceOracle
-    create_gas_oracle = RPCGasOracle
+    trusted_addresses = []
+    min_fee_price = 1
+    min_fee_limit = 30000
     default_token_address = None
     default_token_symbol = None
     default_token_name = None
     default_token_decimals = None
     run_dir = '/run'
+    debug_log = False
+
+
+    def create_gas_oracle(self, conn, address=None, *args, **kwargs):
+        x = None
+        if address is None:
+            x = RPCGasOracle(
+                conn,
+                code_callback=kwargs.get('code_callback', self.get_min_fee_limit),
+                min_price=self.min_fee_price,
+                id_generator=kwargs.get('id_generator'),
+                )
+        else:
+            x = MaxGasOracle(conn)
+            #x.code_callback = x.get_fee_units
+
+        return x
+
+
+    def get_min_fee_limit(self, code):
+        return self.min_fee_limit
+
+
+    def get_min_fee_limit(self, code):
+        return self.min_fee_limit
+
 
     def create_session(self):
         return BaseTask.session_func()
@@ -58,7 +87,11 @@ class BaseTask(celery.Task):
                     )
             s.apply_async()
 
-    
+
+    def after_return(self, status, retval, task_id, args, kwargs, einfo):
+        logg.info('task {} done: status {} return {} called with {} {}'.format(task_id, status, retval, args, kwargs))
+
+
 class CriticalTask(BaseTask):
     retry_jitter = True
     retry_backoff = True
@@ -67,49 +100,48 @@ class CriticalTask(BaseTask):
 
 class CriticalSQLAlchemyTask(CriticalTask):
     autoretry_for = (
-        sqlalchemy.exc.DatabaseError,
+        #sqlalchemy.exc.DatabaseError,
+        sqlalchemy.exc.OperationalError,
         sqlalchemy.exc.TimeoutError,
         sqlalchemy.exc.ResourceClosedError,
-        ) 
+        )
 
 
 class CriticalWeb3Task(CriticalTask):
     autoretry_for = (
         ConnectionError,
         )
-    safe_gas_threshold_amount = 2000000000 * 60000 * 3
-    safe_gas_refill_amount = safe_gas_threshold_amount * 5 
+    safe_gas_threshold_amount = 60000 * 3
+    safe_gas_refill_amount = safe_gas_threshold_amount * 5
+    safe_gas_gifter_balance = safe_gas_threshold_amount * 5 * 100
 
 
-class CriticalSQLAlchemyAndWeb3Task(CriticalTask):
+class CriticalSQLAlchemyAndWeb3Task(CriticalWeb3Task):
     autoretry_for = (
-        sqlalchemy.exc.DatabaseError,
+        #sqlalchemy.exc.DatabaseError,
+        sqlalchemy.exc.OperationalError,
         sqlalchemy.exc.TimeoutError,
         ConnectionError,
         sqlalchemy.exc.ResourceClosedError,
         )
-    safe_gas_threshold_amount = 2000000000 * 60000 * 3
-    safe_gas_refill_amount = safe_gas_threshold_amount * 5 
 
 
 class CriticalSQLAlchemyAndSignerTask(CriticalTask):
      autoretry_for = (
-        sqlalchemy.exc.DatabaseError,
+        #sqlalchemy.exc.DatabaseError,
+        sqlalchemy.exc.OperationalError,
         sqlalchemy.exc.TimeoutError,
         sqlalchemy.exc.ResourceClosedError,
-        ) 
+        )
 
-class CriticalWeb3AndSignerTask(CriticalTask):
+class CriticalWeb3AndSignerTask(CriticalWeb3Task):
     autoretry_for = (
         ConnectionError,
         )
-    safe_gas_threshold_amount = 2000000000 * 60000 * 3
-    safe_gas_refill_amount = safe_gas_threshold_amount * 5 
-
 
 @celery_app.task()
-def check_health(self):
-    pass
+def check_health(self, v=None):
+    return v
 
 
 # TODO: registry / rpc methods should perhaps be moved to better named module

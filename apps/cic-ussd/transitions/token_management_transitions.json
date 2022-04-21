@@ -1,0 +1,93 @@
+[
+  {
+    "trigger": "scan_data",
+    "source": "first_account_tokens_set",
+    "dest": "token_selection_pin_authorization",
+    "conditions": "cic_ussd.state_machine.logic.tokens.is_valid_token_selection",
+    "after": "cic_ussd.state_machine.logic.tokens.process_token_selection"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "first_account_tokens_set",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "first_account_tokens_set",
+    "dest": "middle_account_tokens_set",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_eleven_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "first_account_tokens_set",
+    "dest": "exit_invalid_menu_option"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "middle_account_tokens_set",
+    "dest": "token_selection_pin_authorization",
+    "conditions": "cic_ussd.state_machine.logic.tokens.is_valid_token_selection",
+    "after": "cic_ussd.state_machine.logic.tokens.process_token_selection"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "middle_account_tokens_set",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "middle_account_tokens_set",
+    "dest": "last_account_tokens_set",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_eleven_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "middle_account_tokens_set",
+    "dest": "first_account_tokens_set",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_twenty_two_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "middle_account_tokens_set",
+    "dest": "exit_invalid_menu_option"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "last_account_tokens_set",
+    "dest": "token_selection_pin_authorization",
+    "conditions": "cic_ussd.state_machine.logic.tokens.is_valid_token_selection",
+    "after": "cic_ussd.state_machine.logic.tokens.process_token_selection"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "last_account_tokens_set",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "last_account_tokens_set",
+    "dest": "middle_account_tokens_set",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_twenty_two_selected"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "last_account_tokens_set",
+    "dest": "exit_invalid_menu_option"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "token_selection_pin_authorization",
+    "dest": "exit_successful_token_selection",
+    "conditions": "cic_ussd.state_machine.logic.pin.is_authorized_pin",
+    "after": "cic_ussd.state_machine.logic.tokens.set_selected_active_token"
+  },
+  {
+    "trigger": "scan_data",
+    "source": "token_selection_pin_authorization",
+    "dest": "exit",
+    "conditions": "cic_ussd.state_machine.logic.menu.menu_zero_zero_selected"
+  }
+]

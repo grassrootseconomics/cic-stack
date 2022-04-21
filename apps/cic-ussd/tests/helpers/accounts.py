@@ -4,7 +4,6 @@ import random
 import uuid
 
 # external imports
-from chainlib.eth.address import to_checksum_address
 from faker import Faker
 from faker_e164.providers import E164Provider
 
@@ -21,7 +20,7 @@ def phone_number() -> str:
 
 
 def blockchain_address() -> str:
-    return to_checksum_address('0x' + os.urandom(20).hex())
+    return os.urandom(20).hex().lower()
 
 
 def session_id() -> str:

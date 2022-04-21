@@ -46,7 +46,4 @@ while True:
     test_requirements.append(test_requirement.rstrip())
 test_requirements_file.close()
 
-setup(
-    version=version_string,
-    install_requires=requirements,
-    tests_require=test_requirements)
+setup(install_requires=requirements, tests_require=test_requirements)

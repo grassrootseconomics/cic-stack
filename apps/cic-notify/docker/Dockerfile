@@ -1,28 +1,34 @@
-# syntax = docker/dockerfile:1.2
-FROM registry.gitlab.com/grassrootseconomics/cic-base-images:python-3.8.6-dev-55da5f4e as dev
+ARG DOCKER_REGISTRY="registry.gitlab.com/grassrootseconomics"
 
-#RUN pip install $pip_extra_index_url_flag cic-base[full_graph]==0.1.2a62
+FROM $DOCKER_REGISTRY/cic-base-images:python-3.8.6-dev-e8eb2ee2
 
-ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
-ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple"
-COPY requirements.txt .
+RUN apt-get install libffi-dev -y
 
+# set working directory
+WORKDIR /usr/src
+
+ARG EXTRA_PIP_INDEX_URL=https://pip.grassrootseconomics.net
+ARG EXTRA_PIP_ARGS=""
+ARG PIP_INDEX_URL=https://pypi.org/simple
+
+# copy all files into working directory.
+COPY . .
+
+# copy and install requirements
+COPY requirements.txt ./
 RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
-    pip install --index-url https://pypi.org/simple  \
-	  --extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL \
+    pip install --index-url $PIP_INDEX_URL \
+    --pre \
+    --extra-index-url $EXTRA_PIP_INDEX_URL $EXTRA_PIP_ARGS \
     -r requirements.txt
 
-COPY . .
+# install cic-notify
 RUN python setup.py install
 
-COPY docker/*.sh .
-RUN chmod +x *.sh 
+# copy scripts
+COPY docker/*.sh ./
+RUN chmod +x /usr/src/*.sh
 
-# ini files in config directory defines the configurable parameters for the application
-# they can all be overridden by environment variables
-# to generate a list of environment variables from configuration, use: confini-dump -z <dir> (executable provided by confini package)
-COPY .config/ /usr/local/etc/cic-notify/
 COPY cic_notify/db/migrations/ /usr/local/share/cic-notify/alembic/
-
 
 ENTRYPOINT []

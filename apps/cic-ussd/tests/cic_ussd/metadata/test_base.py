@@ -5,24 +5,25 @@ import os
 # external imports
 import requests_mock
 from chainlib.hash import strip_0x
+from cic_types.condiments import MetadataPointer
 from cic_types.processor import generate_metadata_pointer
 
 # local imports
-from cic_ussd.metadata.base import MetadataRequestsHandler
+from cic_ussd.metadata.base import UssdMetadataHandler
 
 
 # external imports
 
 
-def test_metadata_requests_handler(activated_account,
-                                   init_cache,
-                                   load_config,
-                                   person_metadata,
-                                   setup_metadata_request_handler,
-                                   setup_metadata_signer):
+def test_ussd_metadata_handler(activated_account,
+                               init_cache,
+                               load_config,
+                               person_metadata,
+                               setup_metadata_request_handler,
+                               setup_metadata_signer):
     identifier = bytes.fromhex(strip_0x(activated_account.blockchain_address))
-    cic_type = ':cic.person'
-    metadata_client = MetadataRequestsHandler(cic_type, identifier)
+    cic_type = MetadataPointer.PERSON
+    metadata_client = UssdMetadataHandler(cic_type=cic_type, identifier=identifier)
     assert metadata_client.cic_type == cic_type
     assert metadata_client.engine == 'pgp'
     assert metadata_client.identifier == identifier
@@ -38,7 +39,5 @@ def test_metadata_requests_handler(activated_account,
         assert result.status_code == 200
         person_metadata.pop('digest')
         request_mocker.register_uri('GET', metadata_client.url, status_code=200, reason='OK', json=person_metadata)
-        result = metadata_client.query()
+        result = metadata_client.query().json()
         assert result == person_metadata
-        cached_metadata = metadata_client.get_cached_metadata()
-        assert json.loads(cached_metadata) == person_metadata

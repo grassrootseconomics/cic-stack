@@ -1,4 +1,6 @@
-FROM parity/parity:v2.5.13-stable
+ARG DOCKER_REGISTRY="docker.io"
+
+FROM $DOCKER_REGISTRY/parity/parity:v2.5.13-stable
 
 # root user for installing os dep's and setting file permissions 
 # RUN apt-get update && sudo apt-get -y install sed

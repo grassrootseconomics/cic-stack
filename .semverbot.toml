@@ -1,0 +1,11 @@
+[git]
+
+[git.config]
+email = "semverbot@grassroots.org"
+name = "semvervot"
+
+[git.tags]
+prefix = "v"
+
+[semver]
+mode = "patch"

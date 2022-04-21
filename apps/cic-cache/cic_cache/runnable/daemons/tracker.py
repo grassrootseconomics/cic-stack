@@ -40,7 +40,7 @@ logging.basicConfig(level=logging.WARNING)
 logg = logging.getLogger()
 
 # process args
-arg_flags = cic_cache.cli.argflag_std_read
+arg_flags = cic_cache.cli.argflag_std_base
 local_arg_flags = cic_cache.cli.argflag_local_sync
 argparser = cic_cache.cli.ArgumentParser(arg_flags)
 argparser.process_local_flags(local_arg_flags)
@@ -50,7 +50,7 @@ args = argparser.parse_args()
 config = cic_cache.cli.Config.from_args(args, arg_flags, local_arg_flags)
 
 # connect to database
-dsn = dsn_from_config(config)
+dsn = dsn_from_config(config, 'cic_cache')
 SessionBase.connect(dsn, debug=config.true('DATABASE_DEBUG'))
 
 # set up rpc
@@ -95,10 +95,10 @@ def main():
     syncer_backends = SQLBackend.resume(chain_spec, block_offset)
 
     if len(syncer_backends) == 0:
-        initial_block_start = config.get('SYNCER_OFFSET')
-        initial_block_offset = block_offset
+        initial_block_start = int(config.get('SYNCER_OFFSET'))
+        initial_block_offset = int(block_offset)
         if config.get('SYNCER_NO_HISTORY'):
-            initial_block_start = block_offset
+            initial_block_start = initial_block_offset
             initial_block_offset += 1
         syncer_backends.append(SQLBackend.initial(chain_spec, initial_block_offset, start_block_height=initial_block_start))
         logg.info('found no backends to resume, adding initial sync from history start {} end {}'.format(initial_block_start, initial_block_offset))

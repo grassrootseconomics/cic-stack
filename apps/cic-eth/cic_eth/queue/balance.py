@@ -72,7 +72,7 @@ def __balance_incoming_compatible(token_address, receiver_address):
     status_compare = dead()
     q = q.filter(Otx.status.op('&')(status_compare)==0)
     # TODO: this can change the result for the recipient if tx is later obsoleted and resubmission is delayed. 
-    q = q.filter(Otx.status.op('&')(StatusBits.IN_NETWORK)==StatusBits.IN_NETWORK)
+    #q = q.filter(Otx.status.op('&')(StatusBits.IN_NETWORK)==StatusBits.IN_NETWORK)
     q = q.filter(TxCache.destination_token_address==token_address)
     delta = 0
     for r in q.all():

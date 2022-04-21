@@ -1,0 +1,2 @@
+pytest==7.1.1
+pytest-redis==2.4.0

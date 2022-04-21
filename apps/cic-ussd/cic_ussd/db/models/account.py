@@ -2,8 +2,10 @@
 import json
 
 # external imports
-from chainlib.hash import strip_0x
 from cic_eth.api import Api
+from cic_types.condiments import MetadataPointer
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm.session import Session
 
 # local imports
 from cic_ussd.account.metadata import get_cached_preferred_language, parse_account_metadata
@@ -12,8 +14,9 @@ from cic_ussd.db.enum import AccountStatus
 from cic_ussd.db.models.base import SessionBase
 from cic_ussd.db.models.task_tracker import TaskTracker
 from cic_ussd.encoder import check_password_hash, create_password_hash
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.orm.session import Session
+from cic_ussd.phone_number import E164Format, process_phone_number, Support
+
+support_phone = Support.phone_number
 
 
 class Account(SessionBase):
@@ -29,12 +32,16 @@ class Account(SessionBase):
     failed_pin_attempts = Column(Integer)
     status = Column(Integer)
     preferred_language = Column(String)
+    guardians = Column(String)
+    guardian_quora = Column(Integer)
 
     def __init__(self, blockchain_address, phone_number):
         self.blockchain_address = blockchain_address
         self.phone_number = phone_number
         self.password_hash = None
         self.failed_pin_attempts = 0
+        # self.guardians = f'{support_phone}' if support_phone else None
+        self.guardian_quora = 1
         self.status = AccountStatus.PENDING.value
 
     def __repr__(self):
@@ -44,6 +51,25 @@ class Account(SessionBase):
         """This method is used to reset failed pin attempts and change account status to Active."""
         self.failed_pin_attempts = 0
         self.status = AccountStatus.ACTIVE.value
+
+    def add_guardian(self, phone_number: str):
+        set_guardians = phone_number
+        if self.guardians:
+            set_guardians = self.guardians.split(',')
+            set_guardians.append(phone_number)
+            ','.join(set_guardians)
+        self.guardians = set_guardians
+
+    def remove_guardian(self, phone_number: str):
+        set_guardians = self.guardians.split(',')
+        set_guardians.remove(phone_number)
+        self.guardians = ','.join(set_guardians)
+
+    def get_guardians(self) -> list:
+        return self.guardians.split(',') if self.guardians else []
+
+    def set_guardian_quora(self, quora: int):
+        self.guardian_quora = quora
 
     def create_password(self, password):
         """This method takes a password value and hashes the value before assigning it to the corresponding
@@ -65,6 +91,9 @@ class Account(SessionBase):
         """
         session = SessionBase.bind_session(session=session)
         account = session.query(Account).filter_by(phone_number=phone_number).first()
+        if account is None:
+            phone_number = process_phone_number(phone_number, E164Format.region)
+            account = session.query(Account).filter_by(phone_number=phone_number).first()
         SessionBase.release_session(session=session)
         return account
 
@@ -87,21 +116,24 @@ class Account(SessionBase):
         :return:
         :rtype:
         """
-        return self.failed_pin_attempts == 3 and self.get_status(session) == AccountStatus.LOCKED.name
+        return self.failed_pin_attempts > 2 and self.get_status(session) == AccountStatus.LOCKED.name
 
-    def reset_pin(self, session: Session) -> str:
-        """This function resets the number of failed pin attempts to zero. It places the account in pin reset status
-        enabling users to reset their pins.
+    def reset_pin(self, session: Session, soft: bool = False):
+        """This function resets the number of failed pin attempts to zero. It checks whether a pin reset call is
+        intended as "soft reset" contrary to which it changes an account's status so users can reset their account status.
         :param session: Database session object.
         :type session: Session
+        :param soft: Bool param to check whether to execute a reset without changing the account status.
+        :type soft: bool
         """
         session = SessionBase.bind_session(session=session)
         self.failed_pin_attempts = 0
-        self.status = AccountStatus.RESET.value
+        if not soft:
+            self.status = AccountStatus.RESET.value
         session.add(self)
         session.flush()
         SessionBase.release_session(session=session)
-        return f'Pin reset successful.'
+        return 'Pin reset successful.'
 
     def standard_metadata_id(self) -> str:
         """This function creates an account's standard metadata identification information that contains an account owner's
@@ -109,8 +141,8 @@ class Account(SessionBase):
         :return: Standard metadata identification information | e164 formatted phone number.
         :rtype: str
         """
-        identifier = bytes.fromhex(strip_0x(self.blockchain_address))
-        key = cache_data_key(identifier, ':cic.person')
+        identifier = bytes.fromhex(self.blockchain_address)
+        key = cache_data_key(identifier, MetadataPointer.PERSON)
         account_metadata = get_cached_data(key)
         if not account_metadata:
             return self.phone_number
@@ -142,7 +174,7 @@ class Account(SessionBase):
         return check_password_hash(password, self.password_hash)
 
 
-def create(chain_str: str, phone_number: str, session: Session):
+def create(chain_str: str, phone_number: str, session: Session, preferred_language: str):
     """
     :param chain_str:
     :type chain_str:
@@ -150,12 +182,14 @@ def create(chain_str: str, phone_number: str, session: Session):
     :type phone_number:
     :param session:
     :type session:
+    :param preferred_language:
+    :type preferred_language:
     :return:
     :rtype:
     """
     api = Api(callback_task='cic_ussd.tasks.callback_handler.account_creation_callback',
               callback_queue='cic-ussd',
-              callback_param='',
+              callback_param=preferred_language,
               chain_str=chain_str)
     task_uuid = api.create_account().id
     TaskTracker.add(session=session, task_uuid=task_uuid)

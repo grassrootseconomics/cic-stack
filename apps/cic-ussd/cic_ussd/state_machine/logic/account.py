@@ -11,44 +11,18 @@ from cic_types.models.person import get_contact_data_from_vcard, generate_vcard_
 
 # local imports
 from cic_ussd.account.chain import Chain
-from cic_ussd.account.maps import gender, language
+from cic_ussd.account.maps import gender
 from cic_ussd.account.metadata import get_cached_preferred_language
-from cic_ussd.db.models.account import Account
+from cic_ussd.db.models.account import Account, create
 from cic_ussd.db.models.base import SessionBase
 from cic_ussd.error import MetadataNotFoundError
 from cic_ussd.metadata import PersonMetadata
 from cic_ussd.session.ussd_session import save_session_data
+from cic_ussd.state_machine.logic.language import preferred_langauge_from_selection
 from cic_ussd.translation import translation_for
 from sqlalchemy.orm.session import Session
 
 logg = logging.getLogger(__file__)
-
-
-def change_preferred_language(state_machine_data: Tuple[str, dict, Account, Session]):
-    """
-    :param state_machine_data:
-    :type state_machine_data:
-    :return:
-    :rtype:
-    """
-    user_input, ussd_session, account, session = state_machine_data
-    r_user_input = language().get(user_input)
-    session = SessionBase.bind_session(session)
-    account.preferred_language = r_user_input
-    session.add(account)
-    session.flush()
-    SessionBase.release_session(session)
-
-    preferences_data = {
-        'preferred_language': r_user_input
-    }
-
-    s = celery.signature(
-        'cic_ussd.tasks.metadata.add_preferences_metadata',
-        [account.blockchain_address, preferences_data],
-        queue='cic-ussd'
-    )
-    return s.apply_async()
 
 
 def update_account_status_to_active(state_machine_data: Tuple[str, dict, Account, Session]):
@@ -58,6 +32,8 @@ def update_account_status_to_active(state_machine_data: Tuple[str, dict, Account
     """
     user_input, ussd_session, account, session = state_machine_data
     session = SessionBase.bind_session(session=session)
+    password = ussd_session.get('data').get('initial_pin')
+    account.create_password(password)
     account.activate_account()
     session.add(account)
     session.flush()
@@ -133,13 +109,15 @@ def parse_person_metadata(account: Account, metadata: dict):
     given_name = metadata.get('given_name')
     family_name = metadata.get('family_name')
     email = metadata.get('email')
-
-    if isinstance(metadata.get('date_of_birth'), dict):
-        date_of_birth = metadata.get('date_of_birth')
-    else:
+    dob = metadata.get('date_of_birth')
+    if isinstance(dob, dict):
+        date_of_birth = dob
+    elif isinstance(dob, str):
         date_of_birth = {
-            "year": int(metadata.get('date_of_birth')[:4])
+            "year": int(dob)
         }
+    else:
+        date_of_birth = {}
     if isinstance(metadata.get('location'), dict):
         location = metadata.get('location')
     else:
@@ -245,3 +223,18 @@ def edit_user_metadata_attribute(state_machine_data: Tuple[str, dict, Account, S
         [blockchain_address, parsed_person_metadata]
     )
     s_edit_person_metadata.apply_async(queue='cic-ussd')
+
+
+def process_account_creation(state_machine_data: Tuple[str, dict, Account, Session]):
+    """
+    :param state_machine_data:
+    :type state_machine_data:
+    :return:
+    :rtype:
+    """
+    user_input, ussd_session, account, session = state_machine_data
+    preferred_language = preferred_langauge_from_selection(user_input=user_input)
+    chain_str = Chain.spec.__str__()
+    phone = ussd_session.get('msisdn')
+    create(chain_str, phone, session, preferred_language)
+    logg.info('create account on {} for {}'.format(chain_str, phone))

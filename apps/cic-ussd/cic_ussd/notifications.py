@@ -1,4 +1,5 @@
 # standard imports
+import logging
 from typing import Union
 
 # third-party imports
@@ -21,6 +22,17 @@ class Notifier:
         :param preferred_language: A notification recipient's preferred language.
         :type preferred_language: str
         """
-        notify_api = Api() if self.queue is False else Api(queue=self.queue)
+        # TODO [Philip]: This is super hacky.
+        if self.queue:
+            if phone_number.startswith('+254'):
+                notify_api = Api(channel_keys=['sms'], queue=self.queue)
+            else:
+                notify_api = Api(queue=self.queue)
+        else:
+            if phone_number.startswith('+254'):
+                notify_api = Api(channel_keys=['sms'])
+            else:
+                notify_api = Api()
+
         message = translation_for(key=key, preferred_language=preferred_language, **kwargs)
-        notify_api.sms(recipient=phone_number, message=message)
+        notify_api.notify(message=message, recipient=phone_number)

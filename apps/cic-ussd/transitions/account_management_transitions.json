@@ -50,7 +50,7 @@
   {
     "trigger": "scan_data",
     "source": "account_management",
-    "dest": "enter_current_pin",
+    "dest": "pin_management",
     "conditions": "cic_ussd.state_machine.logic.menu.menu_five_selected"
   },
   {

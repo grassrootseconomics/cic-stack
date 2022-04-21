@@ -4,13 +4,23 @@ import logging
 # external imports
 import celery
 from chainlib.chain import ChainSpec
+from chainlib.error import JSONRPCException
 from chainlib.eth.address import is_checksum_address
 from chainlib.eth.error import NotFoundEthException
 from chainlib.eth.tx import (
         transaction,
         receipt,
         raw,
+        TxFormat,
         )
+from chainlib.eth.gas import (
+        Gas,
+        OverrideGasOracle,
+        )
+from chainlib.eth.nonce import (
+        OverrideNonceOracle,
+        )
+from chainlib.error import JSONRPCException
 from chainlib.connection import RPCConnection
 from chainlib.hash import keccak256_hex_to_hex
 from hexathon import (
@@ -36,6 +46,9 @@ from cic_eth.task import (
         CriticalWeb3AndSignerTask,
         CriticalSQLAlchemyAndSignerTask,
         CriticalSQLAlchemyAndWeb3Task,
+        )
+from cic_eth.queue.tx import (
+        register_tx,
         )
 
 celery_app = celery.current_app
@@ -116,20 +129,35 @@ def send(self, txs, chain_spec_dict):
 
     queue = self.request.delivery_info.get('routing_key')
 
+    o = raw(tx_hex)
+    err_state = False
+    conn = RPCConnection.connect(chain_spec, 'default')
+    try:
+        conn.do(o)
+    except JSONRPCException as e:
+        logg.error('send to node failed! {}'.format(e))
+        if self.debug_log:
+            s_debug = celery.signature(
+                'cic_eth.debug.debug_add',
+                [
+                    ','.join([str(chain_spec), tx_hash_hex]),
+                    str(e),
+                    ],
+                    queue=queue,
+                    )
+            s_debug.apply_async()
+        err_state = True
+
     r = None
     s_set_sent = celery.signature(
         'cic_eth.queue.state.set_sent',
         [
             chain_spec_dict,
             tx_hash_hex,
-            False
+            err_state,
             ],
             queue=queue,
         )
-
-    o = raw(tx_hex)
-    conn = RPCConnection.connect(chain_spec, 'default')
-    conn.do(o)
 
     s_set_sent.apply_async()
 
@@ -249,3 +277,43 @@ def sync_tx(self, tx_hash_hex, chain_spec_dict):
 #    return txpending_hash_hex
 
 
+
+@celery_app.task(bind=True, base=CriticalSQLAlchemyAndSignerTask)
+def custom(self, nonce, sender, recipient, value, data, gas_price, gas_limit, chain_spec_dict, cache_task='cic_eth.eth.gas.cache_gas_data'):
+    session = SessionBase.create_session()
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
+
+    session = SessionBase.create_session()
+
+    # set up transaction builder
+    rpc = RPCConnection.connect(chain_spec, 'default')
+    gas_oracle = OverrideGasOracle(price=gas_price, limit=gas_limit)
+    nonce_oracle = OverrideNonceOracle(sender, nonce)
+    rpc_signer = RPCConnection.connect(chain_spec, 'signer')
+    c = Gas(chain_spec, signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
+
+
+    # build and add transaction
+    try:
+        (tx_hash_hex, tx_signed_raw_hex) = c.create(sender, recipient, value, data=data, tx_format=TxFormat.RLP_SIGNED)
+    except ConnectionError as e:
+        raise SignerError(e)
+    except FileNotFoundError as e:
+        raise SignerError(e)
+    logg.debug('custom send tx {}'.format(tx_hash_hex))
+
+    queue = self.request.delivery_info.get('routing_key')
+    register_tx(tx_hash_hex, tx_signed_raw_hex, chain_spec, queue, cache_task=cache_task, session=session)
+
+    # add transaction to send queue
+    s_status = celery.signature(
+        'cic_eth.queue.state.set_ready',
+        [
+            chain_spec.asdict(),
+            tx_hash_hex,
+            ],
+        queue=queue,
+            )
+    t = s_status.apply_async()
+    
+    return tx_hash_hex

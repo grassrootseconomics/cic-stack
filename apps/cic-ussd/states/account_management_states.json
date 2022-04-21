@@ -13,5 +13,7 @@
   "products_edit_pin_authorization",
   "account_balances_pin_authorization",
   "account_statement_pin_authorization",
-  "account_balances"
+  "account_balances",
+  "middle_language_set",
+  "last_language_set"
 ]

@@ -118,37 +118,69 @@ async function processRequest(req, res) {
 		return;
 	}
 
+	let mod = req.method.toLowerCase() + ":automerge:";
+	let modDetail = undefined;
+	let immutablePost = false;
 	try {
 		digest = parseDigest(req.url);
 	} catch(e) {
-		console.error('digest error: ' + e)
-		res.writeHead(400, {"Content-Type": "text/plain"});
-		res.end();
-		return;
+		if (req.url == '/') {
+			immutablePost = true;
+			modDetail = 'immutable';
+		} else {
+			console.error('url is not empty (' + req.url + ') and not valid digest error: ' + e)
+			res.writeHead(400, {"Content-Type": "text/plain"});
+			res.end();
+			return;
+		}
 	}
 
-	const mergeHeader = req.headers['x-cic-automerge'];
-	let mod = req.method.toLowerCase() + ":automerge:";
-	switch (mergeHeader) {
-		case "client":
-			mod += "client"; // client handles merges
-			break;
-		case "server":
-			mod += "server"; // server handles merges
-			break;
-		default:
-			mod += "none"; // merged object only (get only)
+	if (modDetail === undefined) {
+		const mergeHeader = req.headers['x-cic-automerge'];
+		switch (mergeHeader) {
+			case "client":
+				if (immutablePost) {
+					res.writeHead(400, 'Valid digest missing', {"Content-Type": "text/plain"});
+					res.end();
+					return;
+				}
+				modDetail = "client"; // client handles merges
+				break;
+			case "server":
+				if (immutablePost) {
+					res.writeHead(400, 'Valid digest missing', {"Content-Type": "text/plain"});
+					res.end();
+					return;
+				}
+				modDetail = "server"; // server handles merges
+				break;
+			case "immutable":
+				modDetail = "immutable"; // no merging, literal immutable content with content-addressing
+				break;
+			default:
+				modDetail = "none"; // merged object only (get only)
+		}
 	}
+	mod += modDetail;
 
-	let data = '';
+
+	// handle bigger chunks of data
+	let data: any = [];
 	req.on('data', (d) => {
-		data += d;
+		data.push(d)
+		console.debug('chunk length ' + d.length);
 	});
-	req.on('end', async () => {
-		console.debug('mode', mod);
-		let content = '';
+	req.on('end', async (d) => {
+		data = Buffer.concat(data);
+		let inputContentType = req.headers['content-type'];
+		let debugString = 'executing mode ' + mod ;
+		if (data !== undefined) {
+			debugString += ' for content type ' + inputContentType + ' length ' + data.length;
+		}
+		console.debug(debugString);
+		let content;
 		let contentType = 'application/json';
-		console.debug('handling data', data);
+		let statusCode = 200;
 		let r:any = undefined;
 		try {
 			switch (mod) {
@@ -159,6 +191,7 @@ async function processRequest(req, res) {
 						res.end();
 						return;
 					}
+					content = '';
 					break;
 
 				case 'get:automerge:client':
@@ -176,6 +209,7 @@ async function processRequest(req, res) {
 						res.end();
 						return;
 					}
+					content = '';
 					break;
 				//case 'get:automerge:server':
 				//	content = await handlers.handleServerMergeGet(db, digest, keystore);	
@@ -183,12 +217,24 @@ async function processRequest(req, res) {
 
 				case 'get:automerge:none':
 					r = await handlers.handleNoMergeGet(db, digest, keystore);	
-					if (r == false) {
+					if (r === false) {
 						res.writeHead(404, {"Content-Type": "text/plain"});
 						res.end();
 						return;
 					}
-					content = r;
+					content = r[0];
+					contentType = r[1];
+					break;
+
+				case 'post:automerge:immutable':
+					if (inputContentType === undefined) {
+						inputContentType = 'application/octet-stream';
+					}
+					r = await handlers.handleImmutablePost(data, db, digest, keystore, inputContentType);
+					if (r[0]) {
+						statusCode = 201;
+					}
+					content = r[1];
 					break;
 
 				default:
@@ -198,20 +244,35 @@ async function processRequest(req, res) {
 			}
 		} catch(e) {
 			console.error('fail', mod, digest, e);
-			res.writeHead(500, {"Content-Type": "text/plain"});
+			let code = 500;
+			let msg = 'uncaught exception';
+			if (e.typ !== undefined) {
+				if (e.typ === 'sig') {
+					code = 403;
+					msg = e.msg;
+				}
+			}
+			res.writeHead(code, msg, {"Content-Type": "text/plain"});
 			res.end();
 			return;
 		}
 
 		if (content === undefined) {
-			console.error('empty content', data);
+			console.error('empty content', mod, digest, data);
 			res.writeHead(404, {"Content-Type": "text/plain"});
 			res.end();
 			return;
 		}
 
-		const responseContentLength = (new TextEncoder().encode(content)).length;
-		res.writeHead(200, {
+		//let responseContentLength;
+		//if (typeof(content) == 'string') {
+		//	(new TextEncoder().encode(content)).length;
+		//}
+		const responseContentLength = content.length;
+		//if (responseContentLength === undefined) {
+		//	responseContentLength = 0;
+		//}
+		res.writeHead(statusCode, {
 			"Access-Control-Allow-Origin": "*",
 			"Content-Type": contentType,
 			"Content-Length": responseContentLength,

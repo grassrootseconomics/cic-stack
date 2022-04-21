@@ -69,7 +69,7 @@ def mock_notifier_api(mocker):
         sms['message'] = message
         sms['recipient'] = phone_number
 
-    mocker.patch('cic_notify.api.Api.sms', mock_sms_api)
+    mocker.patch('cic_notify.api.Api.notify', mock_sms_api)
     mocker.patch('cic_ussd.notifications.Notifier.send_sms_notification', send_sms_notification)
     return sms
 

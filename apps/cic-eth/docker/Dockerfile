@@ -1,51 +1,29 @@
-# syntax = docker/dockerfile:1.2
-FROM registry.gitlab.com/grassrootseconomics/cic-base-images:python-3.8.6-dev-55da5f4e as dev
+ARG DOCKER_REGISTRY="registry.gitlab.com/grassrootseconomics"
+
+FROM $DOCKER_REGISTRY/cic-base-images:python-3.8.6-dev-e8eb2ee2
 
 # Copy just the requirements and install....this _might_ give docker a hint on caching but we 
 # do load these all into setup.py later
 # TODO can we take all the requirements out of setup.py and just do a pip install -r requirements.txt && python setup.py
 #COPY cic-eth/requirements.txt .
 
-ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
-ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple"
+ARG EXTRA_PIP_INDEX_URL=https://pip.grassrootseconomics.net
 ARG EXTRA_PIP_ARGS=""
-#RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
-#    pip install --index-url https://pypi.org/simple \
-#    --force-reinstall \
-#	--extra-index-url $GITLAB_PYTHON_REGISTRY --extra-index-url $EXTRA_INDEX_URL \
-#    -r requirements.txt
-
-RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
-    pip install --index-url https://pypi.org/simple  \
-	  --extra-index-url $GITLAB_PYTHON_REGISTRY \
-    --extra-index-url $EXTRA_INDEX_URL \
-    $EXTRA_PIP_ARGS \
-    cic-eth-aux-erc20-demurrage-token~=0.0.2a6
-
+ARG PIP_INDEX_URL=https://pypi.org/simple
 
 COPY *requirements.txt ./
-RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
-    pip install --index-url https://pypi.org/simple  \
-	  --extra-index-url $GITLAB_PYTHON_REGISTRY \
-    --extra-index-url $EXTRA_INDEX_URL \
-    $EXTRA_PIP_ARGS \
+#RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
+RUN  pip install --index-url $PIP_INDEX_URL \
+    --pre \
+    --extra-index-url $EXTRA_PIP_INDEX_URL $EXTRA_PIP_ARGS \
     -r requirements.txt \
     -r services_requirements.txt \
-    -r admin_requirements.txt 
-   
-# always install the latest signer 
-RUN --mount=type=cache,mode=0755,target=/root/.cache/pip \
-    pip install --index-url https://pypi.org/simple  \
-	  --extra-index-url $GITLAB_PYTHON_REGISTRY \
-    --extra-index-url $EXTRA_INDEX_URL \
-    $EXTRA_PIP_ARGS \
-    crypto-dev-signer
+    -r admin_requirements.txt
 
 COPY . .
 RUN python setup.py install
 
 ENV PYTHONPATH .
-
 
 COPY docker/entrypoints/* ./ 
 RUN chmod 755 *.sh
@@ -53,9 +31,7 @@ RUN chmod 755 *.sh
 # # ini files in config directory defines the configurable parameters for the application
 # # they can all be overridden by environment variables
 # # to generate a list of environment variables from configuration, use: confini-dump -z <dir> (executable provided by confini package)
-COPY config/ /usr/local/etc/cic-eth/
-COPY cic_eth/db/migrations/ /usr/local/share/cic-eth/alembic/
-COPY crypto_dev_signer_config/ /usr/local/etc/crypto-dev-signer/
+#COPY config/ /usr/local/etc/cic-eth/
 
 # TODO this kind of code sharing across projects should be discouraged...can we make util a library?
 #COPY util/liveness/health.sh /usr/local/bin/health.sh
@@ -80,9 +56,8 @@ ENTRYPOINT []
 ## # they can all be overridden by environment variables
 ## # to generate a list of environment variables from configuration, use: confini-dump -z <dir> (executable provided by confini package)
 #COPY config/ /usr/local/etc/cic-eth/
-#COPY cic_eth/db/migrations/ /usr/local/share/cic-eth/alembic/
-#COPY crypto_dev_signer_config/ /usr/local/etc/crypto-dev-signer/
-#COPY scripts/ scripts/ 
+COPY cic_eth/db/migrations/ /usr/local/share/cic-eth/alembic/
+#COPY scripts/ scripts/
 #
 ## TODO this kind of code sharing across projects should be discouraged...can we make util a library?
 ##COPY util/liveness/health.sh /usr/local/bin/health.sh

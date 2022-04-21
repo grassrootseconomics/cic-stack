@@ -3,8 +3,7 @@ import json
 
 # external imports
 import pytest
-import requests_mock
-from chainlib.hash import strip_0x
+
 from cic_types.models.person import Person, get_contact_data_from_vcard
 
 # local imports
@@ -12,9 +11,7 @@ from cic_ussd.cache import get_cached_data
 from cic_ussd.account.maps import gender
 from cic_ussd.account.metadata import get_cached_preferred_language
 from cic_ussd.db.enum import AccountStatus
-from cic_ussd.metadata import PreferencesMetadata
-from cic_ussd.state_machine.logic.account import (change_preferred_language,
-                                                  edit_user_metadata_attribute,
+from cic_ussd.state_machine.logic.account import (edit_user_metadata_attribute,
                                                   parse_gender,
                                                   parse_person_metadata,
                                                   save_complete_person_metadata,
@@ -24,32 +21,6 @@ from cic_ussd.translation import translation_for
 
 
 # test imports
-
-
-@pytest.mark.parametrize('user_input, expected_preferred_language', [
-    ('1', 'en'),
-    ('2', 'sw')
-])
-def test_change_preferred_language(activated_account,
-                                   celery_session_worker,
-                                   expected_preferred_language,
-                                   init_database,
-                                   generic_ussd_session,
-                                   mock_response,
-                                   preferences,
-                                   setup_metadata_request_handler,
-                                   user_input):
-    identifier = bytes.fromhex(strip_0x(activated_account.blockchain_address))
-    preferences_metadata_client = PreferencesMetadata(identifier)
-    with requests_mock.Mocker(real_http=False) as requests_mocker:
-        requests_mocker.register_uri(
-            'POST', preferences_metadata_client.url, status_code=200, reason='OK', json=mock_response
-        )
-        state_machine_data = (user_input, generic_ussd_session, activated_account, init_database)
-        res = change_preferred_language(state_machine_data)
-        init_database.commit()
-        assert res.id is not None
-        assert activated_account.preferred_language == expected_preferred_language
 
 
 @pytest.mark.parametrize('user_input', [
@@ -103,6 +74,7 @@ def test_save_metadata_attribute_to_session_data(activated_account,
 
 
 def test_update_account_status_to_active(generic_ussd_session, init_database, pending_account):
+    generic_ussd_session['data']['initial_pin'] = '1212'
     state_machine_data = ('', generic_ussd_session, pending_account, init_database)
     assert pending_account.get_status(init_database) == AccountStatus.PENDING.name
     update_account_status_to_active(state_machine_data)

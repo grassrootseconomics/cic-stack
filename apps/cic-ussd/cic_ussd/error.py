@@ -52,4 +52,5 @@ class UnknownUssdRecipient(Exception):
     """Raised when a recipient of a transaction is not known to the ussd application."""
 
 
-
+class MaxRetryReached(Exception):
+    """Raised when the maximum number of retries defined for polling for the availability of a resource."""

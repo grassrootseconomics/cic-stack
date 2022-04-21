@@ -2,17 +2,18 @@
 import datetime
 import logging
 from typing import Optional
+from datetime import datetime, timedelta
 
 # external imports
 import celery
 from chainlib.hash import strip_0x
 from cic_eth.api import Api
+from cic_types.condiments import MetadataPointer
 
 # local import
 from cic_ussd.account.chain import Chain
 from cic_ussd.account.transaction import from_wei
 from cic_ussd.cache import cache_data_key, get_cached_data
-from cic_ussd.translation import translation_for
 
 logg = logging.getLogger(__name__)
 
@@ -25,7 +26,7 @@ def filter_statement_transactions(transaction_list: list) -> list:
     :return: Transactions exclusive of the zero address transactions.
     :rtype: list
     """
-    return [tx for tx in transaction_list if tx.get('source_token') != '0x0000000000000000000000000000000000000000']
+    return [tx for tx in transaction_list if tx.get('source_token') != '0x0000000000000000000000000000000000000000' and tx.get('status') == 'SUCCESS']
 
 
 def generate(querying_party: str, queue: Optional[str], transaction: dict):
@@ -53,7 +54,7 @@ def get_cached_statement(blockchain_address: str) -> bytes:
     :rtype: str
     """
     identifier = bytes.fromhex(strip_0x(blockchain_address))
-    key = cache_data_key(identifier=identifier, salt=':cic.statement')
+    key = cache_data_key(identifier=identifier, salt=MetadataPointer.STATEMENT)
     return get_cached_data(key=key)
 
 
@@ -66,13 +67,15 @@ def parse_statement_transactions(statement: list):
     :rtype:
     """
     parsed_transactions = []
+    statement.sort(key=lambda d: d['timestamp'], reverse=True)
     for transaction in statement:
         action_tag = transaction.get('action_tag')
-        amount = from_wei(transaction.get('token_value'))
+        decimals = transaction.get('token_decimals')
+        amount = from_wei(decimals, transaction.get('token_value'))
         direction_tag = transaction.get('direction_tag')
         token_symbol = transaction.get('token_symbol')
-        metadata_id = transaction.get('metadata_id')
-        timestamp = datetime.datetime.now().strftime('%d/%m/%y, %H:%M')
+        metadata_id = transaction.get('alt_metadata_id')
+        timestamp = convert_to_tz(transaction.get('timestamp'))
         transaction_repr = f'{action_tag} {amount} {token_symbol} {direction_tag} {metadata_id} {timestamp}'
         parsed_transactions.append(transaction_repr)
     return parsed_transactions
@@ -86,7 +89,7 @@ def query_statement(blockchain_address: str, limit: int = 9):
     :param limit: Number of transactions to be returned.
     :type limit: int
     """
-    logg.debug(f'retrieving balance for address: {blockchain_address}')
+    logg.debug(f'retrieving statement for address: {blockchain_address}')
     chain_str = Chain.spec.__str__()
     cic_eth_api = Api(
         chain_str=chain_str,
@@ -97,15 +100,14 @@ def query_statement(blockchain_address: str, limit: int = 9):
     cic_eth_api.list(address=blockchain_address, limit=limit)
 
 
-def statement_transaction_set(preferred_language: str, transaction_reprs: list):
+def convert_to_tz(time_str: str, tz_offset: int=3):
     """
-    :param preferred_language:
-    :type preferred_language:
-    :param transaction_reprs:
-    :type transaction_reprs:
-    :return:
-    :rtype:
+    This function normalizes the UTC time in statements to the local timezone
+    :time_format: String, time in the format %d/%m/%y, %H:%M
     """
-    if not transaction_reprs:
-        return translation_for('helpers.no_transaction_history', preferred_language)
-    return ''.join(f'{transaction_repr}\n' for transaction_repr in transaction_reprs)
+
+    timestr_format = '%d/%m/%y, %H:%M'
+    parsed_date_str = datetime.strptime(time_str, timestr_format)
+    normalized_time = parsed_date_str + timedelta(hours=tz_offset)
+
+    return normalized_time.strftime(timestr_format)

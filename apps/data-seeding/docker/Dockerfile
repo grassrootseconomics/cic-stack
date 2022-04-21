@@ -1,27 +1,40 @@
-# syntax = docker/dockerfile:1.2
-FROM registry.gitlab.com/grassrootseconomics/cic-base-images:python-3.8.6-dev-5ab8bf45
+ARG DOCKER_REGISTRY="registry.gitlab.com/grassrootseconomics"
+
+FROM $DOCKER_REGISTRY/cic-base-images:python-3.8.6-dev-e8eb2ee2
 
 WORKDIR /root
 
 RUN mkdir -vp /usr/local/etc/cic
 
-COPY package.json \
-     package-lock.json \
-     .
+ARG NPM_REPOSITORY=${NPM_REPOSITORY:-https://registry.npmjs.org}
+RUN npm config set snyk=false
+#RUN npm config set registry={NPM_REPOSITORY}
+RUN npm config set registry=${NPM_REPOSITORY}
+
+# copy the dependencies
+COPY package.json package-lock.json ./
+RUN --mount=type=cache,mode=0755,target=/root/.npm \
+    npm set cache /root/.npm && \
+    npm cache verify && \
+    npm ci --verbose
 
 
-RUN npm ci --production 
+#RUN npm ci --production --verbose
 #RUN --mount=type=cache,mode=0755,target=/root/node_modules npm install
 
+#COPY common/ cic_ussd/common/
 COPY requirements.txt .
-COPY config/ /usr/local/etc/data-seeding
+COPY config/ config
 
-ARG EXTRA_INDEX_URL="https://pip.grassrootseconomics.net:8433"
-ARG GITLAB_PYTHON_REGISTRY="https://gitlab.com/api/v4/projects/27624814/packages/pypi/simple"
-RUN --mount=type=cache,mode=0755,target=/root/.cache/pip pip install \
-    --extra-index-url $GITLAB_PYTHON_REGISTRY \
-    --extra-index-url $EXTRA_INDEX_URL -r requirements.txt
+ARG EXTRA_PIP_INDEX_URL=https://pip.grassrootseconomics.net
+ARG EXTRA_PIP_ARGS=""
+ARG PIP_INDEX_URL=https://pypi.org/simple
 
-COPY . . 
+RUN  pip install --index-url $PIP_INDEX_URL  \
+     --pre \
+     --extra-index-url $EXTRA_PIP_INDEX_URL $EXTRA_PIP_ARGS \
+     -r requirements.txt
+
+COPY . .
 
 ENTRYPOINT [ ]

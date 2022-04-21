@@ -1,0 +1,19 @@
+keys,en,sw,kam,kik,miji,luo,bor
+female,Female,Mwanamke,Mundumuka,Mutumia,Muche,Dhako,Uwole
+from,From,Kutoka kwa,Kuma kwa,Kuuma kwa,Ulaako,Kowuok kuom,ira
+male,Male,Mwanaume,Mundume,Mundurume,Mulume,Dichuo,Dir
+not_provided,Not provided,Haijawekwa,Inenganitwe,Ndiikiritwo,Kaphana,Okoketi,Kes inkan
+no_language_list,No language list,Hamna lugha ya kuchagua,Vai luka ya kusakwa,Hatire ruthiomi rwakucagurwo,Kahana luga irio orodeshwa,Onge dhok miyiero,Afaan chaguad injirt
+no_transaction_history,No transaction history,Hamna ripoti ya matumizi,Vai livoti ya utumii,Hatire riboti ya mahuthira,Kahana repoti ya mahumizi,Onge ripot mar tiyo,Odhuu jalkaban injirt
+no_tokens_list,No more Sarafu,Hamna sarafu zingine,Vai Sarafu ingi,Hatire Sarafu inge,Kahana Sarafu zaidi,Onge Sarafu moko,Sarafu dibii injirt
+other,Other,Nyingine,Ingi,Inge,Nyinjine,Moko,Ta dibii
+received,Received,Ulipokea,Niwakwatie,Niuramukirire ,Hokera,Niyudo,Argat
+sent,Sent,Ulituma,Niwatumie,Niuratumire,Humwa,Nioro,Ergan
+to,To,Kwa,Kwa,Hare,Kwa,Ne,Es
+guardians_list_header,Your PIN guards are:,PIN Walinzi uliowaongeza ni:,PIN Atetheesya ala wongelile ni:,Agiteri a PIN yaku ni:,PIN Aimirizi urioika ni:,PIN Jorit magi gin:,PIN Naam at korkorad:
+no_guardians_list,No PIN guardians set,Hamna PIN walinzi walioongezwa,Vai atetheesya mongelwa,Hartire agiteri meekeretwo,Kahana aimirizi adzoikwa,Onge jorit moketi,Nam an korkorad injirt
+error.no_phone_number_provided,No phone number was provided,Nambari ya simu haijawekwa,Namba ya simu inaikiwa,Namba ya thimu ndihianetwo,Kahana namba ya simu idzopewa,Namba mar simu okoketi,Namba simu kees inkaan
+error.no_matching_account,The number provided is not registered,Nambari uliyoweka haijasajiliwa,Namba ya simu ila wekiya ti mbandikithye,Namba iria wekera ndiandekithetwo,Namba idzopewa kaidzagwe kusajiliwa,Namba mar simu miketo pok ondiki,Namba ka at kekeet sajiil incab
+error.is_initiator,Phone number cannot be your own,Nambari yafaa kuwa tofauti na yako,Namba ya simu yaile ithiwa itavwanene na yaku,Namba ifatie gukorwo  ina utiganu na yaku,Namba yasimu kaidima kukala niyako,Namba onego obed mopogre gimari,Namba simu tete tau mal
+error.is_existent_guardian,This phone number is already added as a PIN guardian,Nambari hii tayari imeongezwa kama mlinzi wa nambari ya siri,Namba ii niyongeletwe tayari ta mutethesya wa kusovya pin,Namba ino niyongereirwo ta murugamereri ya namba ya thiri,Nambari ii yasimu yaikwa kare Muimirizi,Nambani oseketi kaka jarit,Namba tana yayu nam korkoradi taat
+error.is_not_existent_guardian,Phone number not set as PIN guardian,Nambari hii haijaongezwa kama mlinzi wa nambari ya PIN,Namba ii iyongeletwe ta mutethesya wa kusovya PIN,Namba ino ndiongereirwo ta  mugiteri wa PIN,Nambari ii yasimu kaiikika kugaluza PIN zda mwimirizi,Nambani pok omed kaka jarit,Namba simu ta nam korkorad indharan

@@ -23,13 +23,10 @@ def test_upsell_unregistered_recipient(activated_account,
                                        load_support_phone,
                                        mock_notifier_api,
                                        set_locale_files,
+                                       set_active_token,
                                        valid_recipient):
-    cached_ussd_session.set_data('recipient_phone_number', valid_recipient.phone_number)
-    state_machine_data = ('', cached_ussd_session.to_json(), activated_account, init_database)
+    state_machine_data = (valid_recipient.phone_number, cached_ussd_session.to_json(), activated_account, init_database)
     upsell_unregistered_recipient(state_machine_data)
-    ussd_session = get_cached_data(cached_ussd_session.external_session_id)
-    ussd_session = json.loads(ussd_session)
-    phone_number = ussd_session.get('data')['recipient_phone_number']
     preferred_language = get_cached_preferred_language(activated_account.blockchain_address)
     token_symbol = get_default_token_symbol()
     tx_sender_information = activated_account.standard_metadata_id()
@@ -39,4 +36,4 @@ def test_upsell_unregistered_recipient(activated_account,
                               token_symbol=token_symbol,
                               support_phone=Support.phone_number)
     assert mock_notifier_api.get('message') == message
-    assert mock_notifier_api.get('recipient') == phone_number
+    assert mock_notifier_api.get('recipient') == valid_recipient.phone_number

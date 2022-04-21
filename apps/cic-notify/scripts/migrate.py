@@ -18,7 +18,7 @@ rootdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 dbdir = os.path.join(rootdir, 'cic_notify', 'db')
 migrationsdir = os.path.join(dbdir, 'migrations')
 
-config_dir = os.path.join('/usr/local/etc/cic-notify')
+config_dir = os.path.join('/usr/src/cic_notify/data/config')
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument('-c', type=str, default=config_dir, help='config file')

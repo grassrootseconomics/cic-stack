@@ -196,6 +196,84 @@ def test_admin_api_account(
     assert len(r) == 3
 
 
+def test_admin_api_txs_latest(
+        default_chain_spec,
+        init_database,
+        eth_rpc,
+        eth_signer,
+        agent_roles,
+        contract_roles,
+        celery_session_worker,
+        caplog,
+        ):
+
+    nonce_oracle = OverrideNonceOracle(agent_roles['ALICE'], 42)
+    gas_oracle = OverrideGasOracle(limit=21000, conn=eth_rpc)
+
+    tx_hashes_alice = []
+    txs_alice = []
+
+    for i in range(6):
+        c = Gas(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
+        (tx_hash_hex, tx_signed_raw_hex) = c.create(agent_roles['ALICE'], agent_roles['BOB'], 100 * (10 ** 6), tx_format=TxFormat.RLP_SIGNED)
+        queue_create(
+                default_chain_spec,
+                42+i,
+                agent_roles['ALICE'],
+                tx_hash_hex,
+                tx_signed_raw_hex,
+                session=init_database,
+                )
+        cache_gas_data(
+                tx_hash_hex,
+                tx_signed_raw_hex,
+                default_chain_spec.asdict(),
+                )
+        tx_hashes_alice.append(tx_hash_hex)
+        txs_alice.append(tx_signed_raw_hex)
+
+    init_database.commit()
+
+    nonce_oracle = OverrideNonceOracle(agent_roles['BOB'], 13)
+    tx_hashes_bob = []
+    txs_bob = []
+
+    for i in range(4):
+        c = Gas(default_chain_spec, signer=eth_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
+        (tx_hash_hex, tx_signed_raw_hex) = c.create(agent_roles['BOB'], agent_roles['ALICE'], 100 * (10 ** 6), tx_format=TxFormat.RLP_SIGNED)
+        queue_create(
+                default_chain_spec,
+                13+i,
+                agent_roles['BOB'],
+                tx_hash_hex,
+                tx_signed_raw_hex,
+                session=init_database,
+                )
+        cache_gas_data(
+                tx_hash_hex,
+                tx_signed_raw_hex,
+                default_chain_spec.asdict(),
+                )
+        tx_hashes_bob.append(tx_hash_hex)
+        txs_bob.append(tx_signed_raw_hex)
+
+    init_database.commit()
+
+
+    api = AdminApi(eth_rpc, queue=None, call_address=contract_roles['CONTRACT_DEPLOYER'])
+    r = api.txs_latest(default_chain_spec)
+
+    assert len(r) == 10
+    assert r[0]["tx_hash"] == "0x85526a782ea231cdc4ffedffb3d1140974d6a0f37acdd33ffe6183e152203100"
+    assert r[0]["nonce"] == 16
+    assert r[1]["nonce"] == 15
+
+    api = AdminApi(eth_rpc, queue=None, call_address=contract_roles['CONTRACT_DEPLOYER'])
+    r = api.txs_latest(default_chain_spec, count=1)
+    assert len(r) == 1
+    assert r[0]["tx_hash"] == "0x85526a782ea231cdc4ffedffb3d1140974d6a0f37acdd33ffe6183e152203100"
+
+
 def test_admin_api_account_writer(
         default_chain_spec,
         init_database,

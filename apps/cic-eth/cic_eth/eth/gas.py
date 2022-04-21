@@ -3,13 +3,18 @@ import logging
 
 # external imports
 import celery
+import sqlalchemy.exc
 from hexathon import (
         strip_0x,
         add_0x,
         )
-#from chainlib.eth.constant import ZERO_ADDRESS
+from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.chain import ChainSpec
-from chainlib.eth.address import is_checksum_address
+from chainlib.eth.address import (
+        is_checksum_address,
+        to_checksum_address,
+        is_address
+        )
 from chainlib.connection import RPCConnection
 from chainqueue.db.enum import StatusBits
 from chainqueue.sql.tx import cache_tx_dict
@@ -33,15 +38,20 @@ from chainlib.eth.gas import (
         Gas,
         OverrideGasOracle,
         )
+from chainlib.eth.nonce import (
+        OverrideNonceOracle,
+        )
 from chainqueue.db.models.tx import TxCache
 from chainqueue.db.models.otx import Otx
 
 # local imports
+from cic_eth.db.models.gas_cache import GasCache
 from cic_eth.db.models.role import AccountRole
 from cic_eth.db.models.base import SessionBase
 from cic_eth.error import (
         AlreadyFillingGasError,
         OutOfGasError,
+        ResendImpossibleError,
         )
 from cic_eth.eth.nonce import CustodialTaskNonceOracle
 from cic_eth.queue.tx import (
@@ -61,20 +71,59 @@ from cic_eth.encode import (
         ZERO_ADDRESS_NORMAL,
         unpack_normal,
         )
+from cic_eth.error import SeppukuError
+from cic_eth.eth.util import MAXIMUM_FEE_UNITS
 
 celery_app = celery.current_app
 logg = logging.getLogger()
 
-
-MAXIMUM_FEE_UNITS = 8000000
-
-class MaxGasOracle:
-
-    def gas(code=None):
-        return MAXIMUM_FEE_UNITS
+MAX_RESEND_ATTEMPTS = 10
 
 
-#def create_check_gas_task(tx_signed_raws_hex, chain_spec, holder_address, gas=None, tx_hashes_hex=None, queue=None):
+@celery_app.task(base=CriticalSQLAlchemyTask)
+def apply_gas_value_cache(address, method, value, tx_hash):
+    return apply_gas_value_cache_local(address, method, value, tx_hash)
+
+
+def apply_gas_value_cache_local(address, method, value, tx_hash, session=None):
+    address = tx_normalize.executable_address(address)
+    tx_hash = tx_normalize.tx_hash(tx_hash)
+    value = int(value)
+
+    session = SessionBase.bind_session(session)
+    q = session.query(GasCache)
+    q = q.filter(GasCache.address==address)
+    q = q.filter(GasCache.method==method)
+    o = q.first()
+
+    if o == None:
+        o = GasCache(address, method, value, tx_hash)
+    elif value > o.value:
+        o.value = value
+        o.tx_hash = strip_0x(tx_hash)
+
+    session.add(o)
+    session.commit()
+
+    SessionBase.release_session(session)
+
+
+def have_gas_minimum(chain_spec, address, min_gas, session=None, rpc=None):
+    if rpc == None:
+        rpc = RPCConnection.connect(chain_spec, 'default')
+    o = balance(add_0x(address))
+    r = rpc.do(o)
+    try: 
+        r = int(r)
+    except ValueError:
+        r = strip_0x(r)
+        r = int(r, 16)
+    logg.debug('have gas minimum {} have gas {} minimum is {}'.format(address, r, min_gas))
+    if r < min_gas:
+        return False
+    return True
+
+
 def create_check_gas_task(tx_signed_raws_hex, chain_spec, holder_address, gas=None, tx_hashes_hex=None, queue=None):
     """Creates a celery task signature for a check_gas task that adds the task to the outgoing queue to be processed by the dispatcher.
 
@@ -179,8 +228,9 @@ def check_gas(self, tx_hashes_hex, chain_spec_dict, txs_hex=[], address=None, ga
     :return: Signed raw transaction data list
     :rtype: param txs, unchanged
     """
+    rpc_format_address = None
     if address != None:
-        if not is_checksum_address(address):
+        if not is_address(address):
             raise ValueError('invalid address {}'.format(address))
         address = tx_normalize.wallet_address(address)
         address = add_0x(address)
@@ -195,7 +245,6 @@ def check_gas(self, tx_hashes_hex, chain_spec_dict, txs_hex=[], address=None, ga
         txs.append(tx)
 
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
-    logg.debug('txs {} tx_hashes {}'.format(txs, tx_hashes))
 
     addresspass = None
     if len(txs) == 0:
@@ -211,13 +260,15 @@ def check_gas(self, tx_hashes_hex, chain_spec_dict, txs_hex=[], address=None, ga
                 raise ValueError('txs passed to check gas must all have same sender; had {} got {}'.format(address, tx['from']))
             addresspass.append(address)
 
+    rpc_format_address = add_0x(to_checksum_address(address))
+
     queue = self.request.delivery_info.get('routing_key')
 
     conn = RPCConnection.connect(chain_spec)
 
     gas_balance = 0
     try:
-        o = balance(address)
+        o = balance(rpc_format_address)
         r = conn.do(o)
         conn.disconnect()
         gas_balance = abi_decode_single(ABIContractType.UINT256, r)
@@ -248,6 +299,9 @@ def check_gas(self, tx_hashes_hex, chain_spec_dict, txs_hex=[], address=None, ga
             [
                 chain_spec_dict,
                 ],
+            kwargs={
+                'immediate_gas': gas_required,
+                },
             queue=queue,
                 )
         s_nonce.link(s_refill_gas)
@@ -282,6 +336,9 @@ def check_gas(self, tx_hashes_hex, chain_spec_dict, txs_hex=[], address=None, ga
             [
                 chain_spec_dict,
                 ],
+            kwargs={
+                'immediate_gas': gas_required,
+                },
             queue=queue,
                 )
         s_nonce.link(s_refill_gas)
@@ -307,7 +364,7 @@ def check_gas(self, tx_hashes_hex, chain_spec_dict, txs_hex=[], address=None, ga
 # TODO: if this method fails the nonce will be out of sequence. session needs to be extended to include the queue create, so that nonce is rolled back if the second sql query fails. Better yet, split each state change into separate tasks.
 # TODO: method is too long, factor out code for clarity
 @celery_app.task(bind=True, throws=(NotFoundEthException,), base=CriticalWeb3AndSignerTask)
-def refill_gas(self, recipient_address, chain_spec_dict):
+def refill_gas(self, recipient_address, chain_spec_dict, immediate_gas=0):
     """Executes a native token transaction to fund the recipient's gas expenditures.
 
     :param recipient_address: Recipient in need of gas
@@ -328,10 +385,11 @@ def refill_gas(self, recipient_address, chain_spec_dict):
     recipient_address = tx_normalize.wallet_address(recipient_address)
     zero_amount = False
     session = SessionBase.create_session()
-    status_filter = StatusBits.FINAL | StatusBits.NODE_ERROR | StatusBits.NETWORK_ERROR | StatusBits.UNKNOWN_ERROR
+    #status_filter = StatusBits.FINAL | StatusBits.NODE_ERROR | StatusBits.NETWORK_ERROR | StatusBits.UNKNOWN_ERROR | StatusBits.OBSOLETE
+    status_filter = StatusBits.FINAL | StatusBits.OBSOLETE
     q = session.query(Otx.tx_hash)
     q = q.join(TxCache)
-    q = q.filter(Otx.status.op('&')(StatusBits.FINAL.value)==0)
+    q = q.filter(Otx.status.op('&')(status_filter)==0)
     q = q.filter(TxCache.from_value!=0)
     q = q.filter(TxCache.recipient==recipient_address)
     c = q.count()
@@ -344,6 +402,7 @@ def refill_gas(self, recipient_address, chain_spec_dict):
     refill_amount = 0
     if not zero_amount:
         refill_amount = self.safe_gas_refill_amount
+    refill_amount += immediate_gas
 
     # determine sender
     gas_provider = AccountRole.get_address('GAS_GIFTER', session=session)
@@ -352,9 +411,16 @@ def refill_gas(self, recipient_address, chain_spec_dict):
     # set up evm RPC connection
     rpc = RPCConnection.connect(chain_spec, 'default')
 
+    # check the gas balance of the gifter
+    if not have_gas_minimum(chain_spec, gas_provider, self.safe_gas_refill_amount):
+        raise SeppukuError('Noooooooooooo; gas gifter {} is broke!'.format(gas_provider))
+
+    if not have_gas_minimum(chain_spec, gas_provider, self.safe_gas_gifter_balance):
+        logg.error('Gas gifter {} gas balance is below the safe level to operate!'.format(gas_provider))
+    
     # set up transaction builder
     nonce_oracle = CustodialTaskNonceOracle(gas_provider, self.request.root_id, session=session)
-    gas_oracle = self.create_gas_oracle(rpc)
+    gas_oracle = self.create_gas_oracle(rpc, address=gas_provider)
     rpc_signer = RPCConnection.connect(chain_spec, 'signer')
     c = Gas(chain_spec, signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
 
@@ -384,8 +450,8 @@ def refill_gas(self, recipient_address, chain_spec_dict):
     return tx_signed_raw_hex
 
 
-@celery_app.task(bind=True, base=CriticalSQLAlchemyAndSignerTask)
-def resend_with_higher_gas(self, txold_hash_hex, chain_spec_dict, gas=None, default_factor=1.1):
+@celery_app.task(bind=True, throws=(ResendImpossibleError,), base=CriticalSQLAlchemyAndSignerTask)
+def resend_with_higher_gas(self, txold_hash_hex, chain_spec_dict, gas=None, default_factor=2):
     """Create a new transaction from an existing one with same nonce and higher gas price.
 
     :param txold_hash_hex: Transaction to re-create
@@ -426,36 +492,73 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_spec_dict, gas=None, defa
         current_gas_price = int(r, 16)
         if tx['gasPrice'] > current_gas_price:
             logg.info('Network gas price {} is lower than overdue tx gas price {}'.format(current_gas_price, tx['gasPrice']))
-            #tx['gasPrice'] = int(tx['gasPrice'] * default_factor)
             new_gas_price = tx['gasPrice'] + 1
         else:
             new_gas_price = int(tx['gasPrice'] * default_factor)
-            #if gas_price > new_gas_price:
-            #    tx['gasPrice'] = gas_price
-            #else:
-            #    tx['gasPrice'] = new_gas_price
 
+    if new_gas_price == tx['gasPrice']:
+        new_gas_price += 1
 
     rpc_signer = RPCConnection.connect(chain_spec, 'signer')
-    gas_oracle = OverrideGasOracle(price=new_gas_price, conn=rpc)
 
-    c = TxFactory(chain_spec, signer=rpc_signer, gas_oracle=gas_oracle)
-    logg.debug('change gas price from old {} to new {} for tx {}'.format(tx['gasPrice'], new_gas_price, tx))
-    tx['gasPrice'] = new_gas_price
-    try:
-        (tx_hash_hex, tx_signed_raw_hex) = c.build_raw(tx)
-    except ConnectionError as e:
-        raise SignerError(e)
-    except FileNotFoundError as e:
-        raise SignerError(e)
-    queue_create(
-        chain_spec,
-        tx['nonce'],
-        tx['from'],
-        tx_hash_hex,
-        tx_signed_raw_hex,
-        session=session,
-            )
+    r = False
+    for i in range(MAX_RESEND_ATTEMPTS):
+        gas_oracle = OverrideGasOracle(price=new_gas_price, conn=rpc)
+
+        c = TxFactory(chain_spec, signer=rpc_signer, gas_oracle=gas_oracle)
+        logg.debug('change gas price from old {} to new {} for tx {}'.format(tx['gasPrice'], new_gas_price, tx))
+        tx['gasPrice'] = new_gas_price
+        try:
+            (tx_hash_hex, tx_signed_raw_hex) = c.build_raw(tx)
+        except ConnectionError as e:
+            raise SignerError(e)
+        except FileNotFoundError as e:
+            raise SignerError(e)
+
+        try:
+            queue_create(
+                chain_spec,
+                tx['nonce'],
+                tx['from'],
+                tx_hash_hex,
+                tx_signed_raw_hex,
+                session=session,
+                    )
+        except sqlalchemy.exc.IntegrityError as e:
+            logg.error('failed to create new transaction, attempting slight fee hike. {}'.format(e))
+            #new_gas_price += 1
+            new_gas_price *= default_factor
+            session.rollback()
+            continue
+
+        r = True
+        break
+
+    if not r:
+        session.close()
+        s = celery.signature(
+                'cic_eth.queue.state.set_fubar',
+                [
+                    chain_spec_dict,
+                    txold_hash_hex,
+                    ],
+                queue=queue,
+                )
+        t = s.apply_async()
+        logg.error('giving up resends. setting fubar task {} and need manual help'.format(t))
+        if self.debug_log:
+            s_debug = celery.signature(
+                'cic_eth.debug.debug_add',
+                [
+                    ','.join([str(chain_spec), txold_hash_hex]),
+                    'resend fail task {} gas {}'.format(t, new_gas_price),
+                    ],
+                    queue=queue,
+                    )
+            r = s_debug.apply_async()
+        raise ResendImpossibleError(txold_hash_hex)
+
+    logg.debug('resending as tx {} {}'.format(tx_hash_hex, tx_signed_raw_hex))
     TxCache.clone(txold_hash_hex, tx_hash_hex, session=session)
     session.close()
 
@@ -472,3 +575,15 @@ def resend_with_higher_gas(self, txold_hash_hex, chain_spec_dict, gas=None, defa
     return tx_hash_hex
 
 
+def parse_gas(tx, conn, chain_spec, caller_address=ZERO_ADDRESS):
+    r = (None, None,)
+    if tx.value > 0 or len(tx.payload) == 0:
+        transfer_data = {}
+        transfer_data['to'] = tx_normalize.wallet_address(tx.inputs[0])
+        transfer_data['from'] = tx_normalize.wallet_address(tx.outputs[0])
+        transfer_data['value'] = tx.value
+        transfer_data['token_address'] = None
+        r = ('gas', transfer_data,)
+    else:
+        logg.info('value {} payload {}'.format(tx.value, tx.payload))
+    return r

@@ -55,17 +55,28 @@ def get_tx_local(chain_spec, tx_hash, session=None):
     SessionBase.release_session(session)
     return r
 
+@celery_app.task(base=CriticalSQLAlchemyTask)
+def get_latest_txs(chain_spec_dict, count=10, status=None, not_status=None, offset=None, limit=None):
+    chain_spec = ChainSpec.from_dict(chain_spec_dict)
+    return get_latest_txs_local(chain_spec, count=count, status=status, not_status=not_status, offset=offset, limit=limit)
+
+def get_latest_txs_local(chain_spec, count=10, status=None, not_status=None, offset=None, limit=None, session=None):
+    session = SessionBase.bind_session(session)
+    r = chainqueue.sql.query.get_latest_txs(chain_spec, count=count, status=status, not_status=not_status, since=offset, until=limit, session=session)
+    SessionBase.release_session(session)
+    return r
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
-def get_account_tx(chain_spec_dict, address, as_sender=True, as_recipient=True, counterpart=None):
+def get_account_tx(chain_spec_dict, address, status=None, not_status=None, as_sender=True, as_recipient=True, counterpart=None, offset=None, limit=None):
+    address = tx_normalize.wallet_address(address)
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
-    return get_account_tx_local(chain_spec, address, as_sender=as_sender, as_recipient=as_recipient, counterpart=counterpart)
+    return get_account_tx_local(chain_spec, address, status=status, not_status=not_status, as_sender=as_sender, as_recipient=as_recipient, counterpart=counterpart, offset=offset, limit=limit)
 
 
-def get_account_tx_local(chain_spec, address, as_sender=True, as_recipient=True, counterpart=None, session=None):
+def get_account_tx_local(chain_spec, address, status=None, not_status=None, as_sender=True, as_recipient=True, counterpart=None, offset=None, limit=None, session=None):
     address = tx_normalize.wallet_address(address)
     session = SessionBase.bind_session(session)
-    r = chainqueue.sql.query.get_account_tx(chain_spec, address, as_sender=True, as_recipient=True, counterpart=None, session=session)
+    r = chainqueue.sql.query.get_account_tx(chain_spec, address, as_sender=as_sender, as_recipient=as_recipient, counterpart=counterpart, status=status, not_status=not_status, since=offset, until=limit, session=session)
     SessionBase.release_session(session)
     return r
 
@@ -84,8 +95,8 @@ def get_upcoming_tx_nolock_local(chain_spec, status=StatusEnum.READYSEND, not_st
     return r
 
 
-def get_status_tx(chain_spec, status, not_status=None, before=None, exact=False, limit=0, session=None):
-    return chainqueue.sql.query.get_status_tx_cache(chain_spec, status, not_status=not_status, before=before, exact=exact, limit=limit, session=session, decoder=unpack_normal)
+def get_status_tx(chain_spec, status, not_status=None, before=None, exact=False, compare_checked=False, limit=0, session=None):
+    return chainqueue.sql.query.get_status_tx_cache(chain_spec, status, not_status=not_status, before=before, exact=exact, limit=limit, compare_checked=compare_checked, session=session, decoder=unpack_normal)
 
 
 def get_paused_tx(chain_spec, status=None, sender=None, session=None, decoder=None):
@@ -158,11 +169,12 @@ def get_upcoming_tx(chain_spec, status=StatusEnum.READYSEND, not_status=None, re
         q = q.join(TxCache)
         q = q.filter(TxCache.sender==r.sender)
         q = q.filter(Otx.nonce==r.nonce)
+        q = q.filter(Otx.status.op('&')(status)==status)
 
         if before != None:
             q = q.filter(TxCache.date_checked<before)
        
-        q = q.order_by(TxCache.date_created.desc())
+        q = q.order_by(TxCache.date_checked.desc())
         o = q.first()
 
         # TODO: audit; should this be possible if a row is found in the initial query? If not, at a minimum log error.

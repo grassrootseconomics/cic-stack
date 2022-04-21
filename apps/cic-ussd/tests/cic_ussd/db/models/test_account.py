@@ -16,7 +16,7 @@ from cic_ussd.db.models.task_tracker import TaskTracker
 from tests.helpers.accounts import blockchain_address, phone_number
 
 
-def test_account(init_database, set_fernet_key):
+def test_account(init_database):
     address = blockchain_address()
     phone = phone_number()
     account = Account(address, phone)
@@ -90,7 +90,16 @@ def test_standard_metadata_id(activated_account, cache_person_metadata, pending_
 
 def test_account_create(init_cache, init_database, load_chain_spec, mock_account_creation_task_result, task_uuid):
     chain_str = Chain.spec.__str__()
-    create(chain_str, phone_number(), init_database)
+    create(chain_str, phone_number(), init_database, 'en')
     assert len(init_database.query(TaskTracker).all()) == 1
     account_creation_data = get_cached_data(task_uuid)
     assert json.loads(account_creation_data).get('status') == AccountStatus.PENDING.name
+
+
+def test_reset_pin(init_database, activated_account):
+    assert activated_account.get_status(init_database) == AccountStatus.ACTIVE.name
+    activated_account.failed_pin_attempts = 1
+    activated_account.reset_pin(init_database, True)
+    assert activated_account.get_status(init_database) == AccountStatus.ACTIVE.name
+    activated_account.reset_pin(init_database)
+    assert activated_account.get_status(init_database) == AccountStatus.RESET.name

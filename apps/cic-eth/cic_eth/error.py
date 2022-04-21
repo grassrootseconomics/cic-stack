@@ -48,8 +48,6 @@ class RoleMissingError(Exception):
     pass
 
 
-
-
 class IntegrityError(Exception):
     """Exception raised to signal irregularities with deduplication and ordering of tasks
 
@@ -66,8 +64,10 @@ class LockedError(Exception):
 
 class SeppukuError(Exception):
     """Exception base class for all errors that should cause system shutdown
-
     """
+    def __init__(self, message, lockdown=False):
+        self.message = message
+        self.lockdown = lockdown
 
 
 class SignerError(SeppukuError):
@@ -84,4 +84,14 @@ class RoleAgencyError(SeppukuError):
 
 class YouAreBrokeError(Exception):
     """Exception raised when a value transfer is attempted without access to sufficient funds
+    """
+
+
+class TrustError(Exception):
+    """Required trust proofs are missing for a request
+    """
+
+
+class ResendImpossibleError(Exception):
+    """Resend failed all attempts at mutating a transaction
     """

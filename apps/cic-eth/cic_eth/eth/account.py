@@ -5,6 +5,7 @@ import logging
 import celery
 from erc20_faucet import Faucet
 from hexathon import (
+        add_0x,
         strip_0x,
         )
 from chainlib.eth.constant import ZERO_ADDRESS
@@ -13,7 +14,7 @@ from chainlib.eth.sign import (
         new_account,
         sign_message,
         )
-from chainlib.eth.address import to_checksum_address
+from chainlib.eth.address import to_checksum_address, is_address
 from chainlib.eth.tx import TxFormat
 from chainlib.chain import ChainSpec
 from chainlib.error import JSONRPCException
@@ -31,6 +32,7 @@ from cic_eth.eth.gas import (
 from cic_eth.db.models.nonce import Nonce
 from cic_eth.db.models.base import SessionBase
 from cic_eth.db.models.role import AccountRole
+from cic_eth.encode import tx_normalize
 from cic_eth.error import (
         RoleMissingError,
         SignerError,
@@ -49,6 +51,7 @@ from cic_eth.queue.tx import (
 from cic_eth.encode import (
         unpack_normal,
         ZERO_ADDRESS_NORMAL,
+        tx_normalize,
         )
 
 logg = logging.getLogger()
@@ -84,7 +87,7 @@ def create(self, password, chain_spec_dict):
     # TODO: It seems infeasible that a can be None in any case, verify
     if a == None:
         raise SignerError('create account')
-        
+    a = tx_normalize.wallet_address(a)
     logg.debug('created account {}'.format(a))
 
     # Initialize nonce provider record for account
@@ -134,7 +137,7 @@ def register(self, account_address, chain_spec_dict, writer_address=None):
     # Generate and sign transaction
     rpc_signer = RPCConnection.connect(chain_spec, 'signer')
     nonce_oracle = CustodialTaskNonceOracle(writer_address, self.request.root_id, session=session) #, default_nonce)
-    gas_oracle = self.create_gas_oracle(rpc, AccountRegistry.gas)
+    gas_oracle = self.create_gas_oracle(rpc, address=ZERO_ADDRESS, code_callback=AccountRegistry.gas)
     account_registry = AccountsIndex(chain_spec, signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
     (tx_hash_hex, tx_signed_raw_hex) = account_registry.add(account_registry_address, writer_address, account_address, tx_format=TxFormat.RLP_SIGNED)
     rpc_signer.disconnect()
@@ -175,6 +178,9 @@ def gift(self, account_address, chain_spec_dict):
     """
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
 
+    if is_address(account_address):
+        account_address = tx_normalize.wallet_address(account_address)
+
     logg.debug('gift account address {} to index'.format(account_address))
     queue = self.request.delivery_info.get('routing_key')
 
@@ -187,7 +193,7 @@ def gift(self, account_address, chain_spec_dict):
     # Generate and sign transaction
     rpc_signer = RPCConnection.connect(chain_spec, 'signer')
     nonce_oracle = CustodialTaskNonceOracle(account_address, self.request.root_id, session=session) #, default_nonce)
-    gas_oracle = self.create_gas_oracle(rpc, MinterFaucet.gas)
+    gas_oracle = self.create_gas_oracle(rpc, address=ZERO_ADDRESS, code_callback=MinterFaucet.gas)
     faucet = Faucet(chain_spec, signer=rpc_signer, nonce_oracle=nonce_oracle, gas_oracle=gas_oracle)
     (tx_hash_hex, tx_signed_raw_hex) = faucet.give_to(faucet_address, account_address, account_address, tx_format=TxFormat.RLP_SIGNED)
     rpc_signer.disconnect()
@@ -248,8 +254,9 @@ def have(self, account, chain_spec_dict):
 
 @celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
 def set_role(self, tag, address, chain_spec_dict):
-    if not to_checksum_address(address):
-        raise ValueError('invalid checksum address {}'.format(address))
+    if not is_address(address):
+        raise ValueError('invalid address {}'.format(address))
+    address = tx_normalize.wallet_address(address)
     session = SessionBase.create_session()
     role = AccountRole.set(tag, address, session=session) 
     session.add(role)
@@ -260,19 +267,46 @@ def set_role(self, tag, address, chain_spec_dict):
 
 @celery_app.task(bind=True, base=BaseTask)
 def role(self, address, chain_spec_dict):
-    """Return account role for address
+    """Return account role for address and/or role
 
     :param account: Account to check
     :type account: str, 0x-hex
-    :param chain_str: Chain spec string representation
-    :type chain_str: str
+    :param chain_spec_dict: Chain spec dict representation
+    :type chain_spec_dict: dict
     :returns: Account, or None if not exists
     :rtype: Varies
     """
     session = self.create_session()
     role_tag =  AccountRole.role_for(address, session=session)
     session.close()
-    return role_tag
+    return [(address, role_tag,)]
+
+
+@celery_app.task(bind=True, base=BaseTask)
+def role_account(self, role_tag, chain_spec_dict):
+    """Return address for role.
+
+    If the role parameter is None, will return addresses for all roles.
+
+    :param role_tag: Role to match
+    :type role_tag: str
+    :param chain_spec_dict: Chain spec dict representation
+    :type chain_spec_dict: dict
+    :returns: List with a single account/tag pair for a single tag, or a list of account and tag pairs for all tags
+    :rtype: list
+    """
+    session = self.create_session()
+
+    pairs = None
+    if role_tag != None:
+        addr = AccountRole.get_address(role_tag, session=session)
+        pairs = [(addr, role_tag,)]
+    else:
+        pairs = AccountRole.all(session=session)
+
+    session.close()
+
+    return pairs
 
 
 @celery_app.task(bind=True, base=CriticalSQLAlchemyTask)
@@ -298,13 +332,15 @@ def cache_gift_data(
     tx_signed_raw_bytes = bytes.fromhex(strip_0x(tx_signed_raw_hex))
     tx = unpack_normal(tx_signed_raw_bytes, chain_spec)
     tx_data = Faucet.parse_give_to_request(tx['data'])
+    sender_address = tx_normalize.wallet_address(tx['from'])
+    recipient_address = tx_normalize.wallet_address(tx['to'])
 
     session = self.create_session()
 
     tx_dict = {
             'hash': tx['hash'],
-            'from': tx['from'],
-            'to': tx['to'],
+            'from': sender_address,
+            'to': recipient_address,
             'source_token': ZERO_ADDRESS_NORMAL,
             'destination_token': ZERO_ADDRESS_NORMAL,
             'from_value': 0,
@@ -338,12 +374,14 @@ def cache_account_data(
     tx_signed_raw_bytes = bytes.fromhex(strip_0x(tx_signed_raw_hex))
     tx = unpack_normal(tx_signed_raw_bytes, chain_spec)
     tx_data = AccountsIndex.parse_add_request(tx['data'])
+    sender_address = tx_normalize.wallet_address(tx['from'])
+    recipient_address = tx_normalize.wallet_address(tx['to'])
 
     session = SessionBase.create_session()
     tx_dict = {
             'hash': tx['hash'],
-            'from': tx['from'],
-            'to': tx['to'],
+            'from': sender_address,
+            'to': recipient_address,
             'source_token': ZERO_ADDRESS_NORMAL,
             'destination_token': ZERO_ADDRESS_NORMAL,
             'from_value': 0,
@@ -352,3 +390,42 @@ def cache_account_data(
     (tx_dict, cache_id) = cache_tx_dict(tx_dict, session=session)
     session.close()
     return (tx_hash_hex, cache_id)
+
+
+def parse_giftto(tx, conn, chain_spec, caller_address=ZERO_ADDRESS):
+    if not tx.payload:
+        return (None, None)
+    r = Faucet.parse_give_to_request(tx.payload)
+    transfer_data = {}
+    transfer_data['to'] = tx_normalize.wallet_address(r[0])
+    transfer_data['value'] = tx.value
+    transfer_data['from'] = tx_normalize.wallet_address(tx.outputs[0])
+    #transfer_data['token_address'] = tx.inputs[0]
+    faucet_contract = tx.inputs[0]
+
+    c = Faucet(chain_spec)
+
+    o = c.token(faucet_contract, sender_address=caller_address)
+    r = conn.do(o)
+    transfer_data['token_address'] = add_0x(c.parse_token(r))
+
+    o = c.token_amount(faucet_contract, sender_address=caller_address)
+    r = conn.do(o)
+    transfer_data['value'] = c.parse_token_amount(r)
+
+    return ('tokengift', transfer_data)
+
+
+
+def parse_register(tx, conn, chain_spec, caller_address=ZERO_ADDRESS):
+    if not tx.payload:
+        return (None, None)
+    r = AccountRegistry.parse_add_request(tx.payload)
+    transfer_data = {
+        'value': None,
+        'token_address': None,
+            }
+    transfer_data['to'] = tx_normalize.wallet_address(r)
+    transfer_data['from'] = tx_normalize.wallet_address(tx.outputs[0])
+    return ('account_register', transfer_data,)
+

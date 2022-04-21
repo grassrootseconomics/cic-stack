@@ -2,8 +2,9 @@
 from chainlib.eth.constant import ZERO_ADDRESS
 from chainlib.status import Status as TxStatus
 from cic_eth_registry.erc20 import ERC20Token
+from hexathon import add_0x
 
-# local imports
+# local impor:ts
 from cic_eth.ext.address import translate_address
 
 
@@ -44,8 +45,8 @@ class ExtendedTx:
             destination = source
         if destination_value == None:
             destination_value = source_value
-        st = ERC20Token(self.chain_spec, self.rpc, source)
-        dt = ERC20Token(self.chain_spec, self.rpc, destination)
+        st = ERC20Token(self.chain_spec, self.rpc, add_0x(source))
+        dt = ERC20Token(self.chain_spec, self.rpc, add_0x(destination))
         self.source_token = source
         self.source_token_symbol = st.symbol
         self.source_token_name = st.name

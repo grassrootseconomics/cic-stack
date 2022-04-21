@@ -1,11 +1,9 @@
 # standard imports
-from typing import Optional
 
 # third-party imports
 import phonenumbers
 
 # local imports
-from cic_ussd.db.models.account import Account
 
 
 class E164Format:
