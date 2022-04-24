@@ -55,10 +55,14 @@ def set_rejected(chain_spec_dict, tx_hash):
 def set_fubar(chain_spec_dict, tx_hash):
     tx_hash = tx_normalize.tx_hash(tx_hash)
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
-    session = SessionBase.create_session()
+    return set_fubar_local(chain_spec, tx_hash)
+
+
+def set_fubar_local(chain_spec, tx_hash, session=None):
+    session = SessionBase.bind_session(session)
     r = chainqueue.sql.state.set_fubar(chain_spec, tx_hash, session=session)
-    session.close()
-    return 'foo ' + r
+    SessionBase.release_session(session)
+    return r
 
 
 @celery_app.task(base=CriticalSQLAlchemyTask)
@@ -115,6 +119,10 @@ def get_state_log(chain_spec_dict, tx_hash):
 def obsolete(chain_spec_dict, tx_hash, final):
     tx_hash = tx_normalize.tx_hash(tx_hash)
     chain_spec = ChainSpec.from_dict(chain_spec_dict)
+    return obsolete_local(chain_spec, tx_hash, final)
+
+
+def obsolete_local(chain_spec, tx_hash, final, session=None):
     session = SessionBase.create_session()
     r = chainqueue.sql.state.obsolete_by_cache(chain_spec, tx_hash, final, session=session)
     session.close()

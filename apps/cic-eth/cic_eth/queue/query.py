@@ -101,7 +101,10 @@ def get_status_tx(chain_spec, status, not_status=None, before=None, exact=False,
 
 def get_paused_tx(chain_spec, status=None, sender=None, session=None, decoder=None):
     sender = tx_normalize.wallet_address(sender)
-    return chainqueue.sql.query.get_paused_tx_cache(chain_spec, status=status, sender=sender, session=session, decoder=unpack_normal)
+    session = SessionBase.bind_session(session)
+    r = chainqueue.sql.query.get_paused_tx_cache(chain_spec, status=status, sender=sender, session=session, decoder=unpack_normal)
+    SessionBase.release_session(session)
+    return r
 
 
 def get_nonce_tx(chain_spec, nonce, sender):
