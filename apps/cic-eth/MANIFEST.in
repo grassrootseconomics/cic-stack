@@ -1,2 +1,3 @@
-include *requirements.txt config/test/* cic_eth/data/config/*
+include *requirements.txt config/test/* cic_eth/data/config/* cic_eth/data/config/test/* cic_eth/db/migrations/default/* cic_eth/db/migrations/default/versions/* cic_eth/pytest/testdata/*
+
 

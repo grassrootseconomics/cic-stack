@@ -4,4 +4,3 @@ chainlib-eth>=0.1.0b1,<0.2.0
 urlybird~=0.0.1
 cic-eth-registry~=0.6.9
 cic-types~=0.2.1a9
-cic-eth-aux-erc20-demurrage-token~=0.0.3

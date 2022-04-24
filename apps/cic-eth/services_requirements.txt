@@ -14,3 +14,4 @@ sarafu-faucet~=0.0.7
 moolb~=0.2.0
 okota~=0.2.6
 stateness~=0.0.1a1
+cic-eth-aux-erc20-demurrage-token~=0.0.3
