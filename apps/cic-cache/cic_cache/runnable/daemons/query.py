@@ -1,21 +1,15 @@
 # standard imports
-import logging
-import json
-import re
 import base64
+import json
+import logging
+import re
 
-# external imports
-from hexathon import (
-        add_0x,
-        strip_0x,
-        )
 from chainlib.encode import TxHexNormalizer
-
 # local imports
-from cic_cache.cache import (
-        BloomCache,
-        DataCache,
-    )
+from cic_cache.cache import BloomCache, DataCache
+from cic_cache.db.list import list_account_tokens
+# external imports
+from hexathon import add_0x, strip_0x
 
 logg = logging.getLogger(__name__)
 #logg = logging.getLogger()
@@ -24,11 +18,22 @@ re_transactions_all_bloom = r'/tx/?(\d+)?/?(\d+)?/?(\d+)?/?(\d+)?/?'
 re_transactions_account_bloom = r'/tx/user/((0x)?[a-fA-F0-9]+)(/(\d+)(/(\d+))?)?/?'
 re_transactions_all_data = r'/txa/?(\d+)?/?(\d+)?/?(\d+)?/?(\d+)?/?'
 re_transactions_account_data = r'/txa/user/((0x)?[a-fA-F0-9]+)(/(\d+)(/(\d+))?)?/?'
+re_account_tokens = r'/wallet/(0x|)([a-fA-F0-9]{40})(/(\d+))?'
+
 re_default_limit = r'/defaultlimit/?'
 
 DEFAULT_LIMIT = 100
 
 tx_normalize = TxHexNormalizer()
+
+
+def parse_query_account_tokens(r):
+    limit = DEFAULT_LIMIT
+    address = strip_0x(r[2])
+    if len(r.groups()) == 4 and r[4] != None:
+        limit = int(r[4])
+    return (address, limit)
+
 
 def parse_query_account(r):
     address = strip_0x(r[1])
@@ -43,7 +48,8 @@ def parse_query_account(r):
     if len(g) > 4:
         offset = int(r[6])
 
-    logg.debug('account query is address {} offset {} limit {}'.format(address, offset, limit))
+    logg.debug('account query is address {} offset {} limit {}'.format(
+        address, offset, limit))
 
     return (address, offset, limit,)
 
@@ -66,7 +72,8 @@ def parse_query_any(r):
             if block_end < block_offset:
                 raise ValueError('cart before the horse, dude')
 
-    logg.debug('data query is offset {} limit {} block_offset {} block_end {}'.format(offset, limit, block_offset, block_end))
+    logg.debug('data query is offset {} limit {} block_offset {} block_end {}'.format(
+        offset, limit, block_offset, block_end))
 
     return (offset, limit, block_offset, block_end,)
 
@@ -88,7 +95,8 @@ def process_transactions_account_bloom(session, env):
     (address, offset, limit,) = parse_query_account(r)
 
     c = BloomCache(session)
-    (lowest_block, highest_block, bloom_filter_block, bloom_filter_tx) = c.load_transactions_account(address, offset, limit)
+    (lowest_block, highest_block, bloom_filter_block,
+     bloom_filter_tx) = c.load_transactions_account(address, offset, limit)
 
     o = {
         'alg': 'sha256',
@@ -97,7 +105,7 @@ def process_transactions_account_bloom(session, env):
         'block_filter': base64.b64encode(bloom_filter_block).decode('utf-8'),
         'blocktx_filter': base64.b64encode(bloom_filter_tx).decode('utf-8'),
         'filter_rounds': 3,
-            }
+    }
 
     j = json.dumps(o)
 
@@ -113,7 +121,8 @@ def process_transactions_all_bloom(session, env):
     (limit, offset, block_offset, block_end,) = parse_query_any(r)
 
     c = BloomCache(session)
-    (lowest_block, highest_block, bloom_filter_block, bloom_filter_tx) = c.load_transactions(offset, limit)
+    (lowest_block, highest_block, bloom_filter_block,
+     bloom_filter_tx) = c.load_transactions(offset, limit)
 
     o = {
         'alg': 'sha256',
@@ -122,7 +131,7 @@ def process_transactions_all_bloom(session, env):
         'block_filter': base64.b64encode(bloom_filter_block).decode('utf-8'),
         'blocktx_filter': base64.b64encode(bloom_filter_tx).decode('utf-8'),
         'filter_rounds': 3,
-            }
+    }
 
     j = json.dumps(o)
 
@@ -133,7 +142,7 @@ def process_transactions_all_data(session, env):
     r = re.match(re_transactions_all_data, env.get('PATH_INFO'))
     if not r:
         return None
-    #if env.get('HTTP_X_CIC_CACHE_MODE') != 'all':
+    # if env.get('HTTP_X_CIC_CACHE_MODE') != 'all':
     #    return None
     logg.debug('match all data')
 
@@ -142,7 +151,8 @@ def process_transactions_all_data(session, env):
     (offset, limit, block_offset, block_end) = parse_query_any(r)
 
     c = DataCache(session)
-    (lowest_block, highest_block, tx_cache) = c.load_transactions_with_data(offset, limit, block_offset, block_end, oldest=True) # oldest needs to be settable
+    (lowest_block, highest_block, tx_cache) = c.load_transactions_with_data(
+        offset, limit, block_offset, block_end, oldest=True)  # oldest needs to be settable
 
     for r in tx_cache:
         r['date_block'] = r['date_block'].timestamp()
@@ -153,10 +163,18 @@ def process_transactions_all_data(session, env):
         'data': tx_cache,
     }
 
-    
     j = json.dumps(o)
 
     return ('application/json', j.encode('utf-8'),)
+
+
+def process_account_tokens(session, env):
+    logg.debug('match account data')
+
+    (address, limit) = parse_query_account_tokens(
+        re.match(re_account_tokens, env.get('PATH_INFO')))
+
+    return list_account_tokens(session=session, wallet_address=address, limit=limit)
 
 
 def process_transactions_account_data(session, env):
@@ -164,13 +182,14 @@ def process_transactions_account_data(session, env):
     if not r:
         return None
     logg.debug('match account data')
-    #if env.get('HTTP_X_CIC_CACHE_MODE') != 'all':
+    # if env.get('HTTP_X_CIC_CACHE_MODE') != 'all':
     #    return None
 
     (address, offset, limit,) = parse_query_account(r)
 
     c = DataCache(session)
-    (lowest_block, highest_block, tx_cache) = c.load_transactions_account_with_data(address, offset, limit)
+    (lowest_block, highest_block, tx_cache) = c.load_transactions_account_with_data(
+        address, offset, limit)
 
     for r in tx_cache:
         r['date_block'] = r['date_block'].timestamp()

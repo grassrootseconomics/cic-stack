@@ -17,6 +17,7 @@ from cic_cache.runnable.daemons.query import (
         process_transactions_account_data,
         process_transactions_all_bloom,
         process_transactions_all_data,
+        process_account_tokens,
         )
 import cic_cache.cli
 
@@ -50,6 +51,7 @@ def application(env, start_response):
             process_transactions_account_bloom,
             process_transactions_all_data,
             process_transactions_all_bloom,
+            process_account_tokens,
             process_default_limit,
             ]:
         r = None

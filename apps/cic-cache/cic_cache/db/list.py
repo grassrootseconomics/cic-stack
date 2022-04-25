@@ -1,12 +1,26 @@
 # standard imports
-import logging
 import datetime
+import logging
 
 # external imports
 from cic_cache.db.models.base import SessionBase
 from sqlalchemy import text
-
+from hexathon import strip_0x
 logg = logging.getLogger()
+
+def list_account_tokens(session, wallet_address, limit=100):
+    """
+        List all tokens address that have interacted with a given wallet address.
+    """
+    sql = text("SELECT DISTINCT source_token, destination_token FROM tx WHERE sender=:address OR recipient=:address LIMIT :limit;")
+    result = session.execute(sql, {'address': strip_0x(wallet_address), 'limit': limit}).fetchall()
+    token_addresses = set()
+    for row in result:
+        if row[0] != None:
+            token_addresses.add(row[0])
+        if row[1] != None:
+            token_addresses.add(row[1])
+    return list(token_addresses)
 
 
 def list_transactions_mined(
@@ -16,7 +30,7 @@ def list_transactions_mined(
         block_offset,
         block_limit,
         oldest=False,
-        ):
+):
     """Executes db query to return all confirmed transactions according to the specified offset and limit.
 
     :param offset: Offset in data set to return transactions from
@@ -32,11 +46,14 @@ def list_transactions_mined(
 
     if block_offset:
         if block_limit:
-            s = "SELECT block_number, tx_index FROM tx WHERE block_number >= {} and block_number <= {} ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, block_limit, order_by, order_by, limit, offset)
+            s = "SELECT block_number, tx_index FROM tx WHERE block_number >= {} and block_number <= {} ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(
+                block_offset, block_limit, order_by, order_by, limit, offset)
         else:
-            s = "SELECT block_number, tx_index FROM tx WHERE block_number >= {} ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, order_by, order_by, limit, offset)
+            s = "SELECT block_number, tx_index FROM tx WHERE block_number >= {} ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(
+                block_offset, order_by, order_by, limit, offset)
     else:
-        s = "SELECT block_number, tx_index FROM tx ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(order_by, order_by, limit, offset)
+        s = "SELECT block_number, tx_index FROM tx ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(
+            order_by, order_by, limit, offset)
     r = session.execute(s)
     return r
 
@@ -48,7 +65,7 @@ def list_transactions_mined_with_data(
         block_offset,
         block_limit,
         oldest=False,
-        ):
+):
     """Executes db query to return all confirmed transactions according to the specified offset and limit.
 
     :param block_offset: First block to include in search
@@ -64,12 +81,14 @@ def list_transactions_mined_with_data(
 
     if block_offset:
         if block_limit:
-            s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} AND block_number <= {} ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, block_limit, order_by, order_by, limit, offset)
+            s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} AND block_number <= {} ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(
+                block_offset, block_limit, order_by, order_by, limit, offset)
         else:
-            s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, order_by, order_by, limit, offset)
+            s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(
+                block_offset, order_by, order_by, limit, offset)
     else:
-        s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(order_by, order_by, limit, offset)
-
+        s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(
+            order_by, order_by, limit, offset)
 
     r = session.execute(s)
     return r
@@ -82,7 +101,7 @@ def list_transactions_mined_with_data_index(
         block_offset,
         block_limit,
         oldest=False,
-        ):
+):
     """Executes db query to return all confirmed transactions according to the specified offset and limit.
 
     :param offset: Offset in data set to return transactions from
@@ -99,11 +118,14 @@ def list_transactions_mined_with_data_index(
 
     if block_offset:
         if block_limit:
-            s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} and block_number <= {} ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, block_limit, order_by, order_by, offset, end)
+            s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} and block_number <= {} ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(
+                block_offset, block_limit, order_by, order_by, offset, end)
         else:
-            s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, order_by, order_by, offset, end)
+            s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(
+                block_offset, order_by, order_by, offset, end)
     else:
-        s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(order_by, order_by, offset, end)
+        s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(
+            order_by, order_by, offset, end)
 
     r = session.execute(s)
     return r
@@ -117,7 +139,7 @@ def list_transactions_account_mined_with_data_index(
         block_offset,
         block_limit,
         oldest=False,
-        ):
+):
     """Executes db query to return all confirmed transactions according to the specified offset and limit, filtered by address
 
     :param offset: Offset in data set to return transactions from
@@ -134,14 +156,18 @@ def list_transactions_account_mined_with_data_index(
 
     if block_offset:
         if block_limit:
-            s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} AND block_number <= {} AND (sender = '{}' OR recipient = '{}') ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, block_limit, address, address, order_by, order_by, limit, offset)
+            s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} AND block_number <= {} AND (sender = '{}' OR recipient = '{}') ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(
+                block_offset, block_limit, address, address, order_by, order_by, limit, offset)
         else:
-            s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} AND (sender = '{}' OR recipient = '{}') ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, address, address, order_by, order_by, limit, offset)
+            s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} AND (sender = '{}' OR recipient = '{}') ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(
+                block_offset, address, address, order_by, order_by, limit, offset)
     else:
-        s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE sender = '{}' OR recipient = '{}' ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(address, address, order_by, order_by, limit, offset)
+        s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE sender = '{}' OR recipient = '{}' ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(
+            address, address, order_by, order_by, limit, offset)
 
     r = session.execute(s)
     return r
+
 
 def list_transactions_account_mined_with_data(
         session,
@@ -151,7 +177,7 @@ def list_transactions_account_mined_with_data(
         block_offset,
         block_limit,
         oldest=False,
-        ):
+):
     """Executes db query to return all confirmed transactions according to the specified offset and limit.
 
     :param block_offset: First block to include in search
@@ -168,11 +194,14 @@ def list_transactions_account_mined_with_data(
 
     if block_offset:
         if block_limit:
-            s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} AND block_number <= {} AND (sender = '{}' OR recipient = '{}') ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, block_limit, address, address, order_by, order_by, limit, offset)
+            s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} AND block_number <= {} AND (sender = '{}' OR recipient = '{}') ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(
+                block_offset, block_limit, address, address, order_by, order_by, limit, offset)
         else:
-            s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} AND (sender = '{}' OR recipient = '{}') ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, address, address, order_by, order_by, limit, offset)
+            s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE block_number >= {} AND (sender = '{}' OR recipient = '{}') ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(
+                block_offset, address, address, order_by, order_by, limit, offset)
     else:
-        s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE sender = '{}' OR recipient = '{}' ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(address, address, order_by, order_by, limit, offset)
+        s = "SELECT tx_hash, block_number, tx_index, date_block, sender, recipient, from_value, to_value, source_token, destination_token, success, domain, value FROM tx LEFT JOIN tag_tx_link ON tx.id = tag_tx_link.tx_id LEFT JOIN tag ON tag_tx_link.tag_id = tag.id WHERE sender = '{}' OR recipient = '{}' ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(
+            address, address, order_by, order_by, limit, offset)
 
     r = session.execute(s)
     return r
@@ -186,7 +215,7 @@ def list_transactions_account_mined(
         block_offset,
         block_limit,
         oldest=False,
-        ):
+):
     """Same as list_transactions_mined(...), but only retrieves transaction where the specified account address is sender or recipient.
 
     :param address: Address to retrieve transactions for.
@@ -205,12 +234,15 @@ def list_transactions_account_mined(
 
     if block_offset:
         if block_limit:
-            s = "SELECT block_number, tx_index FROM tx WHERE block_number >= {} AND block_number <= {} AND (sender = '{}' OR recipient = '{}') ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, block_limit, address, address, order_by, order_by, limit, offset)
+            s = "SELECT block_number, tx_index FROM tx WHERE block_number >= {} AND block_number <= {} AND (sender = '{}' OR recipient = '{}') ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(
+                block_offset, block_limit, address, address, order_by, order_by, limit, offset)
         else:
-            s = "SELECT block_number, tx_index FROM tx WHERE block_number >= {} AND (sender = '{}' OR recipient = '{}') ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(block_offset, address, address, order_by, order_by, limit, offset)
+            s = "SELECT block_number, tx_index FROM tx WHERE block_number >= {} AND (sender = '{}' OR recipient = '{}') ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(
+                block_offset, address, address, order_by, order_by, limit, offset)
 
     else:
-        s = "SELECT block_number, tx_index FROM tx WHERE sender = '{}' OR recipient = '{}' ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(address, address, order_by, order_by, limit, offset)
+        s = "SELECT block_number, tx_index FROM tx WHERE sender = '{}' OR recipient = '{}' ORDER BY block_number {}, tx_index {} LIMIT {} OFFSET {}".format(
+            address, address, order_by, order_by, limit, offset)
 
     r = session.execute(s)
     return r
@@ -229,7 +261,7 @@ def add_transaction(
         to_value,
         success,
         timestamp,
-        ):
+):
     """Adds a single transaction to the cache persistent storage. Sensible interpretation of all fields is the responsibility of the caller.
 
     :param session: Persistent storage session object
@@ -259,20 +291,19 @@ def add_transaction(
     """
     date_block = datetime.datetime.fromtimestamp(timestamp)
     s = "INSERT INTO tx (tx_hash, block_number, tx_index, sender, recipient, source_token, destination_token, from_value, to_value, success, date_block) VALUES ('{}', {}, {}, '{}', '{}', '{}', '{}', {}, {}, {}, '{}')".format(
-            tx_hash,
-            block_number,
-            tx_index,
-            sender,
-            receiver,
-            source_token,
-            destination_token,
-            from_value,
-            to_value,
-            success,
-            date_block,
-            )
+        tx_hash,
+        block_number,
+        tx_index,
+        sender,
+        receiver,
+        source_token,
+        destination_token,
+        from_value,
+        to_value,
+        success,
+        date_block,
+    )
     session.execute(s)
-
 
 
 def tag_transaction(
@@ -280,7 +311,7 @@ def tag_transaction(
         tx_hash,
         name,
         domain=None,
-        ):
+):
     """Tag a single transaction with a single tag.
 
     Tag must already exist in storage.
@@ -325,7 +356,7 @@ def add_tag(
         session,
         name,
         domain=None,
-        ):
+):
     """Add a single tag to storage.
 
     :param session: Persistent storage session object
@@ -338,8 +369,10 @@ def add_tag(
     """
 
     s = None
-    if domain == None: 
+    if domain == None:
         s = text("INSERT INTO tag (value) VALUES (:b)")
     else:
         s = text("INSERT INTO tag (domain, value) VALUES (:a, :b)")
     session.execute(s, {'a': domain, 'b': name})
+
+
