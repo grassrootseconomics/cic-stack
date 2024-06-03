@@ -9,12 +9,14 @@ services:
       - ge
   vector:
     image: timberio/vector:latest-alpine
+    command: '--config /etc/vector/vector.toml'
     restart: unless-stopped
     volumes:
       - ./vector.toml:/etc/vector/vector.toml:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
-      - ge      
+      - ge
+      
 networks:
   ge:
     external: true
