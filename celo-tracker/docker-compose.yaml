@@ -10,7 +10,7 @@ services:
     restart: unless-stopped
     command: '-js -sd /nats/data -m 8222'
     volumes:
-      - cic-deploy-nats:/nats/data
+      - celo-tracker-nats:/nats/data
     ports:
       - '127.0.0.1:4222:4222'
     expose:
@@ -25,12 +25,21 @@ services:
       - nats    
     env_file:
       - tracker.env
+    volumes:
+      - celo-tracker-db:/service/db      
     expose:
       - 5001
     labels:
       - com.centurylinklabs.watchtower.enable=true
     networks:
-      - ge    
+      - ge
+
 networks:
   ge:
     external: true
+
+volumes:
+  celo-tracker-nats:
+    driver: local
+  celo-tracker-db:
+    driver: local
