@@ -1,0 +1,36 @@
+services:
+  watchtower:
+    image: containrrr/watchtower:latest
+    command: --cleanup --label-enable -i 120
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+  nats:
+    image: nats:2.10
+    restart: unless-stopped
+    command: '-js -sd /nats/data -m 8222'
+    volumes:
+      - cic-deploy-nats:/nats/data
+    ports:
+      - '127.0.0.1:4222:4222'
+    expose:
+      - 8222
+      - 6222
+    networks:
+      - ge      
+  celo-tracker:
+    image: ghcr.io/grassrootseconomics/celo-tracker:latest
+    restart: unless-stopped
+    depends_on:
+      - nats    
+    env_file:
+      - tracker.env
+    expose:
+      - 5001
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    networks:
+      - ge    
+networks:
+  ge:
+    external: true

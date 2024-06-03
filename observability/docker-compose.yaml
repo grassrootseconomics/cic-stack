@@ -1,15 +1,14 @@
-version: "3.9"
 services:
   otel-collector:
-    image: otel/opentelemetry-collector
+    image: otel/opentelemetry-collector:latest
     command: [--config=/etc/otel-collector-config.yaml]
     restart: unless-stopped
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
     networks:
-      - cic
+      - ge
   vector:
-    image: timberio/vector:0.24.X-alpine
+    image: timberio/vector:latest-alpine
     restart: unless-stopped
     volumes:
       - ./vector.toml:/etc/vector/vector.toml:ro

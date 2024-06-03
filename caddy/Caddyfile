@@ -1,11 +1,7 @@
-custodial.YOURPUBLICDOMAIN {
-    reverse_proxy cic-custodial:5000
+tracker.sarafu.africa {
+    reverse_proxy celo-tracker:5001
 }
 
-graph.YOURPUBLICDOMAIN P{
-    reverse_proxy cic-graph:8080
-}
-
-notify.YOURPUBLICDOMAIN P{
-    reverse_proxy cic-notify:5000
+nats.sarafu.africa {
+    reverse_proxy nats:8222
 }

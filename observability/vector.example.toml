@@ -1,0 +1,16 @@
+[api]
+enabled = false
+
+[sources.docker]
+type = "docker_logs"
+include_images = ["ghcr.io/grassrootseconomics/celo-tracker"]
+
+[sinks.uptrace]
+type = "http"
+method = "post"
+inputs = ["docker"]
+encoding.codec = "json"
+framing.method = "newline_delimited"
+compression = "gzip"
+request.headers.uptrace-dsn = "https://XXX@api.uptrace.dev?grpc=4317"
+uri = "https://api.uptrace.dev/api/v1/vector/logs"

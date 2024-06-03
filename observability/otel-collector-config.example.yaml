@@ -2,28 +2,21 @@ receivers:
   prometheus:
     config:
       scrape_configs:
-        - job_name: cic-custodial
-          metrics_path: '/metrics'
+        - job_name: cic-tracker
+          metrics_path: "/metrics"
           scrape_interval: 5s
           static_configs:
-            - targets: ['cic-custodial:5000']
-        - job_name: cic-chain-events
-          metrics_path: '/metrics'
-          scrape_interval: 5s
-          static_configs:
-            - targets: ['cic-chain-events:5000']            
+            - targets: ["celo-tracker:5001"]
 
 exporters:
-  # Fill in this part
-
-extensions:
-  health_check:
-  pprof:
-  zpages:
+  otlp:
+    endpoint: https://otlp.uptrace.dev:4317
+    tls: { insecure: false }
+    headers:
+      uptrace-dsn: "https://XXX@api.uptrace.dev?grpc=4317"
 
 service:
   pipelines:
     metrics:
       receivers: [prometheus]
-      # Fill in this part
-      exporters: []
+      exporters: [otlp]
