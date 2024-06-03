@@ -13,6 +13,8 @@ services:
     volumes:
       - ./vector.toml:/etc/vector/vector.toml:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - ge      
 networks:
-  cic:
-    external: true       
+  ge:
+    external: true
