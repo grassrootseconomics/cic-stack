@@ -3,7 +3,10 @@ enabled = false
 
 [sources.docker]
 type = "docker_logs"
-include_images = ["ghcr.io/grassrootseconomics/celo-tracker"]
+include_images = [
+    "ghcr.io/grassrootseconomics/celo-tracker",
+    "ghcr.io/grassrootseconomics/celo-indexer",
+]
 
 [sinks.uptrace]
 type = "http"
