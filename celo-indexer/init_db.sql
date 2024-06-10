@@ -1,0 +1,1 @@
+CREATE DATABASE ge_celo_data;

@@ -7,6 +7,11 @@ receivers:
           scrape_interval: 5s
           static_configs:
             - targets: ["celo-tracker:5001"]
+        - job_name: cic-indexer
+          metrics_path: "/metrics"
+          scrape_interval: 5s
+          static_configs:
+            - targets: ["celo-indexer:5002"]
 
 exporters:
   otlp:

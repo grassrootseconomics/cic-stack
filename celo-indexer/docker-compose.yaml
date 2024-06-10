@@ -1,0 +1,47 @@
+services:
+  watchtower:
+    image: containrrr/watchtower:latest
+    command: --cleanup --label-enable -i 120
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    user: postgres
+    env_file:
+      - indexer.env
+    volumes:
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+      - celo-indexer-pg:/var/lib/postgresql/data
+    ports:
+      - "40006:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5  
+    networks:
+      - ge      
+  celo-indexer:
+    image: ghcr.io/grassrootseconomics/celo-indexer:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - indexer.env
+    expose:
+      - 5002
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    networks:
+      - ge
+
+networks:
+  ge:
+    external: true
+
+volumes:
+  celo-tracker-pg:
+    driver: local
