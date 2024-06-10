@@ -9,7 +9,7 @@ services:
       - ge
   vector:
     image: timberio/vector:latest-alpine
-    command: '--config /etc/vector/vector.toml'
+    command: --config /etc/vector/vector.toml
     restart: unless-stopped
     volumes:
       - ./vector.toml:/etc/vector/vector.toml:ro
