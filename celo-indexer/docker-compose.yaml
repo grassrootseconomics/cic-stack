@@ -43,5 +43,5 @@ networks:
     external: true
 
 volumes:
-  celo-tracker-pg:
+  celo-indexer-pg:
     driver: local
