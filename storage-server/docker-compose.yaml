@@ -9,3 +9,7 @@ services:
       - com.centurylinklabs.watchtower.enable=true
     networks:
       - ge
+
+networks:
+  ge:
+    external: true
