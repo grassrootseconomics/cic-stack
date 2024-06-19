@@ -1,0 +1,11 @@
+services:
+  storage-server:
+    image: storage-server:latest
+    restart: unless-stopped
+    env_file: storage.env
+    expose:
+      - 5003
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    networks:
+      - ge

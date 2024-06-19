@@ -12,6 +12,11 @@ receivers:
           scrape_interval: 5s
           static_configs:
             - targets: ["celo-indexer:5002"]
+        - job_name: storage-server
+          metrics_path: "/metrics"
+          scrape_interval: 5s
+          static_configs:
+            - targets: ["storage-server:5003"]
 
 exporters:
   otlp:

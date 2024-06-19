@@ -6,6 +6,7 @@ type = "docker_logs"
 include_images = [
     "ghcr.io/grassrootseconomics/celo-tracker",
     "ghcr.io/grassrootseconomics/celo-indexer",
+    "storage-server",
 ]
 
 [sinks.uptrace]

@@ -5,3 +5,7 @@ tracker.sarafu.africa {
 nats.sarafu.africa {
     reverse_proxy nats:8222
 }
+
+storage.sarafu.africa {
+    reverse_proxy storage-server:5003
+}
